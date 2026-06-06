@@ -145,8 +145,24 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
 > (시연 영상 첨부)
  
 #### 3.3. 기능명세서
- -- san 작성 예정 
- 
+
+| Feature ID | Major Category | Feature Name | Detailed Description | Input Data | Output / Behavior | Supported Platforms |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **F-01** | Onboarding | Language Configuration | Allows users to select their preferred interface language upon launching the app/web portal. | Language Selection (Korean, English, Chinese, Vietnamese) | Saves the preference in local storage/cookies and maps translation resources to the UI. | Web / Mobile |
+| **F-02** | Registration | Student Type Selection | Prompts the user to choose their academic role (Domestic vs. International) at the start of signup. | Student Role (Domestic Student / International Student) | Dynamically alters signup form requirements (e.g., visa type becomes mandatory for international students). | Web / Mobile |
+| **F-03** | Registration | Account Creation | Registers a new credentials account using email and password. | Name, Email address, Password, Confirm Password | Validates entries and inserts a new credentials record into the `users` table via Supabase Auth. | Web / Mobile |
+| **F-04** | Authentication | Session Login | Authenticates registered email and password credentials to start a secure session. | Email, Password | Directs user to the main Dashboard upon successful token issuance. | Web / Mobile |
+| **F-05** | Dashboard | Home Layout | Renders a personalized dashboard based on the logged-in student type and language preferences. | Auth Session Credentials | Displays personalized course recommendation widgets, deadline alerts, and community posts. | Web / Mobile |
+| **F-06** | Dashboard | Real-time Push Alerts | Delivers real-time notifications about campus notices, scholarship deadlines, and group activities. | Database trigger events (new alert entries) | Triggers device-level notifications and updates application badges using Firebase Cloud Messaging (FCM). | Mobile |
+| **F-07** | Profile | Profile Settings | Stores personal capabilities, preferences, and demographics to power the AI matching model. | Nationality, MBTI, Strengths/Weaknesses, Language Skills | Updates `profiles` and `interests` tables in the database. | Web / Mobile |
+| **F-08** | Profile | Student Verification | Verifies user enrollment status by collecting university credentials. | Student ID Number, Visa Type (D-2/D-4), Student ID Card Image | Uploads ID image to Supabase Storage and updates verification status to `verification_pending`. | Web / Mobile |
+| **F-09** | Academic Management | AI Course Recommendation | Suggests suitable university courses and departments using the user's profile metadata. | User Profile Metadata (Interests, MBTI, Languages) | Computes and fetches matching items sorted by recommendation score from the `course_recommendations` table. | Web / Mobile |
+| **F-10** | Academic Management | Graduation Checklist | Visually tracks the completion status of university graduation criteria. | Completed Courses History | Renders credit progress bars and lists missing graduation milestones using the `graduation_checklist` table. | Web / Mobile |
+| **F-11** | Information Hub | Scholarship Search | Allows users to browse and search for domestic/foreign scholarship opportunities. | Search query, Deadline filter | Queries and displays scholarship details and application links from the `scholarships` table. | Web / Mobile |
+| **F-12** | Information Hub | Job Opportunities | Lists part-time jobs and internships optimized for international students. | Contract Type (Part-time/Internship), Language filters | Returns listings sourced from the Worknet API filtered by the `empTpCd` code. | Web / Mobile |
+| **F-13** | Community | Group Creation | Allows users to create study groups, language exchanges, or hobby clubs. | Group Name, Group Category, Description | Creates a new record in the `community_groups` table. | Web / Mobile |
+| **F-14** | Community | Group Membership | Allows users to join or leave specific community groups. | Group ID, User ID | Logs membership records in `community_members` and updates active group participant counts. | Web / Mobile |
+
 #### 3.4. 디렉토리 구조
  
 ```
