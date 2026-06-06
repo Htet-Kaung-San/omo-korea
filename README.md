@@ -71,7 +71,7 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
  
 #### 2.1. 시스템 구성도
  
-> 시스템 구성도(infra, front, back 등의 node 간의 관계) 사진을 삽입하세요.
+> 시스템 구성도(infra, front, back 등의 node 간의 관계) 사진을 삽입하세요. 
  
 #### 2.2. 사용 기술
  
@@ -104,7 +104,7 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
        ▼                                    ▼
  나라별 서류 체크리스트              졸업요건 체크리스트
  장학 정보 매칭                      비교과 프로그램 추천
- Agency 정보 제공                    캠퍼스 맵 · 시설 가이드
+       |                       캠퍼스 맵 · 시설 가이드
        │                                    │
        └──────────────┬─────────────────────┘
                       ▼
@@ -113,7 +113,7 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
       │  다국어 UI (6개 언어+)        │
       │  비자연장 알림 (D-90~D-7)     │
       │  Emergency 긴급 기능          │
-      │  커뮤니티 · 멘토링 게시판     │
+      │  커뮤니티 게시판              │
       │  생활 편의 정보               │
       └──────────────────────────────┘
                       │
@@ -145,6 +145,7 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
 > (시연 영상 첨부)
  
 #### 3.3. 기능명세서
+ -- san 작성 예정 
  
 #### 3.4. 디렉토리 구조
  
@@ -175,6 +176,7 @@ HeyPNU/
 
  
 #### 3.5. AI 도구 활용
+-- 자르갈 작성 예
  
 ### 4. 설치 및 사용 방법
  
@@ -203,29 +205,29 @@ npm run dev
 ---
  
 ### 5. 소개 및 시연 영상
-
+-- 밍구 + 츄 작성 예정 
  
 ### 6. 팀 소개
  
-| 이름 (팀장) | 이름 | 이름 | 이름 | 이름 |
+| 판킨킨자우 (팀장) | 텟 까웅 산 | 비얌바수렝 투브신자르갈 | 츄딴띤자 | 에르덴 오치르 노밍구 |
 |---|---|---|---|---|
-| GitHub 프로필 이미지 | GitHub 프로필 이미지 | GitHub 프로필 이미지 | GitHub 프로필 이미지 | GitHub 프로필 이미지 |
-| 역할 (ex. 풀스택) | 역할 (ex. 백엔드) | 역할 (ex. 프론트엔드) | 역할 (ex. AI/기획) | 역할 (ex. 디자인) |
-| 학과 | 학과 | 학과 | 학과 | 학과 |
-| 이메일 | 이메일 | 이메일 | 이메일 | 이메일 |
+| [![aintnoway12](https://avatars.githubusercontent.com/u/167033161?v=4&s=100)](https://github.com/aintnoway12) | [![Htet-Kaung-San](https://avatars.githubusercontent.com/u/142887402?v=4&s=100)](https://github.com/Htet-Kaung-San) | [![Tuvshinjargal03](https://avatars.githubusercontent.com/u/163098030?v=4&s=100)](https://github.com/Tuvshinjargal03) | [![ctthinzar](https://avatars.githubusercontent.com/u/120101937?v=4&s=100)](https://github.com/ctthinzar) | [![Nomingoo15](https://avatars.githubusercontent.com/u/291190850?v=4&s=100)](https://github.com/Nomingoo15) |
+| 팀장 · 백엔드 | 풀스택 | AI 엔지니어 | 프론트엔드 | 프론트엔드 보조 · 기획 |
+| 컴퓨터공전공 | 인공지능전공 | 컴퓨터공전공 | 컴퓨터공전공 | 생명과학전공 |
+| pankhinkhinzaw12@gmail.com | htetsan206@gmail.com | tuvshinjargalbyambasuren@gmail.com | chyu2310@gmail.com | nmngoo15@gmail.com |
  
 ---
  
 ### 7. 해커톤 참여 후기
  
-- **[팀원 이름]**
+- **[판킨킨자우]**
   - 내용 작성
-- **[팀원 이름]**
+- **[텟 까웅 산]**
   - 내용 작성
-- **[팀원 이름]**
+- **[비얌바수렝 투브신자르갈]**
   - 내용 작성
-- **[팀원 이름]**
+- **[츄딴띤자]**
   - 내용 작성
-- **[팀원 이름]**
+- **[에르덴 오치르 노밍구]**
   - 내용 작성
  
