@@ -146,22 +146,22 @@ AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 
  
 #### 3.3. 기능명세서
 
-| Feature ID | Major Category | Feature Name | Detailed Description | Input Data | Output / Behavior | Supported Platforms |
+| 기능 ID | 대분류 | 소분류 (기능명) | 기능 상세 설명 | 입력 데이터 | 출력 및 처리 결과 | 지원 플랫폼 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **F-01** | Onboarding | Language Configuration | Allows users to select their preferred interface language upon launching the app/web portal. | Language Selection (Korean, English, Chinese, Vietnamese) | Saves the preference in local storage/cookies and maps translation resources to the UI. | Web / Mobile |
-| **F-02** | Registration | Student Type Selection | Prompts the user to choose their academic role (Domestic vs. International) at the start of signup. | Student Role (Domestic Student / International Student) | Dynamically alters signup form requirements (e.g., visa type becomes mandatory for international students). | Web / Mobile |
-| **F-03** | Registration | Account Creation | Registers a new credentials account using email and password. | Name, Email address, Password, Confirm Password | Validates entries and inserts a new credentials record into the `users` table via Supabase Auth. | Web / Mobile |
-| **F-04** | Authentication | Session Login | Authenticates registered email and password credentials to start a secure session. | Email, Password | Directs user to the main Dashboard upon successful token issuance. | Web / Mobile |
-| **F-05** | Dashboard | Home Layout | Renders a personalized dashboard based on the logged-in student type and language preferences. | Auth Session Credentials | Displays personalized course recommendation widgets, deadline alerts, and community posts. | Web / Mobile |
-| **F-06** | Dashboard | Real-time Push Alerts | Delivers real-time notifications about campus notices, scholarship deadlines, and group activities. | Database trigger events (new alert entries) | Triggers device-level notifications and updates application badges using Firebase Cloud Messaging (FCM). | Mobile |
-| **F-07** | Profile | Profile Settings | Stores personal capabilities, preferences, and demographics to power the AI matching model. | Nationality, MBTI, Strengths/Weaknesses, Language Skills | Updates `profiles` and `interests` tables in the database. | Web / Mobile |
-| **F-08** | Profile | Student Verification | Verifies user enrollment status by collecting university credentials. | Student ID Number, Visa Type (D-2/D-4), Student ID Card Image | Uploads ID image to Supabase Storage and updates verification status to `verification_pending`. | Web / Mobile |
-| **F-09** | Academic Management | AI Course Recommendation | Suggests suitable university courses and departments using the user's profile metadata. | User Profile Metadata (Interests, MBTI, Languages) | Computes and fetches matching items sorted by recommendation score from the `course_recommendations` table. | Web / Mobile |
-| **F-10** | Academic Management | Graduation Checklist | Visually tracks the completion status of university graduation criteria. | Completed Courses History | Renders credit progress bars and lists missing graduation milestones using the `graduation_checklist` table. | Web / Mobile |
-| **F-11** | Information Hub | Scholarship Search | Allows users to browse and search for domestic/foreign scholarship opportunities. | Search query, Deadline filter | Queries and displays scholarship details and application links from the `scholarships` table. | Web / Mobile |
-| **F-12** | Information Hub | Job Opportunities | Lists part-time jobs and internships optimized for international students. | Contract Type (Part-time/Internship), Language filters | Returns listings sourced from the Worknet API filtered by the `empTpCd` code. | Web / Mobile |
-| **F-13** | Community | Group Creation | Allows users to create study groups, language exchanges, or hobby clubs. | Group Name, Group Category, Description | Creates a new record in the `community_groups` table. | Web / Mobile |
-| **F-14** | Community | Group Membership | Allows users to join or leave specific community groups. | Group ID, User ID | Logs membership records in `community_members` and updates active group participant counts. | Web / Mobile |
+| **F-01** | 온보딩 | 언어 설정 | 앱/웹 최초 진입 시 사용자가 선호하는 다국어 인터페이스를 선택함 | 언어 선택 (한국어, 영어, 중국어, 베트남어 등) | 선택한 언어 설정을 로컬 스토리지/쿠키에 저장하고 화면 번역 리소스를 매핑하여 표시함 | Web / Mobile |
+| **F-02** | 회원가입 | 학생 구분 선택 | 회원가입 프로세스 시작 시 국내 학생 또는 외국인 유학생 역할 선택 | 학생 유형 (국내 학생 / 외국인 유학생) | 가입 폼 요건을 동적으로 변경함 (외국인 유학생 선택 시 비자 정보 필수 활성화) | Web / Mobile |
+| **F-03** | 회원가입 | 계정 생성 | 이메일과 비밀번호를 이용하여 회원 계정을 등록함 | 이름, 이메일 주소, 비밀번호, 비밀번호 확인 | 입력값 유효성 검사 후 Supabase Auth를 통해 신규 사용자(`users` 테이블) 등록 | Web / Mobile |
+| **F-04** | 인증 | 로그인 | 가입된 계정 정보를 입력하여 앱 세션을 시작함 | 이메일, 비밀번호 | 로그인 성공 시 세션 토큰을 발급하고 메인 대시보드로 이동시킴 | Web / Mobile |
+| **F-05** | 대시보드 | 홈 화면 구성 | 학생 유형 및 언어 설정에 맞는 메인 화면을 보여줌 | 인증 세션 정보 | 개인 맞춤형 추천 과목 위젯, 마감 임박 알림, 커뮤니티 소식 목록 렌더링 | Web / Mobile |
+| **F-06** | 대시보드 | 실시간 알림 | 학사 공지, 장학금 마감, 커뮤니티 답글 등의 소식을 전달함 | 새 알림 이벤트 데이터 | Firebase Cloud Messaging(FCM)을 통해 모바일에 푸시 알림을 발송하고 앱 내 알림 배지 업데이트 | Mobile |
+| **F-07** | 프로필 | 상세 프로필 설정 | 추천 알고리즘에 활용할 개인 성향 및 학업 프로필 정보를 기입함 | 국적, MBTI, 강점/약점 키워드, 구사 가능 언어 | `profiles` 및 `interests` 테이블 데이터 수정 및 동기화 | Web / Mobile |
+| **F-08** | 프로필 | 학생 신분 인증 | 재학 사실 증명을 위해 서류를 제출하고 학생증을 인증함 | 학번, 비자 종류 (D-2/D-4), 학생증 이미지 파일 | 이미지를 Supabase Storage에 업로드하고 상태를 '승인 대기(`verification_pending`)'로 업데이트 | Web / Mobile |
+| **F-09** | 학업 관리 | AI 과목/학과 추천 | 사용자의 프로필 역량을 기반으로 적합한 과목과 학과를 AI로 분석하여 추천함 | 프로필 정보 (MBTI, 관심 분야, 어학 역량 등) | 분석 스코어와 함께 추천 과목 목록을 정렬하여 출력 (`course_recommendations` 테이블) | Web / Mobile |
+| **F-10** | 학업 관리 | 졸업 체크리스트 | 졸업에 필요한 취득 학점 및 세부 요구 조건을 확인하고 관리함 | 이수 완료 과목 리스트 | 잔여 학점 계산 및 카테고리별 이수 완료 진척도를 그래프로 시각화 (`graduation_checklist`) | Web / Mobile |
+| **F-11** | 정보 조회 | 장학금 상세 검색 | 유학생이 신청 가능한 장학금을 조회하고 검색함 | 검색어, 마감일 필터 조건 | 조건에 맞는 장학금 정보 및 외부 신청 링크 목록 표시 (`scholarships` 테이블) | Web / Mobile |
+| **F-12** | 정보 조회 | 채용 및 알바 정보 | 유학생 맞춤형 시간제 근무나 인턴십 정보를 필터링하여 제공함 | 고용 형태 필터 (시간제/인턴), 언어 필터 | 워크넷 API 연동 및 조건에 부합하는 외국인 채용 정보 출력 (`job_opportunities` 테이블) | Web / Mobile |
+| **F-13** | 커뮤니티 | 글로벌 소모임 개설 | 다국어 교류나 스터디를 위한 모임을 생성함 | 모임명, 카테고리, 모임 설명 | `community_groups` 테이블에 새로운 그룹 데이터 삽입 | Web / Mobile |
+| **F-14** | 커뮤니티 | 소모임 가입 및 탈퇴 | 원하는 소모임에 멤버로 참가하거나 탈퇴함 | 그룹 ID, 사용자 ID | `community_members` 테이블에 가입 정보 기록 및 실시간 참여 인원 업데이트 | Web / Mobile |
 
 #### 3.4. 디렉토리 구조
  
