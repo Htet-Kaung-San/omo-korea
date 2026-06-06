@@ -211,7 +211,7 @@ npm run dev
  
 | 판킨킨자우 (팀장) | 텟 까웅 산 | 비얌바수렝 투브신자르갈 | 츄딴띤자 | 에르덴 오치르 노밍구 |
 |---|---|---|---|---|
-| [![aintnoway12](https://avatars.githubusercontent.com/u/167033161?v=4&s=100)](https://github.com/aintnoway12) | [![Htet-Kaung-San](https://avatars.githubusercontent.com/u/142887402?v=4&s=100)](https://github.com/Htet-Kaung-San) | [![Tuvshinjargal03](https://avatars.githubusercontent.com/u/163098030?v=4&s=100)](https://github.com/Tuvshinjargal03) | [![ctthinzar](https://avatars.githubusercontent.com/u/120101937?v=4&s=100)](https://github.com/ctthinzar) | [![Nomingoo15](https://avatars.githubusercontent.com/u/291190850?v=4&s=100)](https://github.com/Nomingoo15) |
+| <img src="https://avatars.githubusercontent.com/u/167033161?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/142887402?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/163098030?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/120101937?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/291190850?v=4" width="100" height="100"/> |
 | 팀장 · 백엔드 | 풀스택 | AI 엔지니어 | 프론트엔드 | 프론트엔드 보조 · 기획 |
 | 컴퓨터공전공 | 인공지능전공 | 컴퓨터공전공 | 컴퓨터공전공 | 생명과학전공 |
 | pankhinkhinzaw12@gmail.com | htetsan206@gmail.com | tuvshinjargalbyambasuren@gmail.com | chyu2310@gmail.com | nmngoo15@gmail.com |
