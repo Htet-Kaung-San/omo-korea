@@ -1,0 +1,6 @@
+POST http://localhost:5000/api/students/login
+Content-Type: application/json
+
+{
+  "student_id": 202455393
+}
