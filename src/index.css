@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-pnu-blue: #1e3a8a;
+  --color-pnu-blue-light: #2563eb;
+  --color-pnu-surface: #f8fafc;
+  --color-pnu-border: #e2e8f0;
+  --color-pnu-text: #0f172a;
+  --color-pnu-muted: #64748b;
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: #eef2f7;
+  color: var(--color-pnu-text);
+  -webkit-font-smoothing: antialiased;
+}
