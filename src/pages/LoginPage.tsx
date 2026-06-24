@@ -8,6 +8,7 @@ import { DEMO_PASSWORD } from '@/api'
 
 export function LoginPage() {
   const { login, isAuthenticated, isLoading } = useAuth()
+  const currentYear = new Date().getFullYear()
   const [studentId, setStudentId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -105,7 +106,7 @@ export function LoginPage() {
 
         <div className="mt-4 rounded-xl border border-dashed border-pnu-border bg-white/60 px-4 py-3 text-xs leading-relaxed text-pnu-muted space-y-1">
           <p className="font-semibold text-pnu-text">Demo Credentials (Password: {DEMO_PASSWORD})</p>
-          <p>• Freshman: <span className="font-semibold text-pnu-text">202612345</span> (New Student Checklist)</p>
+          <p>• Freshman: <span className="font-semibold text-pnu-text">{`${currentYear}12345`}</span> (New Student Checklist)</p>
           <p>• Non-freshman: <span className="font-semibold text-pnu-text">202012345</span> (Graduation Checklist)</p>
         </div>
       </div>

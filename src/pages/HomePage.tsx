@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { api } from '@/api'
-import type { GraduationProgress, Notification, ChecklistItem } from '@/types/api'
+import type { GraduationProgress, Notification, ChecklistItem, ChecklistVariant } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { GraduationCard } from '@/components/graduation/GraduationCard'
@@ -15,10 +15,10 @@ export function HomePage() {
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
+  const [checklistVariant, setChecklistVariant] = useState<ChecklistVariant>('GRADUATION_REQUIREMENT')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [error, setError] = useState('')
-
-  const isFreshman = user?.studentId?.startsWith('2026') ?? false
+  const isFreshmanChecklist = checklistVariant === 'NEW_STUDENT'
 
   useEffect(() => {
     Promise.all([
@@ -26,10 +26,11 @@ export function HomePage() {
       api.getNotifications(),
       api.getChecklist(),
     ])
-      .then(([grad, notifs, list]) => {
+      .then(([grad, notifs, checklistPayload]) => {
         setProgress(grad)
         setNotifications(notifs.slice(0, 3))
-        setChecklist(list)
+        setChecklist(checklistPayload.items)
+        setChecklistVariant(checklistPayload.variant)
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load dashboard.'))
   }, [])
@@ -53,7 +54,11 @@ export function HomePage() {
     <div>
       <PageHeader
         title={`Hello, ${user?.name.split(' ')[0] ?? 'Student'}`}
-        subtitle={isFreshman ? 'Freshman onboarding dashboard' : 'International student dashboard'}
+        subtitle={
+          isFreshmanChecklist
+            ? 'Freshman onboarding dashboard'
+            : 'International student dashboard'
+        }
       />
 
       <div className="space-y-5 px-5 py-5">
@@ -62,14 +67,16 @@ export function HomePage() {
         ) : null}
 
         {/* Graduation progress card - only for non-freshmen */}
-        {!isFreshman && progress ? <GraduationCard progress={progress} compact /> : null}
+        {!isFreshmanChecklist && progress ? <GraduationCard progress={progress} compact /> : null}
 
         {/* Checklist Section */}
         {checklist.length > 0 ? (
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-bold text-pnu-text">
-                {isFreshman ? 'New Student Checklist' : 'Graduation Requirement Checklist'}
+                {isFreshmanChecklist
+                  ? 'New Student Checklist'
+                  : 'Graduation Requirement Checklist'}
               </h2>
               <Link
                 to="/checklist"

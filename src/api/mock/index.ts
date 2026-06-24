@@ -3,6 +3,7 @@ import type {
   ChatMessageRequest,
   ChatMessageResponse,
   ChecklistItem,
+  ChecklistPayload,
   CourseType,
   GraduationProgress,
   HeyPnuApi,
@@ -32,6 +33,18 @@ const TOKEN_KEY = 'hey_pnu_token'
 const CHECKLIST_STORAGE_PREFIX = 'hey_pnu_checklist_'
 const USER_STORAGE_PREFIX = 'hey_pnu_user_'
 
+function getAdmissionYear(studentId: string): number | null {
+  const yearPrefix = studentId.slice(0, 4)
+  if (!/^\d{4}$/.test(yearPrefix)) return null
+  return Number(yearPrefix)
+}
+
+function isFreshmanStudent(studentId: string): boolean {
+  const admissionYear = getAdmissionYear(studentId)
+  if (admissionYear === null) return false
+  return admissionYear === new Date().getFullYear()
+}
+
 function getCurrentStudentId(): string {
   const token = localStorage.getItem(TOKEN_KEY)
   if (token) {
@@ -46,7 +59,7 @@ function getCurrentStudentId(): string {
 }
 
 function getMockUser(studentId: string): User {
-  const isFreshman = studentId.startsWith('2026')
+  const isFreshman = isFreshmanStudent(studentId)
   const storageKey = `${USER_STORAGE_PREFIX}${studentId}`
   const stored = localStorage.getItem(storageKey)
   if (stored) {
@@ -74,8 +87,12 @@ function saveMockUser(studentId: string, user: User): void {
   localStorage.setItem(storageKey, JSON.stringify(user))
 }
 
+function getChecklistVariant(studentId: string): ChecklistPayload['variant'] {
+  return isFreshmanStudent(studentId) ? 'NEW_STUDENT' : 'GRADUATION_REQUIREMENT'
+}
+
 function getChecklistState(studentId: string): ChecklistItem[] {
-  const isFreshman = studentId.startsWith('2026')
+  const variant = getChecklistVariant(studentId)
   const storageKey = `${CHECKLIST_STORAGE_PREFIX}${studentId}`
   const stored = localStorage.getItem(storageKey)
   if (stored) {
@@ -85,7 +102,8 @@ function getChecklistState(studentId: string): ChecklistItem[] {
       // ignore
     }
   }
-  const defaultTemplate = isFreshman ? mockChecklist : mockGraduationChecklist
+  const defaultTemplate =
+    variant === 'NEW_STUDENT' ? mockChecklist : mockGraduationChecklist
   const state = defaultTemplate.map((item) => ({ ...item }))
   localStorage.setItem(storageKey, JSON.stringify(state))
   return state
@@ -178,7 +196,7 @@ export const mockApi: HeyPnuApi = {
   async getGraduationProgress(): Promise<GraduationProgress> {
     await delay()
     const studentId = getCurrentStudentId()
-    const isFreshman = studentId.startsWith('2026')
+    const isFreshman = isFreshmanStudent(studentId)
     return isFreshman ? mockFreshmanGraduation : mockGraduation
   },
 
@@ -189,10 +207,13 @@ export const mockApi: HeyPnuApi = {
     )
   },
 
-  async getChecklist(): Promise<ChecklistItem[]> {
+  async getChecklist(): Promise<ChecklistPayload> {
     await delay()
     const studentId = getCurrentStudentId()
-    return getChecklistState(studentId)
+    return {
+      variant: getChecklistVariant(studentId),
+      items: getChecklistState(studentId),
+    }
   },
 
   async updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem> {

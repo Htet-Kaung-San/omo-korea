@@ -156,15 +156,25 @@ Sort by date ascending recommended.
 ### `GET /checklist`
 
 ```json
-[
-  {
-    "id": "cl1",
-    "title": "Alien registration",
-    "description": "Apply for your 외국인등록증…",
-    "completed": false
-  }
-]
+{
+  "variant": "NEW_STUDENT",
+  "items": [
+    {
+      "id": "cl1",
+      "title": "Alien registration",
+      "description": "Apply for your 외국인등록증…",
+      "completed": false
+    }
+  ]
+}
 ```
+
+`variant` must be one of:
+
+- `NEW_STUDENT`: freshman dashboard/checklist
+- `GRADUATION_REQUIREMENT`: non-freshman dashboard/checklist
+
+The backend determines `variant` from the authenticated student's ID (not frontend logic). Use a year-agnostic rule: parse the first 4 digits as admission year, and classify as freshman when it matches the current year.
 
 ### `PATCH /checklist/:itemId`
 

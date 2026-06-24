@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api'
-import type { ChecklistItem } from '@/types/api'
+import type { ChecklistItem, ChecklistVariant } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { useAuth } from '@/context/AuthContext'
 
 export function ChecklistPage() {
-  const { user } = useAuth()
-  const isFreshman = user?.studentId?.startsWith('2026') ?? false
   const [items, setItems] = useState<ChecklistItem[]>([])
+  const [variant, setVariant] = useState<ChecklistVariant>('GRADUATION_REQUIREMENT')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const isFreshmanChecklist = variant === 'NEW_STUDENT'
 
   useEffect(() => {
     api
       .getChecklist()
-      .then(setItems)
+      .then((payload) => {
+        setItems(payload.items)
+        setVariant(payload.variant)
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load checklist.'))
       .finally(() => setLoading(false))
   }, [])
@@ -40,9 +42,9 @@ export function ChecklistPage() {
   return (
     <div>
       <PageHeader
-        title={isFreshman ? 'New Student Checklist' : 'Graduation Requirement Checklist'}
+        title={isFreshmanChecklist ? 'New Student Checklist' : 'Graduation Requirement Checklist'}
         subtitle={
-          isFreshman
+          isFreshmanChecklist
             ? 'Essential setup tasks for international students'
             : 'Key steps to complete your degree at PNU'
         }

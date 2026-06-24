@@ -76,6 +76,13 @@ export interface ChecklistItem {
   completed: boolean
 }
 
+export type ChecklistVariant = 'NEW_STUDENT' | 'GRADUATION_REQUIREMENT'
+
+export interface ChecklistPayload {
+  variant: ChecklistVariant
+  items: ChecklistItem[]
+}
+
 export interface ChatMessageRequest {
   message: string
 }
@@ -99,7 +106,7 @@ export interface HeyPnuApi {
   getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
   getGraduationProgress(): Promise<GraduationProgress>
   getNotifications(): Promise<Notification[]>
-  getChecklist(): Promise<ChecklistItem[]>
+  getChecklist(): Promise<ChecklistPayload>
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem>
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
   getChatSuggestions(): Promise<string[]>

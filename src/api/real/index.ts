@@ -3,6 +3,7 @@ import type {
   ChatMessageRequest,
   ChatMessageResponse,
   ChecklistItem,
+  ChecklistPayload,
   CourseType,
   GraduationProgress,
   HeyPnuApi,
@@ -51,8 +52,8 @@ export const realApi: HeyPnuApi = {
     return apiFetch<Notification[]>('/notifications')
   },
 
-  getChecklist(): Promise<ChecklistItem[]> {
-    return apiFetch<ChecklistItem[]>('/checklist')
+  getChecklist(): Promise<ChecklistPayload> {
+    return apiFetch<ChecklistPayload>('/checklist')
   },
 
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem> {
