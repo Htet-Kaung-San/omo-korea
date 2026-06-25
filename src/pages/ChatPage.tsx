@@ -3,6 +3,7 @@ import { Send } from 'lucide-react'
 import { api } from '@/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface Message {
   id: string
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export function ChatPage() {
+  const { t } = useLanguage()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -51,7 +53,7 @@ export function ChatPage() {
         {
           id: crypto.randomUUID(),
           role: 'assistant',
-          text: err instanceof Error ? err.message : 'Something went wrong.',
+          text: err instanceof Error ? err.message : t('chat.error'),
         },
       ])
     } finally {
@@ -61,13 +63,13 @@ export function ChatPage() {
 
   return (
     <div className="flex h-[calc(100dvh-56px)] flex-col">
-      <PageHeader title="Campus Assistant" subtitle="Predefined answers for academics & campus life" />
+      <PageHeader title={t('chat.title')} subtitle={t('chat.subtitle')} />
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
         {messages.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-pnu-border bg-white p-4">
             <p className="text-sm text-pnu-muted">
-              Ask about course registration, credits, housing, or campus services.
+              {t('chat.emptyHint')}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {suggestions.map((s) => (
@@ -102,7 +104,7 @@ export function ChatPage() {
           </div>
         ))}
 
-        {sending ? <p className="text-xs text-pnu-muted">Assistant is typing…</p> : null}
+        {sending ? <p className="text-xs text-pnu-muted">{t('chat.typing')}</p> : null}
         <div ref={bottomRef} />
       </div>
 
@@ -117,10 +119,10 @@ export function ChatPage() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your question…"
+            placeholder={t('chat.placeholder')}
             className="min-h-11 flex-1 rounded-xl border border-pnu-border px-3.5 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
           />
-          <Button type="submit" disabled={sending || !input.trim()} aria-label="Send message">
+          <Button type="submit" disabled={sending || !input.trim()} aria-label={t('chat.send')}>
             <Send className="h-4 w-4" />
           </Button>
         </div>

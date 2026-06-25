@@ -1,4 +1,5 @@
 import type { CourseType } from '@/types/api'
+import { useLanguage } from '@/context/LanguageContext'
 
 const styles: Record<CourseType, string> = {
   REQUIRED: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -7,12 +8,14 @@ const styles: Record<CourseType, string> = {
 }
 
 const labels: Record<CourseType, string> = {
-  REQUIRED: 'Required',
-  ELECTIVE: 'Elective',
-  GEN_ED: 'Gen-Ed',
+  REQUIRED: 'courseFilter.required',
+  ELECTIVE: 'courseFilter.elective',
+  GEN_ED: 'courseFilter.genEd',
 }
 
 export function CourseTypeBadge({ type }: { type: CourseType }) {
+  const { t } = useLanguage()
+
   return (
     <span
       className={[
@@ -20,7 +23,7 @@ export function CourseTypeBadge({ type }: { type: CourseType }) {
         styles[type],
       ].join(' ')}
     >
-      {labels[type]}
+      {t(labels[type])}
     </span>
   )
 }

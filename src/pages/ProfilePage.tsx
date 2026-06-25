@@ -6,6 +6,7 @@ import {
   NATIONALITY_OPTIONS,
 } from '@/data/options'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -13,6 +14,7 @@ import { Card } from '@/components/ui/Card'
 
 export function ProfilePage() {
   const { user, logout, refreshUser } = useAuth()
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [nationality, setNationality] = useState('')
   const [major, setMajor] = useState('')
@@ -41,7 +43,7 @@ export function ProfilePage() {
     setMessage('')
 
     if (!name.trim() || !nationality || !major) {
-      setError('Name, nationality, and major are required.')
+      setError(t('profile.requiredError'))
       return
     }
 
@@ -54,9 +56,9 @@ export function ProfilePage() {
         interests,
       })
       await refreshUser()
-      setMessage('Profile saved successfully.')
+      setMessage(t('profile.saveSuccess'))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save profile.')
+      setError(err instanceof Error ? err.message : t('profile.saveError'))
     } finally {
       setSaving(false)
     }
@@ -64,19 +66,19 @@ export function ProfilePage() {
 
   return (
     <div>
-      <PageHeader title="Profile" subtitle="Manage your student information" />
+      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
 
       <form className="space-y-5 px-5 py-5" onSubmit={handleSave}>
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-wide text-pnu-muted">Student ID</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-pnu-muted">{t('profile.studentId')}</p>
           <p className="mt-1 text-base font-semibold text-pnu-text">{user?.studentId}</p>
         </Card>
 
-        <Input label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input label={t('profile.fullName')} value={name} onChange={(e) => setName(e.target.value)} />
 
         <div className="space-y-1.5">
           <label htmlFor="nationality" className="block text-sm font-medium text-pnu-text">
-            Nationality
+            {t('profile.nationality')}
           </label>
           <select
             id="nationality"
@@ -84,7 +86,7 @@ export function ProfilePage() {
             onChange={(e) => setNationality(e.target.value)}
             className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
           >
-            <option value="">Select nationality</option>
+            <option value="">{t('profile.selectNationality')}</option>
             {NATIONALITY_OPTIONS.map((n) => (
               <option key={n} value={n}>
                 {n}
@@ -95,7 +97,7 @@ export function ProfilePage() {
 
         <div className="space-y-1.5">
           <label htmlFor="major" className="block text-sm font-medium text-pnu-text">
-            Major / Department
+            {t('profile.major')}
           </label>
           <select
             id="major"
@@ -103,7 +105,7 @@ export function ProfilePage() {
             onChange={(e) => setMajor(e.target.value)}
             className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
           >
-            <option value="">Select major</option>
+            <option value="">{t('profile.selectMajor')}</option>
             {MAJOR_OPTIONS.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -113,7 +115,7 @@ export function ProfilePage() {
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-pnu-text">Interests</p>
+          <p className="text-sm font-medium text-pnu-text">{t('profile.interests')}</p>
           <div className="flex flex-wrap gap-2">
             {INTEREST_OPTIONS.map((tag) => {
               const active = interests.includes(tag)
@@ -144,11 +146,11 @@ export function ProfilePage() {
         ) : null}
 
         <Button type="submit" fullWidth disabled={saving}>
-          {saving ? 'Saving…' : 'Save profile'}
+          {saving ? t('profile.saving') : t('profile.save')}
         </Button>
 
         <Button type="button" variant="danger" fullWidth onClick={() => logout()}>
-          Log out
+          {t('profile.logout')}
         </Button>
       </form>
     </div>

@@ -1,10 +1,11 @@
 import type { CourseType } from '@/types/api'
+import { useLanguage } from '@/context/LanguageContext'
 
-const filters: { value: CourseType | 'ALL'; label: string }[] = [
-  { value: 'ALL', label: 'All' },
-  { value: 'REQUIRED', label: 'Required' },
-  { value: 'ELECTIVE', label: 'Elective' },
-  { value: 'GEN_ED', label: 'Gen-Ed' },
+const filters: { value: CourseType | 'ALL'; key: string }[] = [
+  { value: 'ALL', key: 'courseFilter.all' },
+  { value: 'REQUIRED', key: 'courseFilter.required' },
+  { value: 'ELECTIVE', key: 'courseFilter.elective' },
+  { value: 'GEN_ED', key: 'courseFilter.genEd' },
 ]
 
 interface CourseFiltersProps {
@@ -13,6 +14,8 @@ interface CourseFiltersProps {
 }
 
 export function CourseFilters({ value, onChange }: CourseFiltersProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
       {filters.map((filter) => {
@@ -29,7 +32,7 @@ export function CourseFilters({ value, onChange }: CourseFiltersProps) {
                 : 'border border-pnu-border bg-white text-pnu-muted hover:text-pnu-text',
             ].join(' ')}
           >
-            {filter.label}
+            {t(filter.key)}
           </button>
         )
       })}

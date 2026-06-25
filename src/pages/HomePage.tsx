@@ -1,17 +1,36 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Bell, CalendarDays, ChevronRight, Search } from 'lucide-react'
 import { api } from '@/api'
 import type { GraduationProgress, Notification, ChecklistItem, ChecklistVariant } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { GraduationCard } from '@/components/graduation/GraduationCard'
-import { NotificationCard } from '@/components/notifications/NotificationCard'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
+// Re-use the same lock logic as ChecklistPage
+function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
+  if (!item.creditRequirement || !progress) return false
+  const { category } = item.creditRequirement
+  const required =
+    category === 'total'
+      ? progress.totalRequired
+      : progress.breakdown[category].required
+
+  const completed =
+    category === 'total'
+      ? progress.totalCompleted
+      : progress.breakdown[category].completed
+
+  return completed < required
+}
+
 export function HomePage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
+  const { t, locale } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
@@ -32,7 +51,7 @@ export function HomePage() {
         setChecklist(checklistPayload.items)
         setChecklistVariant(checklistPayload.variant)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load dashboard.'))
+      .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
   }, [])
 
   async function handleToggleChecklist(id: string, completed: boolean) {
@@ -42,7 +61,7 @@ export function HomePage() {
       const updated = await api.updateChecklistItem(id, completed)
       setChecklist((prev) => prev.map((item) => (item.id === id ? updated : item)))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update item.')
+      setError(err instanceof Error ? err.message : t('home.updateError'))
     } finally {
       setUpdatingId(null)
     }
@@ -50,15 +69,75 @@ export function HomePage() {
 
   const completedCount = checklist.filter((i) => i.completed).length
 
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
+  function getLocalizedLockReason(item: ChecklistItem): string {
+    if (!item.creditRequirement || !progress) return ''
+    const { category } = item.creditRequirement
+    const labels: Record<string, string> = {
+      generalRequired: '교양필수',
+      generalElective: '교양선택',
+      majorBasic: '전공기초',
+      majorRequired: '전공필수',
+      majorElective: '전공선택',
+      generalFree: '일반선택',
+    }
+    const required =
+      category === 'total'
+        ? progress.totalRequired
+        : progress.breakdown[category].required
+    const completed =
+      category === 'total'
+        ? progress.totalCompleted
+        : progress.breakdown[category].completed
+    const remaining = Math.max(required - completed, 0)
+    if (category === 'total') {
+      return t('checklist.lockReasonTotal', { required, completed, remaining })
+    }
+    return t('checklist.lockReasonCategory', {
+      required,
+      label: labels[category] ?? category,
+      completed,
+      remaining,
+    })
+  }
+
   return (
     <div>
       <PageHeader
-        title={`Hello, ${user?.name.split(' ')[0] ?? 'Student'}`}
+        title={t('home.title', {
+          name: user?.name.split(' ')[0] ?? t('home.defaultName'),
+        })}
         subtitle={
           isFreshmanChecklist
-            ? 'Freshman onboarding dashboard'
-            : 'International student dashboard'
+            ? t('home.subtitleFreshman')
+            : t('home.subtitleIntl')
         }
+        action={(
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/academic')}
+              aria-label={t('home.searchAria')}
+              className="rounded-xl border border-pnu-border bg-white p-2 text-pnu-muted transition hover:text-pnu-text"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/notifications')}
+              aria-label={t('home.bellAria')}
+              className="rounded-xl border border-pnu-border bg-white p-2 text-pnu-muted transition hover:text-pnu-text"
+            >
+              <Bell className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       />
 
       <div className="space-y-5 px-5 py-5">
@@ -67,71 +146,99 @@ export function HomePage() {
         ) : null}
 
         {/* Graduation progress card - only for non-freshmen */}
-        {!isFreshmanChecklist && progress ? <GraduationCard progress={progress} compact /> : null}
+        {!isFreshmanChecklist && progress ? <GraduationCard progress={progress} /> : null}
 
-        {/* Checklist Section */}
+        {/* Important notices */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-bold text-pnu-text">{t('home.importantNotices')}</h2>
+            <Link
+              to="/notifications"
+              className="inline-flex items-center gap-0.5 text-xs font-semibold text-pnu-blue-light"
+            >
+              {t('common.viewMore')}
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
+            {notifications.length === 0 && !error ? (
+              <p className="text-sm text-pnu-muted">{t('home.noNotifications')}</p>
+            ) : null}
+            <div className="divide-y divide-pnu-border">
+              {notifications.map((notification) => (
+                <article key={notification.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="mb-1.5 flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-pnu-text">{notification.title}</h3>
+                    {notification.priority === 'HIGH' ? (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
+                        {t('common.high')}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-sm leading-relaxed text-pnu-muted">{notification.body}</p>
+                  <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-pnu-muted">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {formatDate(notification.date)}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Checklist section */}
         {checklist.length > 0 ? (
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-bold text-pnu-text">
                 {isFreshmanChecklist
-                  ? 'New Student Checklist'
-                  : 'Graduation Requirement Checklist'}
+                  ? t('home.newStudentChecklist')
+                  : t('home.graduationChecklist')}
               </h2>
               <Link
                 to="/checklist"
                 className="inline-flex items-center gap-0.5 text-xs font-semibold text-pnu-blue-light"
               >
-                View all
+                {t('common.viewAll')}
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm mb-3">
-              <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-                <span className="text-pnu-text">Checklist Progress</span>
-                <span className="text-pnu-muted">
-                  {completedCount} of {checklist.length} completed
-                </span>
+            <div className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
+              <div className="mb-3">
+                <div className="mb-2 flex items-center justify-between text-xs font-semibold">
+                  <span className="text-pnu-text">{t('home.checklistProgress')}</span>
+                  <span className="text-pnu-muted">
+                    {t('common.completedCount', {
+                      completed: completedCount,
+                      total: checklist.length,
+                    })}
+                  </span>
+                </div>
+                <ProgressBar value={completedCount} max={checklist.length} size="sm" />
               </div>
-              <ProgressBar value={completedCount} max={checklist.length} size="sm" />
-            </div>
 
-            <div className="space-y-2">
-              {checklist.map((item) => (
-                <ChecklistRow
-                  key={item.id}
-                  item={item}
-                  disabled={updatingId === item.id}
-                  onToggle={handleToggleChecklist}
-                />
-              ))}
+              <div className="divide-y divide-pnu-border">
+                {checklist.map((item) => {
+                  const locked = isItemLocked(item, progress)
+                  const lockReason = locked ? getLocalizedLockReason(item) : undefined
+                  return (
+                    <ChecklistRow
+                      key={item.id}
+                      item={item}
+                      variant="plain"
+                      disabled={updatingId === item.id}
+                      locked={locked}
+                      lockReason={lockReason}
+                      onToggle={handleToggleChecklist}
+                    />
+                  )
+                })}
+              </div>
             </div>
           </section>
         ) : null}
-
-        {/* Notifications Section */}
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-bold text-pnu-text">Notifications</h2>
-            <Link
-              to="/notifications"
-              className="inline-flex items-center gap-0.5 text-xs font-semibold text-pnu-blue-light"
-            >
-              View all
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {notifications.length === 0 && !error ? (
-              <p className="text-sm text-pnu-muted">No notifications right now.</p>
-            ) : null}
-            {notifications.map((n) => (
-              <NotificationCard key={n.id} notification={n} />
-            ))}
-          </div>
-        </section>
       </div>
     </div>
   )

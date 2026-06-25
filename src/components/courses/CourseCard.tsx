@@ -1,8 +1,11 @@
 import type { RecommendedCourse } from '@/types/api'
 import { CourseTypeBadge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { useLanguage } from '@/context/LanguageContext'
 
 export function CourseCard({ course }: { course: RecommendedCourse }) {
+  const { t } = useLanguage()
+
   return (
     <Card>
       <div className="flex items-start justify-between gap-3">
@@ -14,7 +17,7 @@ export function CourseCard({ course }: { course: RecommendedCourse }) {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-pnu-muted">
-        <span>{course.credits} credits</span>
+        <span>{t('course.credits', { count: course.credits })}</span>
         <span>·</span>
         <span>{course.department}</span>
       </div>

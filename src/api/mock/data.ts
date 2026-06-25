@@ -18,8 +18,8 @@ export const DEMO_PASSWORD = 'password'
 
 export const mockUser: User = {
   studentId: DEMO_STUDENT_ID,
-  name: 'Minh Nguyen',
-  nationality: 'Vietnam',
+  name: 'Hong Gildong',
+  nationality: 'Chinese',
   major: 'Computer Science & Engineering',
   interests: ['AI', 'Data Science', 'Korean Language'],
 }
@@ -100,22 +100,28 @@ export const mockCourses: Course[] = [
 ]
 
 export const mockGraduation: GraduationProgress = {
-  totalRequired: 130,
-  totalCompleted: 87,
+  totalRequired: 133,
+  totalCompleted: 73,
   breakdown: {
-    required: { completed: 45, required: 60 },
-    elective: { completed: 27, required: 40 },
-    genEd: { completed: 15, required: 30 },
+    generalRequired: { completed: 10, required: 10 },
+    generalElective: { completed: 12, required: 15 },
+    majorBasic: { completed: 25, required: 25 },
+    majorRequired: { completed: 17, required: 43 },
+    majorElective: { completed: 6, required: 34 },
+    generalFree: { completed: 3, required: 6 },
   },
 }
 
 export const mockFreshmanGraduation: GraduationProgress = {
-  totalRequired: 130,
+  totalRequired: 133,
   totalCompleted: 2,
   breakdown: {
-    required: { completed: 0, required: 60 },
-    elective: { completed: 0, required: 40 },
-    genEd: { completed: 2, required: 30 },
+    generalRequired: { completed: 2, required: 10 },
+    generalElective: { completed: 0, required: 15 },
+    majorBasic: { completed: 0, required: 25 },
+    majorRequired: { completed: 0, required: 43 },
+    majorElective: { completed: 0, required: 34 },
+    generalFree: { completed: 0, required: 6 },
   },
 }
 
@@ -178,33 +184,65 @@ export const mockChecklist: ChecklistItem[] = [
 export const mockGraduationChecklist: ChecklistItem[] = [
   {
     id: 'gr1',
-    title: 'Major credits requirement',
-    description: 'Complete at least 60 credits in your major department.',
-    completed: false,
+    title: 'General Required credits (교양필수)',
+    description: 'Complete all 10 required General Education credits (교양필수).',
+    completed: true,
+    creditRequirement: { category: 'generalRequired' },
   },
   {
     id: 'gr2',
-    title: 'General education requirement',
-    description: 'Complete at least 30 credits in General Education courses.',
-    completed: true,
+    title: 'General Elective credits (교양선택)',
+    description: 'Complete all 15 General Elective credits (교양선택).',
+    completed: false,
+    creditRequirement: { category: 'generalElective' },
   },
   {
     id: 'gr3',
+    title: 'Major Basic credits (전공기초)',
+    description: 'Complete all 25 Major Basic credits (전공기초).',
+    completed: true,
+    creditRequirement: { category: 'majorBasic' },
+  },
+  {
+    id: 'gr4',
+    title: 'Major Required credits (전공필수)',
+    description: 'Complete all 43 Major Required credits (전공필수).',
+    completed: false,
+    creditRequirement: { category: 'majorRequired' },
+  },
+  {
+    id: 'gr5',
+    title: 'Major Elective credits (전공선택)',
+    description: 'Complete all 34 Major Elective credits (전공선택).',
+    completed: false,
+    creditRequirement: { category: 'majorElective' },
+  },
+  {
+    id: 'gr6',
+    title: 'General Free Elective credits (일반선택)',
+    description: 'Complete all 6 General Free Elective credits (일반선택).',
+    completed: false,
+    creditRequirement: { category: 'generalFree' },
+  },
+  {
+    id: 'gr7',
+    title: 'Total credit requirement',
+    description: 'Earn the full cumulative total of 133 credits.',
+    completed: false,
+    creditRequirement: { category: 'total' },
+  },
+  {
+    id: 'gr8',
     title: 'TOPIK certificate submission',
     description: 'Submit TOPIK level 4 or higher certificate to the International Student Office.',
     completed: false,
   },
   {
-    id: 'gr4',
+    id: 'gr9',
     title: 'Graduation thesis or exam',
-    description: 'Pass your department\'s graduation exam or submit a graduation thesis.',
+    description: "Pass your department's graduation exam or submit a graduation thesis.",
     completed: false,
-  },
-  {
-    id: 'gr5',
-    title: 'Total credits requirement',
-    description: 'Earn a total of at least 130 credits.',
-    completed: true,
+    creditRequirement: { category: 'total' },
   },
 ]
 

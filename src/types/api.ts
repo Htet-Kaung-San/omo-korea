@@ -54,9 +54,18 @@ export interface GraduationProgress {
   totalRequired: number
   totalCompleted: number
   breakdown: {
-    required: CreditBreakdown
-    elective: CreditBreakdown
-    genEd: CreditBreakdown
+    /** 교양필수 – General Required */
+    generalRequired: CreditBreakdown
+    /** 교양선택 – General Elective */
+    generalElective: CreditBreakdown
+    /** 전공기초 – Major Basic */
+    majorBasic: CreditBreakdown
+    /** 전공필수 – Major Required */
+    majorRequired: CreditBreakdown
+    /** 전공선택 – Major Elective */
+    majorElective: CreditBreakdown
+    /** 일반선택 – General Free Elective */
+    generalFree: CreditBreakdown
   }
 }
 
@@ -69,11 +78,18 @@ export interface Notification {
   priority: NotificationPriority
 }
 
+export interface CreditRequirement {
+  /** Which breakdown bucket must meet the threshold */
+  category: keyof GraduationProgress['breakdown'] | 'total'
+}
+
 export interface ChecklistItem {
   id: string
   title: string
   description: string
   completed: boolean
+  /** If set, item is locked until the credit requirement is met */
+  creditRequirement?: CreditRequirement
 }
 
 export type ChecklistVariant = 'NEW_STUDENT' | 'GRADUATION_REQUIREMENT'

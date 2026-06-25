@@ -33,6 +33,16 @@ const TOKEN_KEY = 'hey_pnu_token'
 const CHECKLIST_STORAGE_PREFIX = 'hey_pnu_checklist_'
 const USER_STORAGE_PREFIX = 'hey_pnu_user_'
 
+function readJson<T>(key: string): T | null {
+  const raw = localStorage.getItem(key)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
 function getAdmissionYear(studentId: string): number | null {
   const yearPrefix = studentId.slice(0, 4)
   if (!/^\d{4}$/.test(yearPrefix)) return null
@@ -61,16 +71,11 @@ function getCurrentStudentId(): string {
 function getMockUser(studentId: string): User {
   const isFreshman = isFreshmanStudent(studentId)
   const storageKey = `${USER_STORAGE_PREFIX}${studentId}`
-  const stored = localStorage.getItem(storageKey)
+  const stored = readJson<User>(storageKey)
   if (stored) {
-    try {
-      return JSON.parse(stored)
-    } catch {
-      // ignore
-    }
+    return stored
   }
-  
-  // Return default mock user with given studentId
+
   const defaultUser: User = {
     studentId,
     name: isFreshman ? 'Jun-young Park' : 'Minh Nguyen',
@@ -93,18 +98,23 @@ function getChecklistVariant(studentId: string): ChecklistPayload['variant'] {
 
 function getChecklistState(studentId: string): ChecklistItem[] {
   const variant = getChecklistVariant(studentId)
-  const storageKey = `${CHECKLIST_STORAGE_PREFIX}${studentId}`
-  const stored = localStorage.getItem(storageKey)
-  if (stored) {
-    try {
-      return JSON.parse(stored)
-    } catch {
-      // ignore
-    }
-  }
   const defaultTemplate =
     variant === 'NEW_STUDENT' ? mockChecklist : mockGraduationChecklist
-  const state = defaultTemplate.map((item) => ({ ...item }))
+
+  const storageKey = `${CHECKLIST_STORAGE_PREFIX}${studentId}`
+  const stored = readJson<ChecklistItem[]>(storageKey)
+
+  // Merge stored completion status with the fresh data.ts template.
+  // This guarantees structural updates (like adding locks) are never lost.
+  const state = defaultTemplate.map((item) => {
+    const storedItem = (stored || []).find((s) => s.id === item.id)
+    return {
+      ...item,
+      // Preserve the saved checkmark if it exists, otherwise use the default
+      completed: storedItem ? storedItem.completed : item.completed,
+    }
+  })
+
   localStorage.setItem(storageKey, JSON.stringify(state))
   return state
 }
@@ -137,8 +147,10 @@ function scoreCourses(user: User): RecommendedCourse[] {
         matchHint: hints[0],
       }
     })
-    .filter((c) => c.score > 0 || !user.major)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.nameEn.localeCompare(b.nameEn)
+    })
 }
 
 export const mockApi: HeyPnuApi = {
@@ -147,17 +159,15 @@ export const mockApi: HeyPnuApi = {
     if (password !== DEMO_PASSWORD) {
       throw new Error('Invalid student ID or password.')
     }
-    
-    // Accept any 9-digit student ID
+
     if (!/^\d{9}$/.test(studentId)) {
       throw new Error('Invalid student ID format. Must be a 9-digit number.')
     }
-    
+
     const token = `mock-jwt-token-${studentId}`
     localStorage.setItem(TOKEN_KEY, token)
-    
     const user = getMockUser(studentId)
-    
+
     return {
       token,
       user,
