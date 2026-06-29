@@ -1,23 +1,21 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const Anthropic = require("@anthropic-ai/sdk");
 
 function isClaudeConfigured() {
-  return Boolean(
-    process.env.ANTHROPIC_API_KEY && process.env.CLAUDE_MODEL
-  );
+  return Boolean(process.env.ANTHROPIC_API_KEY && process.env.CLAUDE_MODEL);
 }
 
 function extractText(message) {
   return message.content
-    .filter((block) => block.type === 'text')
+    .filter((block) => block.type === "text")
     .map((block) => block.text)
-    .join('');
+    .join("");
 }
 
 function parseJsonResponse(text) {
   const cleaned = text
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```$/i, '')
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
     .trim();
 
   return JSON.parse(cleaned);
@@ -29,7 +27,7 @@ async function createClaudeMajorAnalysis(userProfile, recommendations) {
       enabled: false,
       analysis: null,
       warning:
-        'Claude is not configured yet. Rule-based recommendations are being used.',
+        "Claude is not configured yet. Rule-based recommendations are being used.",
     };
   }
 
@@ -66,7 +64,7 @@ Return valid JSON only:
       `.trim(),
       messages: [
         {
-          role: 'user',
+          role: "user",
           content: JSON.stringify({
             userProfile,
             ruleBasedRecommendations: recommendations,
@@ -81,12 +79,12 @@ Return valid JSON only:
       warning: null,
     };
   } catch (error) {
-    console.error('Claude major recommendation error:', error.message);
+    console.error("Claude major recommendation error:", error.message);
 
     return {
       enabled: false,
       analysis: null,
-      warning: 'Claude analysis is temporarily unavailable.',
+      warning: "Claude analysis is temporarily unavailable.",
     };
   }
 }

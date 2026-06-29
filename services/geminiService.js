@@ -6,27 +6,32 @@ function isGeminiConfigured() {
 
 async function generateGeminiChat(message, languagePref) {
   if (!isGeminiConfigured()) {
-    throw new Error('Gemini API key is not configured');
+    throw new Error("Gemini API key is not configured");
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-  
-  const langName = languagePref === 'KO' ? 'Korean' : (languagePref === 'ZH' ? 'Chinese (Simplified)' : 'English');
+
+  const langName =
+    languagePref === "KO"
+      ? "Korean"
+      : languagePref === "ZH"
+        ? "Chinese (Simplified)"
+        : "English";
   const systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
-  
+
   const payload = {
     contents: [
       {
-        role: 'user',
-        parts: [{ text: `${systemInstruction}\n\nUser Question: ${message}` }]
-      }
-    ]
+        role: "user",
+        parts: [{ text: `${systemInstruction}\n\nUser Question: ${message}` }],
+      },
+    ],
   };
 
   const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -36,7 +41,7 @@ async function generateGeminiChat(message, languagePref) {
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    throw new Error('Empty response from Gemini');
+    throw new Error("Empty response from Gemini");
   }
 
   return text;
@@ -47,12 +52,13 @@ async function generateGeminiMajorAnalysis(userProfile, recommendations) {
     return {
       enabled: false,
       analysis: null,
-      warning: 'Gemini is not configured yet. Rule-based recommendations are being used.'
+      warning:
+        "Gemini is not configured yet. Rule-based recommendations are being used.",
     };
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-  
+
   const prompt = `
 You are the major recommendation assistant for Hey! PNU, a support platform for international students at Pusan National University.
 Use only the supplied questionnaire data and rule-based recommendations.
@@ -81,15 +87,15 @@ Return valid JSON ONLY matching this format:
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      responseMimeType: "application/json"
-    }
+      responseMimeType: "application/json",
+    },
   };
 
   try {
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -99,37 +105,37 @@ Return valid JSON ONLY matching this format:
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
-      throw new Error('Empty response from Gemini');
+      throw new Error("Empty response from Gemini");
     }
 
     const cleanedText = text
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/```$/i, '')
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```$/i, "")
       .trim();
 
     return {
       enabled: true,
       analysis: JSON.parse(cleanedText),
-      warning: null
+      warning: null,
     };
   } catch (error) {
-    console.error('Gemini major recommendation error:', error.message);
+    console.error("Gemini major recommendation error:", error.message);
     return {
       enabled: false,
       analysis: null,
-      warning: 'Gemini analysis is temporarily unavailable.'
+      warning: "Gemini analysis is temporarily unavailable.",
     };
   }
 }
 
 async function translateGeminiAnnouncement(imageBase64, mimeType, textContent) {
   if (!isGeminiConfigured()) {
-    throw new Error('Gemini API key is not configured');
+    throw new Error("Gemini API key is not configured");
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-  
+
   const systemPrompt = `
 You are the Hey! PNU Academic and Settlement Notice Translator.
 Your job is to translate Pusan National University Korean announcements into clear English, and extract key action-items and deadlines.
@@ -150,38 +156,38 @@ Please return JSON ONLY matching the following schema:
 `;
 
   const parts = [];
-  
+
   if (imageBase64 && mimeType) {
-    const base64Data = imageBase64.includes('base64,') 
-      ? imageBase64.split('base64,')[1] 
+    const base64Data = imageBase64.includes("base64,")
+      ? imageBase64.split("base64,")[1]
       : imageBase64;
 
     parts.push({
       inlineData: {
         mimeType: mimeType,
-        data: base64Data
-      }
+        data: base64Data,
+      },
     });
     parts.push({
-      text: `${systemPrompt}\n\nPlease translate this announcement image. Explain any dates and required steps.`
+      text: `${systemPrompt}\n\nPlease translate this announcement image. Explain any dates and required steps.`,
     });
   } else {
     parts.push({
-      text: `${systemPrompt}\n\nAnnouncement Text:\n${textContent || ''}\n\nPlease translate this text announcement.`
+      text: `${systemPrompt}\n\nAnnouncement Text:\n${textContent || ""}\n\nPlease translate this text announcement.`,
     });
   }
 
   const payload = {
     contents: [{ parts }],
     generationConfig: {
-      responseMimeType: "application/json"
-    }
+      responseMimeType: "application/json",
+    },
   };
 
   const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -191,13 +197,13 @@ Please return JSON ONLY matching the following schema:
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    throw new Error('Empty response from Gemini');
+    throw new Error("Empty response from Gemini");
   }
 
   const cleanedText = text
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```$/i, '')
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
     .trim();
 
   return JSON.parse(cleanedText);

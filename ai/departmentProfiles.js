@@ -1,8 +1,8 @@
 const departmentProfiles = [
   {
-    id: 'computer-engineering',
-    name: 'Computer Engineering',
-    nameKo: '정보컴퓨터공학부(컴퓨터공학전공)',
+    id: "computer-engineering",
+    name: "Computer Engineering",
+    nameKo: "정보컴퓨터공학부(컴퓨터공학전공)",
     minTopik: 4,
     tags: {
       academicAreas: { AA13: 5 },
@@ -32,9 +32,9 @@ const departmentProfiles = [
     },
   },
   {
-    id: 'artificial-intelligence',
-    name: 'Artificial Intelligence',
-    nameKo: '정보컴퓨터공학부(인공지능전공)',
+    id: "artificial-intelligence",
+    name: "Artificial Intelligence",
+    nameKo: "정보컴퓨터공학부(인공지능전공)",
     minTopik: 4,
     tags: {
       academicAreas: { AA13: 5 },
@@ -64,9 +64,9 @@ const departmentProfiles = [
     },
   },
   {
-    id: 'design-technology',
-    name: 'Design Technology',
-    nameKo: '정보컴퓨터공학부(디자인테크놀로지전공)',
+    id: "design-technology",
+    name: "Design Technology",
+    nameKo: "정보컴퓨터공학부(디자인테크놀로지전공)",
     minTopik: 4,
     tags: {
       academicAreas: {
@@ -98,9 +98,9 @@ const departmentProfiles = [
     },
   },
   {
-    id: 'business-administration',
-    name: 'Business Administration',
-    nameKo: '경영학과',
+    id: "business-administration",
+    name: "Business Administration",
+    nameKo: "경영학과",
     minTopik: 5,
     tags: {
       academicAreas: { AA08: 5 },

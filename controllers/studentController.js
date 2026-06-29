@@ -1,28 +1,28 @@
-const supabase = require('../supabaseClient');
-const bcrypt = require('bcryptjs');
+const supabase = require("../supabaseClient");
+const bcrypt = require("bcryptjs");
 
 const testConnection = async (req, res) => {
   try {
-    const { data, error } = await supabase.from('major').select('*').limit(1);
+    const { data, error } = await supabase.from("major").select("*").limit(1);
 
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to query MAJOR table',
+        message: "Failed to query MAJOR table",
         error: error.message,
       });
     }
 
     res.json({
       success: true,
-      message: 'Database connection successful',
+      message: "Database connection successful",
       count: data.length,
       data,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -35,46 +35,48 @@ const loginStudent = async (req, res) => {
     if (!student_id || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Missing student_id or password',
+        message: "Missing student_id or password",
       });
     }
 
     const { data, error } = await supabase
-      .from('student')
-      .select(`
+      .from("student")
+      .select(
+        `
         *,
         major:major_id (
           major_name,
           department
         )
-      `)
-      .eq('student_id', student_id)
+      `,
+      )
+      .eq("student_id", student_id)
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116' || !data) {
+      if (error?.code === "PGRST116" || !data) {
         return res.status(404).json({
           success: false,
-          message: 'Student ID not registered',
+          message: "Student ID not registered",
         });
       }
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch student profile',
+        message: "Failed to fetch student profile",
         error: error.message,
       });
     }
 
     // Verify password (supports both plaintext for seeds and bcrypt for new signups)
-    const isMatch = data.password.startsWith('$2') 
-      ? await bcrypt.compare(password, data.password) 
+    const isMatch = data.password.startsWith("$2")
+      ? await bcrypt.compare(password, data.password)
       : password === data.password;
 
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid password',
+        message: "Invalid password",
       });
     }
 
@@ -91,7 +93,7 @@ const loginStudent = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -103,61 +105,65 @@ const getStudentChecklist = async (req, res) => {
 
     // 1. Fetch the student's type to know which templates apply
     const { data: student, error: studentError } = await supabase
-      .from('student')
-      .select('student_type')
-      .eq('student_id', student_id)
+      .from("student")
+      .select("student_type")
+      .eq("student_id", student_id)
       .single();
 
     if (studentError || !student) {
       return res.status(404).json({
         success: false,
-        message: 'Student not found',
+        message: "Student not found",
         error: studentError?.message,
       });
     }
 
-    const studentType = student.student_type || 'Current';
+    const studentType = student.student_type || "Current";
 
     // 2. Fetch templates for this student type
     const { data: templates } = await supabase
-      .from('checklist_template')
-      .select('*')
-      .eq('student_type', studentType);
+      .from("checklist_template")
+      .select("*")
+      .eq("student_type", studentType);
 
     // 3. Fetch existing checklist items for this student
     const { data: existingItems, error: fetchError } = await supabase
-      .from('checklist_item')
-      .select('*')
-      .eq('student_id', student_id);
+      .from("checklist_item")
+      .select("*")
+      .eq("student_id", student_id);
 
     if (fetchError) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch checklist',
+        message: "Failed to fetch checklist",
         error: fetchError.message,
       });
     }
 
     // 4. Sync missing template items to checklist_item if templates exist
     if (templates && templates.length > 0) {
-      const existingTaskNames = new Set(existingItems.map(item => item.task_name));
-      const missingTemplates = templates.filter(t => !existingTaskNames.has(t.title));
+      const existingTaskNames = new Set(
+        existingItems.map((item) => item.task_name),
+      );
+      const missingTemplates = templates.filter(
+        (t) => !existingTaskNames.has(t.title),
+      );
 
       if (missingTemplates.length > 0) {
-        const itemsToInsert = missingTemplates.map(t => ({
+        const itemsToInsert = missingTemplates.map((t) => ({
           student_id: student_id,
           task_name: t.title,
           description: t.description,
-          status: 'Pending',
+          status: "Pending",
         }));
 
-        await supabase.from('checklist_item').insert(itemsToInsert);
+        await supabase.from("checklist_item").insert(itemsToInsert);
 
         // Re-fetch the updated list
         const { data: updatedItems, error: refetchError } = await supabase
-          .from('checklist_item')
-          .select('*')
-          .eq('student_id', student_id);
+          .from("checklist_item")
+          .select("*")
+          .eq("student_id", student_id);
 
         if (!refetchError) {
           return res.json({
@@ -175,7 +181,7 @@ const getStudentChecklist = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -187,23 +193,23 @@ const updateChecklistItem = async (req, res) => {
     const { status } = req.body;
 
     const { data, error } = await supabase
-      .from('checklist_item')
+      .from("checklist_item")
       .update({ status })
-      .eq('checklist_id', checklist_id)
+      .eq("checklist_id", checklist_id)
       .select()
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116' || !data) {
+      if (error?.code === "PGRST116" || !data) {
         return res.status(404).json({
           success: false,
-          message: 'Checklist item not found',
+          message: "Checklist item not found",
         });
       }
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to update checklist item',
+        message: "Failed to update checklist item",
         error: error.message,
       });
     }
@@ -215,7 +221,7 @@ const updateChecklistItem = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -224,14 +230,14 @@ const updateChecklistItem = async (req, res) => {
 const getAllScholarships = async (req, res) => {
   try {
     const { data, error } = await supabase
-      .from('scholarship')
-      .select('*')
-      .order('deadline', { ascending: true });
+      .from("scholarship")
+      .select("*")
+      .order("deadline", { ascending: true });
 
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch scholarships',
+        message: "Failed to fetch scholarships",
         error: error.message,
       });
     }
@@ -243,7 +249,7 @@ const getAllScholarships = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -254,11 +260,11 @@ const applyForScholarship = async (req, res) => {
     const { student_id, scholarship_id } = req.body;
 
     const { data, error } = await supabase
-      .from('scholarship_application')
+      .from("scholarship_application")
       .insert({
         student_id,
         scholarship_id,
-        status: 'Pending',
+        status: "Pending",
       })
       .select()
       .single();
@@ -266,7 +272,7 @@ const applyForScholarship = async (req, res) => {
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to submit scholarship application',
+        message: "Failed to submit scholarship application",
         error: error.message,
       });
     }
@@ -278,7 +284,7 @@ const applyForScholarship = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -286,32 +292,42 @@ const applyForScholarship = async (req, res) => {
 
 const signupStudent = async (req, res) => {
   try {
-    const { student_id, name, nationality, major_name, student_type, visa_status, password } = req.body;
+    const {
+      student_id,
+      name,
+      nationality,
+      major_name,
+      student_type,
+      visa_status,
+      password,
+    } = req.body;
 
     if (!student_id || !name || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: student_id, name, password',
+        message: "Missing required fields: student_id, name, password",
       });
     }
 
     const { data: existingStudent } = await supabase
-      .from('student')
-      .select('*')
-      .eq('student_id', String(student_id))
+      .from("student")
+      .select("*")
+      .eq("student_id", String(student_id))
       .single();
 
     if (existingStudent) {
       return res.status(400).json({
         success: false,
-        message: 'Student ID already registered',
+        message: "Student ID already registered",
       });
     }
 
     let major_id = 1;
     if (major_name) {
-      const { data: majors } = await supabase.from('major').select('*');
-      const matchedMajor = majors?.find(m => m.major_name.toLowerCase() === major_name.toLowerCase());
+      const { data: majors } = await supabase.from("major").select("*");
+      const matchedMajor = majors?.find(
+        (m) => m.major_name.toLowerCase() === major_name.toLowerCase(),
+      );
       if (matchedMajor) {
         major_id = matchedMajor.major_id;
       }
@@ -321,15 +337,15 @@ const signupStudent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { data: newStudent, error: insertError } = await supabase
-      .from('student')
+      .from("student")
       .insert({
         student_id: String(student_id),
         name,
-        nationality: nationality || 'Unknown',
+        nationality: nationality || "Unknown",
         major_id,
-        student_type: student_type || 'Current',
-        visa_status: visa_status || 'None',
-        password: hashedPassword
+        student_type: student_type || "Current",
+        visa_status: visa_status || "None",
+        password: hashedPassword,
       })
       .select()
       .single();
@@ -337,7 +353,7 @@ const signupStudent = async (req, res) => {
     if (insertError) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to register student',
+        message: "Failed to register student",
         error: insertError.message,
       });
     }
@@ -345,50 +361,72 @@ const signupStudent = async (req, res) => {
     // Fetch default checklist templates from Supabase
     let listToInsert = [];
     const { data: templates, error: templateError } = await supabase
-      .from('checklist_template')
-      .select('*')
-      .eq('student_type', student_type === 'Freshman' ? 'Freshman' : 'Current');
+      .from("checklist_template")
+      .select("*")
+      .eq("student_type", student_type === "Freshman" ? "Freshman" : "Current");
 
     if (!templateError && templates && templates.length > 0) {
-      listToInsert = templates.map(t => ({ title: t.title, description: t.description }));
+      listToInsert = templates.map((t) => ({
+        title: t.title,
+        description: t.description,
+      }));
     } else {
       // Safe fallback if table is not created yet
       const defaultChecklists = {
         Freshman: [
-          { title: 'Apply for Alien Registration Card (ARC)', description: 'Visit immigration office within 90 days of arrival' },
-          { title: 'Open local bank account', description: 'Open account at PNU campus bank' },
-          { title: 'Buy PNU SIM card', description: 'Get a local prepaid or contract SIM card' }
+          {
+            title: "Apply for Alien Registration Card (ARC)",
+            description: "Visit immigration office within 90 days of arrival",
+          },
+          {
+            title: "Open local bank account",
+            description: "Open account at PNU campus bank",
+          },
+          {
+            title: "Buy PNU SIM card",
+            description: "Get a local prepaid or contract SIM card",
+          },
         ],
         Current: [
-          { title: 'Submit graduation thesis outline', description: 'Submit thesis outline to department office' },
-          { title: 'TOPIK Level 4 certificate', description: 'Submit language proficiency certificate' },
-          { title: 'Completed credit audit', description: 'Verify graduation credit breakdown with academic advisor' }
-        ]
+          {
+            title: "Submit graduation thesis outline",
+            description: "Submit thesis outline to department office",
+          },
+          {
+            title: "TOPIK Level 4 certificate",
+            description: "Submit language proficiency certificate",
+          },
+          {
+            title: "Completed credit audit",
+            description:
+              "Verify graduation credit breakdown with academic advisor",
+          },
+        ],
       };
-      const studentTypeKey = student_type === 'Freshman' ? 'Freshman' : 'Current';
+      const studentTypeKey =
+        student_type === "Freshman" ? "Freshman" : "Current";
       listToInsert = defaultChecklists[studentTypeKey];
     }
-    
+
     for (let i = 0; i < listToInsert.length; i++) {
       const item = listToInsert[i];
-      await supabase.from('checklist_item').insert({
+      await supabase.from("checklist_item").insert({
         student_id: String(student_id),
         task_name: item.title,
         description: item.description,
-        status: 'Pending'
+        status: "Pending",
       });
     }
 
     res.status(201).json({
       success: true,
-      message: 'Student registered successfully',
-      data: newStudent
+      message: "Student registered successfully",
+      data: newStudent,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -399,28 +437,30 @@ const getStudentProfile = async (req, res) => {
     const { student_id } = req.params;
 
     const { data, error } = await supabase
-      .from('student')
-      .select(`
+      .from("student")
+      .select(
+        `
         *,
         major:major_id (
           major_name,
           department
         )
-      `)
-      .eq('student_id', student_id)
+      `,
+      )
+      .eq("student_id", student_id)
       .single();
 
     if (error || !data) {
-      if (error?.code === 'PGRST116' || !data) {
+      if (error?.code === "PGRST116" || !data) {
         return res.status(404).json({
           success: false,
-          message: 'Student not found',
+          message: "Student not found",
         });
       }
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch student profile',
+        message: "Failed to fetch student profile",
         error: error.message,
       });
     }
@@ -438,7 +478,7 @@ const getStudentProfile = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -447,12 +487,22 @@ const getStudentProfile = async (req, res) => {
 const updateStudentProfile = async (req, res) => {
   try {
     const { student_id } = req.params;
-    const { name, nationality, major_name, email, phone, visa_status, new_password } = req.body;
+    const {
+      name,
+      nationality,
+      major_name,
+      email,
+      phone,
+      visa_status,
+      new_password,
+    } = req.body;
 
     let major_id;
     if (major_name) {
-      const { data: majors } = await supabase.from('major').select('*');
-      const matchedMajor = majors?.find(m => m.major_name.toLowerCase() === major_name.toLowerCase());
+      const { data: majors } = await supabase.from("major").select("*");
+      const matchedMajor = majors?.find(
+        (m) => m.major_name.toLowerCase() === major_name.toLowerCase(),
+      );
       if (matchedMajor) {
         major_id = matchedMajor.major_id;
       }
@@ -469,42 +519,63 @@ const updateStudentProfile = async (req, res) => {
     if (new_password) {
       const { current_password } = req.body;
       if (!current_password) {
-        return res.status(400).json({ success: false, message: 'Current password is required to set a new password.' });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Current password is required to set a new password.",
+          });
       }
-      
-      const { data: studentRecord } = await supabase.from('student').select('password').eq('student_id', student_id).single();
+
+      const { data: studentRecord } = await supabase
+        .from("student")
+        .select("password")
+        .eq("student_id", student_id)
+        .single();
       if (!studentRecord) {
-        return res.status(404).json({ success: false, message: 'Student not found.' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Student not found." });
       }
-      
-      const bcrypt = require('bcryptjs');
-      const isMatch = await bcrypt.compare(current_password, studentRecord.password);
+
+      const bcrypt = require("bcryptjs");
+      const isMatch = await bcrypt.compare(
+        current_password,
+        studentRecord.password,
+      );
       if (!isMatch) {
-        return res.status(400).json({ success: false, message: 'Current password does not match.' });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Current password does not match.",
+          });
       }
-      
+
       const salt = await bcrypt.genSalt(10);
       updateData.password = await bcrypt.hash(new_password, salt);
     }
 
     const { data, error } = await supabase
-      .from('student')
+      .from("student")
       .update(updateData)
-      .eq('student_id', student_id)
-      .select(`
+      .eq("student_id", student_id)
+      .select(
+        `
         *,
         major:major_id (
           major_name,
           department
         )
-      `)
+      `,
+      )
       .single();
 
     if (error || !data) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to update profile',
-        error: error?.message || 'Error occurred',
+        message: "Failed to update profile",
+        error: error?.message || "Error occurred",
       });
     }
 
@@ -521,7 +592,7 @@ const updateStudentProfile = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -535,55 +606,57 @@ const forgotPassword = async (req, res) => {
     if (!student_id) {
       return res.status(400).json({
         success: false,
-        message: 'Missing student_id'
+        message: "Missing student_id",
       });
     }
 
     const { data, error } = await supabase
-      .from('student')
-      .select('email')
-      .eq('student_id', String(student_id))
+      .from("student")
+      .select("email")
+      .eq("student_id", String(student_id))
       .single();
 
     if (error || !data) {
       return res.status(404).json({
         success: false,
-        message: 'Student ID not registered'
+        message: "Student ID not registered",
       });
     }
 
-    const email = data.email || 'student@pusan.ac.kr';
-    
+    const email = data.email || "student@pusan.ac.kr";
+
     // Generate a 6-digit recovery code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     recoveryCodes.set(String(student_id), {
       code,
-      expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+      expires: Date.now() + 10 * 60 * 1000, // 10 minutes
     });
 
     console.log(`[PASSWORD RESET] Generated code for ${student_id}: ${code}`);
 
     // Mask the email (e.g. htet_kaung_san@pusan.ac.kr -> ht**@pusan.ac.kr)
-    const [localPart, domain] = email.split('@');
+    const [localPart, domain] = email.split("@");
     let maskedLocal = localPart;
     if (localPart.length > 2) {
-      maskedLocal = localPart.substring(0, 2) + '*'.repeat(Math.min(8, localPart.length - 2));
+      maskedLocal =
+        localPart.substring(0, 2) +
+        "*".repeat(Math.min(8, localPart.length - 2));
     } else {
-      maskedLocal = localPart.substring(0, 1) + '*';
+      maskedLocal = localPart.substring(0, 1) + "*";
     }
     const maskedEmail = `${maskedLocal}@${domain}`;
 
     res.json({
       success: true,
-      message: 'Recovery code generated successfully',
+      message: "Recovery code generated successfully",
       maskedEmail,
-      code // Send code back for ease of use in demo/UI
+      code, // Send code back for ease of use in demo/UI
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
-      error: err.message
+      message: "Unexpected server error",
+      error: err.message,
     });
   }
 };
@@ -594,7 +667,7 @@ const resetPassword = async (req, res) => {
     if (!student_id || !code || !new_password) {
       return res.status(400).json({
         success: false,
-        message: 'Missing student_id, code, or new_password'
+        message: "Missing student_id, code, or new_password",
       });
     }
 
@@ -602,7 +675,7 @@ const resetPassword = async (req, res) => {
     if (!record) {
       return res.status(400).json({
         success: false,
-        message: 'No active recovery request found for this Student ID'
+        message: "No active recovery request found for this Student ID",
       });
     }
 
@@ -610,14 +683,14 @@ const resetPassword = async (req, res) => {
       recoveryCodes.delete(String(student_id));
       return res.status(400).json({
         success: false,
-        message: 'Recovery code has expired'
+        message: "Recovery code has expired",
       });
     }
 
     if (record.code !== String(code)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid recovery code'
+        message: "Invalid recovery code",
       });
     }
 
@@ -626,15 +699,15 @@ const resetPassword = async (req, res) => {
 
     // Update the password in database
     const { error: updateError } = await supabase
-      .from('student')
+      .from("student")
       .update({ password: hashedPassword })
-      .eq('student_id', String(student_id));
+      .eq("student_id", String(student_id));
 
     if (updateError) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to update password',
-        error: updateError.message
+        message: "Failed to update password",
+        error: updateError.message,
       });
     }
 
@@ -642,13 +715,13 @@ const resetPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password reset successfully'
+      message: "Password reset successfully",
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
-      error: err.message
+      message: "Unexpected server error",
+      error: err.message,
     });
   }
 };
@@ -656,14 +729,14 @@ const resetPassword = async (req, res) => {
 const getAllBoards = async (req, res) => {
   try {
     const { data, error } = await supabase
-      .from('board')
-      .select('*')
-      .order('board_id', { ascending: true });
+      .from("board")
+      .select("*")
+      .order("board_id", { ascending: true });
 
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch boards',
+        message: "Failed to fetch boards",
         error: error.message,
       });
     }
@@ -675,7 +748,7 @@ const getAllBoards = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -686,30 +759,32 @@ const getBoardPosts = async (req, res) => {
     const { board_id } = req.params;
 
     const { data, error } = await supabase
-      .from('post')
-      .select(`
+      .from("post")
+      .select(
+        `
         *,
         student:student_id (
           name
         )
-      `)
-      .eq('board_id', Number(board_id))
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("board_id", Number(board_id))
+      .order("created_at", { ascending: false });
 
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch posts for board',
+        message: "Failed to fetch posts for board",
         error: error.message,
       });
     }
 
     // Map to include student_name cleanly in output
-    const posts = (data || []).map(p => {
+    const posts = (data || []).map((p) => {
       const { student, ...rest } = p;
       return {
         ...rest,
-        student_name: student?.name ?? 'Unknown Student'
+        student_name: student?.name ?? "Unknown Student",
       };
     });
 
@@ -720,7 +795,7 @@ const getBoardPosts = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -733,12 +808,12 @@ const createPost = async (req, res) => {
     if (!board_id || !student_id || !title || !content) {
       return res.status(400).json({
         success: false,
-        message: 'Missing board_id, student_id, title, or content',
+        message: "Missing board_id, student_id, title, or content",
       });
     }
 
     const { data, error } = await supabase
-      .from('post')
+      .from("post")
       .insert({
         board_id: Number(board_id),
         student_id: String(student_id),
@@ -751,7 +826,7 @@ const createPost = async (req, res) => {
     if (error) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to create post',
+        message: "Failed to create post",
         error: error.message,
       });
     }
@@ -763,7 +838,7 @@ const createPost = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Unexpected server error',
+      message: "Unexpected server error",
       error: err.message,
     });
   }
@@ -771,42 +846,107 @@ const createPost = async (req, res) => {
 
 const getFacilities = async (req, res) => {
   try {
-    const { data, error } = await supabase.from('facility').select('*').order('name', { ascending: true });
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch facilities', error: error.message });
+    const { data, error } = await supabase
+      .from("facility")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch facilities",
+          error: error.message,
+        });
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
 const getNotices = async (req, res) => {
   try {
-    const { data, error } = await supabase.from('notice').select('*').order('posted_date', { ascending: false });
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch notices', error: error.message });
+    const { data, error } = await supabase
+      .from("notice")
+      .select("*")
+      .order("posted_date", { ascending: false });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch notices",
+          error: error.message,
+        });
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
 const getNotifications = async (req, res) => {
   try {
     const { student_id } = req.params;
-    const { data, error } = await supabase.from('notification').select('*').eq('student_id', student_id).order('scheduled_time', { ascending: false });
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch notifications', error: error.message });
+    const { data, error } = await supabase
+      .from("notification")
+      .select("*")
+      .eq("student_id", student_id)
+      .order("scheduled_time", { ascending: false });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch notifications",
+          error: error.message,
+        });
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
 const getCourses = async (req, res) => {
   try {
-    const { data, error } = await supabase.from('course').select('*').order('course_name', { ascending: true });
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch courses', error: error.message });
+    const { data, error } = await supabase
+      .from("course")
+      .select("*")
+      .order("course_name", { ascending: true });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch courses",
+          error: error.message,
+        });
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -814,31 +954,46 @@ const getEnrollments = async (req, res) => {
   try {
     const { student_id } = req.params;
     const { data, error } = await supabase
-      .from('enrollment')
-      .select(`
+      .from("enrollment")
+      .select(
+        `
         *,
         course:course_id (
           *
         )
-      `)
-      .eq('student_id', student_id);
+      `,
+      )
+      .eq("student_id", student_id);
 
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch enrollments', error: error.message });
-    
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch enrollments",
+          error: error.message,
+        });
+
     // Flat map course values
-    const list = (data || []).map(item => {
+    const list = (data || []).map((item) => {
       const { course, ...rest } = item;
       return {
         ...rest,
-        course_name: course?.course_name ?? 'Unknown Course',
+        course_name: course?.course_name ?? "Unknown Course",
         credit: course?.credit ?? 0,
-        category: course?.category ?? 'GEN_ED'
+        category: course?.category ?? "GEN_ED",
       };
     });
 
     res.json({ success: true, data: list });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -846,47 +1001,80 @@ const createEnrollment = async (req, res) => {
   try {
     const { student_id, course_id } = req.body;
     if (!student_id || !course_id) {
-      return res.status(400).json({ success: false, message: 'Missing student_id or course_id' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing student_id or course_id" });
     }
 
     // Check if already enrolled
     const { data: existing } = await supabase
-      .from('enrollment')
-      .select('*')
-      .eq('student_id', student_id)
-      .eq('course_id', Number(course_id));
+      .from("enrollment")
+      .select("*")
+      .eq("student_id", student_id)
+      .eq("course_id", Number(course_id));
 
     if (existing && existing.length > 0) {
-      return res.status(400).json({ success: false, message: 'Already enrolled in this course' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Already enrolled in this course" });
     }
 
     const { data, error } = await supabase
-      .from('enrollment')
+      .from("enrollment")
       .insert({
         student_id: String(student_id),
         course_id: Number(course_id),
-        semester: '2026-Fall',
-        status: 'Enrolled'
+        semester: "2026-Fall",
+        status: "Enrolled",
       })
       .select()
       .single();
 
-    if (error) return res.status(500).json({ success: false, message: 'Failed to enroll course', error: error.message });
-    
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to enroll course",
+          error: error.message,
+        });
+
     res.status(201).json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
 const deleteEnrollment = async (req, res) => {
   try {
     const { enrollment_id } = req.params;
-    const { error } = await supabase.from('enrollment').delete().eq('enrollment_id', Number(enrollment_id));
-    if (error) return res.status(500).json({ success: false, message: 'Failed to drop course', error: error.message });
-    res.json({ success: true, message: 'Successfully dropped course' });
+    const { error } = await supabase
+      .from("enrollment")
+      .delete()
+      .eq("enrollment_id", Number(enrollment_id));
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to drop course",
+          error: error.message,
+        });
+    res.json({ success: true, message: "Successfully dropped course" });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -894,28 +1082,43 @@ const getPostComments = async (req, res) => {
   try {
     const { post_id } = req.params;
     const { data, error } = await supabase
-      .from('comment')
-      .select(`
+      .from("comment")
+      .select(
+        `
         *,
         student:student_id (
           name
         )
-      `)
-      .eq('post_id', Number(post_id));
+      `,
+      )
+      .eq("post_id", Number(post_id));
 
-    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch comments', error: error.message });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to fetch comments",
+          error: error.message,
+        });
 
-    const list = (data || []).map(item => {
+    const list = (data || []).map((item) => {
       const { student, ...rest } = item;
       return {
         ...rest,
-        student_name: student?.name ?? 'Unknown Student'
+        student_name: student?.name ?? "Unknown Student",
       };
     });
 
     res.json({ success: true, data: list });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -923,33 +1126,55 @@ const createComment = async (req, res) => {
   try {
     const { post_id, student_id, content } = req.body;
     if (!post_id || !student_id || !content) {
-      return res.status(400).json({ success: false, message: 'Missing post_id, student_id, or content' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Missing post_id, student_id, or content",
+        });
     }
 
     const { data, error } = await supabase
-      .from('comment')
+      .from("comment")
       .insert({
         post_id: Number(post_id),
         student_id: String(student_id),
-        content
+        content,
       })
       .select()
       .single();
 
-    if (error) return res.status(500).json({ success: false, message: 'Failed to add comment', error: error.message });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to add comment",
+          error: error.message,
+        });
 
     // Fetch student name
-    const { data: student } = await supabase.from('student').select('name').eq('student_id', String(student_id)).single();
+    const { data: student } = await supabase
+      .from("student")
+      .select("name")
+      .eq("student_id", String(student_id))
+      .single();
 
     res.status(201).json({
       success: true,
       data: {
         ...data,
-        student_name: student?.name ?? 'Unknown Student'
-      }
+        student_name: student?.name ?? "Unknown Student",
+      },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -959,21 +1184,36 @@ const updateLanguagePreference = async (req, res) => {
     const { language_pref } = req.body;
 
     if (!language_pref) {
-      return res.status(400).json({ success: false, message: 'Missing language_pref' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing language_pref" });
     }
 
     const { data, error } = await supabase
-      .from('student')
+      .from("student")
       .update({ language_pref })
-      .eq('student_id', student_id)
+      .eq("student_id", student_id)
       .select()
       .single();
 
-    if (error) return res.status(500).json({ success: false, message: 'Failed to update language preference', error: error.message });
+    if (error)
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Failed to update language preference",
+          error: error.message,
+        });
 
     res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Unexpected server error",
+        error: err.message,
+      });
   }
 };
 
@@ -981,41 +1221,52 @@ const globalSearch = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) {
-      return res.json({ success: true, data: { courses: [], notices: [], facilities: [], posts: [] } });
+      return res.json({
+        success: true,
+        data: { courses: [], notices: [], facilities: [], posts: [] },
+      });
     }
 
     const query = String(q).toLowerCase();
 
     // 1. Fetch courses
-    const { data: courses } = await supabase.from('course').select('*');
+    const { data: courses } = await supabase.from("course").select("*");
     const matchedCourses = (courses || [])
-      .filter(c => c.course_name.toLowerCase().includes(query))
+      .filter((c) => c.course_name.toLowerCase().includes(query))
       .slice(0, 5);
 
     // 2. Fetch notices
-    const { data: notices } = await supabase.from('notice').select('*');
+    const { data: notices } = await supabase.from("notice").select("*");
     const matchedNotices = (notices || [])
-      .filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query))
+      .filter(
+        (n) =>
+          n.title.toLowerCase().includes(query) ||
+          n.content.toLowerCase().includes(query),
+      )
       .slice(0, 5);
 
     // 3. Fetch facilities
-    const { data: facilities } = await supabase.from('facility').select('*');
+    const { data: facilities } = await supabase.from("facility").select("*");
     const matchedFacilities = (facilities || [])
-      .filter(f => f.name.toLowerCase().includes(query))
+      .filter((f) => f.name.toLowerCase().includes(query))
       .slice(0, 5);
 
     // 4. Fetch posts
-    const { data: posts } = await supabase.from('post').select(`
+    const { data: posts } = await supabase.from("post").select(`
       *,
       student:student_id (
         name
       )
     `);
     const matchedPosts = (posts || [])
-      .filter(p => p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query))
-      .map(p => ({
+      .filter(
+        (p) =>
+          p.title.toLowerCase().includes(query) ||
+          p.content.toLowerCase().includes(query),
+      )
+      .map((p) => ({
         ...p,
-        student_name: p.student?.name || 'Unknown Student'
+        student_name: p.student?.name || "Unknown Student",
       }))
       .slice(0, 5);
 
@@ -1025,45 +1276,55 @@ const globalSearch = async (req, res) => {
         courses: matchedCourses,
         notices: matchedNotices,
         facilities: matchedFacilities,
-        posts: matchedPosts
-      }
+        posts: matchedPosts,
+      },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Search execution error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Search execution error",
+        error: err.message,
+      });
   }
 };
 
 const healthCheck = async (req, res) => {
   try {
     const start = Date.now();
-    
+
     // Check DB tables connectivity
-    const { error: dbError } = await supabase.from('student').select('student_id').limit(1);
+    const { error: dbError } = await supabase
+      .from("student")
+      .select("student_id")
+      .limit(1);
     const latency = Date.now() - start;
 
     // Get table row counts helper
     const getCount = async (table) => {
       try {
-        const { data } = await supabase.from(table).select('*');
+        const { data } = await supabase.from(table).select("*");
         return data?.length ?? 0;
       } catch {
         return 0;
       }
     };
 
-    const [students, courses, notices, facilities, posts, comments] = await Promise.all([
-      getCount('student'),
-      getCount('course'),
-      getCount('notice'),
-      getCount('facility'),
-      getCount('post'),
-      getCount('comment')
-    ]);
+    const [students, courses, notices, facilities, posts, comments] =
+      await Promise.all([
+        getCount("student"),
+        getCount("course"),
+        getCount("notice"),
+        getCount("facility"),
+        getCount("post"),
+        getCount("comment"),
+      ]);
 
     res.json({
       success: true,
-      status: 'UP',
-      database: dbError ? 'DISCONNECTED' : 'CONNECTED',
+      status: "UP",
+      database: dbError ? "DISCONNECTED" : "CONNECTED",
       latencyMs: latency,
       geminiApiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
       counts: {
@@ -1072,11 +1333,13 @@ const healthCheck = async (req, res) => {
         notices,
         facilities,
         posts,
-        comments
-      }
+        comments,
+      },
     });
   } catch (err) {
-    res.status(500).json({ success: false, status: 'DOWN', error: err.message });
+    res
+      .status(500)
+      .json({ success: false, status: "DOWN", error: err.message });
   }
 };
 
@@ -1107,5 +1370,4 @@ module.exports = {
   updateLanguagePreference,
   globalSearch,
   healthCheck,
-}
-;
+};
