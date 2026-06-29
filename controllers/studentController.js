@@ -1,4 +1,5 @@
 const supabase = require('../supabaseClient');
+const bcrypt = require('bcryptjs');
 
 const testConnection = async (req, res) => {
   try {
@@ -29,7 +30,14 @@ const testConnection = async (req, res) => {
 
 const loginStudent = async (req, res) => {
   try {
-    const { student_id } = req.body;
+    const { student_id, password } = req.body;
+
+    if (!student_id || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing student_id or password',
+      });
+    }
 
     const { data, error } = await supabase
       .from('student')
@@ -58,6 +66,18 @@ const loginStudent = async (req, res) => {
       });
     }
 
+    // Verify password (supports both plaintext for seeds and bcrypt for new signups)
+    const isMatch = data.password.startsWith('$2') 
+      ? await bcrypt.compare(password, data.password) 
+      : password === data.password;
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid password',
+      });
+    }
+
     const { major, ...studentProfile } = data;
 
     res.json({
@@ -81,22 +101,76 @@ const getStudentChecklist = async (req, res) => {
   try {
     const { student_id } = req.params;
 
-    const { data, error } = await supabase
+    // 1. Fetch the student's type to know which templates apply
+    const { data: student, error: studentError } = await supabase
+      .from('student')
+      .select('student_type')
+      .eq('student_id', student_id)
+      .single();
+
+    if (studentError || !student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+        error: studentError?.message,
+      });
+    }
+
+    const studentType = student.student_type || 'Current';
+
+    // 2. Fetch templates for this student type
+    const { data: templates } = await supabase
+      .from('checklist_template')
+      .select('*')
+      .eq('student_type', studentType);
+
+    // 3. Fetch existing checklist items for this student
+    const { data: existingItems, error: fetchError } = await supabase
       .from('checklist_item')
       .select('*')
       .eq('student_id', student_id);
 
-    if (error) {
+    if (fetchError) {
       return res.status(500).json({
         success: false,
         message: 'Failed to fetch checklist',
-        error: error.message,
+        error: fetchError.message,
       });
+    }
+
+    // 4. Sync missing template items to checklist_item if templates exist
+    if (templates && templates.length > 0) {
+      const existingTaskNames = new Set(existingItems.map(item => item.task_name));
+      const missingTemplates = templates.filter(t => !existingTaskNames.has(t.title));
+
+      if (missingTemplates.length > 0) {
+        const itemsToInsert = missingTemplates.map(t => ({
+          student_id: student_id,
+          task_name: t.title,
+          description: t.description,
+          status: 'Pending',
+        }));
+
+        await supabase.from('checklist_item').insert(itemsToInsert);
+
+        // Re-fetch the updated list
+        const { data: updatedItems, error: refetchError } = await supabase
+          .from('checklist_item')
+          .select('*')
+          .eq('student_id', student_id);
+
+        if (!refetchError) {
+          return res.json({
+            success: true,
+            data: updatedItems,
+          });
+        }
+      }
     }
 
     res.json({
       success: true,
-      data,
+      data: existingItems,
     });
   } catch (err) {
     res.status(500).json({
@@ -210,6 +284,467 @@ const applyForScholarship = async (req, res) => {
   }
 };
 
+const signupStudent = async (req, res) => {
+  try {
+    const { student_id, name, nationality, major_name, student_type, visa_status, password } = req.body;
+
+    if (!student_id || !name || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: student_id, name, password',
+      });
+    }
+
+    const { data: existingStudent } = await supabase
+      .from('student')
+      .select('*')
+      .eq('student_id', String(student_id))
+      .single();
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID already registered',
+      });
+    }
+
+    let major_id = 1;
+    if (major_name) {
+      const { data: majors } = await supabase.from('major').select('*');
+      const matchedMajor = majors?.find(m => m.major_name.toLowerCase() === major_name.toLowerCase());
+      if (matchedMajor) {
+        major_id = matchedMajor.major_id;
+      }
+    }
+
+    // Hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const { data: newStudent, error: insertError } = await supabase
+      .from('student')
+      .insert({
+        student_id: String(student_id),
+        name,
+        nationality: nationality || 'Unknown',
+        major_id,
+        student_type: student_type || 'Current',
+        visa_status: visa_status || 'None',
+        password: hashedPassword
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to register student',
+        error: insertError.message,
+      });
+    }
+
+    // Fetch default checklist templates from Supabase
+    let listToInsert = [];
+    const { data: templates, error: templateError } = await supabase
+      .from('checklist_template')
+      .select('*')
+      .eq('student_type', student_type === 'Freshman' ? 'Freshman' : 'Current');
+
+    if (!templateError && templates && templates.length > 0) {
+      listToInsert = templates.map(t => ({ title: t.title, description: t.description }));
+    } else {
+      // Safe fallback if table is not created yet
+      const defaultChecklists = {
+        Freshman: [
+          { title: 'Apply for Alien Registration Card (ARC)', description: 'Visit immigration office within 90 days of arrival' },
+          { title: 'Open local bank account', description: 'Open account at PNU campus bank' },
+          { title: 'Buy PNU SIM card', description: 'Get a local prepaid or contract SIM card' }
+        ],
+        Current: [
+          { title: 'Submit graduation thesis outline', description: 'Submit thesis outline to department office' },
+          { title: 'TOPIK Level 4 certificate', description: 'Submit language proficiency certificate' },
+          { title: 'Completed credit audit', description: 'Verify graduation credit breakdown with academic advisor' }
+        ]
+      };
+      const studentTypeKey = student_type === 'Freshman' ? 'Freshman' : 'Current';
+      listToInsert = defaultChecklists[studentTypeKey];
+    }
+    
+    for (let i = 0; i < listToInsert.length; i++) {
+      const item = listToInsert[i];
+      await supabase.from('checklist_item').insert({
+        student_id: String(student_id),
+        task_name: item.title,
+        description: item.description,
+        status: 'Pending'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Student registered successfully',
+      data: newStudent
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
+const getStudentProfile = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+
+    const { data, error } = await supabase
+      .from('student')
+      .select(`
+        *,
+        major:major_id (
+          major_name,
+          department
+        )
+      `)
+      .eq('student_id', student_id)
+      .single();
+
+    if (error || !data) {
+      if (error?.code === 'PGRST116' || !data) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found',
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch student profile',
+        error: error.message,
+      });
+    }
+
+    const { major, ...studentProfile } = data;
+
+    res.json({
+      success: true,
+      data: {
+        ...studentProfile,
+        major_name: major?.major_name ?? null,
+        department: major?.department ?? null,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
+const updateStudentProfile = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const { name, nationality, major_name } = req.body;
+
+    let major_id;
+    if (major_name) {
+      const { data: majors } = await supabase.from('major').select('*');
+      const matchedMajor = majors?.find(m => m.major_name.toLowerCase() === major_name.toLowerCase());
+      if (matchedMajor) {
+        major_id = matchedMajor.major_id;
+      }
+    }
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (nationality !== undefined) updateData.nationality = nationality;
+    if (major_id !== undefined) updateData.major_id = major_id;
+
+    const { data, error } = await supabase
+      .from('student')
+      .update(updateData)
+      .eq('student_id', student_id)
+      .select(`
+        *,
+        major:major_id (
+          major_name,
+          department
+        )
+      `)
+      .single();
+
+    if (error || !data) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update profile',
+        error: error?.message || 'Error occurred',
+      });
+    }
+
+    const { major, ...studentProfile } = data;
+
+    res.json({
+      success: true,
+      data: {
+        ...studentProfile,
+        major_name: major?.major_name ?? null,
+        department: major?.department ?? null,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
+const recoveryCodes = new Map();
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { student_id } = req.body;
+    if (!student_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing student_id'
+      });
+    }
+
+    const { data, error } = await supabase
+      .from('student')
+      .select('email')
+      .eq('student_id', String(student_id))
+      .single();
+
+    if (error || !data) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student ID not registered'
+      });
+    }
+
+    const email = data.email || 'student@pusan.ac.kr';
+    
+    // Generate a 6-digit recovery code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    recoveryCodes.set(String(student_id), {
+      code,
+      expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+    });
+
+    console.log(`[PASSWORD RESET] Generated code for ${student_id}: ${code}`);
+
+    // Mask the email (e.g. htet_kaung_san@pusan.ac.kr -> ht**@pusan.ac.kr)
+    const [localPart, domain] = email.split('@');
+    let maskedLocal = localPart;
+    if (localPart.length > 2) {
+      maskedLocal = localPart.substring(0, 2) + '*'.repeat(Math.min(8, localPart.length - 2));
+    } else {
+      maskedLocal = localPart.substring(0, 1) + '*';
+    }
+    const maskedEmail = `${maskedLocal}@${domain}`;
+
+    res.json({
+      success: true,
+      message: 'Recovery code generated successfully',
+      maskedEmail,
+      code // Send code back for ease of use in demo/UI
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { student_id, code, new_password } = req.body;
+    if (!student_id || !code || !new_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing student_id, code, or new_password'
+      });
+    }
+
+    const record = recoveryCodes.get(String(student_id));
+    if (!record) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active recovery request found for this Student ID'
+      });
+    }
+
+    if (record.expires < Date.now()) {
+      recoveryCodes.delete(String(student_id));
+      return res.status(400).json({
+        success: false,
+        message: 'Recovery code has expired'
+      });
+    }
+
+    if (record.code !== String(code)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid recovery code'
+      });
+    }
+
+    // Hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    // Update the password in database
+    const { error: updateError } = await supabase
+      .from('student')
+      .update({ password: hashedPassword })
+      .eq('student_id', String(student_id));
+
+    if (updateError) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update password',
+        error: updateError.message
+      });
+    }
+
+    recoveryCodes.delete(String(student_id));
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message
+    });
+  }
+};
+
+const getAllBoards = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('board')
+      .select('*')
+      .order('board_id', { ascending: true });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch boards',
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
+const getBoardPosts = async (req, res) => {
+  try {
+    const { board_id } = req.params;
+
+    const { data, error } = await supabase
+      .from('post')
+      .select(`
+        *,
+        student:student_id (
+          name
+        )
+      `)
+      .eq('board_id', Number(board_id))
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch posts for board',
+        error: error.message,
+      });
+    }
+
+    // Map to include student_name cleanly in output
+    const posts = (data || []).map(p => {
+      const { student, ...rest } = p;
+      return {
+        ...rest,
+        student_name: student?.name ?? 'Unknown Student'
+      };
+    });
+
+    res.json({
+      success: true,
+      data: posts,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
+const createPost = async (req, res) => {
+  try {
+    const { board_id, student_id, title, content } = req.body;
+
+    if (!board_id || !student_id || !title || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing board_id, student_id, title, or content',
+      });
+    }
+
+    const { data, error } = await supabase
+      .from('post')
+      .insert({
+        board_id: Number(board_id),
+        student_id: String(student_id),
+        title,
+        content,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create post',
+        error: error.message,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Unexpected server error',
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   testConnection,
   loginStudent,
@@ -217,4 +752,13 @@ module.exports = {
   updateChecklistItem,
   getAllScholarships,
   applyForScholarship,
-};
+  signupStudent,
+  getStudentProfile,
+  updateStudentProfile,
+  forgotPassword,
+  resetPassword,
+  getAllBoards,
+  getBoardPosts,
+  createPost,
+}
+;
