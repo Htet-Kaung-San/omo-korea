@@ -745,6 +745,127 @@ const createPost = async (req, res) => {
   }
 };
 
+const getFacilities = async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('facility').select('*').order('name', { ascending: true });
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch facilities', error: error.message });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const getNotices = async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('notice').select('*').order('posted_date', { ascending: false });
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch notices', error: error.message });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const getNotifications = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const { data, error } = await supabase.from('notification').select('*').eq('student_id', student_id).order('scheduled_time', { ascending: false });
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch notifications', error: error.message });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const getCourses = async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('course').select('*').order('course_name', { ascending: true });
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch courses', error: error.message });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const getEnrollments = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const { data, error } = await supabase
+      .from('enrollment')
+      .select(`
+        *,
+        course:course_id (
+          *
+        )
+      `)
+      .eq('student_id', student_id);
+
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch enrollments', error: error.message });
+    
+    // Flat map course values
+    const list = (data || []).map(item => {
+      const { course, ...rest } = item;
+      return {
+        ...rest,
+        course_name: course?.course_name ?? 'Unknown Course',
+        credit: course?.credit ?? 0,
+        category: course?.category ?? 'GEN_ED'
+      };
+    });
+
+    res.json({ success: true, data: list });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const createEnrollment = async (req, res) => {
+  try {
+    const { student_id, course_id } = req.body;
+    if (!student_id || !course_id) {
+      return res.status(400).json({ success: false, message: 'Missing student_id or course_id' });
+    }
+
+    // Check if already enrolled
+    const { data: existing } = await supabase
+      .from('enrollment')
+      .select('*')
+      .eq('student_id', student_id)
+      .eq('course_id', Number(course_id));
+
+    if (existing && existing.length > 0) {
+      return res.status(400).json({ success: false, message: 'Already enrolled in this course' });
+    }
+
+    const { data, error } = await supabase
+      .from('enrollment')
+      .insert({
+        student_id: String(student_id),
+        course_id: Number(course_id),
+        semester: '2026-Fall',
+        status: 'Enrolled'
+      })
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ success: false, message: 'Failed to enroll course', error: error.message });
+    
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const deleteEnrollment = async (req, res) => {
+  try {
+    const { enrollment_id } = req.params;
+    const { error } = await supabase.from('enrollment').delete().eq('enrollment_id', Number(enrollment_id));
+    if (error) return res.status(500).json({ success: false, message: 'Failed to drop course', error: error.message });
+    res.json({ success: true, message: 'Successfully dropped course' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
 module.exports = {
   testConnection,
   loginStudent,
@@ -760,5 +881,12 @@ module.exports = {
   getAllBoards,
   getBoardPosts,
   createPost,
+  getFacilities,
+  getNotices,
+  getNotifications,
+  getCourses,
+  getEnrollments,
+  createEnrollment,
+  deleteEnrollment,
 }
 ;

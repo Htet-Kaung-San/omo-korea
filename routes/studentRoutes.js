@@ -14,6 +14,13 @@ const {
   getAllBoards,
   getBoardPosts,
   createPost,
+  getFacilities,
+  getNotices,
+  getNotifications,
+  getCourses,
+  getEnrollments,
+  createEnrollment,
+  deleteEnrollment,
 } = require('../controllers/studentController');
 
 const router = express.Router();
@@ -30,6 +37,13 @@ router.post('/scholarships/apply', applyForScholarship);
 router.get('/boards', getAllBoards);
 router.get('/boards/:board_id/posts', getBoardPosts);
 router.post('/posts', createPost);
+router.get('/facilities', getFacilities);
+router.get('/notices', getNotices);
+router.get('/notifications/:student_id', getNotifications);
+router.get('/courses', getCourses);
+router.get('/enrollments/:student_id', getEnrollments);
+router.post('/enrollments', createEnrollment);
+router.delete('/enrollments/:enrollment_id', deleteEnrollment);
 router.get('/:student_id', getStudentProfile);
 router.patch('/:student_id', updateStudentProfile);
 

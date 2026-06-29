@@ -83,6 +83,38 @@ const initialData = {
       content: 'Hi! I am currently residing in Woongbi Hall and looking for a roommate for the upcoming fall semester. Please DM me if interested!',
       created_at: '2026-06-26T14:32:00Z'
     }
+  ],
+  facilities: [
+    { facility_id: 1, name: 'PNU Main Library (중앙도서관)', type: 'Library', latitude: 35.2335, longitude: 129.0792 },
+    { facility_id: 2, name: 'Geumjeong Hall Cafeteria (금정회관)', type: 'Cafeteria', latitude: 35.2312, longitude: 129.0811 },
+    { facility_id: 3, name: 'Moonchang Hall Cafeteria (문창회관)', type: 'Cafeteria', latitude: 35.2348, longitude: 129.078 },
+    { facility_id: 4, name: 'PNU Gym (경암체육관)', type: 'Gym', latitude: 35.2361, longitude: 129.0768 },
+    { facility_id: 5, name: 'Hyowon Culture Center (효원의료원)', type: 'Health', latitude: 35.2302, longitude: 129.0833 }
+  ],
+  notices: [
+    { notice_id: 1, title: 'Guidelines for Alien Registration Card (ARC) Application', content: 'All incoming international students must apply for ARC within 90 days. Please submit passport photo and registration document.', language: 'English', posted_date: '2026-06-20' },
+    { notice_id: 2, title: '2026 Fall Semester Course Registration Schedule', content: 'Course registration for the Fall semester starts on August 10th. Please verify your course list and requirements in advance.', language: 'English', posted_date: '2026-06-22' },
+    { notice_id: 3, title: '외국인 유학생 의료보험 의무 가입 안내', content: '국민건강보험 의무 가입에 관한 상세 안내사항을 공지합니다. 매달 보험료 납부 상태를 확인하세요.', language: 'Korean', posted_date: '2026-06-23' }
+  ],
+  notifications: [
+    { notification_id: 1, student_id: '202455393', type: 'DEADLINE', content: 'Your graduation thesis outline is due in 3 days!', scheduled_time: '2026-06-29T10:00:00Z' },
+    { notification_id: 2, student_id: '202455393', type: 'ALERT', content: 'Your bank account NH checking limit has been verified.', scheduled_time: '2026-06-28T09:30:00Z' }
+  ],
+  courses: [
+    { course_id: 1, course_name: 'Introduction to Computer Science (컴퓨터공학개론)', credit: 3, major_id: 1, category: 'REQUIRED' },
+    { course_id: 2, course_name: 'Data Structures (자료구조)', credit: 3, major_id: 1, category: 'REQUIRED' },
+    { course_id: 3, course_name: 'System Programming (시스템프로그래밍)', credit: 3, major_id: 1, category: 'REQUIRED' },
+    { course_id: 4, course_name: 'Operating Systems (운영체제)', credit: 3, major_id: 1, category: 'REQUIRED' },
+    { course_id: 5, course_name: 'Database Systems (데이터베이스)', credit: 3, major_id: 1, category: 'ELECTIVE' },
+    { course_id: 6, course_name: 'Artificial Intelligence (인공지능)', credit: 3, major_id: 1, category: 'ELECTIVE' },
+    { course_id: 7, course_name: 'Computer Networks (컴퓨터네트워크)', credit: 3, major_id: 1, category: 'ELECTIVE' },
+    { course_id: 8, course_name: 'Basic Circuit Theory (회로이론)', credit: 3, major_id: 2, category: 'REQUIRED' },
+    { course_id: 9, course_name: 'Digital Logic Design (디지털논리설계)', credit: 3, major_id: 2, category: 'REQUIRED' },
+    { course_id: 10, course_name: 'Elementary Korean 1 (초급 한국어 1)', credit: 3, major_id: 1, category: 'GEN_ED' }
+  ],
+  enrollments: [
+    { enrollment_id: 1, student_id: '202455393', course_id: 1, semester: '2026-Fall', status: 'Enrolled' },
+    { enrollment_id: 2, student_id: '202455393', course_id: 2, semester: '2026-Fall', status: 'Enrolled' }
   ]
 };
 
@@ -162,6 +194,17 @@ const localDb = {
       const maxId = records.reduce((max, r) => Math.max(max, Number(r.application_id) || 0), 0);
       newRecord.application_id = maxId + 1;
       newRecord.applied_at = new Date().toISOString();
+    } else if (table === 'enrollments') {
+      const maxId = records.reduce((max, r) => Math.max(max, Number(r.enrollment_id) || 0), 0);
+      newRecord.enrollment_id = maxId + 1;
+    } else if (table === 'notifications') {
+      const maxId = records.reduce((max, r) => Math.max(max, Number(r.notification_id) || 0), 0);
+      newRecord.notification_id = maxId + 1;
+      newRecord.scheduled_time = newRecord.scheduled_time || new Date().toISOString();
+    } else if (table === 'notices') {
+      const maxId = records.reduce((max, r) => Math.max(max, Number(r.notice_id) || 0), 0);
+      newRecord.notice_id = maxId + 1;
+      newRecord.posted_date = newRecord.posted_date || new Date().toISOString().split('T')[0];
     }
     records.push(newRecord);
     this.save(table, records);

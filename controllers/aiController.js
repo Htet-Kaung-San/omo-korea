@@ -7,6 +7,7 @@ const {
   isGeminiConfigured,
   generateGeminiChat,
   generateGeminiMajorAnalysis,
+  translateGeminiAnnouncement,
 } = require('../services/geminiService');
 const {
   isOpenRouterConfigured,
@@ -319,9 +320,43 @@ async function clearChatHistory(req, res) {
   }
 }
 
+async function translateAnnouncement(req, res) {
+  try {
+    const { imageBase64, mimeType, textContent } = req.body;
+
+    if (!isGeminiConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Gemini translation service is not configured.'
+      });
+    }
+
+    if (!imageBase64 && !textContent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing raw text or base64 image payload to translate.'
+      });
+    }
+
+    const result = await translateGeminiAnnouncement(imageBase64, mimeType, textContent);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (err) {
+    console.error('Translation controller error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to translate announcement',
+      error: err.message
+    });
+  }
+}
+
 module.exports = {
   recommendMajor,
   handleChat,
   getChatHistory,
   clearChatHistory,
+  translateAnnouncement,
 };
