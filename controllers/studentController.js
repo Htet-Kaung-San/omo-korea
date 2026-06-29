@@ -866,6 +866,93 @@ const deleteEnrollment = async (req, res) => {
   }
 };
 
+const getPostComments = async (req, res) => {
+  try {
+    const { post_id } = req.params;
+    const { data, error } = await supabase
+      .from('comment')
+      .select(`
+        *,
+        student:student_id (
+          name
+        )
+      `)
+      .eq('post_id', Number(post_id));
+
+    if (error) return res.status(500).json({ success: false, message: 'Failed to fetch comments', error: error.message });
+
+    const list = (data || []).map(item => {
+      const { student, ...rest } = item;
+      return {
+        ...rest,
+        student_name: student?.name ?? 'Unknown Student'
+      };
+    });
+
+    res.json({ success: true, data: list });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const createComment = async (req, res) => {
+  try {
+    const { post_id, student_id, content } = req.body;
+    if (!post_id || !student_id || !content) {
+      return res.status(400).json({ success: false, message: 'Missing post_id, student_id, or content' });
+    }
+
+    const { data, error } = await supabase
+      .from('comment')
+      .insert({
+        post_id: Number(post_id),
+        student_id: String(student_id),
+        content
+      })
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ success: false, message: 'Failed to add comment', error: error.message });
+
+    // Fetch student name
+    const { data: student } = await supabase.from('student').select('name').eq('student_id', String(student_id)).single();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...data,
+        student_name: student?.name ?? 'Unknown Student'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
+const updateLanguagePreference = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const { language_pref } = req.body;
+
+    if (!language_pref) {
+      return res.status(400).json({ success: false, message: 'Missing language_pref' });
+    }
+
+    const { data, error } = await supabase
+      .from('student')
+      .update({ language_pref })
+      .eq('student_id', student_id)
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ success: false, message: 'Failed to update language preference', error: error.message });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Unexpected server error', error: err.message });
+  }
+};
+
 module.exports = {
   testConnection,
   loginStudent,
@@ -888,5 +975,8 @@ module.exports = {
   getEnrollments,
   createEnrollment,
   deleteEnrollment,
+  getPostComments,
+  createComment,
+  updateLanguagePreference,
 }
 ;

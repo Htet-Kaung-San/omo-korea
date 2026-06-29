@@ -79,7 +79,7 @@ if (isPlaceholder) {
 
   supabase = {
     from: (table) => {
-      const dbTable = table === 'major' ? 'majors' : (table === 'student' ? 'students' : (table === 'checklist_item' ? 'checklist_items' : (table === 'scholarship' ? 'scholarships' : (table === 'scholarship_application' ? 'scholarship_applications' : (table === 'board' ? 'boards' : (table === 'post' ? 'posts' : (table === 'facility' ? 'facilities' : (table === 'notice' ? 'notices' : (table === 'notification' ? 'notifications' : (table === 'course' ? 'courses' : (table === 'enrollment' ? 'enrollments' : table)))))))))));
+      const dbTable = table === 'major' ? 'majors' : (table === 'student' ? 'students' : (table === 'checklist_item' ? 'checklist_items' : (table === 'scholarship' ? 'scholarships' : (table === 'scholarship_application' ? 'scholarship_applications' : (table === 'board' ? 'boards' : (table === 'post' ? 'posts' : (table === 'facility' ? 'facilities' : (table === 'notice' ? 'notices' : (table === 'notification' ? 'notifications' : (table === 'course' ? 'courses' : (table === 'enrollment' ? 'enrollments' : (table === 'comment' ? 'comments' : table))))))))))));
       
       return {
         select: (selectStr) => {
@@ -94,6 +94,11 @@ if (isPlaceholder) {
               records = records.map(record => {
                 const course = localDb.findOne('courses', c => Number(c.course_id) === Number(record.course_id));
                 return { ...record, course };
+              });
+            } else if (table === 'comment') {
+              records = records.map(record => {
+                const student = localDb.findOne('students', s => String(s.student_id) === String(record.student_id));
+                return { ...record, student };
               });
             }
             resolve({ data: records, error: null });

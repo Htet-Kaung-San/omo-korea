@@ -115,6 +115,10 @@ const initialData = {
   enrollments: [
     { enrollment_id: 1, student_id: '202455393', course_id: 1, semester: '2026-Fall', status: 'Enrolled' },
     { enrollment_id: 2, student_id: '202455393', course_id: 2, semester: '2026-Fall', status: 'Enrolled' }
+  ],
+  comments: [
+    { comment_id: 1, post_id: 1, student_id: '202012345', content: 'Usually takes about 3 to 4 weeks during peak semesters. I recommend booking the appointment early!', created_at: '2026-06-25T11:00:00Z' },
+    { comment_id: 2, post_id: 1, student_id: '202455393', content: 'Ah, I see! Thank you for the info.', created_at: '2026-06-25T11:20:00Z' }
   ]
 };
 
@@ -205,6 +209,10 @@ const localDb = {
       const maxId = records.reduce((max, r) => Math.max(max, Number(r.notice_id) || 0), 0);
       newRecord.notice_id = maxId + 1;
       newRecord.posted_date = newRecord.posted_date || new Date().toISOString().split('T')[0];
+    } else if (table === 'comments') {
+      const maxId = records.reduce((max, r) => Math.max(max, Number(r.comment_id) || 0), 0);
+      newRecord.comment_id = maxId + 1;
+      newRecord.created_at = new Date().toISOString();
     }
     records.push(newRecord);
     this.save(table, records);

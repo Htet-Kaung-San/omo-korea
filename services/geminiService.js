@@ -4,14 +4,15 @@ function isGeminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-async function generateGeminiChat(message) {
+async function generateGeminiChat(message, languagePref) {
   if (!isGeminiConfigured()) {
     throw new Error('Gemini API key is not configured');
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
   
-  const systemInstruction = "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in.";
+  const langName = languagePref === 'KO' ? 'Korean' : (languagePref === 'ZH' ? 'Chinese (Simplified)' : 'English');
+  const systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
   
   const payload = {
     contents: [

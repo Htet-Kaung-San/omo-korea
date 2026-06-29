@@ -21,6 +21,9 @@ const {
   getEnrollments,
   createEnrollment,
   deleteEnrollment,
+  getPostComments,
+  createComment,
+  updateLanguagePreference,
 } = require('../controllers/studentController');
 
 const router = express.Router();
@@ -44,6 +47,9 @@ router.get('/courses', getCourses);
 router.get('/enrollments/:student_id', getEnrollments);
 router.post('/enrollments', createEnrollment);
 router.delete('/enrollments/:enrollment_id', deleteEnrollment);
+router.get('/posts/:post_id/comments', getPostComments);
+router.post('/comments', createComment);
+router.patch('/:student_id/language', updateLanguagePreference);
 router.get('/:student_id', getStudentProfile);
 router.patch('/:student_id', updateStudentProfile);
 

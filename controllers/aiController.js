@@ -181,6 +181,19 @@ async function handleChat(req, res) {
       }
     }
 
+    let userLangPref = 'EN';
+    if (studentId) {
+      try {
+        const supabase = require('../supabaseClient');
+        const { data: student } = await supabase.from('student').select('language_pref').eq('student_id', studentId).single();
+        if (student && student.language_pref) {
+          userLangPref = student.language_pref;
+        }
+      } catch (err) {
+        console.error('Failed to load language pref for AI chat:', err.message);
+      }
+    }
+
     let reply = null;
 
     // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
@@ -195,7 +208,7 @@ async function handleChat(req, res) {
     // 2. If Gemini is configured in .env, call Gemini for real AI chat!
     if (!reply && isGeminiConfigured()) {
       try {
-        reply = await generateGeminiChat(message);
+        reply = await generateGeminiChat(message, userLangPref);
       } catch (geminiErr) {
         console.error('Gemini Chat Error, falling back to Claude/FAQ:', geminiErr.message);
       }
