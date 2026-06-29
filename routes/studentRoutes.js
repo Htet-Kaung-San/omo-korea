@@ -24,6 +24,8 @@ const {
   getPostComments,
   createComment,
   updateLanguagePreference,
+  globalSearch,
+  healthCheck,
 } = require('../controllers/studentController');
 
 const router = express.Router();
@@ -50,6 +52,8 @@ router.delete('/enrollments/:enrollment_id', deleteEnrollment);
 router.get('/posts/:post_id/comments', getPostComments);
 router.post('/comments', createComment);
 router.patch('/:student_id/language', updateLanguagePreference);
+router.get('/search', globalSearch);
+router.get('/health-check', healthCheck);
 router.get('/:student_id', getStudentProfile);
 router.patch('/:student_id', updateStudentProfile);
 

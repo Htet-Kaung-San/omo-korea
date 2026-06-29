@@ -447,7 +447,7 @@ const getStudentProfile = async (req, res) => {
 const updateStudentProfile = async (req, res) => {
   try {
     const { student_id } = req.params;
-    const { name, nationality, major_name } = req.body;
+    const { name, nationality, major_name, email, phone, visa_status, new_password } = req.body;
 
     let major_id;
     if (major_name) {
@@ -462,6 +462,30 @@ const updateStudentProfile = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (nationality !== undefined) updateData.nationality = nationality;
     if (major_id !== undefined) updateData.major_id = major_id;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (visa_status !== undefined) updateData.visa_status = visa_status;
+
+    if (new_password) {
+      const { current_password } = req.body;
+      if (!current_password) {
+        return res.status(400).json({ success: false, message: 'Current password is required to set a new password.' });
+      }
+      
+      const { data: studentRecord } = await supabase.from('student').select('password').eq('student_id', student_id).single();
+      if (!studentRecord) {
+        return res.status(404).json({ success: false, message: 'Student not found.' });
+      }
+      
+      const bcrypt = require('bcryptjs');
+      const isMatch = await bcrypt.compare(current_password, studentRecord.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Current password does not match.' });
+      }
+      
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(new_password, salt);
+    }
 
     const { data, error } = await supabase
       .from('student')
@@ -953,6 +977,109 @@ const updateLanguagePreference = async (req, res) => {
   }
 };
 
+const globalSearch = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.json({ success: true, data: { courses: [], notices: [], facilities: [], posts: [] } });
+    }
+
+    const query = String(q).toLowerCase();
+
+    // 1. Fetch courses
+    const { data: courses } = await supabase.from('course').select('*');
+    const matchedCourses = (courses || [])
+      .filter(c => c.course_name.toLowerCase().includes(query))
+      .slice(0, 5);
+
+    // 2. Fetch notices
+    const { data: notices } = await supabase.from('notice').select('*');
+    const matchedNotices = (notices || [])
+      .filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query))
+      .slice(0, 5);
+
+    // 3. Fetch facilities
+    const { data: facilities } = await supabase.from('facility').select('*');
+    const matchedFacilities = (facilities || [])
+      .filter(f => f.name.toLowerCase().includes(query))
+      .slice(0, 5);
+
+    // 4. Fetch posts
+    const { data: posts } = await supabase.from('post').select(`
+      *,
+      student:student_id (
+        name
+      )
+    `);
+    const matchedPosts = (posts || [])
+      .filter(p => p.title.toLowerCase().includes(query) || p.content.toLowerCase().includes(query))
+      .map(p => ({
+        ...p,
+        student_name: p.student?.name || 'Unknown Student'
+      }))
+      .slice(0, 5);
+
+    res.json({
+      success: true,
+      data: {
+        courses: matchedCourses,
+        notices: matchedNotices,
+        facilities: matchedFacilities,
+        posts: matchedPosts
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Search execution error', error: err.message });
+  }
+};
+
+const healthCheck = async (req, res) => {
+  try {
+    const start = Date.now();
+    
+    // Check DB tables connectivity
+    const { error: dbError } = await supabase.from('student').select('student_id').limit(1);
+    const latency = Date.now() - start;
+
+    // Get table row counts helper
+    const getCount = async (table) => {
+      try {
+        const { data } = await supabase.from(table).select('*');
+        return data?.length ?? 0;
+      } catch {
+        return 0;
+      }
+    };
+
+    const [students, courses, notices, facilities, posts, comments] = await Promise.all([
+      getCount('student'),
+      getCount('course'),
+      getCount('notice'),
+      getCount('facility'),
+      getCount('post'),
+      getCount('comment')
+    ]);
+
+    res.json({
+      success: true,
+      status: 'UP',
+      database: dbError ? 'DISCONNECTED' : 'CONNECTED',
+      latencyMs: latency,
+      geminiApiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
+      counts: {
+        students,
+        courses,
+        notices,
+        facilities,
+        posts,
+        comments
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, status: 'DOWN', error: err.message });
+  }
+};
+
 module.exports = {
   testConnection,
   loginStudent,
@@ -978,5 +1105,7 @@ module.exports = {
   getPostComments,
   createComment,
   updateLanguagePreference,
+  globalSearch,
+  healthCheck,
 }
 ;
