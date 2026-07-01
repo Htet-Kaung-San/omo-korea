@@ -27,6 +27,16 @@ const initialData = {
       major_name: "Korean Language & Literature",
       department: "College of Humanities",
     },
+    {
+      major_id: 5,
+      major_name: "Artificial Intelligence",
+      department: "College of Engineering",
+    },
+    {
+      major_id: 6,
+      major_name: "Computer Engineering",
+      department: "College of Engineering",
+    },
   ],
   students: [
     {

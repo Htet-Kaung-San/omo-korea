@@ -5,7 +5,9 @@ INSERT INTO major (major_name, department) VALUES
 ('Computer Science & Engineering', 'CSE Department'),
 ('Business Administration', 'School of Business'),
 ('Mechanical Engineering', 'Engineering College'),
-('Korean Language & Literature', 'Humanities College')
+('Korean Language & Literature', 'Humanities College'),
+('Artificial Intelligence', 'ICE Department'),
+('Computer Engineering', 'ICE Department')
 ON CONFLICT (major_name) DO NOTHING;
 
 -- 2. SEED STUDENTS (Password is hashed 'password' using bcryptjs)
