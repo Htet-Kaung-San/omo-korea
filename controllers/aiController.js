@@ -1,5 +1,7 @@
 const departmentProfiles = require("../ai/departmentProfiles");
 const { recommendMajors } = require("../ai/recommendationEngine");
+const supabase = require("../supabaseClient");
+const ragService = require("../services/ragService");
 const {
   createClaudeMajorAnalysis,
 } = require("../services/claudeMajorRecommendationService");
@@ -209,20 +211,29 @@ async function handleChat(req, res) {
     }
 
     let userLangPref = "EN";
+    let filters = { country: "ALL", gender: "ALL" };
     if (studentId) {
       try {
-        const supabase = require("../supabaseClient");
         const { data: student } = await supabase
           .from("student")
-          .select("language_pref")
+          .select("language_pref, nationality")
           .eq("student_id", studentId)
           .single();
-        if (student && student.language_pref) {
-          userLangPref = student.language_pref;
+        if (student) {
+          if (student.language_pref) userLangPref = student.language_pref;
+          if (student.nationality) filters.country = student.nationality;
         }
       } catch (err) {
-        console.error("Failed to load language pref for AI chat:", err.message);
+        console.error("Failed to load language/nationality for AI chat:", err.message);
       }
+    }
+
+    // Retrieve grounding context from Vector RAG system
+    let context = "";
+    try {
+      context = await ragService.retrieveContext(message, filters, 3);
+    } catch (ragErr) {
+      console.error("RAG context retrieval failed:", ragErr.message);
     }
 
     let reply = null;
@@ -230,7 +241,9 @@ async function handleChat(req, res) {
     // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
     if (isOpenRouterConfigured()) {
       try {
-        reply = await generateOpenRouterChat(message, history);
+        // For OpenRouter, we can prepend the context directly to the message if it exists
+        const augmentedMsg = context ? `PNU Knowledge Base Context:\n${context}\n\nUser Question: ${message}` : message;
+        reply = await generateOpenRouterChat(augmentedMsg, history);
       } catch (orErr) {
         console.error(
           "OpenRouter Chat Error, falling back to Gemini/Claude/FAQ:",
@@ -242,7 +255,7 @@ async function handleChat(req, res) {
     // 2. If Gemini is configured in .env, call Gemini for real AI chat!
     if (!reply && isGeminiConfigured()) {
       try {
-        reply = await generateGeminiChat(message, userLangPref);
+        reply = await generateGeminiChat(message, userLangPref, context);
       } catch (geminiErr) {
         console.error(
           "Gemini Chat Error, falling back to Claude/FAQ:",
@@ -459,12 +472,40 @@ async function handleChatStream(req, res) {
       return res.end();
     }
 
+    const studentId = req.user?.student_id;
+    let userLangPref = languagePref;
+    let filters = { country: "ALL", gender: "ALL" };
+
+    if (studentId) {
+      try {
+        const { data: student } = await supabase
+          .from("student")
+          .select("language_pref, nationality")
+          .eq("student_id", studentId)
+          .single();
+        if (student) {
+          if (student.language_pref) userLangPref = student.language_pref;
+          if (student.nationality) filters.country = student.nationality;
+        }
+      } catch (err) {
+        console.error("Failed to load student details for chat stream:", err.message);
+      }
+    }
+
+    // Retrieve grounding context from Vector RAG system
+    let context = "";
+    try {
+      context = await ragService.retrieveContext(message, filters, 3);
+    } catch (ragErr) {
+      console.error("RAG context retrieval failed for stream:", ragErr.message);
+    }
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const stream = await generateGeminiChatStream(message, languagePref);
+    const stream = await generateGeminiChatStream(message, userLangPref, context);
     let buffer = "";
     const decoder = new TextDecoder();
 
@@ -493,6 +534,148 @@ async function handleChatStream(req, res) {
   }
 }
 
+async function getAllDocuments(req, res) {
+  try {
+    const { data, error } = await supabase
+      .from("kb_document")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+async function getDocument(req, res) {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from("kb_document")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+async function createDocument(req, res) {
+  try {
+    const { category, title, content, target_country = 'ALL', target_gender = 'ALL' } = req.body;
+    if (!category || !title || !content) {
+      return res.status(400).json({ success: false, message: "Category, title, and content are required." });
+    }
+
+    const { data, error } = await supabase
+      .from("kb_document")
+      .insert({ category, title, content, target_country, target_gender })
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    // Automatically sync vector chunks
+    try {
+      await ragService.syncDocument(data.id);
+    } catch (syncErr) {
+      console.error(`Auto-sync failed for document ${data.id}:`, syncErr.message);
+      return res.json({ success: true, data, warning: "Document saved, but vector sync failed: " + syncErr.message });
+    }
+
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+async function updateDocument(req, res) {
+  try {
+    const { id } = req.params;
+    const { category, title, content, target_country, target_gender } = req.body;
+
+    const updates = {};
+    if (category !== undefined) updates.category = category;
+    if (title !== undefined) updates.title = title;
+    if (content !== undefined) updates.content = content;
+    if (target_country !== undefined) updates.target_country = target_country;
+    if (target_gender !== undefined) updates.target_gender = target_gender;
+    updates.updated_at = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from("kb_document")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    // Recalculate and sync vector chunks
+    try {
+      await ragService.syncDocument(id);
+    } catch (syncErr) {
+      console.error(`Auto-sync failed for document ${id}:`, syncErr.message);
+      return res.json({ success: true, data, warning: "Document updated, but vector sync failed: " + syncErr.message });
+    }
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+async function deleteDocument(req, res) {
+  try {
+    const { id } = req.params;
+
+    // Delete chunks first (Supabase has cascade delete, but we do it manually for emulated/double safety)
+    const { error: deleteChunksError } = await supabase
+      .from("kb_chunk")
+      .delete()
+      .eq("document_id", id);
+
+    if (deleteChunksError) {
+      console.warn("Cascade delete chunks failed:", deleteChunksError.message);
+    }
+
+    const { error } = await supabase
+      .from("kb_document")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    res.json({ success: true, message: "Document deleted successfully." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+async function syncDocumentVector(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await ragService.syncDocument(id);
+    res.json({ success: true, message: `Successfully synced ${result.chunksCount} chunks.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
 module.exports = {
   recommendMajor,
   handleChat,
@@ -500,4 +683,10 @@ module.exports = {
   getChatHistory,
   clearChatHistory,
   translateAnnouncement,
+  getAllDocuments,
+  getDocument,
+  createDocument,
+  updateDocument,
+  deleteDocument,
+  syncDocumentVector,
 };

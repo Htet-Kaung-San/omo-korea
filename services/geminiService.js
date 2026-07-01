@@ -4,7 +4,7 @@ function isGeminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-async function generateGeminiChat(message, languagePref) {
+async function generateGeminiChat(message, languagePref, context) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API key is not configured");
   }
@@ -17,7 +17,11 @@ async function generateGeminiChat(message, languagePref) {
       : languagePref === "ZH"
         ? "Chinese (Simplified)"
         : "English";
-  const systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+
+  if (context) {
+    systemInstruction += `\n\nUse the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;
+  }
 
   const payload = {
     contents: [
@@ -209,7 +213,7 @@ Please return JSON ONLY matching the following schema:
   return JSON.parse(cleanedText);
 }
 
-async function generateGeminiChatStream(message, languagePref) {
+async function generateGeminiChatStream(message, languagePref, context) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API key is not configured");
   }
@@ -222,7 +226,11 @@ async function generateGeminiChatStream(message, languagePref) {
       : languagePref === "ZH"
         ? "Chinese (Simplified)"
         : "English";
-  const systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+
+  if (context) {
+    systemInstruction += `\n\nUse the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;
+  }
 
   const payload = {
     contents: [

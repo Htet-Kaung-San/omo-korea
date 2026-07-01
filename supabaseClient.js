@@ -123,7 +123,11 @@ if (isPlaceholder) {
                                 ? "enrollments"
                                 : table === "comment"
                                   ? "comments"
-                                  : table;
+                                  : table === "kb_document"
+                                    ? "kb_documents"
+                                    : table === "kb_chunk"
+                                      ? "kb_chunks"
+                                      : table;
 
       return {
         select: (selectStr) => {

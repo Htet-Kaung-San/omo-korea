@@ -383,6 +383,8 @@ const initialData = {
       created_at: "2026-06-25T11:20:00Z",
     },
   ],
+  kb_documents: [],
+  kb_chunks: [],
 };
 
 function readDb() {
@@ -504,6 +506,21 @@ const localDb = {
       );
       newRecord.comment_id = maxId + 1;
       newRecord.created_at = new Date().toISOString();
+    } else if (table === "kb_documents") {
+      const maxId = records.reduce(
+        (max, r) => Math.max(max, Number(r.id) || 0),
+        0,
+      );
+      newRecord.id = maxId + 1;
+      newRecord.created_at = newRecord.created_at || new Date().toISOString();
+      newRecord.updated_at = new Date().toISOString();
+    } else if (table === "kb_chunks") {
+      const maxId = records.reduce(
+        (max, r) => Math.max(max, Number(r.id) || 0),
+        0,
+      );
+      newRecord.id = maxId + 1;
+      newRecord.created_at = newRecord.created_at || new Date().toISOString();
     }
     records.push(newRecord);
     this.save(table, records);
