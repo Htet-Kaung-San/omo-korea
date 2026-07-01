@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Send } from 'lucide-react'
 import { api } from '@/api'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Button } from '@/components/ui/Button'
 import { useLanguage } from '@/context/LanguageContext'
 
 interface Message {
@@ -11,7 +9,7 @@ interface Message {
   text: string
 }
 
-export function ChatPage() {
+export function ChatPanel() {
   const { t } = useLanguage()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -31,13 +29,10 @@ export function ChatPage() {
     const trimmed = text.trim()
     if (!trimmed || sending) return
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text: trimmed,
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: 'user', text: trimmed },
+    ])
     setInput('')
     setSending(true)
 
@@ -62,44 +57,45 @@ export function ChatPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-56px)] flex-col">
-      <PageHeader title={t('chat.title')} subtitle={t('chat.subtitle')} />
+    <section className="flex max-h-[60dvh] min-h-[360px] flex-col overflow-hidden rounded-3xl border border-pnu-border bg-white shadow-2xl shadow-blue-950/20">
+      <header className="border-b border-pnu-border bg-pnu-surface px-4 py-3">
+        <h2 className="text-sm font-bold text-pnu-text">{t('chat.title')}</h2>
+        <p className="text-xs text-pnu-muted">{t('chat.subtitle')}</p>
+      </header>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-pnu-border bg-white p-4">
-            <p className="text-sm text-pnu-muted">
-              {t('chat.emptyHint')}
-            </p>
+          <div className="rounded-2xl border border-dashed border-pnu-border bg-pnu-surface/60 p-3">
+            <p className="text-xs leading-relaxed text-pnu-muted">{t('chat.emptyHint')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {suggestions.map((s) => (
+              {suggestions.slice(0, 4).map((suggestion) => (
                 <button
-                  key={s}
+                  key={suggestion}
                   type="button"
-                  onClick={() => sendMessage(s)}
-                  className="rounded-full border border-pnu-border bg-pnu-surface px-3 py-1.5 text-xs font-medium text-pnu-text hover:border-pnu-blue-light"
+                  onClick={() => sendMessage(suggestion)}
+                  className="rounded-full border border-pnu-border bg-white px-2.5 py-1 text-[11px] font-medium text-pnu-text hover:border-pnu-blue-light"
                 >
-                  {s}
+                  {suggestion}
                 </button>
               ))}
             </div>
           </div>
         ) : null}
 
-        {messages.map((msg) => (
+        {messages.map((message) => (
           <div
-            key={msg.id}
-            className={['flex', msg.role === 'user' ? 'justify-end' : 'justify-start'].join(' ')}
+            key={message.id}
+            className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
           >
             <div
               className={[
-                'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
-                msg.role === 'user'
+                'max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed',
+                message.role === 'user'
                   ? 'rounded-br-md bg-pnu-blue text-white'
-                  : 'rounded-bl-md border border-pnu-border bg-white text-pnu-text',
+                  : 'rounded-bl-md border border-pnu-border bg-pnu-surface text-pnu-text',
               ].join(' ')}
             >
-              {msg.text}
+              {message.text}
             </div>
           </div>
         ))}
@@ -109,24 +105,29 @@ export function ChatPage() {
       </div>
 
       <form
-        className="border-t border-pnu-border bg-white px-4 py-3"
-        onSubmit={(e) => {
-          e.preventDefault()
+        className="border-t border-pnu-border bg-white p-3"
+        onSubmit={(event) => {
+          event.preventDefault()
           sendMessage(input)
         }}
       >
         <div className="flex items-center gap-2">
           <input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(event) => setInput(event.target.value)}
             placeholder={t('chat.placeholder')}
-            className="min-h-11 flex-1 rounded-xl border border-pnu-border px-3.5 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
+            className="min-h-10 flex-1 rounded-xl border border-pnu-border px-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
           />
-          <Button type="submit" disabled={sending || !input.trim()} aria-label={t('chat.send')}>
+          <button
+            type="submit"
+            disabled={sending || !input.trim()}
+            aria-label={t('chat.send')}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pnu-blue text-white transition hover:bg-pnu-blue-light disabled:cursor-not-allowed disabled:opacity-50"
+          >
             <Send className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </form>
-    </div>
+    </section>
   )
 }

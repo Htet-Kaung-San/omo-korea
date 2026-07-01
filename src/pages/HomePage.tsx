@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Bell, CalendarDays, ChevronRight, Search } from 'lucide-react'
+import { Bell, ChevronRight, Search } from 'lucide-react'
 import { api } from '@/api'
-import type { GraduationProgress, Notification, ChecklistItem, ChecklistVariant } from '@/types/api'
-import { useAuth } from '@/context/AuthContext'
+import type {
+  ChecklistItem,
+  ChecklistVariant,
+  GraduationProgress,
+  Notification,
+} from '@/types/api'
 import { useLanguage } from '@/context/LanguageContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { GraduationCard } from '@/components/graduation/GraduationCard'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
-// Re-use the same lock logic as ChecklistPage
 function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
   if (!item.creditRequirement || !progress) return false
   const { category } = item.creditRequirement
@@ -29,8 +32,7 @@ function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null):
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const { t, locale } = useLanguage()
+  const { t } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
@@ -69,13 +71,6 @@ export function HomePage() {
 
   const completedCount = checklist.filter((i) => i.completed).length
 
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString(locale, {
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
   function getLocalizedLockReason(item: ChecklistItem): string {
     if (!item.creditRequirement || !progress) return ''
     const { category } = item.creditRequirement
@@ -110,9 +105,7 @@ export function HomePage() {
   return (
     <div>
       <PageHeader
-        title={t('home.title', {
-          name: user?.name.split(' ')[0] ?? t('home.defaultName'),
-        })}
+        title="Home Page"
         subtitle={
           isFreshmanChecklist
             ? t('home.subtitleFreshman')
@@ -161,26 +154,31 @@ export function HomePage() {
             </Link>
           </div>
 
-          <div className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-pnu-border bg-white shadow-sm">
             {notifications.length === 0 && !error ? (
-              <p className="text-sm text-pnu-muted">{t('home.noNotifications')}</p>
+              <p className="p-3 text-sm text-pnu-muted">{t('home.noNotifications')}</p>
             ) : null}
             <div className="divide-y divide-pnu-border">
               {notifications.map((notification) => (
-                <article key={notification.id} className="py-3 first:pt-0 last:pb-0">
-                  <div className="mb-1.5 flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-pnu-text">{notification.title}</h3>
-                    {notification.priority === 'HIGH' ? (
-                      <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
-                        {t('common.high')}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-sm leading-relaxed text-pnu-muted">{notification.body}</p>
-                  <p className="mt-1.5 inline-flex items-center gap-1 text-xs text-pnu-muted">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    {formatDate(notification.date)}
-                  </p>
+                <article
+                  key={notification.id}
+                  className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5"
+                >
+                  <Link
+                    to={`/notifications/${notification.id}`}
+                    className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"
+                  >
+                    {notification.title}
+                  </Link>
+                  {notification.priority === 'HIGH' ? (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      {t('common.high')}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-medium text-pnu-muted">
+                      {notification.category}
+                    </span>
+                  )}
                 </article>
               ))}
             </div>

@@ -10,30 +10,30 @@ interface GraduationCardProps {
 
 function CircleProgress({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.min(1, value / max) : 0
-  const radius = 52
+  const radius = 38
   const circumference = 2 * Math.PI * radius
   const dashOffset = circumference * (1 - pct)
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
-      <svg width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
+    <div className="relative flex items-center justify-center" style={{ width: 100, height: 100 }}>
+      <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
         {/* Track */}
         <circle
-          cx="70" cy="70" r={radius}
+          cx="50" cy="50" r={radius}
           fill="none"
           stroke="#E2E8F0"
-          strokeWidth="12"
+          strokeWidth="8"
         />
         {/* Progress arc */}
         <circle
-          cx="70" cy="70" r={radius}
+          cx="50" cy="50" r={radius}
           fill="none"
           stroke="url(#grad)"
-          strokeWidth="12"
+          strokeWidth="8"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
-          transform="rotate(-90 70 70)"
+          transform="rotate(-90 50 50)"
           style={{ transition: 'stroke-dashoffset 0.6s ease' }}
         />
         <defs>
@@ -45,9 +45,9 @@ function CircleProgress({ value, max }: { value: number; max: number }) {
       </svg>
       {/* Centre label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[26px] font-bold leading-none text-[#0F172A]">{value}</span>
-        <span className="text-[11px] text-[#64748B] mt-0.5">/ {max} cr</span>
-        <span className="text-[10px] font-semibold text-[#2563EB] mt-1">
+        <span className="text-[20px] font-bold leading-none text-[#0F172A]">{value}</span>
+        <span className="text-[9px] text-[#64748B] mt-0.5">/ {max} cr</span>
+        <span className="text-[10px] font-semibold text-[#2563EB] mt-0.5">
           {max > 0 ? Math.round((value / max) * 100) : 0}%
         </span>
       </div>
@@ -59,33 +59,34 @@ function CircleProgress({ value, max }: { value: number; max: number }) {
 
 interface BarRowProps {
   label: string
-  labelKo: string
   completed: number
   required: number
-  color: string   // Tailwind inline hex for the bar
+  color: string   
 }
 
-function BarRow({ label, labelKo, completed, required, color }: BarRowProps) {
+function BarRow({ label, completed, required, color }: BarRowProps) {
   const pct = required > 0 ? Math.min(100, Math.round((completed / required) * 100)) : 0
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[13px] font-semibold text-[#0F172A]">{label}</span>
-          <span className="text-[11px] text-[#94A3B8]">{labelKo}</span>
-        </div>
-        <span className="text-[12px] font-medium text-[#64748B]">
-          {completed}<span className="text-[#CBD5E1]">/{required}</span>
-        </span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+    <div className="flex items-center gap-3">
+      {/* Left Label (Fixed width to align bars) */}
+      <span className="w-28 shrink-0 text-[12px] font-semibold text-[#0F172A] truncate">
+        {label}
+      </span>
+      
+      {/* Middle Bar (Flex-1 stretches to fill space) */}
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100"
         role="progressbar" aria-valuenow={completed} aria-valuemin={0} aria-valuemax={required}>
         <div
-          className="h-2 rounded-full transition-all duration-500"
+          className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: color }}
         />
       </div>
+
+      {/* Right Numbers (Fixed width to prevent jumping) */}
+      <span className="w-10 shrink-0 text-right text-[11px] font-medium text-[#64748B]">
+        {completed}<span className="text-[#CBD5E1]">/{required}</span>
+      </span>
     </div>
   )
 }
@@ -126,36 +127,20 @@ export function GraduationCard({ progress, compact }: GraduationCardProps) {
         </span>
       </div>
 
-      <div className="px-5 py-5">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center">
+      <div className="px-4 py-4"> {/* Reduced padding */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center"> {/* Reduced gap */}
           
-          {/* Left Column: Circle & Text (Stacked) */}
-          <div className="flex flex-col items-center justify-center gap-4 md:w-1/3">
+          <div className="flex flex-col items-center justify-center gap-3 md:w-[30%] shrink-0">
             <CircleProgress value={totalCompleted} max={totalRequired} />
-            <div className="text-center space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-                {t('graduation.totalCredits')}
-              </p>
-              <p className="text-[28px] font-bold leading-none text-[#0F172A]">
-                {totalCompleted}
-                <span className="text-[16px] font-medium text-[#94A3B8]"> / {totalRequired}</span>
-              </p>
-              <p className="text-[12px] text-[#64748B] pt-1">
-                {t('graduation.remaining', {
-                  count: Math.max(totalRequired - totalCompleted, 0),
-                })}
-              </p>
-            </div>
           </div>
 
-          {/* Right Column: Expanding Bars */}
           {!compact && (
-            <div className="flex-1 space-y-3.5 w-full border-t border-[#F1F5F9] pt-5 md:border-l md:border-t-0 md:pl-6 md:pt-0">
-              {BARS.map(({ key, label, labelKo, color }) => (
+            // Adjusted spacing and border logic
+            <div className="flex-1 space-y-3 w-full border-t border-[#F1F5F9] pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+              {BARS.map(({ key, label, color }) => (
                 <BarRow
                   key={key}
                   label={label}
-                  labelKo={labelKo}
                   completed={breakdown[key].completed}
                   required={breakdown[key].required}
                   color={color}

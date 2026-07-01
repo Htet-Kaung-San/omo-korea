@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Notification } from '@/types/api'
 import { Card } from '@/components/ui/Card'
 import { Bell, CalendarDays } from 'lucide-react'
@@ -28,7 +29,12 @@ export function NotificationCard({ notification }: { notification: Notification 
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-pnu-text">{notification.title}</h3>
+            <Link
+              to={`/notifications/${notification.id}`}
+              className="text-sm font-semibold text-pnu-text hover:text-pnu-blue-light"
+            >
+              {notification.title}
+            </Link>
             {isHigh ? (
               <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-900">
                 {t('common.high')}
