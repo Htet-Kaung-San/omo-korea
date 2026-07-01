@@ -1,5 +1,7 @@
 const supabase = require("../supabaseClient");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = process.env.JWT_SECRET || "hey-pnu-default-secret-key";
 
 const testConnection = async (req, res) => {
   try {
@@ -82,12 +84,17 @@ const loginStudent = async (req, res) => {
 
     const { major, ...studentProfile } = data;
 
+    const token = jwt.sign({ student_id: data.student_id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
     res.json({
       success: true,
       data: {
         ...studentProfile,
         major_name: major?.major_name ?? null,
         department: major?.department ?? null,
+        token,
       },
     });
   } catch (err) {
@@ -519,12 +526,10 @@ const updateStudentProfile = async (req, res) => {
     if (new_password) {
       const { current_password } = req.body;
       if (!current_password) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Current password is required to set a new password.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Current password is required to set a new password.",
+        });
       }
 
       const { data: studentRecord } = await supabase
@@ -544,12 +549,10 @@ const updateStudentProfile = async (req, res) => {
         studentRecord.password,
       );
       if (!isMatch) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Current password does not match.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Current password does not match.",
+        });
       }
 
       const salt = await bcrypt.genSalt(10);
@@ -779,14 +782,34 @@ const getBoardPosts = async (req, res) => {
       });
     }
 
-    // Map to include student_name cleanly in output
-    const posts = (data || []).map((p) => {
-      const { student, ...rest } = p;
-      return {
-        ...rest,
-        student_name: student?.name ?? "Unknown Student",
-      };
-    });
+    const localDb = require("../localDb");
+    const localPosts = localDb.get("posts") || [];
+
+    // Map and overlay local metrics
+    const posts = (data || [])
+      .map((p) => {
+        const localPost = localPosts.find(
+          (lp) => Number(lp.post_id) === Number(p.post_id),
+        );
+        const likes_count = localPost
+          ? localPost.likes_count || 0
+          : p.likes_count || 0;
+        const liked_by = localPost
+          ? localPost.liked_by || []
+          : p.liked_by || [];
+        const reported = localPost
+          ? Boolean(localPost.reported)
+          : Boolean(p.reported);
+        const { student, ...rest } = p;
+        return {
+          ...rest,
+          likes_count,
+          liked_by,
+          reported,
+          student_name: student?.name ?? "Unknown Student",
+        };
+      })
+      .filter((p) => !p.reported);
 
     res.json({
       success: true,
@@ -851,22 +874,18 @@ const getFacilities = async (req, res) => {
       .select("*")
       .order("name", { ascending: true });
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch facilities",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch facilities",
+        error: error.message,
+      });
     res.json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -877,22 +896,18 @@ const getNotices = async (req, res) => {
       .select("*")
       .order("posted_date", { ascending: false });
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch notices",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch notices",
+        error: error.message,
+      });
     res.json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -905,22 +920,18 @@ const getNotifications = async (req, res) => {
       .eq("student_id", student_id)
       .order("scheduled_time", { ascending: false });
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch notifications",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch notifications",
+        error: error.message,
+      });
     res.json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -931,22 +942,18 @@ const getCourses = async (req, res) => {
       .select("*")
       .order("course_name", { ascending: true });
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch courses",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch courses",
+        error: error.message,
+      });
     res.json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -966,13 +973,11 @@ const getEnrollments = async (req, res) => {
       .eq("student_id", student_id);
 
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch enrollments",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch enrollments",
+        error: error.message,
+      });
 
     // Flat map course values
     const list = (data || []).map((item) => {
@@ -982,18 +987,17 @@ const getEnrollments = async (req, res) => {
         course_name: course?.course_name ?? "Unknown Course",
         credit: course?.credit ?? 0,
         category: course?.category ?? "GEN_ED",
+        classroom: course?.classroom ?? "Main Campus",
       };
     });
 
     res.json({ success: true, data: list });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1031,23 +1035,19 @@ const createEnrollment = async (req, res) => {
       .single();
 
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to enroll course",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to enroll course",
+        error: error.message,
+      });
 
     res.status(201).json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1059,22 +1059,18 @@ const deleteEnrollment = async (req, res) => {
       .delete()
       .eq("enrollment_id", Number(enrollment_id));
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to drop course",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to drop course",
+        error: error.message,
+      });
     res.json({ success: true, message: "Successfully dropped course" });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1094,13 +1090,11 @@ const getPostComments = async (req, res) => {
       .eq("post_id", Number(post_id));
 
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to fetch comments",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch comments",
+        error: error.message,
+      });
 
     const list = (data || []).map((item) => {
       const { student, ...rest } = item;
@@ -1112,13 +1106,11 @@ const getPostComments = async (req, res) => {
 
     res.json({ success: true, data: list });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1126,12 +1118,10 @@ const createComment = async (req, res) => {
   try {
     const { post_id, student_id, content } = req.body;
     if (!post_id || !student_id || !content) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Missing post_id, student_id, or content",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Missing post_id, student_id, or content",
+      });
     }
 
     const { data, error } = await supabase
@@ -1145,13 +1135,11 @@ const createComment = async (req, res) => {
       .single();
 
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to add comment",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to add comment",
+        error: error.message,
+      });
 
     // Fetch student name
     const { data: student } = await supabase
@@ -1168,13 +1156,11 @@ const createComment = async (req, res) => {
       },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1197,23 +1183,19 @@ const updateLanguagePreference = async (req, res) => {
       .single();
 
     if (error)
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to update language preference",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update language preference",
+        error: error.message,
+      });
 
     res.json({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Unexpected server error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
@@ -1280,13 +1262,11 @@ const globalSearch = async (req, res) => {
       },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Search execution error",
-        error: err.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Search execution error",
+      error: err.message,
+    });
   }
 };
 
@@ -1342,6 +1322,102 @@ const healthCheck = async (req, res) => {
       .json({ success: false, status: "DOWN", error: err.message });
   }
 };
+const likePost = async (req, res) => {
+  try {
+    const { post_id } = req.params;
+    const studentId = req.user ? req.user.student_id : req.body.student_id;
+
+    if (!studentId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Student ID required" });
+    }
+
+    const localDb = require("../localDb");
+    let localPost = localDb.findOne(
+      "posts",
+      (lp) => Number(lp.post_id) === Number(post_id),
+    );
+
+    if (!localPost) {
+      localPost = localDb.insert("posts", {
+        post_id: Number(post_id),
+        likes_count: 0,
+        liked_by: [],
+        reported: false,
+      });
+    }
+
+    let likedBy = localPost.liked_by || [];
+    let liked = false;
+
+    if (likedBy.includes(studentId)) {
+      likedBy = likedBy.filter((id) => id !== studentId);
+    } else {
+      likedBy.push(studentId);
+      liked = true;
+    }
+
+    const updated = localDb.update(
+      "posts",
+      (lp) => Number(lp.post_id) === Number(post_id),
+      {
+        liked_by: likedBy,
+        likes_count: likedBy.length,
+      },
+    );
+
+    res.json({
+      success: true,
+      data: {
+        likes_count: updated.likes_count,
+        liked,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const reportPost = async (req, res) => {
+  try {
+    const { post_id } = req.params;
+
+    const localDb = require("../localDb");
+    let localPost = localDb.findOne(
+      "posts",
+      (lp) => Number(lp.post_id) === Number(post_id),
+    );
+
+    if (!localPost) {
+      localDb.insert("posts", {
+        post_id: Number(post_id),
+        likes_count: 0,
+        liked_by: [],
+        reported: true,
+      });
+    } else {
+      localDb.update("posts", (lp) => Number(lp.post_id) === Number(post_id), {
+        reported: true,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Post successfully reported and hidden from student feeds.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
 
 module.exports = {
   testConnection,
@@ -1358,6 +1434,8 @@ module.exports = {
   getAllBoards,
   getBoardPosts,
   createPost,
+  likePost,
+  reportPost,
   getFacilities,
   getNotices,
   getNotifications,

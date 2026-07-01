@@ -6,6 +6,7 @@ const {
 const {
   isGeminiConfigured,
   generateGeminiChat,
+  generateGeminiChatStream,
   generateGeminiMajorAnalysis,
   translateGeminiAnnouncement,
 } = require("../services/geminiService");
@@ -432,9 +433,70 @@ async function translateAnnouncement(req, res) {
   }
 }
 
+async function handleChatStream(req, res) {
+  try {
+    const { message, languagePref = "EN" } = req.body || {};
+    if (!message) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Message is required" });
+    }
+
+    if (!isGeminiConfigured()) {
+      // Fallback: send matching FAQ or fallback text streamed back to UI
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const fallbackText =
+        "Gemini is not configured yet. PNU Smart Assistant is running in mockup mode.";
+      const words = fallbackText.split(" ");
+      for (const word of words) {
+        res.write(`data: ${JSON.stringify({ text: word + " " })}\n\n`);
+        await new Promise((resolve) => setTimeout(resolve, 80));
+      }
+      res.write("data: [DONE]\n\n");
+      return res.end();
+    }
+
+    // Set SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const stream = await generateGeminiChatStream(message, languagePref);
+    let buffer = "";
+    const decoder = new TextDecoder();
+
+    for await (const chunk of stream) {
+      buffer += decoder.decode(chunk, { stream: true });
+      const textRegex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
+      let match;
+      while ((match = textRegex.exec(buffer)) !== null) {
+        const rawText = match[1];
+        try {
+          const cleanText = JSON.parse(`"${rawText}"`);
+          res.write(`data: ${JSON.stringify({ text: cleanText })}\n\n`);
+        } catch {
+          // ignore parsing error
+        }
+      }
+      buffer = buffer.slice(-100);
+    }
+
+    res.write("data: [DONE]\n\n");
+    res.end();
+  } catch (err) {
+    console.error("AI Streaming error:", err);
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
+  }
+}
+
 module.exports = {
   recommendMajor,
   handleChat,
+  handleChatStream,
   getChatHistory,
   clearChatHistory,
   translateAnnouncement,

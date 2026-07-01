@@ -27,12 +27,12 @@ INSERT INTO course (course_name, course_name_en, credits, department, course_typ
 ('대학 수학 1', 'Calculus 1', 3, 'Mathematics', 'REQUIRED', 'Fri', '10:30', '12:00', 'Science Bldg 205');
 
 -- 4. SEED MAP FACILITIES
-INSERT INTO facility (name, type, latitude, longitude, hours, details) VALUES
-('PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200, '06:00 - 23:00', 'Main campus study resources. Features extensive reading rooms on the 3rd floor.'),
-('Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100, '08:00 - 19:00', 'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.'),
-('Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000, '11:00 - 18:30', 'North campus cafeteria featuring Western-style options and sandwich counters.'),
-('University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500, '09:00 - 18:00', 'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.'),
-('Woongbee Hall Dormitory (웅비관)', 'Dormitory', 35.236500, 129.075500, '24 Hours', 'Freshman international dorms located near the Geumjeongsan mountain edge.')
+INSERT INTO facility (name, type, latitude, longitude, hours, details, floors) VALUES
+('PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200, '06:00 - 23:00', 'Main campus study resources. Features extensive reading rooms on the 3rd floor.', '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers'),
+('Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100, '08:00 - 19:00', 'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.', '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café'),
+('Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000, '11:00 - 18:30', 'North campus cafeteria featuring Western-style options and sandwich counters.', '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center'),
+('University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500, '09:00 - 18:00', 'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.', '1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President''s Office'),
+('Woongbee Hall Dormitory (웅비관)', 'Dormitory', 35.236500, 129.075500, '24 Hours', 'Freshman international dorms located near the Geumjeongsan mountain edge.', '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen')
 ON CONFLICT (name) DO NOTHING;
 
 -- 5. SEED NOTICES

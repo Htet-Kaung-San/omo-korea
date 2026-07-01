@@ -156,6 +156,9 @@ const initialData = {
       title: "ARC Application processing times",
       content:
         "Hey guys! Does anyone know how long the ARC card processing takes right now at the Busan Immigration Office? I went last week.",
+      likes_count: 5,
+      liked_by: ["202012345"],
+      reported: false,
       created_at: "2026-06-25T10:15:30Z",
     },
     {
@@ -165,6 +168,9 @@ const initialData = {
       title: "Looking for a roommate (Woongbi Hall)",
       content:
         "Hi! I am currently residing in Woongbi Hall and looking for a roommate for the upcoming fall semester. Please DM me if interested!",
+      likes_count: 2,
+      liked_by: [],
+      reported: false,
       created_at: "2026-06-26T14:32:00Z",
     },
   ],
@@ -175,6 +181,11 @@ const initialData = {
       type: "Library",
       latitude: 35.2335,
       longitude: 129.0792,
+      hours: "06:00 - 23:00",
+      details:
+        "Main campus study resources. Features extensive reading rooms on the 3rd floor.",
+      floors:
+        "1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers",
     },
     {
       facility_id: 2,
@@ -182,6 +193,11 @@ const initialData = {
       type: "Cafeteria",
       latitude: 35.2312,
       longitude: 129.0811,
+      hours: "08:00 - 19:00",
+      details:
+        "Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.",
+      floors:
+        "1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café",
     },
     {
       facility_id: 3,
@@ -189,20 +205,35 @@ const initialData = {
       type: "Cafeteria",
       latitude: 35.2348,
       longitude: 129.078,
+      hours: "11:00 - 18:30",
+      details:
+        "North campus cafeteria featuring Western-style options and sandwich counters.",
+      floors:
+        "1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center",
     },
     {
       facility_id: 4,
-      name: "PNU Gym (경암체육관)",
-      type: "Gym",
-      latitude: 35.2361,
-      longitude: 129.0768,
+      name: "University Headquarters (대학본부)",
+      type: "Administrative",
+      latitude: 35.2301,
+      longitude: 129.0825,
+      hours: "09:00 - 18:00",
+      details:
+        "Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.",
+      floors:
+        "1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President's Office",
     },
     {
       facility_id: 5,
-      name: "Hyowon Culture Center (효원의료원)",
-      type: "Health",
-      latitude: 35.2302,
-      longitude: 129.0833,
+      name: "Woongbee Hall Dormitory (웅비관)",
+      type: "Dormitory",
+      latitude: 35.2365,
+      longitude: 129.0755,
+      hours: "24 Hours",
+      details:
+        "Freshman international dorms located near the Geumjeongsan mountain edge.",
+      floors:
+        "1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen",
     },
   ],
   notices: [
@@ -420,12 +451,17 @@ const localDb = {
     const records = this.get(table);
     const newRecord = { ...record };
     if (table === "posts") {
-      const maxId = records.reduce(
-        (max, r) => Math.max(max, Number(r.post_id) || 0),
-        0,
-      );
-      newRecord.post_id = maxId + 1;
-      newRecord.created_at = new Date().toISOString();
+      if (!newRecord.post_id) {
+        const maxId = records.reduce(
+          (max, r) => Math.max(max, Number(r.post_id) || 0),
+          0,
+        );
+        newRecord.post_id = maxId + 1;
+      }
+      newRecord.likes_count = newRecord.likes_count ?? 0;
+      newRecord.liked_by = newRecord.liked_by ?? [];
+      newRecord.reported = newRecord.reported ?? false;
+      newRecord.created_at = newRecord.created_at ?? new Date().toISOString();
     } else if (table === "boards") {
       const maxId = records.reduce(
         (max, r) => Math.max(max, Number(r.board_id) || 0),

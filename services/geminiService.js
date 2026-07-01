@@ -209,9 +209,47 @@ Please return JSON ONLY matching the following schema:
   return JSON.parse(cleanedText);
 }
 
+async function generateGeminiChatStream(message, languagePref) {
+  if (!isGeminiConfigured()) {
+    throw new Error("Gemini API key is not configured");
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`;
+
+  const langName =
+    languagePref === "KO"
+      ? "Korean"
+      : languagePref === "ZH"
+        ? "Chinese (Simplified)"
+        : "English";
+  const systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+
+  const payload = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: `${systemInstruction}\n\nUser Question: ${message}` }],
+      },
+    ],
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Gemini API error: ${response.statusText}`);
+  }
+
+  return response.body;
+}
+
 module.exports = {
   isGeminiConfigured,
   generateGeminiChat,
+  generateGeminiChatStream,
   generateGeminiMajorAnalysis,
   translateGeminiAnnouncement,
 };

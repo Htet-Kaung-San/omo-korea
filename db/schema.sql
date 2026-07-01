@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS facility (
     latitude NUMERIC(10, 6) NOT NULL,
     longitude NUMERIC(10, 6) NOT NULL,
     hours VARCHAR(150),
-    details TEXT
+    details TEXT,
+    floors TEXT
 );
 
 -- 6. UNIVERSITY NOTICES TABLE
@@ -73,6 +74,8 @@ CREATE TABLE IF NOT EXISTS post (
     student_id VARCHAR(50) REFERENCES student(student_id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
+    likes_count INTEGER DEFAULT 0,
+    reported BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
