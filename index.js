@@ -11,6 +11,10 @@ app.use(express.json());
 app.use("/api/students", studentRoutes);
 app.use("/api/ai", aiRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Hey! PNU backend running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Hey! PNU backend running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
