@@ -23,20 +23,63 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
   try {
     const { data: student } = await supabaseClient
       .from("student")
-      .select("student_type, completed_courses, major:major_id(major_name)")
+      .select("student_id, student_type, completed_courses, intake_term, major:major_id(major_name)")
       .eq("student_id", studentId)
       .single();
     if (student) {
       const majorName = student.major?.major_name || "Unassigned Major";
       const studentType = student.student_type || "Current";
       const completedList = student.completed_courses || [];
+      const studentIdStr = student.student_id || String(studentId);
+      const intakeYear = parseInt(studentIdStr.substring(0, 4)) || 2024;
+      const intakeTerm = student.intake_term || "March";
       
+      // Calculate semesters completed dynamically compared to current date
+      const currentDate = new Date(); // Will resolve to July 2026 system date
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1; // 1-indexed
+
+      let semestersCompleted = 0;
+      let iterYear = intakeYear;
+      let iterTerm = intakeTerm;
+
+      while (iterYear < currentYear || (iterYear === currentYear && (
+        (iterTerm === "March" && currentMonth >= 7) || // March intake completes around July
+        (iterTerm === "September" && currentMonth >= 1) // Sept intake completes around Jan
+      ))) {
+        semestersCompleted++;
+        if (iterTerm === "March") {
+          iterTerm = "September";
+        } else {
+          iterTerm = "March";
+          iterYear++;
+        }
+      }
+
+      // Determine upcoming calendar semester type (Korea Spring starts in March, Fall starts in Sept)
+      const upcomingSem = (currentMonth >= 3 && currentMonth <= 8) ? "Fall" : "Spring";
+      const upcomingSemTermStr = upcomingSem === "Fall" ? "2nd Semester" : "1st Semester";
+      
+      // Academic year student is entering in the upcoming semester
+      const nextSemesterNumber = semestersCompleted + 1;
+      const enteringYearNum = Math.min(4, Math.ceil(nextSemesterNumber / 2));
+      const enteringYearStr = enteringYearNum === 1 ? "1st Year"
+                            : enteringYearNum === 2 ? "2nd Year"
+                            : enteringYearNum === 3 ? "3rd Year"
+                            : "4th Year";
+
+      const targetRecommendationLabel = `${enteringYearStr} - ${upcomingSemTermStr}`;
+
       let context = `Student Academic Background:\n` +
         `- Major: ${majorName}\n` +
-        `- Academic Status: ${studentType === "Freshman" ? "Newly Admitted Freshman" : "Current Enrolled Student"}\n`;
+        `- Academic Status: ${studentType === "Freshman" ? "Newly Admitted Freshman" : "Current Enrolled Student"}\n` +
+        `- Intake Profile: Enrolled in ${intakeTerm} ${intakeYear}\n` +
+        `- Completed semesters so far: ${semestersCompleted}\n` +
+        `- Upcoming target semester: Entering ${enteringYearStr} (calendar ${upcomingSemTermStr} in the ${upcomingSem} semester)\n` +
+        `- TARGETED RECOMMENDATION: When asked for course advice or recommendations for next semester, you MUST prioritize and suggest courses designed for **${targetRecommendationLabel}** in the curriculum for ${majorName}.\n`;
         
       if (studentType === "Freshman") {
-        context += `- Note: Recommend only standard starting 1st semester courses for ${majorName}.\n`;
+        context += `- Note: Recommend only standard starting 1st semester courses.\n`;
       } else {
         context += `- Completed Courses (Taken already): ${completedList.length > 0 ? completedList.join(", ") : "None recorded"}. IMPORTANT: DO NOT recommend any courses listed as completed! Only recommend courses they have not taken yet.\n`;
       }

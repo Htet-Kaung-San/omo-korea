@@ -312,6 +312,7 @@ const signupStudent = async (req, res) => {
       mbti,
       d2_semester,
       completed_courses,
+      intake_term,
     } = req.body;
 
     if (!student_id || !name || !password) {
@@ -363,6 +364,7 @@ const signupStudent = async (req, res) => {
       email: `${student_id}@pnu.edu`,
       phone: "010-0000-0000",
       completed_courses: completed_courses || [],
+      intake_term: intake_term || "March",
     };
 
     let newStudent;
@@ -384,6 +386,7 @@ const signupStudent = async (req, res) => {
         errMsg.includes("mbti") ||
         errMsg.includes("d2_semester") ||
         errMsg.includes("completed_courses") ||
+        errMsg.includes("intake_term") ||
         insertError.code === "42703"; // postgres undefined_column code
 
       if (isColumnErr) {
@@ -562,6 +565,7 @@ const updateStudentProfile = async (req, res) => {
       mbti,
       d2_semester,
       completed_courses,
+      intake_term,
     } = req.body;
 
     let major_id;
@@ -586,6 +590,7 @@ const updateStudentProfile = async (req, res) => {
     if (mbti !== undefined) updateData.mbti = mbti;
     if (d2_semester !== undefined) updateData.d2_semester = d2_semester;
     if (completed_courses !== undefined) updateData.completed_courses = completed_courses;
+    if (intake_term !== undefined) updateData.intake_term = intake_term;
 
     if (new_password) {
       const { current_password } = req.body;
