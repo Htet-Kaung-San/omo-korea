@@ -1480,6 +1480,9 @@ const reportPost = async (req, res) => {
       message: "Unexpected server error",
       error: err.message,
     });
+  }
+};
+
 const getAllStudents = async (req, res) => {
   try {
     const { data: students, error } = await supabase
