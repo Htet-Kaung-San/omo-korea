@@ -1480,10 +1480,110 @@ const reportPost = async (req, res) => {
       message: "Unexpected server error",
       error: err.message,
     });
+const getAllStudents = async (req, res) => {
+  try {
+    const { data: students, error } = await supabase
+      .from("student")
+      .select("*, major:major_id(major_name)")
+      .order("name", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch students",
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: students,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const requestStudentDeletion = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    
+    // Check authorization: A user can only request their own deletion
+    if (req.user?.student_id !== student_id) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only request deletion of your own account.",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("student")
+      .update({ deletion_requested: true })
+      .eq("student_id", student_id)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to request account deletion",
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Account deletion requested successfully. The administrator will review and delete your account shortly.",
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const hardDeleteStudent = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+
+    // Execute CASCADE physical delete in Supabase
+    const { error } = await supabase
+      .from("student")
+      .delete()
+      .eq("student_id", student_id);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete student account",
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Student account ${student_id} and all related checklists, timetables, posts, and comments have been permanently wiped.`,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
   }
 };
 
 module.exports = {
+  getAllStudents,
+  requestStudentDeletion,
+  hardDeleteStudent,
   testConnection,
   loginStudent,
   getStudentChecklist,

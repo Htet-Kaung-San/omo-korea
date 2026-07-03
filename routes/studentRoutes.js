@@ -28,6 +28,9 @@ const {
   updateLanguagePreference,
   globalSearch,
   healthCheck,
+  requestStudentDeletion,
+  hardDeleteStudent,
+  getAllStudents,
 } = require("../controllers/studentController");
 const authenticateToken = require("../middlewares/auth");
 
@@ -65,9 +68,12 @@ router.patch(
   authenticateToken,
   updateLanguagePreference,
 );
+router.get("/", authenticateToken, getAllStudents);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/:student_id", getStudentProfile);
 router.patch("/:student_id", authenticateToken, updateStudentProfile);
+router.patch("/:student_id/request-delete", authenticateToken, requestStudentDeletion);
+router.delete("/:student_id", authenticateToken, hardDeleteStudent);
 
 module.exports = router;

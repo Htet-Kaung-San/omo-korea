@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS student (
     is_in_korea BOOLEAN DEFAULT TRUE,
     mbti VARCHAR(10),
     d2_semester VARCHAR(20),
-    completed_courses JSONB DEFAULT '[]'::jsonb
+    completed_courses JSONB DEFAULT '[]'::jsonb,
+    deletion_requested BOOLEAN DEFAULT FALSE
 );
 
 -- 3. COURSE CATALOG TABLE
