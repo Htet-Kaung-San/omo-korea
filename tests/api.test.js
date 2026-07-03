@@ -5,6 +5,30 @@ describe("Hey! PNU Backend API Integration Tests", () => {
   let tempPostId = null;
   let authToken = null;
 
+  beforeAll(async () => {
+    // Reset local database file on test run setup to ensure idempotency
+    const fs = require("fs");
+    const path = require("path");
+    const dbFile = path.join(__dirname, "../data/local_db.json");
+    if (fs.existsSync(dbFile)) {
+      try {
+        fs.unlinkSync(dbFile);
+      } catch (err) {
+        console.warn("Test cleanup failed to unlink local_db.json:", err.message);
+      }
+    }
+
+    const res = await request(app)
+      .post("/api/students/login")
+      .send({
+        student_id: "202455393",
+        password: "password",
+      });
+    if (res.body.success && res.body.data) {
+      authToken = res.body.data.token;
+    }
+  });
+
   // 1. Test Health Diagnostics
   describe("GET /api/students/health-check", () => {
     it("should return system health statistics and DB status", async () => {
@@ -165,7 +189,7 @@ describe("Hey! PNU Backend API Integration Tests", () => {
     });
   });
 
-  // 6. Test Course Enrollments (Auth Protected)
+  // 6. Test Course Enrollments & Conflicts (Auth Protected)
   describe("POST /api/students/enrollments", () => {
     it("should allow enrolling in a course with auth", async () => {
       expect(authToken).toBeDefined();
@@ -176,9 +200,60 @@ describe("Hey! PNU Backend API Integration Tests", () => {
         .send({
           student_id: "202455393",
           course_id: 8,
-        });
+        })
+        .expect(201);
 
-      expect([201, 400, 409, 500]).toContain(res.status);
+      expect(res.body.success).toBe(true);
+    });
+
+    it("should reject enrolling in a conflicting course with 400 Bad Request", async () => {
+      expect(authToken).toBeDefined();
+
+      // Course 9 overlaps with Course 8 on Monday 09:30-10:15
+      const res = await request(app)
+        .post("/api/students/enrollments")
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({
+          student_id: "202455393",
+          course_id: 9,
+        })
+        .expect(400);
+
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain("Schedule Conflict");
+    });
+  });
+
+  // 7. Test Account Deletion & Hard Delete Cascade
+  describe("Account Deletion Flow", () => {
+    it("should allow student to request account deletion", async () => {
+      expect(authToken).toBeDefined();
+
+      const res = await request(app)
+        .patch("/api/students/202455393/request-delete")
+        .set("Authorization", `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.deletion_requested).toBe(true);
+    });
+
+    it("should allow admin to physically wipe student account and related records", async () => {
+      expect(authToken).toBeDefined();
+
+      // Trigger hard delete
+      const res = await request(app)
+        .delete("/api/students/202455393")
+        .set("Authorization", `Bearer ${authToken}`) // In mock, uses auth student for demo admin checks
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toContain("permanently wiped");
+
+      // Verify profile is fully deleted
+      const checkProfile = await request(app)
+        .get("/api/students/202455393")
+        .expect(404);
     });
   });
 });
