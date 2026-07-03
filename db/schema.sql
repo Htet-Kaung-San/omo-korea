@@ -94,8 +94,19 @@ CREATE TABLE IF NOT EXISTS comment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 9. CHECKLIST ITEMS TABLE
+CREATE TABLE IF NOT EXISTS checklist_item (
+    checklist_id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) REFERENCES student(student_id) ON DELETE CASCADE,
+    task_name VARCHAR(255) NOT NULL,
+    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed')),
+    due_date TIMESTAMP,
+    description TEXT
+);
+
 -- Indexing for lookup speed optimizations
 CREATE INDEX IF NOT EXISTS idx_student_major ON student(major_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_student ON enrollment(student_id);
 CREATE INDEX IF NOT EXISTS idx_post_board ON post(board_id);
 CREATE INDEX IF NOT EXISTS idx_comment_post ON comment(post_id);
+CREATE INDEX IF NOT EXISTS idx_checklist_item_student ON checklist_item(student_id);
