@@ -249,8 +249,61 @@ Return valid JSON ONLY matching this format (no markdown blocks, no prefix/suffi
   };
 }
 
+async function generateOpenRouterChatStream(message, history = [], modelOverride = null) {
+  if (!isOpenRouterConfigured()) {
+    throw new Error("OpenRouter API key is not configured");
+  }
+
+  const url = "https://openrouter.ai/api/v1/chat/completions";
+  const systemInstruction =
+    "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in.";
+
+  const messagesPayload = [];
+  if (history && history.length > 0) {
+    history.forEach((turn, idx) => {
+      let userText = turn.question;
+      if (idx === 0) {
+        userText = `${systemInstruction}\n\nUser Question: ${userText}`;
+      }
+      messagesPayload.push({ role: "user", content: userText });
+      messagesPayload.push({ role: "assistant", content: turn.answer });
+    });
+    messagesPayload.push({ role: "user", content: message });
+  } else {
+    messagesPayload.push({
+      role: "user",
+      content: `${systemInstruction}\n\nUser Question: ${message}`,
+    });
+  }
+
+  const preferredModel = modelOverride || process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+  console.log(`Starting OpenRouter stream with model: ${preferredModel}`);
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "HTTP-Referer": "https://localhost:3000",
+      "X-Title": "Hey! PNU",
+    },
+    body: JSON.stringify({
+      model: preferredModel,
+      messages: messagesPayload,
+      stream: true,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter Stream API error: ${response.statusText}`);
+  }
+
+  return response.body;
+}
+
 module.exports = {
   isOpenRouterConfigured,
   generateOpenRouterChat,
+  generateOpenRouterChatStream,
   generateOpenRouterMajorAnalysis,
 };

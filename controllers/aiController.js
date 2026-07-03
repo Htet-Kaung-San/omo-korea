@@ -15,6 +15,7 @@ const {
 const {
   isOpenRouterConfigured,
   generateOpenRouterChat,
+  generateOpenRouterChatStream,
   generateOpenRouterMajorAnalysis,
 } = require("../services/openrouterService");
 
@@ -455,14 +456,14 @@ async function handleChatStream(req, res) {
         .json({ success: false, message: "Message is required" });
     }
 
-    if (!isGeminiConfigured()) {
+    if (!isGeminiConfigured() && !isOpenRouterConfigured()) {
       // Fallback: send matching FAQ or fallback text streamed back to UI
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
       const fallbackText =
-        "Gemini is not configured yet. PNU Smart Assistant is running in mockup mode.";
+        "AI is not configured yet. PNU Smart Assistant is running in mockup mode.";
       const words = fallbackText.split(" ");
       for (const word of words) {
         res.write(`data: ${JSON.stringify({ text: word + " " })}\n\n`);
@@ -505,28 +506,98 @@ async function handleChatStream(req, res) {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const stream = await generateGeminiChatStream(message, userLangPref, context);
-    let buffer = "";
-    const decoder = new TextDecoder();
+    if (isOpenRouterConfigured()) {
+      const augmentedMsg = context
+        ? `PNU Knowledge Base Context:\n${context}\n\nUser Question: ${message}`
+        : message;
 
-    for await (const chunk of stream) {
-      buffer += decoder.decode(chunk, { stream: true });
-      const textRegex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
-      let match;
-      while ((match = textRegex.exec(buffer)) !== null) {
-        const rawText = match[1];
+      let history = [];
+      if (req.body.history && Array.isArray(req.body.history)) {
+        history = req.body.history;
+      } else if (studentId) {
         try {
-          const cleanText = JSON.parse(`"${rawText}"`);
-          res.write(`data: ${JSON.stringify({ text: cleanText })}\n\n`);
-        } catch {
-          // ignore parsing error
+          const { data: logs } = await supabase
+            .from("chatbot_log")
+            .select("*")
+            .eq("student_id", studentId)
+            .order("timestamp", { ascending: false })
+            .limit(10);
+          if (logs) {
+            history = [...logs].reverse().map((log) => ({
+              question: log.question,
+              answer: log.answer,
+            }));
+          }
+        } catch (histErr) {
+          console.error("Failed to load history for OpenRouter stream:", histErr.message);
         }
       }
-      buffer = buffer.slice(-100);
-    }
 
-    res.write("data: [DONE]\n\n");
-    res.end();
+      const stream = await generateOpenRouterChatStream(augmentedMsg, history);
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      for await (const chunk of stream) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          if (trimmed === "data: [DONE]") continue;
+          if (trimmed.startsWith("data: ")) {
+            const rawJson = trimmed.slice(6);
+            try {
+              const parsed = JSON.parse(rawJson);
+              const content = parsed.choices?.[0]?.delta?.content || "";
+              if (content) {
+                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+              }
+            } catch {
+              // ignore partial line parsing issues
+            }
+          }
+        }
+      }
+
+      if (buffer.trim().startsWith("data: ")) {
+        const rawJson = buffer.trim().slice(6);
+        try {
+          const parsed = JSON.parse(rawJson);
+          const content = parsed.choices?.[0]?.delta?.content || "";
+          if (content) {
+            res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+          }
+        } catch {}
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } else {
+      const stream = await generateGeminiChatStream(message, userLangPref, context);
+      let buffer = "";
+      const decoder = new TextDecoder();
+
+      for await (const chunk of stream) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const textRegex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
+        let match;
+        while ((match = textRegex.exec(buffer)) !== null) {
+          const rawText = match[1];
+          try {
+            const cleanText = JSON.parse(`"${rawText}"`);
+            res.write(`data: ${JSON.stringify({ text: cleanText })}\n\n`);
+          } catch {
+            // ignore parsing error
+          }
+        }
+        buffer = buffer.slice(-100);
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+    }
   } catch (err) {
     console.error("AI Streaming error:", err);
     res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
