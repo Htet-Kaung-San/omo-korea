@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS student (
     phone VARCHAR(50),
     is_in_korea BOOLEAN DEFAULT TRUE,
     mbti VARCHAR(10),
-    d2_semester VARCHAR(20)
+    d2_semester VARCHAR(20),
+    completed_courses JSONB DEFAULT '[]'::jsonb
 );
 
 -- 3. COURSE CATALOG TABLE

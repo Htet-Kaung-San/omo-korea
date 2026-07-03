@@ -18,6 +18,36 @@ const {
   generateOpenRouterChatStream,
   generateOpenRouterMajorAnalysis,
 } = require("../services/openrouterService");
+async function getAcademicPromptContext(studentId, supabaseClient) {
+  if (!studentId) return "";
+  try {
+    const { data: student } = await supabaseClient
+      .from("student")
+      .select("student_type, completed_courses, major:major_id(major_name)")
+      .eq("student_id", studentId)
+      .single();
+    if (student) {
+      const majorName = student.major?.major_name || "Unassigned Major";
+      const studentType = student.student_type || "Current";
+      const completedList = student.completed_courses || [];
+      
+      let context = `Student Academic Background:\n` +
+        `- Major: ${majorName}\n` +
+        `- Academic Status: ${studentType === "Freshman" ? "Newly Admitted Freshman" : "Current Enrolled Student"}\n`;
+        
+      if (studentType === "Freshman") {
+        context += `- Note: Recommend only standard starting 1st semester courses for ${majorName}.\n`;
+      } else {
+        context += `- Completed Courses (Taken already): ${completedList.length > 0 ? completedList.join(", ") : "None recorded"}. IMPORTANT: DO NOT recommend any courses listed as completed! Only recommend courses they have not taken yet.\n`;
+      }
+      return context;
+    }
+  } catch (err) {
+    console.error("Failed to load academic context for AI:", err.message);
+  }
+  return "";
+}
+
 
 async function recommendMajor(req, res) {
   try {
@@ -229,6 +259,8 @@ async function handleChat(req, res) {
       }
     }
 
+    const academicPromptContext = await getAcademicPromptContext(studentId, supabase);
+
     // Retrieve grounding context from Vector RAG system
     let context = "";
     try {
@@ -242,8 +274,15 @@ async function handleChat(req, res) {
     // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
     if (isOpenRouterConfigured()) {
       try {
-        // For OpenRouter, we can prepend the context directly to the message if it exists
-        const augmentedMsg = context ? `PNU Knowledge Base Context:\n${context}\n\nUser Question: ${message}` : message;
+        let augmentedMsg = "";
+        if (academicPromptContext) {
+          augmentedMsg += `${academicPromptContext}\n`;
+        }
+        if (context) {
+          augmentedMsg += `PNU Knowledge Base Context:\n${context}\n\n`;
+        }
+        augmentedMsg += `User Question: ${message}`;
+
         reply = await generateOpenRouterChat(augmentedMsg, history);
       } catch (orErr) {
         console.error(
@@ -256,7 +295,11 @@ async function handleChat(req, res) {
     // 2. If Gemini is configured in .env, call Gemini for real AI chat!
     if (!reply && isGeminiConfigured()) {
       try {
-        reply = await generateGeminiChat(message, userLangPref, context);
+        let geminiMsg = message;
+        if (academicPromptContext) {
+          geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
+        }
+        reply = await generateGeminiChat(geminiMsg, userLangPref, context);
       } catch (geminiErr) {
         console.error(
           "Gemini Chat Error, falling back to Claude/FAQ:",
@@ -493,6 +536,8 @@ async function handleChatStream(req, res) {
       }
     }
 
+    const academicPromptContext = await getAcademicPromptContext(studentId, supabase);
+
     // Retrieve grounding context from Vector RAG system
     let context = "";
     try {
@@ -507,9 +552,14 @@ async function handleChatStream(req, res) {
     res.setHeader("Connection", "keep-alive");
 
     if (isOpenRouterConfigured()) {
-      const augmentedMsg = context
-        ? `PNU Knowledge Base Context:\n${context}\n\nUser Question: ${message}`
-        : message;
+      let augmentedMsg = "";
+      if (academicPromptContext) {
+        augmentedMsg += `${academicPromptContext}\n`;
+      }
+      if (context) {
+        augmentedMsg += `PNU Knowledge Base Context:\n${context}\n\n`;
+      }
+      augmentedMsg += `User Question: ${message}`;
 
       let history = [];
       if (req.body.history && Array.isArray(req.body.history)) {
@@ -575,7 +625,11 @@ async function handleChatStream(req, res) {
       res.write("data: [DONE]\n\n");
       res.end();
     } else {
-      const stream = await generateGeminiChatStream(message, userLangPref, context);
+      let geminiMsg = message;
+      if (academicPromptContext) {
+        geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
+      }
+      const stream = await generateGeminiChatStream(geminiMsg, userLangPref, context);
       let buffer = "";
       const decoder = new TextDecoder();
 
