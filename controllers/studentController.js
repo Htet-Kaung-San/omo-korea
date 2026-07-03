@@ -307,6 +307,10 @@ const signupStudent = async (req, res) => {
       student_type,
       visa_status,
       password,
+      language_pref,
+      is_in_korea,
+      mbti,
+      d2_semester,
     } = req.body;
 
     if (!student_id || !name || !password) {
@@ -343,17 +347,23 @@ const signupStudent = async (req, res) => {
     // Hash the password with bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const insertPayload = {
+      student_id: String(student_id),
+      name,
+      nationality: nationality || "Unknown",
+      major_id,
+      student_type: student_type || "Current",
+      visa_status: visa_status || "None",
+      password: hashedPassword,
+      language_pref: language_pref || "EN",
+      is_in_korea: is_in_korea !== undefined ? is_in_korea : true,
+      mbti: mbti || null,
+      d2_semester: d2_semester || null,
+    };
+
     const { data: newStudent, error: insertError } = await supabase
       .from("student")
-      .insert({
-        student_id: String(student_id),
-        name,
-        nationality: nationality || "Unknown",
-        major_id,
-        student_type: student_type || "Current",
-        visa_status: visa_status || "None",
-        password: hashedPassword,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
@@ -502,6 +512,9 @@ const updateStudentProfile = async (req, res) => {
       phone,
       visa_status,
       new_password,
+      is_in_korea,
+      mbti,
+      d2_semester,
     } = req.body;
 
     let major_id;
@@ -522,6 +535,9 @@ const updateStudentProfile = async (req, res) => {
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = phone;
     if (visa_status !== undefined) updateData.visa_status = visa_status;
+    if (is_in_korea !== undefined) updateData.is_in_korea = is_in_korea;
+    if (mbti !== undefined) updateData.mbti = mbti;
+    if (d2_semester !== undefined) updateData.d2_semester = d2_semester;
 
     if (new_password) {
       const { current_password } = req.body;

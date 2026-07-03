@@ -21,7 +21,10 @@ CREATE TABLE IF NOT EXISTS student (
     visa_status VARCHAR(20) DEFAULT 'None',
     language_pref VARCHAR(5) DEFAULT 'EN' CHECK (language_pref IN ('EN', 'KO', 'ZH')),
     email VARCHAR(150),
-    phone VARCHAR(50)
+    phone VARCHAR(50),
+    is_in_korea BOOLEAN DEFAULT TRUE,
+    mbti VARCHAR(10),
+    d2_semester VARCHAR(20)
 );
 
 -- 3. COURSE CATALOG TABLE

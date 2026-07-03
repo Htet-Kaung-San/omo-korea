@@ -64,3 +64,8 @@ BEGIN
   LIMIT match_count;
 END;
 $$;
+
+-- 6. Add onboarding wizard fields to student table if not exists
+ALTER TABLE student ADD COLUMN IF NOT EXISTS is_in_korea BOOLEAN DEFAULT TRUE;
+ALTER TABLE student ADD COLUMN IF NOT EXISTS mbti VARCHAR(10);
+ALTER TABLE student ADD COLUMN IF NOT EXISTS d2_semester VARCHAR(20);
