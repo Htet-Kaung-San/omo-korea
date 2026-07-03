@@ -1072,11 +1072,21 @@ const getEnrollments = async (req, res) => {
 
 const createEnrollment = async (req, res) => {
   try {
-    const { student_id, course_id } = req.body;
+    console.log("createEnrollment request body:", req.body);
+    console.log("createEnrollment request headers:", req.headers);
+    
+    // Fallbacks for token and camelCase keys
+    const student_id = req.body.student_id || req.user?.student_id;
+    const course_id = req.body.course_id || req.body.courseId;
+
     if (!student_id || !course_id) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing student_id or course_id" });
+        .json({ 
+          success: false, 
+          message: `Missing student_id or course_id (Received student_id: ${student_id}, course_id: ${course_id})`,
+          received: { student_id, course_id, body: req.body }
+        });
     }
 
     // Check if already enrolled
