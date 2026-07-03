@@ -16,7 +16,6 @@ topikLevel,
 topN = 3,
 } = req.body || {};
 
-```
 const userProfile = {
   academicAreas,
   activities,
@@ -65,17 +64,14 @@ return res.status(200).json({
   aiAnalysis: claudeResult.analysis,
   warning: claudeResult.warning,
 });
-```
 
 } catch (error) {
 console.error('Major recommendation error:', error);
 
-```
 return res.status(500).json({
   success: false,
   message: 'Unable to generate major recommendations.',
 });
-```
 
 }
 }

@@ -38,6 +38,25 @@ More departments will be added after the team collects and verifies additional i
 * Career and internship paths
 * Department-specific language requirements
 
+## Course Recommendation v1
+
+This is a first MVP draft.
+
+`courseRecommendationEngine.js` recommends courses using the student's major, interests, course type, and completed-course list.
+
+It returns ranked courses with:
+
+* `score`
+* `matchHint`
+
+The local test can be run with:
+
+```powershell
+node ai/testCourseRecommendation.js
+```
+
+The current test uses sample course data. Later versions will connect this feature to verified PNU curriculum data and the team's database.
+
 ## How It Works
 
 1. A student completes the major-recommendation questionnaire.
