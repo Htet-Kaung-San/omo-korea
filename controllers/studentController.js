@@ -361,13 +361,52 @@ const signupStudent = async (req, res) => {
       d2_semester: d2_semester || null,
     };
 
-    const { data: newStudent, error: insertError } = await supabase
+    let newStudent;
+    let insertError;
+
+    const firstTry = await supabase
       .from("student")
       .insert(insertPayload)
       .select()
       .single();
 
+    newStudent = firstTry.data;
+    insertError = firstTry.error;
+
     if (insertError) {
+      const errMsg = insertError.message || "";
+      const isColumnErr =
+        errMsg.includes("is_in_korea") ||
+        errMsg.includes("mbti") ||
+        errMsg.includes("d2_semester") ||
+        insertError.code === "42703"; // postgres undefined_column code
+
+      if (isColumnErr) {
+        console.warn("New onboarding columns are missing in database. Retrying signup without them...");
+        const fallbackPayload = {
+          student_id: String(student_id),
+          name,
+          nationality: nationality || "Unknown",
+          major_id,
+          student_type: student_type || "Current",
+          visa_status: visa_status || "None",
+          password: hashedPassword,
+          language_pref: language_pref || "EN",
+        };
+
+        const retry = await supabase
+          .from("student")
+          .insert(fallbackPayload)
+          .select()
+          .single();
+
+        newStudent = retry.data;
+        insertError = retry.error;
+      }
+    }
+
+    if (insertError) {
+      console.error("Signup insert error final:", insertError);
       return res.status(500).json({
         success: false,
         message: "Failed to register student",
