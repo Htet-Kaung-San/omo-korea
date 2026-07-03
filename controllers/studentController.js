@@ -359,6 +359,8 @@ const signupStudent = async (req, res) => {
       is_in_korea: is_in_korea !== undefined ? is_in_korea : true,
       mbti: mbti || null,
       d2_semester: d2_semester || null,
+      email: `${student_id}@pnu.edu`,
+      phone: "010-0000-0000",
     };
 
     let newStudent;
@@ -392,6 +394,8 @@ const signupStudent = async (req, res) => {
           visa_status: visa_status || "None",
           password: hashedPassword,
           language_pref: language_pref || "EN",
+          email: `${student_id}@pnu.edu`,
+          phone: "010-0000-0000",
         };
 
         const retry = await supabase
