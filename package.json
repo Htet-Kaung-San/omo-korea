@@ -15,7 +15,9 @@
     "@anthropic-ai/sdk": "^0.105.0",
     "@supabase/supabase-js": "^2.108.2",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "joi": "^18.2.3",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
