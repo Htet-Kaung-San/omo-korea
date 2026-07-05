@@ -1,56 +1,36 @@
-require("dotenv").config();
-const PORT = process.env.PORT || 5000;
-const BASE_URL = `http://localhost:${PORT}/api/students`;
+const BASE_URL = 'http://localhost:5000/api/students';
 
 async function runForumTest() {
   try {
-    console.log("\n--- GET all boards ---\n");
-    const boardsRes = await fetch(`${BASE_URL}/boards`);
-    const boardsData = await boardsRes.json();
-    console.log("Status:", boardsRes.status);
-    console.log("Boards:", JSON.stringify(boardsData, null, 2));
+    console.log('\n--- POST create forum post ---\n');
 
-    if (
-      !boardsData.success ||
-      !boardsData.data ||
-      boardsData.data.length === 0
-    ) {
-      console.error("No boards found. Exiting test.");
-      return;
-    }
-
-    const firstBoard = boardsData.data[0];
-    const boardId = firstBoard.board_id;
-
-    console.log(
-      `\n--- POST a new post under board: ${firstBoard.name} (board_id: ${boardId}) ---\n`,
-    );
-    const newPost = {
-      board_id: boardId,
-      student_id: "202455393",
-      title: "Settlement Tips for Busan",
-      content:
-        "I highly recommend visiting the Geumjeong-gu office early in the morning to avoid long queues for ARC registration!",
-    };
-
-    const postRes = await fetch(`${BASE_URL}/posts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newPost),
+    // 1. Pointing cleanly to /api/students/posts
+    const postResponse = await fetch(`${BASE_URL}/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        board_id: 7,
+        student_id: 202455393,
+        title: 'Welcome to PNU! 🌸',
+        content: "Hello everyone! Let's share helpful tips about settling down in Busan on this board.",
+      }),
     });
-    const postData = await postRes.json();
-    console.log("Status:", postRes.status);
-    console.log("Created Post:", JSON.stringify(postData, null, 2));
 
-    console.log(
-      `\n--- GET posts for board: ${firstBoard.name} (board_id: ${boardId}) ---\n`,
-    );
-    const postsRes = await fetch(`${BASE_URL}/boards/${boardId}/posts`);
-    const postsData = await postsRes.json();
-    console.log("Status:", postsRes.status);
-    console.log("Posts:", JSON.stringify(postsData, null, 2));
+    const postData = await postResponse.json();
+
+    console.log('Status:', postResponse.status);
+    console.log('Created post:', JSON.stringify(postData, null, 2));
+
+    console.log('\n--- GET board posts timeline ---\n');
+
+    // 2. Pointing cleanly to /api/students/boards/7/posts
+    const getResponse = await fetch(`${BASE_URL}/boards/7/posts`);
+    const getData = await getResponse.json();
+
+    console.log('Status:', getResponse.status);
+    console.log('Board posts:', JSON.stringify(getData, null, 2));
   } catch (err) {
-    console.error("Request failed:", err.message);
+    console.error('Request failed:', err.message);
   }
 }
 
