@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hey! PNU — API Testing Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            pnu: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    .tab-active { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+    .response-error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .response-success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .response-warn { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .response-neutral { background: #f8fafc; border-color: #e2e8f0; color: #334155; }
+    .card { transition: box-shadow 0.2s ease; }
+    .card:hover { box-shadow: 0 8px 30px rgba(79, 70, 229, 0.08); }
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-pnu-700 via-pnu-600 to-indigo-500 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Hey! PNU API Tester</h1>
+        <p class="text-indigo-100 text-sm mt-0.5">Visual dashboard for endpoints, auth &amp; validation</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="serverBadge" class="text-xs font-medium bg-white/20 px-3 py-1.5 rounded-full">localhost:5000</span>
+        <button onclick="clearResponse()" class="text-xs font-medium bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition">Clear Response</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+    <!-- Left: Controls -->
+    <div class="xl:col-span-2 space-y-6">
+
+      <!-- Tab Nav -->
+      <nav class="flex flex-wrap gap-2 bg-white rounded-xl p-1.5 shadow-sm border border-slate-200">
+        <button data-tab="auth" class="tab-btn tab-active flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-semibold border-2 border-transparent transition">🔐 Auth</button>
+        <button data-tab="checklist" class="tab-btn flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-semibold border-2 border-transparent text-slate-500 hover:text-pnu-600 transition">📋 Checklist</button>
+        <button data-tab="forum" class="tab-btn flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-semibold border-2 border-transparent text-slate-500 hover:text-pnu-600 transition">📝 Forum</button>
+        <button data-tab="comments" class="tab-btn flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-semibold border-2 border-transparent text-slate-500 hover:text-pnu-600 transition">💬 Comments</button>
+        <button data-tab="ai" class="tab-btn flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-semibold border-2 border-transparent text-slate-500 hover:text-pnu-600 transition">🤖 AI</button>
+      </nav>
+
+      <!-- AUTH TAB -->
+      <section id="tab-auth" class="tab-panel space-y-5 fade-in">
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Authentication</h2>
+          <p class="text-sm text-slate-500 mb-5">POST <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/login</code></p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Student ID</label>
+              <input id="loginStudentId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 focus:border-pnu-500 outline-none" />
+            </div>
+            <div class="flex items-end">
+              <button onclick="handleLogin()" class="w-full bg-pnu-600 hover:bg-pnu-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow-sm">Login &amp; Save Token</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Saved JWT Token</h2>
+          <p class="text-sm text-slate-500 mb-4">Stored in memory &amp; localStorage — auto-attached to protected requests</p>
+          <textarea id="tokenDisplay" readonly rows="3" class="w-full font-mono text-xs rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-slate-600 resize-none"></textarea>
+          <div class="flex gap-2 mt-3">
+            <button onclick="copyToken()" class="text-sm font-medium text-pnu-600 hover:text-pnu-700 px-3 py-1.5 rounded-lg border border-pnu-200 hover:bg-pnu-50 transition">Copy Token</button>
+            <button onclick="clearToken()" class="text-sm font-medium text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition">Clear Token</button>
+          </div>
+        </div>
+
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Headers Configuration</h2>
+          <p class="text-sm text-slate-500 mb-4">Active Authorization header sent with protected endpoints</p>
+          <div class="font-mono text-xs bg-slate-900 text-emerald-400 rounded-lg px-4 py-3 break-all" id="authHeaderPreview">Authorization: Bearer &lt;no token&gt;</div>
+        </div>
+      </section>
+
+      <!-- CHECKLIST TAB -->
+      <section id="tab-checklist" class="tab-panel hidden space-y-5 fade-in">
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Get Checklist</h2>
+          <p class="text-sm text-slate-500 mb-5">GET <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/checklist/:student_id</code> <span class="text-amber-600 font-medium">🔒 Protected</span></p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Student ID</label>
+              <input id="checklistStudentId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+            <div class="flex items-end">
+              <button onclick="getChecklist()" class="w-full bg-pnu-600 hover:bg-pnu-700 text-white font-semibold py-2.5 rounded-lg transition">Fetch Checklist</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Update Checklist Item</h2>
+          <p class="text-sm text-slate-500 mb-5">PUT <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/checklist/:checklist_id</code> <span class="text-amber-600 font-medium">🔒 Protected</span></p>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Checklist ID</label>
+              <input id="checklistItemId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">New Status</label>
+              <select id="checklistStatus" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none">
+                <option value="" selected disabled></option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="updateChecklist()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition">Update Status</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FORUM TAB -->
+      <section id="tab-forum" class="tab-panel hidden space-y-5 fade-in">
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Create Forum Post</h2>
+          <p class="text-sm text-slate-500 mb-5">POST <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/posts</code> <span class="text-amber-600 font-medium">🔒 Protected + Joi validation</span></p>
+          <div class="grid sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Board ID</label>
+              <input id="postBoardId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Student ID</label>
+              <input id="postStudentId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Title <span class="text-slate-400 normal-case">(min 2 chars)</span></label>
+            <input id="postTitle" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+          </div>
+          <div class="mb-5">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Content <span class="text-slate-400 normal-case">(min 5 chars)</span></label>
+            <textarea id="postContent" rows="3" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none resize-none"></textarea>
+          </div>
+          <button onclick="createPost()" class="bg-pnu-600 hover:bg-pnu-700 text-white font-semibold py-2.5 px-6 rounded-lg transition shadow-sm">Create Post</button>
+        </div>
+      </section>
+
+      <!-- COMMENTS TAB -->
+      <section id="tab-comments" class="tab-panel hidden space-y-5 fade-in">
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Post a Comment</h2>
+          <p class="text-sm text-slate-500 mb-5">POST <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/posts/:post_id/comments</code> <span class="text-amber-600 font-medium">🔒 Protected + Joi validation</span></p>
+          <div class="grid sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Post ID</label>
+              <input id="commentPostId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Student ID</label>
+              <input id="commentStudentId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+          </div>
+          <div class="mb-5">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Content <span class="text-slate-400 normal-case">(min 2 chars)</span></label>
+            <textarea id="commentContent" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none resize-none"></textarea>
+          </div>
+          <button onclick="postComment()" class="bg-pnu-600 hover:bg-pnu-700 text-white font-semibold py-2.5 px-6 rounded-lg transition shadow-sm mr-3">Post Comment</button>
+        </div>
+
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Fetch Comments</h2>
+          <p class="text-sm text-slate-500 mb-5">GET <code class="text-pnu-600 bg-pnu-50 px-1.5 py-0.5 rounded text-xs">/api/students/posts/:post_id/comments</code> <span class="text-emerald-600 font-medium">Public</span></p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Post ID</label>
+              <input id="fetchCommentPostId" type="number" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none" />
+            </div>
+            <div class="flex items-end">
+              <button onclick="fetchComments()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg transition">Fetch Comments</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI TAB -->
+      <section id="tab-ai" class="tab-panel hidden space-y-5 fade-in">
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">AI Recommendations 🤖</h2>
+          <p class="text-sm text-slate-500 mb-5">Protected AI engines — login required. Uses your JWT student profile plus pilot catalog data.</p>
+          <div class="mb-5">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Target Major ID <span class="text-slate-400 normal-case">(optional for dashboard / required for gap analysis)</span></label>
+            <select id="aiTargetMajorId" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-pnu-500 outline-none">
+              <option value="" selected></option>
+              <option value="artificial-intelligence">artificial-intelligence</option>
+              <option value="computer-engineering">computer-engineering</option>
+              <option value="design-technology">design-technology</option>
+              <option value="business-administration">business-administration</option>
+            </select>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="fetchAiDashboard()" class="bg-pnu-600 hover:bg-pnu-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">Fetch AI Dashboard</button>
+            <button onclick="runMajorGapAnalysis()" class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">Run Major Gap Analysis</button>
+            <button onclick="getCourseRecommendations()" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">Get Course Recommendations</button>
+          </div>
+        </div>
+
+        <div class="card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-900 mb-1">Endpoint Reference</h2>
+          <ul class="text-sm text-slate-600 space-y-2 font-mono">
+            <li><span class="text-amber-600 font-sans font-medium">🔒</span> GET <code class="text-pnu-600 bg-pnu-50 px-1 rounded text-xs">/api/students/dashboard-summary?targetMajorId=…</code></li>
+            <li><span class="text-amber-600 font-sans font-medium">🔒</span> POST <code class="text-pnu-600 bg-pnu-50 px-1 rounded text-xs">/api/students/major-gap-analysis</code></li>
+            <li><span class="text-amber-600 font-sans font-medium">🔒</span> GET <code class="text-pnu-600 bg-pnu-50 px-1 rounded text-xs">/api/students/course-recommendations?limit=…</code></li>
+            <li><span class="text-emerald-600 font-sans font-medium">Public</span> POST <code class="text-pnu-600 bg-pnu-50 px-1 rounded text-xs">/api/ai/recommend-major</code></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right: Response Panel -->
+    <div class="xl:col-span-1">
+      <div class="sticky top-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div>
+              <h2 class="font-bold text-slate-900">Response</h2>
+              <p id="responseMeta" class="text-xs text-slate-500 mt-0.5">Awaiting request…</p>
+            </div>
+            <span id="statusBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600">—</span>
+          </div>
+          <div id="errorBanner" class="hidden px-5 py-3 text-sm font-medium border-b"></div>
+          <pre id="responseBody" class="response-neutral font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl">// Send a request to see the JSON response here.</pre>
+        </div>
+
+        <div class="mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-800">
+          <p class="font-semibold mb-1">Quick tips</p>
+          <ul class="space-y-1 text-indigo-700">
+            <li>• Login first — protected routes need a Bearer token</li>
+            <li>• 400 responses show Joi <code class="bg-white/60 px-1 rounded">errors[]</code> array</li>
+            <li>• 401 = missing token · 403 = invalid/expired token</li>
+            <li>• AI tab returns recommendation arrays in the JSON panel</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = '/api/students';
+    let authToken = localStorage.getItem('heyPnuToken') || '';
+
+    // ── Token management ──────────────────────────────────────────────
+    function saveToken(token) {
+      authToken = token;
+      localStorage.setItem('heyPnuToken', token);
+      refreshTokenUI();
+    }
+
+    function clearToken() {
+      authToken = '';
+      localStorage.removeItem('heyPnuToken');
+      refreshTokenUI();
+      showResponse(0, { message: 'Token cleared from memory and localStorage.' }, 'info');
+    }
+
+    function copyToken() {
+      if (!authToken) return;
+      navigator.clipboard.writeText(authToken);
+      showResponse(0, { message: 'Token copied to clipboard!' }, 'info');
+    }
+
+    function refreshTokenUI() {
+      document.getElementById('tokenDisplay').value = authToken || '';
+      const preview = authToken
+        ? `Authorization: Bearer ${authToken}`
+        : 'Authorization: Bearer <no token>';
+      document.getElementById('authHeaderPreview').textContent = preview;
+    }
+
+    function authHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      return headers;
+    }
+
+    // ── Response display ────────────────────────────────────────────────
+    function clearResponse() {
+      document.getElementById('responseMeta').textContent = 'Awaiting request…';
+      document.getElementById('statusBadge').textContent = '—';
+      document.getElementById('statusBadge').className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600';
+      document.getElementById('errorBanner').className = 'hidden';
+      document.getElementById('responseBody').textContent = '// Send a request to see the JSON response here.';
+      document.getElementById('responseBody').className = 'response-neutral font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl';
+    }
+
+    function showResponse(status, data, method, url) {
+      const meta = document.getElementById('responseMeta');
+      const badge = document.getElementById('statusBadge');
+      const body = document.getElementById('responseBody');
+      const banner = document.getElementById('errorBanner');
+
+      if (method === 'info') {
+        meta.textContent = 'System message';
+        badge.textContent = 'INFO';
+        badge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700';
+        banner.className = 'hidden';
+        body.className = 'response-neutral font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl';
+        body.textContent = JSON.stringify(data, null, 2);
+        return;
+      }
+
+      meta.textContent = `${method} ${url}`;
+      badge.textContent = status || 'ERR';
+
+      const isError = status >= 400;
+      const isValidation = status === 400 && Array.isArray(data?.errors);
+      const isAuth = status === 401 || status === 403;
+
+      if (isError) {
+        badge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700';
+        body.className = 'response-error font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl';
+      } else if (status >= 200 && status < 300) {
+        badge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700';
+        body.className = 'response-success font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl';
+      } else {
+        badge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600';
+        body.className = 'response-neutral font-mono text-xs p-5 overflow-auto max-h-[70vh] whitespace-pre-wrap break-words border-2 m-4 rounded-xl';
+      }
+
+      // Error banner for validation / auth
+      if (isValidation) {
+        banner.className = 'px-5 py-3 text-sm font-medium border-b response-warn';
+        banner.innerHTML = `<strong>Validation failed:</strong> ${data.errors.map(e => `<span class="block mt-0.5">• ${e}</span>`).join('')}`;
+      } else if (isAuth) {
+        banner.className = 'px-5 py-3 text-sm font-medium border-b response-error';
+        banner.textContent = `⚠ ${data?.message || 'Unauthorized'}`;
+      } else if (isError) {
+        banner.className = 'px-5 py-3 text-sm font-medium border-b response-error';
+        banner.textContent = `⚠ ${data?.message || 'Request failed'}`;
+      } else {
+        banner.className = 'hidden';
+      }
+
+      body.textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function apiCall(method, path, body, protectedRoute = true) {
+      const url = `${API_BASE}${path}`;
+      const options = {
+        method,
+        headers: protectedRoute ? authHeaders() : { 'Content-Type': 'application/json' },
+      };
+      if (body) options.body = JSON.stringify(body);
+
+      try {
+        const res = await fetch(url, options);
+        let data;
+        try { data = await res.json(); } catch { data = { message: 'Non-JSON response' }; }
+        showResponse(res.status, data, method, url);
+        return { status: res.status, data };
+      } catch (err) {
+        showResponse(0, { success: false, message: err.message }, method, url);
+        return { status: 0, data: null };
+      }
+    }
+
+    // ── Endpoint handlers ───────────────────────────────────────────────
+    async function handleLogin() {
+      const student_id = Number(document.getElementById('loginStudentId').value);
+      const { status, data } = await apiCall('POST', '/login', { student_id }, false);
+      if (status === 200 && data?.token) {
+        saveToken(data.token);
+      }
+    }
+
+    async function getChecklist() {
+      const student_id = document.getElementById('checklistStudentId').value;
+      await apiCall('GET', `/checklist/${student_id}`);
+    }
+
+    async function updateChecklist() {
+      const checklist_id = document.getElementById('checklistItemId').value;
+      const status = document.getElementById('checklistStatus').value;
+      if (!checklist_id) {
+        showResponse(0, { message: 'Please enter a Checklist ID.' }, 'info');
+        return;
+      }
+      if (!status) {
+        showResponse(0, { message: 'Please select a status.' }, 'info');
+        return;
+      }
+      await apiCall('PUT', `/checklist/${checklist_id}`, { status });
+    }
+
+    async function createPost() {
+      await apiCall('POST', '/posts', {
+        board_id: Number(document.getElementById('postBoardId').value),
+        student_id: Number(document.getElementById('postStudentId').value),
+        title: document.getElementById('postTitle').value,
+        content: document.getElementById('postContent').value,
+      });
+    }
+
+    async function postComment() {
+      const post_id = document.getElementById('commentPostId').value;
+      if (!post_id) {
+        showResponse(0, { message: 'Please enter a Post ID.' }, 'info');
+        return;
+      }
+      await apiCall('POST', `/posts/${post_id}/comments`, {
+        student_id: Number(document.getElementById('commentStudentId').value),
+        content: document.getElementById('commentContent').value,
+      });
+    }
+
+    async function fetchComments() {
+      const post_id = document.getElementById('fetchCommentPostId').value;
+      if (!post_id) {
+        showResponse(0, { message: 'Please enter a Post ID.' }, 'info');
+        return;
+      }
+      await apiCall('GET', `/posts/${post_id}/comments`, null, false);
+    }
+
+    async function fetchAiDashboard() {
+      const targetMajorId = document.getElementById('aiTargetMajorId').value;
+      const query = targetMajorId ? `?targetMajorId=${encodeURIComponent(targetMajorId)}` : '';
+      await apiCall('GET', `/dashboard-summary${query}`);
+    }
+
+    async function runMajorGapAnalysis() {
+      const targetMajorId = document.getElementById('aiTargetMajorId').value;
+      if (!targetMajorId) {
+        showResponse(0, { message: 'Please select a Target Major ID for gap analysis.' }, 'info');
+        return;
+      }
+      await apiCall('POST', '/major-gap-analysis', { targetMajorId });
+    }
+
+    async function getCourseRecommendations() {
+      await apiCall('GET', '/course-recommendations');
+    }
+
+    // ── Tab switching ───────────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('tab-active');
+          b.classList.add('text-slate-500');
+        });
+        btn.classList.add('tab-active');
+        btn.classList.remove('text-slate-500');
+
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+      });
+    });
+
+    // Init
+    refreshTokenUI();
+  </script>
+</body>
+</html>

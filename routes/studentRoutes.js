@@ -20,6 +20,12 @@ const {
   validateBody,
 } = require('../validators/studentValidator');
 
+const {
+  getDashboardSummary,
+  runMajorGapAnalysis,
+  getCourseRecommendations,
+} = require('../controllers/aiController');
+
 const router = express.Router();
 
 // Public routes
@@ -41,5 +47,10 @@ router.post(
   validateBody(createCommentSchema),
   createComment
 );
+
+// AI recommendation routes (protected)
+router.get('/dashboard-summary', verifyToken, getDashboardSummary);
+router.post('/major-gap-analysis', verifyToken, runMajorGapAnalysis);
+router.get('/course-recommendations', verifyToken, getCourseRecommendations);
 
 module.exports = router;

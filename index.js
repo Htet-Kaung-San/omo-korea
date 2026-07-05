@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+app.use(express.static('public'));
 app.use('/api/students', studentRoutes);
 app.use('/api/ai', aiRoutes);
 
