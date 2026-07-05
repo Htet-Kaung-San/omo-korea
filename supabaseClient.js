@@ -33,6 +33,20 @@ if (isPlaceholder) {
       }, context);
     };
 
+    promise.in = (field, vals) => {
+      return makePromise((resolve) => {
+        promise.then(({ data, error }) => {
+          if (error) return resolve({ data: null, error });
+          const records = Array.isArray(data) ? data : [data];
+          const stringVals = (vals || []).map(String);
+          const filtered = records.filter(
+            (r) => stringVals.includes(String(r[field])),
+          );
+          resolve({ data: filtered, error: null });
+        });
+      }, context);
+    };
+
     promise.single = () => {
       return makePromise((resolve) => {
         promise.then(({ data, error }) => {

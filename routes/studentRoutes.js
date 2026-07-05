@@ -71,6 +71,9 @@ router.get("/courses", getCourses);
 router.get("/enrollments/:student_id", getEnrollments);
 router.post("/enrollments", authenticateToken, createEnrollment);
 router.delete("/enrollments/:enrollment_id", authenticateToken, deleteEnrollment);
+router.get("/scholarships", getAllScholarships);
+router.post("/scholarships/apply", authenticateToken, applyForScholarship);
+
 router.get("/:student_id", getStudentProfile);
 router.patch("/:student_id", authenticateToken, updateStudentProfile);
 router.patch("/:student_id/request-delete", authenticateToken, requestStudentDeletion);
@@ -80,8 +83,7 @@ router.post("/posts", authenticateToken, validateBody(createPostSchema), createP
 router.post("/posts/:post_id/like", authenticateToken, likePost);
 router.post("/posts/:post_id/report", authenticateToken, reportPost);
 router.post("/comments", authenticateToken, validateBody(createCommentSchema), createComment);
-router.post("/scholarships/apply", authenticateToken, applyForScholarship);
-router.get("/scholarships", getAllScholarships);
+router.post("/posts/:post_id/comments", authenticateToken, validateBody(createCommentSchema), createComment);
 
 // Admin-only routes
 router.get("/", authenticateToken, requireAdmin, getAllStudents);

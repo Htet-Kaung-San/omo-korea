@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:5000/api/students';
+const PORT = process.env.PORT || 5001;
+const BASE_URL = `http://localhost:${PORT}/api/students`;
 const TEST_STUDENT_ID = 202455393;
 
 const C = {

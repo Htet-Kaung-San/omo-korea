@@ -11,7 +11,7 @@ function authenticateToken(req, res, next) {
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: "Access Denied: No session token provided.",
+      message: "Access denied. No token provided.",
     });
   }
 
