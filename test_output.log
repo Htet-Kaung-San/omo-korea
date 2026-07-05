@@ -1,0 +1,86 @@
+
+> hey-pnu-backend@1.0.0 test
+> SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest
+
+  console.log
+    ◇ injected env (7) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+  console.log
+    --- SUPABASE DETECTED AS PLACEHOLDER: USING LOCAL JSON DATABASE FALLBACK ---
+
+      at Object.log (supabaseClient.js:14:11)
+
+  console.log
+    createEnrollment request body: { student_id: '202455393', course_id: 8 }
+
+      at log (controllers/studentController.js:1075:13)
+
+  console.log
+    createEnrollment request headers: {
+      host: '127.0.0.1:58732',
+      'accept-encoding': 'gzip, deflate',
+      authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHVkZW50X2lkIjoiMjAyNDU1MzkzIiwiaWF0IjoxNzgzMDc0MTE1LCJleHAiOjE3ODM2Nzg5MTV9.P-vWuety6csujczUTyA_3Hdz2Yl1R7b8LU6GA52_1ys',
+      'content-type': 'application/json',
+      'content-length': '40',
+      connection: 'close'
+    }
+
+      at log (controllers/studentController.js:1076:13)
+
+  console.log
+    createEnrollment request body: { student_id: '202455393', course_id: 9 }
+
+      at log (controllers/studentController.js:1075:13)
+
+  console.log
+    createEnrollment request headers: {
+      host: '127.0.0.1:58734',
+      'accept-encoding': 'gzip, deflate',
+      authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHVkZW50X2lkIjoiMjAyNDU1MzkzIiwiaWF0IjoxNzgzMDc0MTE1LCJleHAiOjE3ODM2Nzg5MTV9.P-vWuety6csujczUTyA_3Hdz2Yl1R7b8LU6GA52_1ys',
+      'content-type': 'application/json',
+      'content-length': '40',
+      connection: 'close'
+    }
+
+      at log (controllers/studentController.js:1076:13)
+
+PASS tests/api.test.js
+  Hey! PNU Backend API Integration Tests
+    GET /api/students/health-check
+      ✓ should return system health statistics and DB status (9 ms)
+    POST /api/students/login
+      ✓ should return user details and JWT token for valid student credentials (2 ms)
+      ✓ should return 401 Unauthorized for incorrect password (1 ms)
+    GET /api/students/search
+      ✓ should return search results for query 'Library' (3 ms)
+    Forum Posts & Comments Lifecycle (Auth Protected)
+      ✓ should allow creating a forum post using JWT authentication (2 ms)
+      ✓ should allow posting a comment to the newly created post with auth (2 ms)
+      ✓ should retrieve comments for the post (unprotected read) (1 ms)
+      ✓ should allow upvoting the post using JWT authentication (2 ms)
+      ✓ should allow reporting the post using JWT authentication (1 ms)
+    PATCH /api/students/:student_id/language
+      ✓ should update language preference to KO with auth (1 ms)
+    POST /api/students/enrollments
+      ✓ should allow enrolling in a course with auth (4 ms)
+      ✓ should reject enrolling in a conflicting course with 400 Bad Request (3 ms)
+    Account Deletion Flow
+      ✓ should allow student to request account deletion (1 ms)
+      ✓ should allow admin to physically wipe student account and related records (2 ms)
+    Admin Access Control
+      ✓ should reject non-admin from listing all students with 403
+      ✓ should reject non-admin from deleting a student with 403
+      ✓ should include is_admin field in login response (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       17 passed, 17 total
+Snapshots:   0 total
+Time:        0.269 s, estimated 1 s
+Ran all test suites.

@@ -11,7 +11,7 @@ async function generateOpenRouterChat(message, history = []) {
 
   const url = "https://openrouter.ai/api/v1/chat/completions";
   const systemInstruction =
-    "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in.";
+    "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.";
 
   // Format the messages payload including context history turns
   const messagesPayload = [];
@@ -256,7 +256,7 @@ async function generateOpenRouterChatStream(message, history = [], modelOverride
 
   const url = "https://openrouter.ai/api/v1/chat/completions";
   const systemInstruction =
-    "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in.";
+    "You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Answer in the same language the student asks in. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.";
 
   const messagesPayload = [];
   if (history && history.length > 0) {
@@ -277,28 +277,52 @@ async function generateOpenRouterChatStream(message, history = [], modelOverride
   }
 
   const preferredModel = modelOverride || process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
-  console.log(`Starting OpenRouter stream with model: ${preferredModel}`);
+  
+  // A robust list of fallback models in case the preferred model (like Claude) returns 404/No endpoints
+  const fallbackModels = [
+    preferredModel,
+    "google/gemini-2.5-flash",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemma-2-9b-it:free",
+    "openrouter/free"
+  ];
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "HTTP-Referer": "https://localhost:3000",
-      "X-Title": "Hey! PNU",
-    },
-    body: JSON.stringify({
-      model: preferredModel,
-      messages: messagesPayload,
-      stream: true,
-    }),
-  });
+  let lastError = null;
 
-  if (!response.ok) {
-    throw new Error(`OpenRouter Stream API error: ${response.statusText}`);
+  for (const model of fallbackModels) {
+    try {
+      console.log(`Attempting OpenRouter stream with model: ${model}`);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://localhost:3000",
+          "X-Title": "Hey! PNU",
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: messagesPayload,
+          stream: true,
+          max_tokens: 1000 // Prevents 402 "requires more credits" error on low balance accounts
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || response.statusText;
+        throw new Error(`HTTP ${response.status}: ${errorMessage}`);
+      }
+
+      return response.body;
+    } catch (err) {
+      console.error(`OpenRouter stream failed with model ${model}:`, err.message);
+      lastError = err;
+      // Continue to fallback model
+    }
   }
 
-  return response.body;
+  throw new Error(`All OpenRouter stream models failed. Last error: ${lastError ? lastError.message : "Unknown"}`);
 }
 
 module.exports = {

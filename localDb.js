@@ -47,6 +47,7 @@ const initialData = {
       student_type: "Current",
       visa_status: "D-2",
       password: "password",
+      is_admin: true,
     },
     {
       student_id: "202612345",
@@ -56,6 +57,7 @@ const initialData = {
       student_type: "Freshman",
       visa_status: "D-4",
       password: "password",
+      is_admin: false,
     },
     {
       student_id: "202012345",
@@ -65,6 +67,7 @@ const initialData = {
       student_type: "Current",
       visa_status: "D-2",
       password: "password",
+      is_admin: false,
     },
   ],
   checklist_items: [
@@ -344,6 +347,9 @@ const initialData = {
       credit: 3,
       major_id: 2,
       category: "REQUIRED",
+      day_of_week: "Mon",
+      start_time: "09:00",
+      end_time: "10:15",
     },
     {
       course_id: 9,
@@ -351,6 +357,9 @@ const initialData = {
       credit: 3,
       major_id: 2,
       category: "REQUIRED",
+      day_of_week: "Mon",
+      start_time: "09:30",
+      end_time: "10:45",
     },
     {
       course_id: 10,

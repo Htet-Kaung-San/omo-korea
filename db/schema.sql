@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS student (
     d2_semester VARCHAR(20),
     completed_courses JSONB DEFAULT '[]'::jsonb,
     deletion_requested BOOLEAN DEFAULT FALSE,
-    intake_term VARCHAR(20) DEFAULT 'March'
+    intake_term VARCHAR(20) DEFAULT 'March',
+    is_admin BOOLEAN DEFAULT FALSE
 );
 
 -- 3. COURSE CATALOG TABLE

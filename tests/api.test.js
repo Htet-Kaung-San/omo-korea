@@ -256,4 +256,59 @@ describe("Hey! PNU Backend API Integration Tests", () => {
         .expect(404);
     });
   });
+
+  // 8. Test Admin Access Control
+  describe("Admin Access Control", () => {
+    let nonAdminToken = null;
+
+    beforeAll(async () => {
+      // Login as a non-admin student
+      const res = await request(app)
+        .post("/api/students/login")
+        .send({
+          student_id: "202612345",
+          password: "password",
+        });
+      if (res.body.success && res.body.data) {
+        nonAdminToken = res.body.data.token;
+      }
+    });
+
+    it("should reject non-admin from listing all students with 403", async () => {
+      expect(nonAdminToken).toBeDefined();
+
+      const res = await request(app)
+        .get("/api/students/")
+        .set("Authorization", `Bearer ${nonAdminToken}`)
+        .expect(403);
+
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain("Admin privileges required");
+    });
+
+    it("should reject non-admin from deleting a student with 403", async () => {
+      expect(nonAdminToken).toBeDefined();
+
+      const res = await request(app)
+        .delete("/api/students/202012345")
+        .set("Authorization", `Bearer ${nonAdminToken}`)
+        .expect(403);
+
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toContain("Admin privileges required");
+    });
+
+    it("should include is_admin field in login response", async () => {
+      const res = await request(app)
+        .post("/api/students/login")
+        .send({
+          student_id: "202612345",
+          password: "password",
+        })
+        .expect(200);
+
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.is_admin).toBe(false);
+    });
+  });
 });

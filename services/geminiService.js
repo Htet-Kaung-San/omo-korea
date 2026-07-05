@@ -17,7 +17,7 @@ async function generateGeminiChat(message, languagePref, context) {
       : languagePref === "ZH"
         ? "Chinese (Simplified)"
         : "English";
-  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.`;
 
   if (context) {
     systemInstruction += `\n\nUse the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;
@@ -226,7 +226,7 @@ async function generateGeminiChatStream(message, languagePref, context) {
       : languagePref === "ZH"
         ? "Chinese (Simplified)"
         : "English";
-  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}.`;
+  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.`;
 
   if (context) {
     systemInstruction += `\n\nUse the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;

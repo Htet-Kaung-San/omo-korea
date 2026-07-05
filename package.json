@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "jest"
+    "test": "SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest"
   },
   "keywords": [],
   "author": "",

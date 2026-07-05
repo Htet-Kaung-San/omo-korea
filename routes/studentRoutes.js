@@ -32,7 +32,7 @@ const {
   hardDeleteStudent,
   getAllStudents,
 } = require("../controllers/studentController");
-const authenticateToken = require("../middlewares/auth");
+const { authenticateToken, requireAdmin } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -68,12 +68,12 @@ router.patch(
   authenticateToken,
   updateLanguagePreference,
 );
-router.get("/", authenticateToken, getAllStudents);
+router.get("/", authenticateToken, requireAdmin, getAllStudents);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/:student_id", getStudentProfile);
 router.patch("/:student_id", authenticateToken, updateStudentProfile);
 router.patch("/:student_id/request-delete", authenticateToken, requestStudentDeletion);
-router.delete("/:student_id", authenticateToken, hardDeleteStudent);
+router.delete("/:student_id", authenticateToken, requireAdmin, hardDeleteStudent);
 
 module.exports = router;

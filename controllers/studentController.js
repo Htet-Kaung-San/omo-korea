@@ -1102,6 +1102,54 @@ const createEnrollment = async (req, res) => {
         .json({ success: false, message: "Already enrolled in this course" });
     }
 
+    // Fetch target course details
+    const { data: targetCourse, error: targetError } = await supabase
+      .from("course")
+      .select("*")
+      .eq("course_id", Number(course_id))
+      .single();
+
+    if (targetError || !targetCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // Fetch existing enrollments to check overlaps
+    const { data: currentEnrollments, error: enrollError } = await supabase
+      .from("enrollment")
+      .select(`
+        *,
+        course:course_id (
+          *
+        )
+      `)
+      .eq("student_id", student_id);
+
+    if (enrollError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to verify schedule conflicts",
+        error: enrollError.message,
+      });
+    }
+
+    // Verify schedule overlaps
+    if (targetCourse.day_of_week && targetCourse.start_time && targetCourse.end_time) {
+      for (const en of (currentEnrollments || [])) {
+        const c = en.course;
+        if (c && c.day_of_week === targetCourse.day_of_week) {
+          if (targetCourse.start_time < c.end_time && c.start_time < targetCourse.end_time) {
+            return res.status(400).json({
+              success: false,
+              message: `Schedule Conflict: Overlaps with ${c.course_name || "Enrolled Course"} (${c.day_of_week} ${c.start_time}-${c.end_time})`,
+            });
+          }
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("enrollment")
       .insert({
@@ -1531,7 +1579,7 @@ const requestStudentDeletion = async (req, res) => {
     const { student_id } = req.params;
     
     // Check authorization: A user can only request their own deletion
-    if (req.user?.student_id !== student_id) {
+    if (String(req.user?.student_id) !== String(student_id)) {
       return res.status(403).json({
         success: false,
         message: "Forbidden: You can only request deletion of your own account.",

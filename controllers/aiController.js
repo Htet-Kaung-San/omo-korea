@@ -30,7 +30,7 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
       const majorName = student.major?.major_name || "Unassigned Major";
       const studentType = student.student_type || "Current";
       const completedList = student.completed_courses || [];
-      const studentIdStr = student.student_id || String(studentId);
+      const studentIdStr = String(student.student_id || studentId);
       const intakeYear = parseInt(studentIdStr.substring(0, 4)) || 2024;
       const intakeTerm = student.intake_term || "March";
       
@@ -44,8 +44,7 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
       let iterTerm = intakeTerm;
 
       while (iterYear < currentYear || (iterYear === currentYear && (
-        (iterTerm === "March" && currentMonth >= 7) || // March intake completes around July
-        (iterTerm === "September" && currentMonth >= 1) // Sept intake completes around Jan
+        iterTerm === "March" && currentMonth >= 7 // March intake completes around July
       ))) {
         semestersCompleted++;
         if (iterTerm === "March") {
@@ -83,12 +82,15 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
       } else {
         context += `- Completed Courses (Taken already): ${completedList.length > 0 ? completedList.join(", ") : "None recorded"}. IMPORTANT: DO NOT recommend any courses listed as completed! Only recommend courses they have not taken yet.\n`;
       }
-      return context;
+      return {
+        context: context,
+        queryExpansion: `${majorName} ${targetRecommendationLabel} curriculum`
+      };
     }
   } catch (err) {
     console.error("Failed to load academic context for AI:", err.message);
   }
-  return "";
+  return { context: "", queryExpansion: "" };
 }
 
 
@@ -302,12 +304,13 @@ async function handleChat(req, res) {
       }
     }
 
-    const academicPromptContext = await getAcademicPromptContext(studentId, supabase);
+    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase);
 
     // Retrieve grounding context from Vector RAG system
     let context = "";
     try {
-      context = await ragService.retrieveContext(message, filters, 3);
+      const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
+      context = await ragService.retrieveContext(augmentedQuery, filters, 3);
     } catch (ragErr) {
       console.error("RAG context retrieval failed:", ragErr.message);
     }
@@ -579,12 +582,13 @@ async function handleChatStream(req, res) {
       }
     }
 
-    const academicPromptContext = await getAcademicPromptContext(studentId, supabase);
+    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase);
 
     // Retrieve grounding context from Vector RAG system
     let context = "";
     try {
-      context = await ragService.retrieveContext(message, filters, 3);
+      const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
+      context = await ragService.retrieveContext(augmentedQuery, filters, 3);
     } catch (ragErr) {
       console.error("RAG context retrieval failed for stream:", ragErr.message);
     }
