@@ -5,10 +5,10 @@ const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
+const { fetchNormalizedScholarships } = require('../ai/scholarshipRepository');
 const {
   pilotCourses,
   pilotPrograms,
-  pilotScholarships,
   pilotCareers,
   pilotNotices,
   gapTargetMajors,
@@ -164,13 +164,15 @@ async function getDashboardSummary(req, res, next) {
       });
     }
 
+    const scholarships = await fetchNormalizedScholarships();
+
     const dashboard = buildStudentDashboard({
       rawStudentInput: context.rawStudentInput,
       targetMajor,
       majors: departmentProfiles,
       courses: pilotCourses,
       programs: pilotPrograms,
-      scholarships: pilotScholarships,
+      scholarships,
       careers: pilotCareers,
       notices: pilotNotices,
     });
