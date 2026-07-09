@@ -14,6 +14,7 @@ const expectedSelectByTable = {
   scholarship: 'scholarship_id, name, type, description, deadline, amount',
   course: 'course_id, course_name, credit, major_id, category',
   major: 'major_id, major_name, department',
+  job_posting: 'job_id, title, company, type, deadline',
 };
 
 const allowedFilterFieldsByTable = {
@@ -22,6 +23,7 @@ const allowedFilterFieldsByTable = {
   scholarship: ['name', 'type', 'description'],
   course: ['course_name', 'category'],
   major: ['major_name', 'department'],
+  job_posting: ['title', 'company', 'type'],
 };
 
 const disallowedFilterFieldsByTable = {
@@ -30,6 +32,7 @@ const disallowedFilterFieldsByTable = {
   scholarship: ['scholarship_id', 'deadline', 'amount'],
   course: ['course_id', 'credit', 'major_id'],
   major: ['major_id'],
+  job_posting: ['job_id', 'deadline'],
 };
 
 const rowsByTable = {
@@ -81,6 +84,15 @@ const rowsByTable = {
       major_id: 1,
       major_name: 'International Visa Studies',
       department: 'Global Affairs',
+    },
+  ],
+  job_posting: [
+    {
+      job_id: 'JOB-1',
+      title: 'Visa Support Assistant',
+      company: 'Global Campus Office',
+      type: 'Part-time',
+      deadline: '2026-09-01',
     },
   ],
 };
@@ -153,6 +165,7 @@ function assertEmptyGroups(response) {
     scholarships: [],
     courses: [],
     majors: [],
+    jobPostings: [],
   });
 }
 
@@ -163,6 +176,7 @@ async function testValidQuerySearchesAllTables() {
 
   assert.deepStrictEqual(tableCalls.sort(), [
     'course',
+    'job_posting',
     'kb_document',
     'major',
     'notice',
@@ -202,7 +216,7 @@ async function testSelectsFiltersAndDefaultLimits() {
 
   await searchUniversityInformation('visa');
 
-  assert.strictEqual(queryCalls.length, 5);
+  assert.strictEqual(queryCalls.length, 6);
   for (const tableName of Object.keys(expectedSelectByTable)) {
     assertQueryShape(tableName);
   }
@@ -220,6 +234,10 @@ async function testGroupedResponseShapeAndScoring() {
   assert.strictEqual(response.results.scholarships[0].id, 'SCH-1');
   assert.strictEqual(response.results.courses[0].id, 'CSE101');
   assert.strictEqual(response.results.majors[0].id, '1');
+  assert.strictEqual(response.results.jobPostings[0].sourceType, 'job_posting');
+  assert.strictEqual(response.results.jobPostings[0].id, 'JOB-1');
+  assert.strictEqual(response.results.jobPostings[0].title, 'Visa Support Assistant');
+  assert.strictEqual(response.results.jobPostings[0].metadata.company, 'Global Campus Office');
   assert.ok(response.results.knowledgeBase[0].score > response.results.knowledgeBase[1].score);
   assert.strictEqual(response.results.knowledgeBase[1].title, 'Dormitory Rules');
 }
@@ -235,6 +253,21 @@ async function testPartialFailureKeepsSuccessfulResults() {
   assert.strictEqual(response.errors[0].table, 'notice');
   assert.strictEqual(response.results.knowledgeBase.length, 2);
   assert.strictEqual(response.results.scholarships.length, 1);
+}
+
+async function testJobPostingFailureKeepsSuccessfulResults() {
+  resetCalls();
+  failedTables.add('job_posting');
+
+  const response = await searchUniversityInformation('visa');
+
+  assert.deepStrictEqual(response.results.jobPostings, []);
+  assert.strictEqual(response.errors.length, 1);
+  assert.strictEqual(response.errors[0].table, 'job_posting');
+  assert.strictEqual(response.errors[0].sourceType, 'job_posting');
+  assert.strictEqual(response.results.knowledgeBase.length, 2);
+  assert.strictEqual(response.results.scholarships.length, 1);
+  assert.strictEqual(response.results.courses.length, 1);
 }
 
 async function testThrownTableFailureKeepsSuccessfulResults() {
@@ -276,6 +309,7 @@ async function testInvalidQueriesDoNotQuerySupabase() {
   await testSelectsFiltersAndDefaultLimits();
   await testGroupedResponseShapeAndScoring();
   await testPartialFailureKeepsSuccessfulResults();
+  await testJobPostingFailureKeepsSuccessfulResults();
   await testThrownTableFailureKeepsSuccessfulResults();
   await testInvalidQueriesDoNotQuerySupabase();
   console.log('PASS');

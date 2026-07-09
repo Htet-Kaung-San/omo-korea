@@ -8,6 +8,7 @@ const EMPTY_RESULTS = {
   scholarships: [],
   courses: [],
   majors: [],
+  jobPostings: [],
 };
 
 const SOURCES = [
@@ -66,6 +67,17 @@ const SOURCES = [
     searchFields: ['major_name', 'department'],
     metadataFields: ['department'],
   },
+  {
+    group: 'jobPostings',
+    sourceType: 'job_posting',
+    table: 'job_posting',
+    select: 'job_id, title, company, type, deadline',
+    idFields: ['job_id'],
+    titleFields: ['title'],
+    summaryFields: ['company'],
+    searchFields: ['title', 'company', 'type'],
+    metadataFields: ['company', 'type', 'deadline'],
+  },
 ];
 
 function emptyResponse(query = '') {
@@ -77,6 +89,7 @@ function emptyResponse(query = '') {
       scholarships: [],
       courses: [],
       majors: [],
+      jobPostings: [],
     },
     errors: [],
   };
