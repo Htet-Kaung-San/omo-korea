@@ -2,6 +2,11 @@ function pickField(row, primaryKey, fallbackKey) {
   return row[primaryKey] !== undefined ? row[primaryKey] : row[fallbackKey];
 }
 
+function pickAnyField(row, keys) {
+  const matchingKey = keys.find((key) => row[key] !== undefined);
+  return matchingKey !== undefined ? row[matchingKey] : undefined;
+}
+
 function normalizeArrayField(value) {
   if (value === null || value === undefined) {
     return [];
@@ -26,10 +31,10 @@ function normalizeScholarshipRow(row) {
     return null;
   }
 
-  // Exact production column names must be confirmed before live query integration.
-  return {
-    id: row.id,
-    title: pickField(row, 'title', 'scholarship_name'),
+  const tags = normalizeArrayField(pickField(row, 'tags', 'keyword_tags'));
+  const normalized = {
+    id: pickField(row, 'id', 'scholarship_id'),
+    title: pickAnyField(row, ['title', 'scholarship_name', 'name']),
     deadline: row.deadline,
     description: pickField(row, 'description', 'details'),
     amount: pickField(row, 'amount', 'scholarship_amount'),
@@ -44,8 +49,16 @@ function normalizeScholarshipRow(row) {
     minTopikLevel: pickField(row, 'minTopikLevel', 'min_topik_level'),
     minYear: pickField(row, 'minYear', 'min_year'),
     maxYear: pickField(row, 'maxYear', 'max_year'),
-    tags: normalizeArrayField(pickField(row, 'tags', 'keyword_tags')),
+    tags: tags.length > 0 ? tags : normalizeArrayField(row.type),
   };
+
+  if (row.type !== undefined) {
+    normalized.metadata = {
+      type: row.type,
+    };
+  }
+
+  return normalized;
 }
 
 module.exports = {

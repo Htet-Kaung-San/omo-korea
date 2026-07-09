@@ -54,6 +54,35 @@ assert.deepStrictEqual(
 
 assert.deepStrictEqual(
   normalizeScholarshipRow({
+    scholarship_id: 'db-sch-1',
+    name: 'Future Talent Scholarship',
+    type: 'merit',
+    deadline: '2026-12-20',
+    amount: '700,000 KRW',
+    description: 'For students with strong future potential.',
+  }),
+  {
+    id: 'db-sch-1',
+    title: 'Future Talent Scholarship',
+    deadline: '2026-12-20',
+    description: 'For students with strong future potential.',
+    amount: '700,000 KRW',
+    provider: undefined,
+    eligibleMajors: [],
+    eligibleNationalities: [],
+    minGpa: undefined,
+    minTopikLevel: undefined,
+    minYear: undefined,
+    maxYear: undefined,
+    tags: ['merit'],
+    metadata: {
+      type: 'merit',
+    },
+  }
+);
+
+assert.deepStrictEqual(
+  normalizeScholarshipRow({
     eligible_majors: 'Computer Science, Business, Engineering',
     eligible_nationalities: 'Mongolia, Vietnam',
     keyword_tags: 'academic, international, topik',
