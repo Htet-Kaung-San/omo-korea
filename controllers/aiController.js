@@ -6,12 +6,12 @@ const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const { fetchNormalizedScholarships } = require('../ai/scholarshipRepository');
+const { fetchNormalizedPrograms } = require('../ai/programRepository');
 const {
   fetchNormalizedCoursesByMajor,
   fetchStudentCourseHistory,
 } = require('../ai/courseRepository');
 const {
-  pilotPrograms,
   pilotCareers,
   pilotNotices,
   gapTargetMajors,
@@ -169,6 +169,7 @@ async function getDashboardSummary(req, res, next) {
     }
 
     const scholarships = await fetchNormalizedScholarships();
+    const programs = await fetchNormalizedPrograms({ includeTitleTag: true });
     const courses = await fetchNormalizedCoursesByMajor(context.majorId);
     const courseHistory = await fetchStudentCourseHistory(studentId);
 
@@ -177,7 +178,7 @@ async function getDashboardSummary(req, res, next) {
       targetMajor,
       majors: departmentProfiles,
       courses,
-      programs: pilotPrograms,
+      programs,
       scholarships,
       careers: pilotCareers,
       notices: pilotNotices,

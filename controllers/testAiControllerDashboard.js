@@ -3,6 +3,7 @@ const assert = require('assert');
 const controllerPath = require.resolve('./aiController');
 const supabaseClientPath = require.resolve('../supabaseClient');
 const scholarshipRepositoryPath = require.resolve('../ai/scholarshipRepository');
+const programRepositoryPath = require.resolve('../ai/programRepository');
 const courseRepositoryPath = require.resolve('../ai/courseRepository');
 const studentDashboardEnginePath = require.resolve('../ai/studentDashboardEngine');
 
@@ -34,6 +35,18 @@ const liveCourses = [
     type: 'ELECTIVE',
   },
 ];
+const livePrograms = [
+  {
+    id: 'live-program-1',
+    title: 'Live Program One',
+    tags: ['AI', 'Mentoring'],
+  },
+  {
+    id: 'live-program-2',
+    title: 'Live Program Two',
+    tags: ['Career'],
+  },
+];
 const courseHistory = {
   completedCourseIds: ['CSE231'],
   enrolledCourseIds: ['CSE310'],
@@ -44,6 +57,8 @@ const sentinelDashboard = {
 };
 
 let fetchNormalizedScholarshipsCallCount = 0;
+let fetchNormalizedProgramsCallCount = 0;
+let fetchNormalizedProgramsOptions = null;
 let fetchNormalizedCoursesByMajorCallCount = 0;
 let fetchStudentCourseHistoryCallCount = 0;
 let capturedDashboardInput = null;
@@ -122,6 +137,18 @@ require.cache[scholarshipRepositoryPath] = {
     },
   },
 };
+require.cache[programRepositoryPath] = {
+  id: programRepositoryPath,
+  filename: programRepositoryPath,
+  loaded: true,
+  exports: {
+    async fetchNormalizedPrograms(options) {
+      fetchNormalizedProgramsCallCount += 1;
+      fetchNormalizedProgramsOptions = options;
+      return livePrograms;
+    },
+  },
+};
 require.cache[courseRepositoryPath] = {
   id: courseRepositoryPath,
   filename: courseRepositoryPath,
@@ -181,8 +208,13 @@ async function runTest() {
   await getDashboardSummary(req, res, next);
 
   assert.strictEqual(fetchNormalizedScholarshipsCallCount, 1);
+  assert.strictEqual(fetchNormalizedProgramsCallCount, 1);
+  assert.deepStrictEqual(fetchNormalizedProgramsOptions, {
+    includeTitleTag: true,
+  });
   assert.strictEqual(fetchNormalizedCoursesByMajorCallCount, 1);
   assert.strictEqual(fetchStudentCourseHistoryCallCount, 1);
+  assert.strictEqual(capturedDashboardInput.programs, livePrograms);
   assert.strictEqual(capturedDashboardInput.scholarships, liveRows);
   assert.strictEqual(capturedDashboardInput.courses, liveCourses);
   assert.deepStrictEqual(
