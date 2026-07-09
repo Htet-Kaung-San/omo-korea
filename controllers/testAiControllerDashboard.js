@@ -4,6 +4,7 @@ const controllerPath = require.resolve('./aiController');
 const supabaseClientPath = require.resolve('../supabaseClient');
 const scholarshipRepositoryPath = require.resolve('../ai/scholarshipRepository');
 const programRepositoryPath = require.resolve('../ai/programRepository');
+const noticeRepositoryPath = require.resolve('../ai/noticeRepository');
 const courseRepositoryPath = require.resolve('../ai/courseRepository');
 const studentDashboardEnginePath = require.resolve('../ai/studentDashboardEngine');
 
@@ -47,6 +48,18 @@ const livePrograms = [
     tags: ['Career'],
   },
 ];
+const liveNotices = [
+  {
+    id: 'live-notice-1',
+    title: 'Live Notice One',
+    tags: ['Academic'],
+  },
+  {
+    id: 'live-notice-2',
+    title: 'Live Notice Two',
+    tags: ['Campus'],
+  },
+];
 const courseHistory = {
   completedCourseIds: ['CSE231'],
   enrolledCourseIds: ['CSE310'],
@@ -59,6 +72,8 @@ const sentinelDashboard = {
 let fetchNormalizedScholarshipsCallCount = 0;
 let fetchNormalizedProgramsCallCount = 0;
 let fetchNormalizedProgramsOptions = null;
+let fetchNormalizedNoticesCallCount = 0;
+let fetchNormalizedNoticesOptions = null;
 let fetchNormalizedCoursesByMajorCallCount = 0;
 let fetchStudentCourseHistoryCallCount = 0;
 let capturedDashboardInput = null;
@@ -149,6 +164,18 @@ require.cache[programRepositoryPath] = {
     },
   },
 };
+require.cache[noticeRepositoryPath] = {
+  id: noticeRepositoryPath,
+  filename: noticeRepositoryPath,
+  loaded: true,
+  exports: {
+    async fetchNormalizedNotices(options) {
+      fetchNormalizedNoticesCallCount += 1;
+      fetchNormalizedNoticesOptions = options;
+      return liveNotices;
+    },
+  },
+};
 require.cache[courseRepositoryPath] = {
   id: courseRepositoryPath,
   filename: courseRepositoryPath,
@@ -212,9 +239,14 @@ async function runTest() {
   assert.deepStrictEqual(fetchNormalizedProgramsOptions, {
     includeTitleTag: true,
   });
+  assert.strictEqual(fetchNormalizedNoticesCallCount, 1);
+  assert.deepStrictEqual(fetchNormalizedNoticesOptions, {
+    includeTitleTag: true,
+  });
   assert.strictEqual(fetchNormalizedCoursesByMajorCallCount, 1);
   assert.strictEqual(fetchStudentCourseHistoryCallCount, 1);
   assert.strictEqual(capturedDashboardInput.programs, livePrograms);
+  assert.strictEqual(capturedDashboardInput.notices, liveNotices);
   assert.strictEqual(capturedDashboardInput.scholarships, liveRows);
   assert.strictEqual(capturedDashboardInput.courses, liveCourses);
   assert.deepStrictEqual(

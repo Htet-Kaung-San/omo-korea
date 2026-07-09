@@ -7,13 +7,13 @@ const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const { fetchNormalizedScholarships } = require('../ai/scholarshipRepository');
 const { fetchNormalizedPrograms } = require('../ai/programRepository');
+const { fetchNormalizedNotices } = require('../ai/noticeRepository');
 const {
   fetchNormalizedCoursesByMajor,
   fetchStudentCourseHistory,
 } = require('../ai/courseRepository');
 const {
   pilotCareers,
-  pilotNotices,
   gapTargetMajors,
 } = require('../ai/pilotCatalog');
 const {
@@ -170,6 +170,7 @@ async function getDashboardSummary(req, res, next) {
 
     const scholarships = await fetchNormalizedScholarships();
     const programs = await fetchNormalizedPrograms({ includeTitleTag: true });
+    const notices = await fetchNormalizedNotices({ includeTitleTag: true });
     const courses = await fetchNormalizedCoursesByMajor(context.majorId);
     const courseHistory = await fetchStudentCourseHistory(studentId);
 
@@ -181,7 +182,7 @@ async function getDashboardSummary(req, res, next) {
       programs,
       scholarships,
       careers: pilotCareers,
-      notices: pilotNotices,
+      notices,
       options: {
         completedCourseIds: courseHistory.excludedCourseIds,
       },
