@@ -3,9 +3,11 @@ const assert = require('assert');
 const controllerPath = require.resolve('./aiController');
 const supabaseClientPath = require.resolve('../supabaseClient');
 const scholarshipRepositoryPath = require.resolve('../ai/scholarshipRepository');
+const courseRepositoryPath = require.resolve('../ai/courseRepository');
 const studentDashboardEnginePath = require.resolve('../ai/studentDashboardEngine');
 
 const studentId = 202455393;
+const majorId = 1;
 const liveRows = [
   {
     id: 'live-scholarship-1',
@@ -18,11 +20,32 @@ const liveRows = [
     deadline: '2026-10-15',
   },
 ];
+const liveCourses = [
+  {
+    id: 'CSE101',
+    nameEn: 'Intro to AI',
+    department: 'Computer Science & Engineering',
+    type: 'REQUIRED',
+  },
+  {
+    id: 'CSE231',
+    nameEn: 'Completed Course',
+    department: 'Computer Science & Engineering',
+    type: 'ELECTIVE',
+  },
+];
+const courseHistory = {
+  completedCourseIds: ['CSE231'],
+  enrolledCourseIds: ['CSE310'],
+  excludedCourseIds: ['CSE231', 'CSE310'],
+};
 const sentinelDashboard = {
   source: 'sentinel-dashboard',
 };
 
 let fetchNormalizedScholarshipsCallCount = 0;
+let fetchNormalizedCoursesByMajorCallCount = 0;
+let fetchStudentCourseHistoryCallCount = 0;
 let capturedDashboardInput = null;
 
 const supabase = {
@@ -43,7 +66,7 @@ const supabase = {
                 return {
                   data: {
                     student_id: studentId,
-                    major_id: 1,
+                    major_id: majorId,
                     questionnaire: {
                       academicAreas: ['AA13'],
                       activities: ['ACT01'],
@@ -99,6 +122,23 @@ require.cache[scholarshipRepositoryPath] = {
     },
   },
 };
+require.cache[courseRepositoryPath] = {
+  id: courseRepositoryPath,
+  filename: courseRepositoryPath,
+  loaded: true,
+  exports: {
+    async fetchNormalizedCoursesByMajor(receivedMajorId) {
+      fetchNormalizedCoursesByMajorCallCount += 1;
+      assert.strictEqual(receivedMajorId, majorId);
+      return liveCourses;
+    },
+    async fetchStudentCourseHistory(receivedStudentId) {
+      fetchStudentCourseHistoryCallCount += 1;
+      assert.strictEqual(receivedStudentId, studentId);
+      return courseHistory;
+    },
+  },
+};
 require.cache[studentDashboardEnginePath] = {
   id: studentDashboardEnginePath,
   filename: studentDashboardEnginePath,
@@ -141,7 +181,14 @@ async function runTest() {
   await getDashboardSummary(req, res, next);
 
   assert.strictEqual(fetchNormalizedScholarshipsCallCount, 1);
+  assert.strictEqual(fetchNormalizedCoursesByMajorCallCount, 1);
+  assert.strictEqual(fetchStudentCourseHistoryCallCount, 1);
   assert.strictEqual(capturedDashboardInput.scholarships, liveRows);
+  assert.strictEqual(capturedDashboardInput.courses, liveCourses);
+  assert.deepStrictEqual(
+    capturedDashboardInput.options.completedCourseIds,
+    courseHistory.excludedCourseIds
+  );
   assert.strictEqual(responseStatus, 200);
   assert.deepStrictEqual(responseBody, {
     success: true,

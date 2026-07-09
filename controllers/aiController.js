@@ -7,7 +7,10 @@ const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const { fetchNormalizedScholarships } = require('../ai/scholarshipRepository');
 const {
-  pilotCourses,
+  fetchNormalizedCoursesByMajor,
+  fetchStudentCourseHistory,
+} = require('../ai/courseRepository');
+const {
   pilotPrograms,
   pilotCareers,
   pilotNotices,
@@ -37,6 +40,7 @@ async function fetchStudentContext(studentId) {
   const questionnaire = data.questionnaire || {};
 
   return {
+    majorId: data.major_id,
     rawStudentInput: {
       questionnaire: {
         academicAreas: questionnaire.academicAreas || [],
@@ -165,16 +169,21 @@ async function getDashboardSummary(req, res, next) {
     }
 
     const scholarships = await fetchNormalizedScholarships();
+    const courses = await fetchNormalizedCoursesByMajor(context.majorId);
+    const courseHistory = await fetchStudentCourseHistory(studentId);
 
     const dashboard = buildStudentDashboard({
       rawStudentInput: context.rawStudentInput,
       targetMajor,
       majors: departmentProfiles,
-      courses: pilotCourses,
+      courses,
       programs: pilotPrograms,
       scholarships,
       careers: pilotCareers,
       notices: pilotNotices,
+      options: {
+        completedCourseIds: courseHistory.excludedCourseIds,
+      },
     });
 
     return res.status(200).json({
@@ -243,11 +252,13 @@ async function getCourseRecommendations(req, res, next) {
     }
 
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const courses = await fetchNormalizedCoursesByMajor(context.majorId);
+    const courseHistory = await fetchStudentCourseHistory(req.user.student_id);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
-      pilotCourses,
+      courses,
       {
-        completedCourseIds: adaptedProfile.completedCourseIds,
+        completedCourseIds: courseHistory.excludedCourseIds,
         limit,
       }
     );
