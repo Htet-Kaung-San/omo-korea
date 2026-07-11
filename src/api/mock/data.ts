@@ -1,8 +1,12 @@
 import type {
   ChecklistItem,
   Course,
+  EmergencyGuide,
+  CampusFacilities,
   GraduationProgress,
   Notification,
+  ProgramItem,
+  ScholarshipItem,
   User,
 } from '@/types/api'
 import {
@@ -310,3 +314,266 @@ export const CHAT_SUGGESTIONS = [
   'Library hours',
   'Tuition payment',
 ]
+
+export const mockCareerOpportunities = [
+  {
+    id: 'mock-ai-engineer-intern',
+    source: 'jobkorea',
+    company: 'PNU AI Lab',
+    title: 'AI Research Intern (Entry-level)',
+    deadline: '~08/15(금)',
+    role: 'AI Engineer',
+    applicationType: '즉시지원',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+  {
+    id: 'mock-data-analyst',
+    source: 'jobkorea',
+    company: 'Busan Data Co.',
+    title: 'Junior Data Analyst',
+    deadline: '~08/20(수)',
+    role: 'Data Scientist',
+    applicationType: '홈페이지',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+  {
+    id: 'mock-ux-designer',
+    source: 'jobkorea',
+    company: 'Design Studio KR',
+    title: 'UX/UI Designer (New Graduate)',
+    deadline: '~08/10(일)',
+    role: 'Product Designer',
+    applicationType: '즉시지원',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+  {
+    id: 'mock-backend-developer',
+    source: 'jobkorea',
+    company: 'Startup Connect',
+    title: 'Backend Developer Internship',
+    deadline: '~08/25(화)',
+    role: 'Backend Developer',
+    applicationType: '즉시지원',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+  {
+    id: 'mock-marketing-intern',
+    source: 'jobkorea',
+    company: 'Global Brands Korea',
+    title: 'Marketing Intern (Entry-level)',
+    deadline: '~08/18(월)',
+    role: 'Marketing Planner',
+    applicationType: '홈페이지',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+  {
+    id: 'mock-system-engineer',
+    source: 'jobkorea',
+    company: 'Hyewoom Tech',
+    title: 'System Engineer (New Graduate)',
+    deadline: '~07/31(금)',
+    role: 'System Engineer',
+    applicationType: '즉시지원',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+  },
+]
+
+export const programs: ProgramItem[] = [
+  {
+    id: 'p1',
+    title: 'AI Agent 해커톤 2026',
+    description: 'Build AI-powered student support tools with teammates from across PNU.',
+    date: '2026.07.18',
+    category: 'Hackathon',
+  },
+  {
+    id: 'p2',
+    title: 'PNU 창업동아리 모집',
+    description: 'Join startup clubs and meet peers interested in entrepreneurship.',
+    date: '2026.07.25',
+    category: 'Club',
+  },
+  {
+    id: 'p3',
+    title: 'International Student Career Camp',
+    description: 'Resume, interview, and networking sessions for international students.',
+    date: '2026.08.02',
+    category: 'Career',
+  },
+]
+
+export const mockPrograms = programs
+
+export const scholarships: ScholarshipItem[] = [
+  {
+    id: 's1',
+    title: 'GKS Scholarship',
+    deadline: 'D-7',
+    description: 'Government scholarship opportunity for international students.',
+    eligibility: 'International students with strong academic records.',
+  },
+  {
+    id: 's2',
+    title: '정보컴퓨터공학과 성적우수',
+    deadline: 'D-21',
+    description: 'Department merit scholarship for outstanding academic performance.',
+    eligibility: 'Computer Science & Engineering students with high GPA.',
+  },
+  {
+    id: 's3',
+    title: 'International Student Support Scholarship',
+    deadline: 'D-30',
+    description: 'Need-based support for enrolled international students.',
+    eligibility: 'International students who submit financial support documents.',
+  },
+]
+
+export const mockScholarships = scholarships
+
+export const mockEmergencyGuide: EmergencyGuide = {
+  quick_access: {
+    police: { number: '112', label: 'Police' },
+    fire_medical: { number: '119', label: 'Fire / Medical' },
+    disease_control: { number: '1339', label: 'Disease control' },
+  },
+  database_contacts: [
+    {
+      id: 'embassy-mongolia',
+      type: 'embassy',
+      name: 'Embassy of Mongolia',
+      phone: '+82-2-794-1350',
+      country_flag: '🇲🇳',
+      map_query: 'Embassy of Mongolia Seoul',
+    },
+    {
+      id: 'hospital-pnu',
+      type: 'hospital',
+      name: "Pusan Nat'l Univ Hospital",
+      phone: null,
+      distance: '850m',
+      map_query: 'Pusan National University Hospital',
+    },
+    {
+      id: 'police-geumjeong',
+      type: 'police_station',
+      name: 'Geumjeong Police Station',
+      phone: null,
+      distance: '2.1km',
+      map_query: 'Geumjeong Police Station',
+    },
+  ],
+  guide_text:
+    "Stay calm. Say: '저 다쳤어요 (I'm hurt)' or '도와주세요 (Please help).' Share your location and student ID if possible.",
+}
+
+export const mockCampusFacilities: CampusFacilities = {
+  shuttle_bus_metadata: {
+    key_stops: [
+      { id: 'main-gate', name: 'Main Gate', description: 'Central campus entrance' },
+      { id: 'library', name: 'Central Library', description: 'Library stop' },
+      { id: 'engineering', name: 'Engineering Building', description: 'Engineering complex' },
+      { id: 'dormitory', name: 'International Dormitory', description: 'On-campus housing' },
+    ],
+  },
+  cafeterias: [
+    {
+      id: 'busan-geumjeong-staff',
+      name: '금정회관 교직원 식당',
+      menu: {
+        week_label: '07월 13일 ~ 07월 18일',
+        week_start: '2026-07-13',
+        week_end: '2026-07-18',
+        prev_menu_date: '2026-07-10',
+        next_menu_date: '2026-07-20',
+        rows: [
+          {
+            meal_type: '조식',
+            meal_label: '조식\n미운영',
+            columns: [
+              { day: 'mon', day_label: '월 2026.07.13', price: null, items: [], note: '미운영' },
+              { day: 'tue', day_label: '화 2026.07.14', price: null, items: [], note: '미운영' },
+              { day: 'wed', day_label: '수 2026.07.15', price: null, items: [], note: '미운영' },
+              { day: 'thu', day_label: '목 2026.07.16', price: null, items: [], note: '미운영' },
+              { day: 'fri', day_label: '금 2026.07.17', price: null, items: [], note: '미운영' },
+              { day: 'sat', day_label: '토 2026.07.18', price: null, items: [], note: '미운영' },
+            ],
+          },
+          {
+            meal_type: '중식',
+            meal_label: '중식\n11:00~15:00',
+            columns: [
+              {
+                day: 'mon',
+                day_label: '월 2026.07.13',
+                price: '정식-6,500원',
+                items: ['백미밥', '모듬햄김치국', '치킨스테이크/머스터드'],
+                note: null,
+              },
+              {
+                day: 'tue',
+                day_label: '화 2026.07.14',
+                price: '정식-6,500원',
+                items: ['백미밥', '북어배추장국', '돈육불고기(상추쌈)'],
+                note: null,
+              },
+              {
+                day: 'wed',
+                day_label: '수 2026.07.15',
+                price: '정식-6,500원',
+                items: ['백미밥', '반계탕', '돈가스/소스'],
+                note: null,
+              },
+              {
+                day: 'thu',
+                day_label: '목 2026.07.16',
+                price: '정식-6,500원',
+                items: ['흑미밥', '우육탕', '꿔바로우/소스'],
+                note: null,
+              },
+              { day: 'fri', day_label: '금 2026.07.17', price: null, items: [], note: null },
+              { day: 'sat', day_label: '토 2026.07.18', price: null, items: [], note: null },
+            ],
+          },
+          {
+            meal_type: '석식',
+            meal_label: '석식',
+            columns: [
+              { day: 'mon', day_label: '월 2026.07.13', price: null, items: [], note: null },
+              { day: 'tue', day_label: '화 2026.07.14', price: null, items: [], note: null },
+              { day: 'wed', day_label: '수 2026.07.15', price: null, items: [], note: null },
+              { day: 'thu', day_label: '목 2026.07.16', price: null, items: [], note: null },
+              { day: 'fri', day_label: '금 2026.07.17', price: null, items: [], note: null },
+              { day: 'sat', day_label: '토 2026.07.18', price: null, items: [], note: null },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      id: 'busan-geumjeong-student',
+      name: '금정회관 학생 식당',
+      menu: {
+        week_label: '07월 13일 ~ 07월 18일',
+        week_start: '2026-07-13',
+        week_end: '2026-07-18',
+        prev_menu_date: '2026-07-10',
+        next_menu_date: '2026-07-20',
+        rows: [],
+      },
+    },
+    {
+      id: 'busan-student-hall',
+      name: '학생회관 학생 식당',
+      menu: {
+        week_label: '07월 13일 ~ 07월 18일',
+        week_start: '2026-07-13',
+        week_end: '2026-07-18',
+        prev_menu_date: '2026-07-10',
+        next_menu_date: '2026-07-20',
+        rows: [],
+      },
+    },
+  ],
+  cafeteria_source: 'mock',
+  scraped_at: '2026-07-13T00:00:00.000Z',
+}

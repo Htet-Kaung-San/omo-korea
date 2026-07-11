@@ -6,7 +6,7 @@ import { NotificationCard } from '@/components/notifications/NotificationCard'
 import { useLanguage } from '@/context/LanguageContext'
 
 export function NotificationsPage() {
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -17,7 +17,7 @@ export function NotificationsPage() {
       .then(setNotifications)
       .catch((err) => setError(err instanceof Error ? err.message : t('notifications.loadError')))
       .finally(() => setLoading(false))
-  }, [t])
+  }, [language, t])
 
   return (
     <div>

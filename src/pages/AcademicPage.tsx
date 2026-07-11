@@ -1,38 +1,37 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '@/api'
-import type { GraduationProgress, RecommendedCourse } from '@/types/api'
+import type { GraduationProgress, ProgramItem, RecommendedCourse, ScholarshipItem } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { ChevronRight, GraduationCap, Sparkles } from 'lucide-react'
-import { programs, scholarships } from '@/data/academic'
 import { CourseTypeBadge } from '@/components/ui/Badge'
+import { getProgramIconForItem } from '@/utils/programIcons'
 
 export function AcademicPage() {
   const { user } = useAuth()
-  const { t } = useLanguage()
-  const [allCourses, setAllCourses] = useState<RecommendedCourse[]>([])
+  const { language, t } = useLanguage()
+  const [recommendedCourses, setRecommendedCourses] = useState<RecommendedCourse[]>([])
+  const [programs, setPrograms] = useState<ProgramItem[]>([])
+  const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([api.getRecommendedCourses('ALL'), api.getGraduationProgress()])
-      .then(([courses, graduation]) => {
-        setAllCourses(courses)
+    Promise.all([api.getAiDashboard(), api.getGraduationProgress()])
+      .then(([dashboard, graduation]) => {
+        setRecommendedCourses(dashboard.recommendedCourses.filter((course) => course.score > 0).slice(0, 3))
+        setPrograms(dashboard.matchedPrograms.slice(0, 3))
+        setScholarships(dashboard.eligibleScholarships.slice(0, 3))
         setProgress(graduation)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [t])
-
-  const recommendedCourses = useMemo(
-    () => allCourses.filter((course) => course.score > 0).slice(0, 3),
-    [allCourses],
-  )
+  }, [language, t])
 
   const profileIncomplete = !user?.major
   const admissionYear = Number(user?.studentId.slice(0, 4))
@@ -152,21 +151,21 @@ export function AcademicPage() {
           </div>
           <div className="overflow-hidden rounded-2xl border border-pnu-border bg-white shadow-sm">
             <div className="divide-y divide-pnu-border">
-              {programs.map(({ id, icon: Icon, title, date }) => (
-                <div
-                  key={id}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2.5"
-                >
-                  <Icon className="h-4 w-4 shrink-0 text-pnu-blue" />
-                  <Link
-                    to={`/academic/programs/${id}`}
-                    className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"
-                  >
-                    {title}
-                  </Link>
-                  <span className="text-[11px] font-medium text-pnu-muted">{date}</span>
-                </div>
-              ))}
+              {programs.map((program) => {
+                const Icon = getProgramIconForItem(program)
+                return (
+                  <div key={program.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-pnu-blue" />
+                    <Link
+                      to={`/academic/programs/${program.id}`}
+                      className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"
+                    >
+                      {program.title}
+                    </Link>
+                    <span className="text-[11px] font-medium text-pnu-muted">{program.date}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -182,10 +181,7 @@ export function AcademicPage() {
           <div className="overflow-hidden rounded-2xl border border-pnu-border bg-white shadow-sm">
             <div className="divide-y divide-pnu-border">
               {scholarships.map((scholarship) => (
-                <div
-                  key={scholarship.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5"
-                >
+                <div key={scholarship.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2.5">
                   <Link
                     to={`/academic/scholarships/${scholarship.id}`}
                     className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"

@@ -21,7 +21,7 @@ import { CommunityPage } from '@/pages/CommunityPage'
 import { CampusGuidePage } from '@/pages/CampusGuidePage'
 import { CampusMapPage } from '@/pages/CampusMapPage'
 import { CommunityNoticesPage } from '@/pages/CommunityNoticesPage'
-import { SimpleInfoPage } from '@/pages/SimpleInfoPage'
+import { CareerOpportunitiesPage } from '@/pages/CareerOpportunitiesPage'
 import { SupportPage } from '@/pages/SupportPage'
 import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
 import { WorkPermitPage } from '@/pages/WorkPermitPage'
@@ -77,19 +77,16 @@ function AppRoutes() {
         />
         <Route
           path="campus-life/cafeteria"
-          element={<CampusGuidePage titleKey="campusLife.cafeteriaInfo" bodyKey="campusLife.cafeteriaBody" />}
-        />
-        <Route path="campus-life/map" element={<CampusMapPage />} />
-        <Route
-          path="career-opportunities"
           element={
-            <SimpleInfoPage
-              titleKey="career.title"
-              subtitleKey="career.subtitle"
-              bodyKey="career.body"
+            <CampusGuidePage
+              titleKey="campusLife.cafeteriaInfo"
+              bodyKey="campusLife.cafeteriaBody"
+              facilitiesMode="cafeteria"
             />
           }
         />
+        <Route path="campus-life/map" element={<CampusMapPage />} />
+        <Route path="career-opportunities" element={<CareerOpportunitiesPage />} />
         <Route path="community" element={<CommunityPage />} />
         <Route
           path="community/country-notices"

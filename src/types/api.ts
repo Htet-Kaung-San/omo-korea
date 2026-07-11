@@ -28,6 +28,107 @@ export interface UpdateProfileRequest {
   nationality: string
   major: string
   interests: string[]
+  languagePref?: string
+  visaStatus?: string
+  mbti?: string
+  phone?: string
+}
+
+export interface ProgramItem {
+  id: string
+  title: string
+  description: string
+  date: string
+  category?: string
+  score?: number
+  matchHint?: string
+}
+
+export interface ScholarshipItem {
+  id: string
+  title: string
+  deadline: string
+  description: string
+  eligibility: string
+  amount?: string | null
+  provider?: string | null
+}
+
+export interface EmergencyQuickAccess {
+  number: string
+  label: string
+}
+
+export interface EmergencyContact {
+  id: string
+  type: string
+  name: string
+  phone: string | null
+  country_flag?: string | null
+  distance?: string | null
+  map_query?: string | null
+}
+
+export interface EmergencyGuide {
+  quick_access: {
+    police: EmergencyQuickAccess
+    fire_medical: EmergencyQuickAccess
+    disease_control: EmergencyQuickAccess
+  }
+  database_contacts: EmergencyContact[]
+  guide_text: string
+}
+
+export interface CafeteriaMenuColumn {
+  day: string
+  day_label: string
+  price?: string | null
+  items: string[]
+  note?: string | null
+}
+
+export interface CafeteriaMenuRow {
+  meal_type: string
+  meal_label: string
+  columns: CafeteriaMenuColumn[]
+}
+
+export interface CafeteriaMenu {
+  week_start?: string | null
+  week_end?: string | null
+  week_label?: string | null
+  prev_menu_date?: string | null
+  next_menu_date?: string | null
+  rows: CafeteriaMenuRow[]
+}
+
+export interface GetCampusFacilitiesParams {
+  menuDate?: string
+}
+
+export interface CampusFacility {
+  id: string
+  name: string
+  location?: string | null
+  hours?: string | null
+  description?: string | null
+  menu?: CafeteriaMenu
+}
+
+export interface CampusFacilities {
+  shuttle_bus_metadata: {
+    key_stops: CampusFacility[]
+  }
+  cafeterias: CampusFacility[]
+  cafeteria_source?: string
+  scraped_at?: string | null
+  menu_date?: string | null
+}
+
+export interface AiDashboard {
+  recommendedCourses: RecommendedCourse[]
+  eligibleScholarships: ScholarshipItem[]
+  matchedPrograms: ProgramItem[]
 }
 
 export interface Course {
@@ -113,6 +214,44 @@ export interface ApiError {
   status?: number
 }
 
+export interface CareerOpportunity {
+  id: string
+  source: string
+  company: string
+  title: string
+  deadline: string
+  role: string | null
+  applicationType: string | null
+  sourceUrl: string
+}
+
+export interface CareerSummary {
+  name: string
+  count: number
+}
+
+export interface CareerOpportunitiesPagination {
+  page: number
+  limit: number
+  totalItems: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
+export interface CareerOpportunitiesResponse {
+  source: string
+  careers: CareerSummary[]
+  opportunities: CareerOpportunity[]
+  pagination: CareerOpportunitiesPagination
+  fetchedAt: string
+}
+
+export interface GetCareerOpportunitiesParams {
+  page?: number
+  limit?: number
+}
+
 /** Backend team: implement these endpoints — see BACKEND.md */
 export interface HeyPnuApi {
   login(data: LoginRequest): Promise<AuthResponse>
@@ -126,4 +265,10 @@ export interface HeyPnuApi {
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem>
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
   getChatSuggestions(): Promise<string[]>
+  getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
+  getEmergencyGuide(): Promise<EmergencyGuide>
+  getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
+  getAiDashboard(): Promise<AiDashboard>
+  getScholarships(): Promise<ScholarshipItem[]>
+  getPrograms(): Promise<ProgramItem[]>
 }

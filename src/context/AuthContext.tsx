@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { LoginRequest, User } from '@/types/api'
-import { api, clearStoredToken, getStoredToken, setStoredToken } from '@/api'
+import { api, clearAuthSession, getStoredToken, setStoredToken } from '@/api'
 
 interface AuthContextValue {
   user: User | null
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     refreshUser()
-      .catch(() => clearStoredToken())
+      .catch(() => clearAuthSession())
       .finally(() => setIsLoading(false))
   }, [refreshUser])
 
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.logout()
     } finally {
-      clearStoredToken()
+      clearAuthSession()
       setUser(null)
     }
   }, [])

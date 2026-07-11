@@ -1,17 +1,34 @@
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { api } from '@/api'
+import type { ScholarshipItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { scholarships } from '@/data/academic'
 import { useLanguage } from '@/context/LanguageContext'
 
 export function ScholarshipDetailPage() {
   const { scholarshipId } = useParams()
-  const { t } = useLanguage()
-  const scholarship = scholarships.find((item) => item.id === scholarshipId)
+  const { language, t } = useLanguage()
+  const [scholarship, setScholarship] = useState<ScholarshipItem | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api
+      .getScholarships()
+      .then((items) => setScholarship(items.find((item) => item.id === scholarshipId) ?? null))
+      .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
+      .finally(() => setLoading(false))
+  }, [language, scholarshipId, t])
 
   return (
     <div>
       <PageHeader title={scholarship?.title ?? t('academic.scholarships')} back />
       <div className="px-5 py-5">
+        {error ? (
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        ) : null}
+        {loading ? <p className="text-sm text-pnu-muted">{t('academic.loading')}</p> : null}
+
         {scholarship ? (
           <article className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-start justify-between gap-3">
@@ -26,9 +43,11 @@ export function ScholarshipDetailPage() {
               <p className="mt-1 text-sm leading-relaxed text-pnu-muted">{scholarship.eligibility}</p>
             </div>
           </article>
-        ) : (
+        ) : null}
+
+        {!loading && !scholarship && !error ? (
           <p className="text-sm text-pnu-muted">{t('common.errorFallback')}</p>
-        )}
+        ) : null}
       </div>
     </div>
   )

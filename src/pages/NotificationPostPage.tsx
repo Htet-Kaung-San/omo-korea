@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/LanguageContext'
 
 export function NotificationPostPage() {
   const { notificationId } = useParams()
-  const { locale, t } = useLanguage()
+  const { language, locale, t } = useLanguage()
   const [notification, setNotification] = useState<Notification | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -21,7 +21,7 @@ export function NotificationPostPage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('notifications.loadError')))
       .finally(() => setLoading(false))
-  }, [notificationId, t])
+  }, [language, notificationId, t])
 
   return (
     <div>

@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { CourseTypeBadge } from '@/components/ui/Badge'
 
 export function RecommendedCoursesPage() {
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const [courses, setCourses] = useState<RecommendedCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -19,7 +19,7 @@ export function RecommendedCoursesPage() {
       .then(setCourses)
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [t])
+  }, [language, t])
 
   const recommendedCourses = useMemo(
     () => courses.filter((course) => course.score > 0),

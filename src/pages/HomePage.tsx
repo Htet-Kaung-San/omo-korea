@@ -32,7 +32,7 @@ function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null):
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
@@ -54,7 +54,7 @@ export function HomePage() {
         setChecklistVariant(checklistPayload.variant)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
-  }, [])
+  }, [language, t])
 
   async function handleToggleChecklist(id: string, completed: boolean) {
     setUpdatingId(id)

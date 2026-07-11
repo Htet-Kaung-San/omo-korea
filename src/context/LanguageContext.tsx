@@ -8,10 +8,13 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  DEFAULT_LANGUAGE,
   LANGUAGE_OPTIONS,
-  TRANSLATIONS,
+  loadLocale,
+  normalizeLanguageCode,
   type LanguageCode,
   type LanguageOption,
+  type MessageDictionary,
 } from '@/i18n/translations'
 
 const LANGUAGE_STORAGE_KEY = 'hey_pnu_language'
@@ -20,6 +23,7 @@ interface LanguageContextValue {
   language: LanguageCode
   locale: string
   options: LanguageOption[]
+  localeLoading: boolean
   setLanguage: (language: LanguageCode) => void
   t: (key: string, vars?: Record<string, string | number>) => string
 }
@@ -35,18 +39,41 @@ function interpolate(template: string, vars?: Record<string, string | number>): 
 }
 
 function getInitialLanguage(): LanguageCode {
-  const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
-  if (stored === 'EN' || stored === 'KO' || stored === 'ZH') {
-    return stored
-  }
-  return 'EN'
+  return normalizeLanguageCode(localStorage.getItem(LANGUAGE_STORAGE_KEY))
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage)
+  const [messages, setMessages] = useState<MessageDictionary>({})
+  const [fallbackMessages, setFallbackMessages] = useState<MessageDictionary>({})
+  const [localeLoading, setLocaleLoading] = useState(true)
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
+  }, [language])
+
+  useEffect(() => {
+    let cancelled = false
+    setLocaleLoading(true)
+
+    loadLocale(language)
+      .then((loaded) => {
+        if (cancelled) return
+        setMessages(loaded)
+        if (language !== DEFAULT_LANGUAGE) {
+          return loadLocale(DEFAULT_LANGUAGE).then((english) => {
+            if (!cancelled) setFallbackMessages(english)
+          })
+        }
+        setFallbackMessages(loaded)
+      })
+      .finally(() => {
+        if (!cancelled) setLocaleLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [language])
 
   const setLanguage = useCallback((nextLanguage: LanguageCode) => {
@@ -58,12 +85,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
-      const dictionary = TRANSLATIONS[language]
-      const fallbackDictionary = TRANSLATIONS.EN
-      const template = dictionary[key] ?? fallbackDictionary[key] ?? key
+      const template = messages[key] ?? fallbackMessages[key] ?? key
       return interpolate(template, vars)
     },
-    [language],
+    [fallbackMessages, messages],
   )
 
   const value = useMemo(
@@ -71,10 +96,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       language,
       locale,
       options: LANGUAGE_OPTIONS,
+      localeLoading,
       setLanguage,
       t,
     }),
-    [language, locale, setLanguage, t],
+    [language, locale, localeLoading, setLanguage, t],
   )
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>

@@ -1,4 +1,5 @@
 import type { ApiError } from '@/types/api'
+import { getAcceptLanguage } from './headers'
 
 const TOKEN_KEY = 'hey_pnu_token'
 
@@ -34,6 +35,9 @@ export async function apiFetch<T>(
   const headers = new Headers(options.headers)
   if (!headers.has('Content-Type') && options.body) {
     headers.set('Content-Type', 'application/json')
+  }
+  if (!headers.has('Accept-Language')) {
+    headers.set('Accept-Language', getAcceptLanguage())
   }
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)

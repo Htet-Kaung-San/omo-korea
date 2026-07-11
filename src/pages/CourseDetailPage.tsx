@@ -9,7 +9,7 @@ import { useLanguage } from '@/context/LanguageContext'
 
 export function CourseDetailPage() {
   const { courseId } = useParams()
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const [course, setCourse] = useState<RecommendedCourse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -20,7 +20,7 @@ export function CourseDetailPage() {
       .then((courses) => setCourse(courses.find((item) => item.id === courseId) ?? null))
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [courseId, t])
+  }, [language, courseId, t])
 
   return (
     <div>

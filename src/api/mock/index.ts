@@ -1,15 +1,22 @@
 import type {
+  AiDashboard,
   AuthResponse,
+  CampusFacilities,
+  CareerOpportunitiesResponse,
   ChatMessageRequest,
   ChatMessageResponse,
   ChecklistItem,
   ChecklistPayload,
   CourseType,
+  EmergencyGuide,
+  GetCareerOpportunitiesParams,
   GraduationProgress,
   HeyPnuApi,
   LoginRequest,
   Notification,
+  ProgramItem,
   RecommendedCourse,
+  ScholarshipItem,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
@@ -18,7 +25,12 @@ import {
   CHAT_SUGGESTIONS,
   DEMO_PASSWORD,
   DEMO_STUDENT_ID,
+  mockCampusFacilities,
+  mockCareerOpportunities,
   mockChatIntents,
+  mockEmergencyGuide,
+  mockPrograms,
+  mockScholarships,
   mockChecklist,
   mockGraduationChecklist,
   mockCourses,
@@ -153,6 +165,46 @@ function scoreCourses(user: User): RecommendedCourse[] {
     })
 }
 
+function summarizeMockCareers() {
+  const counts = new Map<string, number>()
+
+  mockCareerOpportunities.forEach((item) => {
+    if (!item.role) return
+    counts.set(item.role, (counts.get(item.role) ?? 0) + 1)
+  })
+
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}
+
+function paginateMockCareerOpportunities({
+  page = 1,
+  limit = 10,
+}: GetCareerOpportunitiesParams = {}): CareerOpportunitiesResponse {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 10
+  const totalItems = mockCareerOpportunities.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / safeLimit))
+  const boundedPage = Math.min(safePage, totalPages)
+  const start = (boundedPage - 1) * safeLimit
+
+  return {
+    source: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    careers: summarizeMockCareers(),
+    opportunities: mockCareerOpportunities.slice(start, start + safeLimit),
+    pagination: {
+      page: boundedPage,
+      limit: safeLimit,
+      totalItems,
+      totalPages,
+      hasNextPage: boundedPage < totalPages,
+      hasPrevPage: boundedPage > 1,
+    },
+    fetchedAt: new Date().toISOString(),
+  }
+}
+
 export const mockApi: HeyPnuApi = {
   async login({ studentId, password }: LoginRequest): Promise<AuthResponse> {
     await delay()
@@ -254,6 +306,44 @@ export const mockApi: HeyPnuApi = {
   async getChatSuggestions(): Promise<string[]> {
     await delay(100)
     return CHAT_SUGGESTIONS
+  },
+
+  async getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse> {
+    await delay()
+    return paginateMockCareerOpportunities(params)
+  },
+
+  async getEmergencyGuide(): Promise<EmergencyGuide> {
+    await delay()
+    return mockEmergencyGuide
+  },
+
+  async getCampusFacilities(): Promise<CampusFacilities> {
+    await delay()
+    return mockCampusFacilities
+  },
+
+  async getAiDashboard(): Promise<AiDashboard> {
+    await delay()
+    const studentId = getCurrentStudentId()
+    const user = getMockUser(studentId)
+    const courses = scoreCourses(user)
+
+    return {
+      recommendedCourses: courses,
+      eligibleScholarships: mockScholarships,
+      matchedPrograms: mockPrograms,
+    }
+  },
+
+  async getScholarships(): Promise<ScholarshipItem[]> {
+    await delay()
+    return mockScholarships
+  },
+
+  async getPrograms(): Promise<ProgramItem[]> {
+    await delay()
+    return mockPrograms
   },
 }
 

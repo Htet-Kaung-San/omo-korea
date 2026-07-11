@@ -40,7 +40,11 @@ export function ChatPanel() {
       const { reply } = await api.sendChatMessage({ message: trimmed })
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), role: 'assistant', text: reply },
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          text: reply || t('chat.unavailable'),
+        },
       ])
     } catch (err) {
       setMessages((prev) => [
