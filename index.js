@@ -2,12 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const studentRoutes = require('./routes/studentRoutes');
 const aiRoutes = require('./routes/aiRoutes');
-const errorHandler = require('./middleware/errorHandler'); // 1. Import the global error handler
+const errorHandler = require('./middleware/errorHandler');
+const { languageMiddleware } = require('./middleware/languageMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
+app.use(languageMiddleware);
 app.use(express.static('public'));
 app.use('/api/students', studentRoutes);
 app.use('/api/ai', aiRoutes);

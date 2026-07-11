@@ -10,6 +10,10 @@ const {
   createPost,
   getPostComments,
   createComment,
+  getCareerOpportunities,
+  getEmergencyGuideHandler,
+  getCampusFacilitiesHandler,
+  updateStudentProfile,
 } = require('../controllers/studentController');
 
 const { verifyToken } = require('../middleware/authMiddleware');
@@ -17,6 +21,7 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const {
   createPostSchema,
   createCommentSchema,
+  updateProfileSchema,
   validateBody,
 } = require('../validators/studentValidator');
 
@@ -24,6 +29,8 @@ const {
   getDashboardSummary,
   runMajorGapAnalysis,
   getCourseRecommendations,
+  getAiDashboard,
+  getStudentNotifications,
 } = require('../controllers/aiController');
 
 const router = express.Router();
@@ -32,10 +39,16 @@ const router = express.Router();
 router.get('/test', testConnection);
 router.post('/login', loginStudent);
 router.get('/scholarships', getAllScholarships);
+router.get('/career-opportunities', getCareerOpportunities);
+router.get('/emergency-guide', getEmergencyGuideHandler);
+router.get('/campus-facilities', getCampusFacilitiesHandler);
 router.get('/boards/:board_id/posts', getBoardPosts);
 router.get('/posts/:post_id/comments', getPostComments);
 
 // Protected routes
+router.put('/profile', verifyToken, validateBody(updateProfileSchema), updateStudentProfile);
+router.get('/notifications', verifyToken, getStudentNotifications);
+router.get('/ai-dashboard', verifyToken, getAiDashboard);
 router.get('/checklist/:student_id', verifyToken, getStudentChecklist);
 router.put('/checklist/:checklist_id', verifyToken, updateChecklistItem);
 router.post('/scholarships/apply', verifyToken, applyForScholarship);

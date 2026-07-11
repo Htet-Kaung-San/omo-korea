@@ -1,4 +1,5 @@
 const supabase = require('../supabaseClient');
+const { localizeRow } = require('../middleware/languageMiddleware');
 const departmentProfiles = require('../ai/departmentProfiles');
 const { recommendMajors } = require('../ai/recommendationEngine');
 const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
@@ -259,9 +260,172 @@ async function getCourseRecommendations(req, res, next) {
   }
 }
 
+function mapRecommendedScholarship(scholarship) {
+  return {
+    id: String(scholarship.id),
+    title: scholarship.title,
+    description: scholarship.description ?? '',
+    deadline: scholarship.deadline ?? '',
+    eligibility: scholarship.eligibility ?? scholarship.provider ?? '',
+    amount: scholarship.amount ?? null,
+    provider: scholarship.provider ?? null,
+    score: scholarship.score,
+    matchHint: scholarship.matchHint,
+  };
+}
+
+function mapRecommendedProgram(program) {
+  return {
+    id: String(program.id),
+    title: program.title,
+    description: program.description ?? '',
+    date: program.date ?? '',
+    category: program.category ?? null,
+    score: program.score,
+    matchHint: program.matchHint,
+  };
+}
+
+async function getAiDashboard(req, res, next) {
+  try {
+    const language = req.language || 'en';
+    const context = await fetchStudentContext(req.user.student_id);
+    if (!context) {
+      const err = new Error('Student profile not found');
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    const dashboard = buildStudentDashboard({
+      rawStudentInput: context.rawStudentInput,
+      targetMajor: null,
+      majors: departmentProfiles,
+      courses: pilotCourses,
+      programs: pilotPrograms,
+      scholarships: pilotScholarships,
+      careers: pilotCareers,
+      notices: pilotNotices,
+      options: {
+        courseLimit: 20,
+        programLimit: 20,
+        scholarshipLimit: 20,
+      },
+    });
+
+    const { data: scholarshipRows } = await supabase.from('scholarship').select('*');
+    const localizedScholarships = new Map(
+      (scholarshipRows || []).map((row) => [
+        String(row.scholarship_id ?? row.id),
+        localizeRow(row, language, ['title', 'description', 'eligibility']),
+      ]),
+    );
+
+    const eligibleScholarships = dashboard.recommendedScholarships
+      .map(mapRecommendedScholarship)
+      .map((item) => {
+        const localized = localizedScholarships.get(item.id);
+        if (!localized) return item;
+        return {
+          ...item,
+          title: localized.title ?? item.title,
+          description: localized.description ?? item.description,
+          eligibility: localized.eligibility ?? item.eligibility,
+        };
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        recommendedCourses: dashboard.recommendedCourses,
+        eligibleScholarships,
+        matchedPrograms: dashboard.recommendedPrograms.map(mapRecommendedProgram),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getStudentNotifications(req, res, next) {
+  try {
+    const language = req.language || 'en';
+    const studentId = req.user.student_id;
+    const context = await fetchStudentContext(studentId);
+
+    if (!context) {
+      const err = new Error('Student profile not found');
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    const { data: checklistItems, error: checklistError } = await supabase
+      .from('checklist_item')
+      .select('*')
+      .eq('student_id', studentId);
+
+    if (checklistError) {
+      checklistError.statusCode = 500;
+      checklistError.message = 'Failed to fetch checklist notifications';
+      return next(checklistError);
+    }
+
+    const checklistNotifications = (checklistItems || [])
+      .filter((item) => String(item.status ?? '').toLowerCase() !== 'completed')
+      .map((item) => {
+        const localized = localizeRow(item, language, ['title', 'description']);
+        return {
+          id: `checklist-${item.checklist_id}`,
+          title: localized.title ?? item.title ?? 'Checklist item',
+          body: localized.description ?? item.description ?? '',
+          date: item.due_date ?? item.updated_at ?? '',
+          category: 'DEADLINE',
+          priority: 'NORMAL',
+        };
+      });
+
+    const dashboard = buildStudentDashboard({
+      rawStudentInput: context.rawStudentInput,
+      targetMajor: null,
+      majors: departmentProfiles,
+      courses: pilotCourses,
+      programs: pilotPrograms,
+      scholarships: pilotScholarships,
+      careers: pilotCareers,
+      notices: pilotNotices,
+      options: {
+        noticeLimit: 10,
+      },
+    });
+
+    const noticeNotifications = (dashboard.recommendedNotices || []).map((notice) => ({
+      id: notice.id,
+      title: notice.title,
+      body: notice.body,
+      date: notice.deadline ?? '',
+      category: notice.category,
+      priority: notice.priority,
+    }));
+
+    const notifications = [...noticeNotifications, ...checklistNotifications].sort((a, b) => {
+      const aTime = new Date(a.date).getTime();
+      const bTime = new Date(b.date).getTime();
+      return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime);
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: notifications,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   recommendMajor,
   getDashboardSummary,
   runMajorGapAnalysis,
   getCourseRecommendations,
+  getAiDashboard,
+  getStudentNotifications,
 };

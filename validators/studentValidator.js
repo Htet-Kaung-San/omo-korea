@@ -22,6 +22,21 @@ const createPostSchema = Joi.object({
   })
 });
 
+const updateProfileSchema = Joi.object({
+  name: Joi.string().trim().min(1).max(100),
+  nationality: Joi.string().trim().max(100),
+  major: Joi.string().trim().max(120),
+  interests: Joi.array().items(Joi.string().trim().max(50)),
+  language_pref: Joi.string().trim().max(50),
+  visa_status: Joi.string().trim().max(30),
+  mbti: Joi.string().trim().max(4),
+  phone: Joi.string().trim().max(30),
+})
+  .min(1)
+  .messages({
+    'object.min': 'At least one profile field is required.',
+  });
+
 const createCommentSchema = Joi.object({
   student_id: Joi.number().integer().required().messages({
     'number.base': 'Student ID must be a number.',
@@ -57,5 +72,6 @@ const validateBody = (schema) => {
 module.exports = {
   createPostSchema,
   createCommentSchema,
+  updateProfileSchema,
   validateBody,
 };
