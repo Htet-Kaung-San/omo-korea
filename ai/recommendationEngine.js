@@ -10,7 +10,7 @@ function calculateDimensionScore(selectedOptions = [], departmentTags = {}) {
   const selectedSet = new Set(selectedOptions);
   const totalWeight = Object.values(departmentTags).reduce(
     (sum, weight) => sum + weight,
-    0
+    0,
   );
 
   if (totalWeight === 0) {
@@ -20,7 +20,7 @@ function calculateDimensionScore(selectedOptions = [], departmentTags = {}) {
   const matchedWeight = Object.entries(departmentTags).reduce(
     (sum, [optionId, weight]) =>
       selectedSet.has(optionId) ? sum + weight : sum,
-    0
+    0,
   );
 
   return Number(((matchedWeight / totalWeight) * 100).toFixed(1));
@@ -41,17 +41,17 @@ function getEligibilityNote(department, topikLevel) {
 function buildReason(scores) {
   const matchedAreas = [];
 
-  if (scores.academicAreas >= 70) matchedAreas.push('academic interests');
-  if (scores.activities >= 70) matchedAreas.push('preferred activities');
-  if (scores.strengths >= 70) matchedAreas.push('strengths');
-  if (scores.careerAreas >= 70) matchedAreas.push('career goals');
-  if (scores.learningStyles >= 70) matchedAreas.push('learning style');
+  if (scores.academicAreas >= 70) matchedAreas.push("academic interests");
+  if (scores.activities >= 70) matchedAreas.push("preferred activities");
+  if (scores.strengths >= 70) matchedAreas.push("strengths");
+  if (scores.careerAreas >= 70) matchedAreas.push("career goals");
+  if (scores.learningStyles >= 70) matchedAreas.push("learning style");
 
   if (matchedAreas.length === 0) {
-    return 'This department has a partial match with your current questionnaire answers.';
+    return "This department has a partial match with your current questionnaire answers.";
   }
 
-  return `Strong match based on ${matchedAreas.join(', ')}.`;
+  return `Strong match based on ${matchedAreas.join(", ")}.`;
 }
 
 function recommendMajors(userProfile, departmentProfiles, topN = 3) {
@@ -59,23 +59,23 @@ function recommendMajors(userProfile, departmentProfiles, topN = 3) {
     const scores = {
       academicAreas: calculateDimensionScore(
         userProfile.academicAreas,
-        department.tags.academicAreas
+        department.tags.academicAreas,
       ),
       activities: calculateDimensionScore(
         userProfile.activities,
-        department.tags.activities
+        department.tags.activities,
       ),
       strengths: calculateDimensionScore(
         userProfile.strengths,
-        department.tags.strengths
+        department.tags.strengths,
       ),
       careerAreas: calculateDimensionScore(
         userProfile.careerAreas,
-        department.tags.careerAreas
+        department.tags.careerAreas,
       ),
       learningStyles: calculateDimensionScore(
         userProfile.learningStyles,
-        department.tags.learningStyles
+        department.tags.learningStyles,
       ),
     };
 
@@ -93,10 +93,7 @@ function recommendMajors(userProfile, departmentProfiles, topN = 3) {
       score: Number(finalScore.toFixed(1)),
       categoryScores: scores,
       reason: buildReason(scores),
-      eligibilityNote: getEligibilityNote(
-        department,
-        userProfile.topikLevel
-      ),
+      eligibilityNote: getEligibilityNote(department, userProfile.topikLevel),
     };
   });
 

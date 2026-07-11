@@ -20,7 +20,7 @@ const createPostSchema = Joi.object({
     'string.min': 'Content must be at least 5 characters long.',
     'any.required': 'Content is required.'
   })
-});
+}).unknown(true);
 
 const updateProfileSchema = Joi.object({
   name: Joi.string().trim().min(1).max(100),
@@ -38,6 +38,7 @@ const updateProfileSchema = Joi.object({
   });
 
 const createCommentSchema = Joi.object({
+  post_id: Joi.number().integer().optional(),
   student_id: Joi.number().integer().required().messages({
     'number.base': 'Student ID must be a number.',
     'any.required': 'Student ID is required.',
@@ -48,7 +49,7 @@ const createCommentSchema = Joi.object({
     'string.max': 'Content cannot exceed 500 characters.',
     'any.required': 'Content is required.',
   }),
-});
+}).unknown(true);
 
 // Middleware helper to execute the validation
 const validateBody = (schema) => {
