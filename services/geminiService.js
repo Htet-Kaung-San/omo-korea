@@ -213,7 +213,7 @@ Please return JSON ONLY matching the following schema:
   return JSON.parse(cleanedText);
 }
 
-async function generateGeminiChatStream(message, languagePref, context) {
+async function generateGeminiChatStream(message, languagePref, context, academicPromptContext) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API key is not configured");
   }
@@ -226,17 +226,25 @@ async function generateGeminiChatStream(message, languagePref, context) {
       : languagePref === "ZH"
         ? "Chinese (Simplified)"
         : "English";
-  let systemInstruction = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.`;
+        
+  let systemInstructionText = `You are the Hey! PNU Smart Assistant, an AI helper for international students at Pusan National University. Keep your responses short (under 4 sentences), friendly, helpful, and focused on PNU campus life, academics, or settlement requirements. Respond in ${langName}. IMPORTANT: The user's profile details (Major, completed semesters, intake term) are already provided above in 'Student Academic Background'. Do NOT ask the user what their major, year, or completed semesters are under any circumstances; use the provided context to answer directly.\n\n`;
+
+  if (academicPromptContext) {
+    systemInstructionText += `${academicPromptContext}\n\n`;
+  }
 
   if (context) {
-    systemInstruction += `\n\nUse the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;
+    systemInstructionText += `Use the following verified PNU reference context to answer the user's question. If the question cannot be answered using this context, reply using your general knowledge but mention it is not from official PNU documentation:\n\n${context}`;
   }
 
   const payload = {
+    system_instruction: {
+      parts: { text: systemInstructionText.trim() }
+    },
     contents: [
       {
         role: "user",
-        parts: [{ text: `${systemInstruction}\n\nUser Question: ${message}` }],
+        parts: [{ text: message }],
       },
     ],
   };

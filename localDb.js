@@ -188,8 +188,54 @@ const initialData = {
     },
   ],
   facilities: [
+
     {
-      facility_id: 1,
+      campus: "MIRYANG",
+      facility_id: 101,
+      name: "Nanotechnology Building (나노생명과학관)",
+      type: "Academic",
+      latitude: 35.4984,
+      longitude: 128.7275,
+      hours: "09:00 - 18:00",
+      details: "Main building for Nanotechnology and Life Sciences.",
+      floors: "1F: Labs; 2F-4F: Lecture Rooms"
+    },
+    {
+      campus: "MIRYANG",
+      facility_id: 102,
+      name: "Miryang Campus Library (밀양캠퍼스 도서관)",
+      type: "Library",
+      latitude: 35.4990,
+      longitude: 128.7280,
+      hours: "09:00 - 22:00",
+      details: "Library for Miryang campus students.",
+      floors: "1F: Study Room; 2F: Books"
+    },
+    {
+      campus: "YANGSAN",
+      facility_id: 201,
+      name: "Medical Library (의학도서관)",
+      type: "Library",
+      latitude: 35.3364,
+      longitude: 129.0116,
+      hours: "09:00 - 22:00",
+      details: "Library for Medicine, Dentistry, and Nursing students.",
+      floors: "1F: Reading Room; 2F: Medical Journals"
+    },
+    {
+      campus: "YANGSAN",
+      facility_id: 202,
+      name: "PNU Dental Hospital (치과병원)",
+      type: "Hospital",
+      latitude: 35.3370,
+      longitude: 129.0120,
+      hours: "09:00 - 17:00",
+      details: "Main Dental Hospital for the Yangsan campus.",
+      floors: "1F: Reception; 2F-5F: Clinics"
+    },
+
+    {
+      campus: "BUSAN", facility_id: 1,
       name: "PNU Main Library (중앙도서관)",
       type: "Library",
       latitude: 35.2335,
@@ -201,7 +247,7 @@ const initialData = {
         "1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers",
     },
     {
-      facility_id: 2,
+      campus: "BUSAN", facility_id: 2,
       name: "Geumjeong Hall Cafeteria (금정회관)",
       type: "Cafeteria",
       latitude: 35.2312,
@@ -213,7 +259,7 @@ const initialData = {
         "1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café",
     },
     {
-      facility_id: 3,
+      campus: "BUSAN", facility_id: 3,
       name: "Moonchang Hall Cafeteria (문창회관)",
       type: "Cafeteria",
       latitude: 35.2348,
@@ -225,7 +271,7 @@ const initialData = {
         "1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center",
     },
     {
-      facility_id: 4,
+      campus: "BUSAN", facility_id: 4,
       name: "University Headquarters (대학본부)",
       type: "Administrative",
       latitude: 35.2301,
@@ -237,7 +283,7 @@ const initialData = {
         "1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President's Office",
     },
     {
-      facility_id: 5,
+      campus: "BUSAN", facility_id: 5,
       name: "Woongbee Hall Dormitory (웅비관)",
       type: "Dormitory",
       latitude: 35.2365,
@@ -293,56 +339,56 @@ const initialData = {
   ],
   courses: [
     {
-      course_id: 1,
+      campus: "BUSAN", course_id: 1,
       course_name: "Introduction to Computer Science (컴퓨터공학개론)",
       credit: 3,
       major_id: 1,
       category: "REQUIRED",
     },
     {
-      course_id: 2,
+      campus: "BUSAN", course_id: 2,
       course_name: "Data Structures (자료구조)",
       credit: 3,
       major_id: 1,
       category: "REQUIRED",
     },
     {
-      course_id: 3,
+      campus: "BUSAN", course_id: 3,
       course_name: "System Programming (시스템프로그래밍)",
       credit: 3,
       major_id: 1,
       category: "REQUIRED",
     },
     {
-      course_id: 4,
+      campus: "BUSAN", course_id: 4,
       course_name: "Operating Systems (운영체제)",
       credit: 3,
       major_id: 1,
       category: "REQUIRED",
     },
     {
-      course_id: 5,
+      campus: "BUSAN", course_id: 5,
       course_name: "Database Systems (데이터베이스)",
       credit: 3,
       major_id: 1,
       category: "ELECTIVE",
     },
     {
-      course_id: 6,
+      campus: "BUSAN", course_id: 6,
       course_name: "Artificial Intelligence (인공지능)",
       credit: 3,
       major_id: 1,
       category: "ELECTIVE",
     },
     {
-      course_id: 7,
+      campus: "BUSAN", course_id: 7,
       course_name: "Computer Networks (컴퓨터네트워크)",
       credit: 3,
       major_id: 1,
       category: "ELECTIVE",
     },
     {
-      course_id: 8,
+      campus: "BUSAN", course_id: 8,
       course_name: "Basic Circuit Theory (회로이론)",
       credit: 3,
       major_id: 2,
@@ -352,7 +398,7 @@ const initialData = {
       end_time: "10:15",
     },
     {
-      course_id: 9,
+      campus: "BUSAN", course_id: 9,
       course_name: "Digital Logic Design (디지털논리설계)",
       credit: 3,
       major_id: 2,
@@ -362,7 +408,7 @@ const initialData = {
       end_time: "10:45",
     },
     {
-      course_id: 10,
+      campus: "BUSAN", course_id: 10,
       course_name: "Elementary Korean 1 (초급 한국어 1)",
       credit: 3,
       major_id: 1,
@@ -373,14 +419,14 @@ const initialData = {
     {
       enrollment_id: 1,
       student_id: "202455393",
-      course_id: 1,
+      campus: "BUSAN", course_id: 1,
       semester: "2026-Fall",
       status: "Enrolled",
     },
     {
       enrollment_id: 2,
       student_id: "202455393",
-      course_id: 2,
+      campus: "BUSAN", course_id: 2,
       semester: "2026-Fall",
       status: "Enrolled",
     },

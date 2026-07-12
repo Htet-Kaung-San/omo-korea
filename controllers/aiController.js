@@ -2,6 +2,7 @@ const departmentProfiles = require("../ai/departmentProfiles");
 const { recommendMajors } = require("../ai/recommendationEngine");
 const supabase = require("../supabaseClient");
 const ragService = require("../services/ragService");
+const { getMemoryForContext } = require("./memoryController");
 const {
   createClaudeMajorAnalysis,
 } = require("../services/claudeMajorRecommendationService");
@@ -12,6 +13,15 @@ const {
   generateGeminiMajorAnalysis,
   translateGeminiAnnouncement,
 } = require("../services/geminiService");
+const { tavily } = require("@tavily/core");
+const pdfParse = require("pdf-parse");
+const mammoth = require("mammoth");
+const {
+  isDigitalOceanConfigured,
+  generateDigitalOceanChat,
+  generateDigitalOceanChatStream,
+  generateDigitalOceanMajorAnalysis,
+} = require("../services/digitalOceanService");
 const {
   isOpenRouterConfigured,
   generateOpenRouterChat,
@@ -128,7 +138,13 @@ async function recommendMajor(req, res) {
     let aiResult;
     let method = "rule-based";
 
-    if (isOpenRouterConfigured()) {
+    if (isDigitalOceanConfigured()) {
+      aiResult = await generateDigitalOceanMajorAnalysis(
+        userProfile,
+        ruleBasedRecommendations,
+      );
+      method = aiResult.enabled ? "rule-based + digitalocean" : "rule-based";
+    } else if (isOpenRouterConfigured()) {
       aiResult = await generateOpenRouterMajorAnalysis(
         userProfile,
         ruleBasedRecommendations,
@@ -251,38 +267,37 @@ async function handleChat(req, res) {
 
     // Prioritize history turns passed in the request body (supports client-side multi-session)
     let history = [];
+    let longTermHistory = [];
+    const supabase = require("../supabaseClient");
+    
     if (req.body.history && Array.isArray(req.body.history)) {
       history = req.body.history;
-    } else {
-      // Load recent history context (last 10 messages) if studentId is present
-      const supabase = require("../supabaseClient");
-      if (studentId) {
-        try {
-          const { data, error } = await supabase
-            .from("chatbot_log")
-            .select("*")
-            .eq("student_id", studentId)
-            .order("timestamp", { ascending: false })
-            .limit(10);
+    }
 
-          if (error) {
-            console.error(
-              "Failed to load chat history for context:",
-              error.message,
-            );
-          } else if (data) {
-            // Re-sort chronological order and map to turns
-            history = [...data].reverse().map((log) => ({
-              question: log.question,
-              answer: log.answer,
-            }));
-          }
-        } catch (histErr) {
-          console.error(
-            "Error loading chat history for context:",
-            histErr.message,
+    // Always fetch long-term history (last 5 messages) for memory context
+    if (studentId) {
+      try {
+        const { data, error } = await supabase
+          .from("chatbot_log")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("timestamp", { ascending: false })
+          .limit(5);
+
+        if (!error && data) {
+          // Re-sort chronological order and map to turns
+          const recentLogs = [...data].reverse().map((log) => ({
+            question: log.question,
+            answer: log.answer,
+          }));
+          
+          // Filter out logs that are already in the current session history
+          longTermHistory = recentLogs.filter(log => 
+            !history.some(h => h.question === log.question)
           );
         }
+      } catch (histErr) {
+        console.error("Error loading chat history for context:", histErr.message);
       }
     }
 
@@ -317,8 +332,29 @@ async function handleChat(req, res) {
 
     let reply = null;
 
-    // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
-    if (isOpenRouterConfigured()) {
+    // 1. If DigitalOcean is configured in .env, call DigitalOcean for real AI chat!
+    if (isDigitalOceanConfigured()) {
+      try {
+        let augmentedMsg = "";
+        if (academicPromptContext) {
+          augmentedMsg += `${academicPromptContext}\n`;
+        }
+        if (context) {
+          augmentedMsg += `PNU Knowledge Base Context:\n${context}\n\n`;
+        }
+        augmentedMsg += `User Question: ${message}`;
+
+        reply = await generateDigitalOceanChat(augmentedMsg, history);
+      } catch (doErr) {
+        console.error(
+          "DigitalOcean Chat Error, falling back to OpenRouter/Gemini/Claude/FAQ:",
+          doErr.message,
+        );
+      }
+    }
+
+    // 2. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
+    if (!reply && isOpenRouterConfigured()) {
       try {
         let augmentedMsg = "";
         if (academicPromptContext) {
@@ -338,7 +374,7 @@ async function handleChat(req, res) {
       }
     }
 
-    // 2. If Gemini is configured in .env, call Gemini for real AI chat!
+    // 3. If Gemini is configured in .env, call Gemini for real AI chat!
     if (!reply && isGeminiConfigured()) {
       try {
         let geminiMsg = message;
@@ -538,14 +574,14 @@ async function translateAnnouncement(req, res) {
 
 async function handleChatStream(req, res) {
   try {
-    const { message, languagePref = "EN" } = req.body || {};
+    const { message, languagePref = "EN", imageBase64, useWebSearch } = req.body || {};
     if (!message) {
       return res
         .status(400)
         .json({ success: false, message: "Message is required" });
     }
 
-    if (!isGeminiConfigured() && !isOpenRouterConfigured()) {
+    if (!isGeminiConfigured() && !isOpenRouterConfigured() && !isDigitalOceanConfigured()) {
       // Fallback: send matching FAQ or fallback text streamed back to UI
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -593,80 +629,128 @@ async function handleChatStream(req, res) {
       console.error("RAG context retrieval failed for stream:", ragErr.message);
     }
 
+    // Web Search using Tavily if requested
+    if (useWebSearch && process.env.TAVILY_API_KEY) {
+      try {
+        const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
+        const searchResult = await tvly.search(message, {
+          searchDepth: "basic",
+          includeAnswer: true,
+          maxResults: 3
+        });
+        
+        if (searchResult.answer || searchResult.results?.length > 0) {
+          context += "\n\n--- LIVE WEB SEARCH RESULTS ---\n";
+          if (searchResult.answer) {
+            context += `Summary: ${searchResult.answer}\n\n`;
+          }
+          searchResult.results?.forEach((res, idx) => {
+            context += `[${idx+1}] ${res.title}: ${res.content}\nURL: ${res.url}\n\n`;
+          });
+        }
+      } catch (tvlyErr) {
+        console.error("Tavily search failed:", tvlyErr.message);
+      }
+    }
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    if (isOpenRouterConfigured()) {
-      let augmentedMsg = "";
-      if (academicPromptContext) {
-        augmentedMsg += `${academicPromptContext}\n`;
-      }
-      if (context) {
-        augmentedMsg += `PNU Knowledge Base Context:\n${context}\n\n`;
-      }
-      augmentedMsg += `User Question: ${message}`;
-
-      let history = [];
-      if (req.body.history && Array.isArray(req.body.history)) {
-        history = req.body.history;
-      } else if (studentId) {
-        try {
-          const { data: logs } = await supabase
-            .from("chatbot_log")
-            .select("*")
-            .eq("student_id", studentId)
-            .order("timestamp", { ascending: false })
-            .limit(10);
-          if (logs) {
-            history = [...logs].reverse().map((log) => ({
-              question: log.question,
-              answer: log.answer,
-            }));
-          }
-        } catch (histErr) {
-          console.error("Failed to load history for OpenRouter stream:", histErr.message);
+    let history = [];
+    let longTermHistory = [];
+    if (req.body.history && Array.isArray(req.body.history)) {
+      history = req.body.history;
+    }
+    
+    if (studentId) {
+      try {
+        const { data: logs } = await supabase
+          .from("chatbot_log")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("timestamp", { ascending: false })
+          .limit(5);
+        if (logs) {
+          const recentLogs = [...logs].reverse().map((log) => ({
+            question: log.question,
+            answer: log.answer,
+          }));
+          
+          longTermHistory = recentLogs.filter(log => 
+            !history.some(h => h.question === log.question)
+          );
         }
+      } catch (histErr) {
+        console.error("Failed to load history for stream:", histErr.message);
       }
+    }
 
-      const stream = await generateOpenRouterChatStream(augmentedMsg, history);
-      const decoder = new TextDecoder();
-      let buffer = "";
+    let stream;
+    let systemContext = `
+You are the official PNU Smart Assistant. Rely primarily on the provided context.
+IMPORTANT CAPABILITIES:
+- If you recommend a specific course to the user and they might want to add it to their schedule, you MUST include the exact tag \`[COURSE_ADD: <CourseID>]\` in your response. (e.g. \`[COURSE_ADD: 101]\`). Note: Use the numeric Course ID.
+- If you mention a campus facility or building, you MUST include the exact tag \`[MAP: <Facility Name>]\` in your response so the user can click it to view the map. (e.g. \`[MAP: Central Library]\`).
+- Format your responses using standard Markdown.
+`;
 
-      for await (const chunk of stream) {
-        buffer += decoder.decode(chunk, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+    if (longTermHistory.length > 0) {
+      systemContext += `\n--- LONG-TERM MEMORY (Past Sessions) ---\n`;
+      longTermHistory.forEach((log, idx) => {
+        systemContext += `[Past Q${idx+1}]: ${log.question}\n[Past A${idx+1}]: ${log.answer}\n`;
+      });
+      systemContext += `\nUse the above long-term memory to recall previous interactions across past chat sessions if the user asks.\n\n`;
+    }
+
+    const memoryProfile = getMemoryForContext(studentId);
+    if (memoryProfile) {
+      systemContext += `\n--- USER PERSONAL MEMORY ---\n`;
+      systemContext += `Here is what you know about the user (their personal profile and preferences):\n${memoryProfile}\n`;
+      systemContext += `Use this information to personalize your responses. Do not hallucinate any personal details outside of this.\n\n`;
+    }
+
+    if (academicPromptContext) systemContext += `${academicPromptContext}\n`;
+    if (context) systemContext += `PNU Knowledge Base & Live Web Context:\n${context}\n`;
+
+    if (isDigitalOceanConfigured()) {
+      stream = await generateDigitalOceanChatStream(message, history, null, imageBase64, systemContext);
+    } else if (isOpenRouterConfigured()) {
+      stream = await generateOpenRouterChatStream(message, history, systemContext);
+    } else {
+      let geminiMsg = message;
+      if (academicPromptContext) geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
+      stream = await generateGeminiChatStream(geminiMsg, userLangPref, context);
+    }
+
+    // Stream the response directly to the client
+    if (isDigitalOceanConfigured() || isOpenRouterConfigured()) {
+      const reader = stream.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullResponse = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
 
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          if (trimmed === "data: [DONE]") continue;
-          if (trimmed.startsWith("data: ")) {
-            const rawJson = trimmed.slice(6);
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
             try {
-              const parsed = JSON.parse(rawJson);
-              const content = parsed.choices?.[0]?.delta?.content || "";
-              if (content) {
-                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
+              const data = JSON.parse(line.slice(6));
+              const textChunk = data.choices[0]?.delta?.content || "";
+              if (textChunk) {
+                fullResponse += textChunk;
+                res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
               }
-            } catch {
-              // ignore partial line parsing issues
+            } catch (e) {
+              // Ignore incomplete JSON chunks, common in SSE
             }
           }
         }
-      }
-
-      if (buffer.trim().startsWith("data: ")) {
-        const rawJson = buffer.trim().slice(6);
-        try {
-          const parsed = JSON.parse(rawJson);
-          const content = parsed.choices?.[0]?.delta?.content || "";
-          if (content) {
-            res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
-          }
-        } catch {}
       }
 
       res.write("data: [DONE]\n\n");
@@ -1034,6 +1118,37 @@ async function getCourseRecommendations(req, res, next) {
   }
 }
 
+async function extractText(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file provided" });
+    }
+
+    const { originalname, buffer, mimetype } = req.file;
+    let extractedText = "";
+
+    if (mimetype === "application/pdf" || originalname.toLowerCase().endsWith(".pdf")) {
+      const data = await pdfParse(buffer);
+      extractedText = data.text;
+    } else if (
+      mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      originalname.toLowerCase().endsWith(".docx")
+    ) {
+      const result = await mammoth.extractRawText({ buffer });
+      extractedText = result.value;
+    } else if (mimetype === "text/plain" || originalname.toLowerCase().endsWith(".txt")) {
+      extractedText = buffer.toString("utf8");
+    } else {
+      return res.status(400).json({ success: false, message: "Unsupported file type" });
+    }
+
+    res.json({ success: true, text: extractedText });
+  } catch (error) {
+    console.error("Text extraction failed:", error);
+    res.status(500).json({ success: false, message: "Failed to extract text", error: error.message });
+  }
+}
+
 module.exports = {
   recommendMajor,
   handleChat,
@@ -1047,6 +1162,7 @@ module.exports = {
   updateDocument,
   deleteDocument,
   syncDocumentVector,
+  extractText,
   getDashboardSummary,
   runMajorGapAnalysis,
   getCourseRecommendations,

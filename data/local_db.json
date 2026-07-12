@@ -193,7 +193,7 @@
         "202455393"
       ],
       "reported": true,
-      "created_at": "2026-07-05T00:59:23.995Z"
+      "created_at": "2026-07-09T13:51:55.983Z"
     }
   ],
   "facilities": [
@@ -408,7 +408,7 @@
       "student_id": "202455393",
       "content": "Automated test comment content description",
       "comment_id": 3,
-      "created_at": "2026-07-05T00:59:23.996Z"
+      "created_at": "2026-07-09T13:51:55.985Z"
     }
   ],
   "kb_documents": [],

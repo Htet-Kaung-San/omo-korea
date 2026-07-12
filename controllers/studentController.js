@@ -1,6 +1,8 @@
 const supabase = require("../supabaseClient");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const db = require("../localDb");
 const JWT_SECRET = process.env.JWT_SECRET || "hey-pnu-default-secret-key";
 
 const testConnection = async (req, res) => {
@@ -941,16 +943,17 @@ const createPost = async (req, res) => {
 
 const getFacilities = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("facility")
-      .select("*")
-      .order("name", { ascending: true });
-    if (error)
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch facilities",
-        error: error.message,
-      });
+    const { campus } = req.query;
+    
+    // Simulate Supabase response using localDb
+    let data = db.facilities;
+    if (campus) {
+      data = data.filter(f => f.campus === campus);
+    }
+    
+    // Sort by name like the original supabase query
+    data.sort((a, b) => a.name.localeCompare(b.name));
+    
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({
@@ -1009,16 +1012,15 @@ const getNotifications = async (req, res) => {
 
 const getCourses = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("course")
-      .select("*")
-      .order("course_name", { ascending: true });
-    if (error)
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch courses",
-        error: error.message,
-      });
+    const { campus } = req.query;
+    
+    let data = db.courses;
+    if (campus) {
+      data = data.filter(c => c.campus === campus);
+    }
+    
+    data.sort((a, b) => a.course_name.localeCompare(b.course_name));
+    
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({

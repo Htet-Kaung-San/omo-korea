@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const studentRoutes = require("./routes/studentRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const busRoutes = require("./routes/busRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.static("public"));
 
 app.use("/api/students", studentRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/bus", busRoutes);
 
 // Register the error handler AFTER all routes
 app.use(errorHandler);
