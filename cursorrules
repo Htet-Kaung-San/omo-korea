@@ -1,0 +1,33 @@
+# Hey! PNU — Cursor Project Rules
+
+## What this project is
+A one-stop platform for foreign students at Pusan National University (PNU),
+covering: application info, campus onboarding, academic tools (course/graduation
+tracking), AI assistant, emergency support, and community. Multilingual (KO/EN/ZH/JA/VI).
+See PROJECT_CONTEXT.md for full feature list and BACKEND_STATUS.md for what's built.
+
+## Stack (do not deviate without asking)
+- Frontend: React (JS), HTML/CSS
+- Backend: Node.js
+- Database: PostgreSQL
+- AI integrations: OpenAI/Claude APIs, Google AI Studio (Gemini) for notice summarization/translation
+
+## How to work with me
+- Before implementing a feature, check BACKEND_STATUS.md and the relevant route/model
+  files instead of assuming nothing exists yet.
+- Prefer extending existing patterns (naming, folder structure, error handling) over
+  introducing new ones. If you must introduce a new pattern, say so explicitly and why.
+- Keep endpoints RESTful and grouped by domain (auth, users, courses, scholarships,
+  checklist, emergency, community, notices).
+- All user-facing strings must go through the i18n layer — never hardcode Korean or
+  English text in components or API responses that reach the client.
+- For anything touching visa, immigration, banking, or legal info: flag it clearly as
+  "needs human/legal review" rather than presenting it as fully verified.
+- After finishing a feature, propose an update to BACKEND_STATUS.md (I'll confirm before
+  you write it) so the status doc stays accurate.
+- Ask before adding new npm dependencies for something a current dependency already covers.
+
+## Things to avoid
+- Don't invent database schema for a table that might already exist — check /db or
+  /prisma (whichever we're using) first.
+- Don't silently change API response shapes consumed by the frontend.

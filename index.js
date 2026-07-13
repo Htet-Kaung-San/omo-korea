@@ -4,13 +4,16 @@ const studentRoutes = require("./routes/studentRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const { languageMiddleware } = require("./middleware/languageMiddleware");
+const { languageInterceptor } = require("./middleware/translationMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Standard Middlewares
 app.use(express.json());
 app.use(languageMiddleware);
 app.use(express.static("public"));
+app.use(languageInterceptor);
 
 app.use("/api/students", studentRoutes);
 app.use("/api/ai", aiRoutes);
