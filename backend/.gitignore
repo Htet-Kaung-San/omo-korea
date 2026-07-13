@@ -2,8 +2,6 @@
 # Dependencies
 # =========================
 node_modules/
-frontend/node_modules/
-backend/node_modules/
 
 # =========================
 # Environment files (secrets)
@@ -11,24 +9,13 @@ backend/node_modules/
 .env
 .env.*
 !.env.example
-!frontend/.env.example
-!backend/.env.example
 
 # =========================
-# Build / logs
+# Logs
 # =========================
-dist/
-build/
 logs/
 *.log
 npm-debug.log*
-frontend/dist/
-backend/test_output.log
-
-# =========================
-# Local reference docs (optional)
-# =========================
-hey_pnu_integration_docs.pdf
 
 # =========================
 # OS / editor
