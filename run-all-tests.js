@@ -128,8 +128,9 @@ async function runAllTests() {
     });
     const checklistData = await parseJson(checklistRes);
     assertStatus('GET /checklist/:student_id with token', checklistRes.status, 200);
-    if (checklistData?.success && Array.isArray(checklistData.data)) {
-      pass('Checklist payload', `${checklistData.data.length} item(s) returned`);
+    if (checklistData?.success && checklistData.data && typeof checklistData.data === 'object') {
+      const itemCount = Object.values(checklistData.data).reduce((n, items) => n + items.length, 0);
+      pass('Checklist payload', `${itemCount} item(s) across ${Object.keys(checklistData.data).length} semester(s)`);
     } else {
       fail('Checklist payload', 'unexpected response shape');
     }

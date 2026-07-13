@@ -154,11 +154,35 @@ const loginStudent = async (req, res) => {
   }
 };
 
+const CURRENT_TERM = "2026-Fall";
+
+const ESSENTIAL_SETTLEMENT_TASKS = [
+  { task_name: "Apply for Alien Registration Card (ARC)" },
+  { task_name: "Open Local Korean Bank Account" },
+  { task_name: "Register and Open Mobile SIM Card" },
+  { task_name: "Submit Health Clearance Certificate to Dormitory" },
+];
+
 const getStudentChecklist = async (req, res) => {
   try {
     const { student_id } = req.params;
 
-    // 1. Fetch the student's type to know which templates apply
+    const { data: priorEnrollments, error: enrollmentError } = await supabase
+      .from("enrollment")
+      .select("semester")
+      .eq("student_id", student_id)
+      .neq("semester", CURRENT_TERM);
+
+    if (enrollmentError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch enrollment history",
+        error: enrollmentError.message,
+      });
+    }
+
+    const isNewlyEnrolled = !priorEnrollments || priorEnrollments.length === 0;
+
     const { data: student, error: studentError } = await supabase
       .from("student")
       .select("student_type")
@@ -175,14 +199,12 @@ const getStudentChecklist = async (req, res) => {
 
     const studentType = student.student_type || "Current";
 
-    // 2. Fetch templates for this student type
     const { data: templates } = await supabase
       .from("checklist_template")
       .select("*")
       .eq("student_type", studentType);
 
-    // 3. Fetch existing checklist items for this student
-    const { data: existingItems, error: fetchError } = await supabase
+    let { data: existingItems, error: fetchError } = await supabase
       .from("checklist_item")
       .select("*")
       .eq("student_id", student_id);
@@ -195,69 +217,96 @@ const getStudentChecklist = async (req, res) => {
       });
     }
 
-    // 4. Sync missing template items to checklist_item if templates exist
+    existingItems = existingItems || [];
+
     if (templates && templates.length > 0) {
-      const existingTaskNames = new Set(
-        existingItems.map((item) => item.task_name),
-      );
-      const missingTemplates = templates.filter(
-        (t) => !existingTaskNames.has(t.title),
-      );
+      const existingTaskNames = new Set(existingItems.map((item) => item.task_name));
+      const missingTemplates = templates.filter((t) => !existingTaskNames.has(t.title));
 
       if (missingTemplates.length > 0) {
         const itemsToInsert = missingTemplates.map((t) => ({
-          student_id: student_id,
+          student_id,
           task_name: t.title,
           description: t.description,
           status: "Pending",
+          target_semester: CURRENT_TERM,
         }));
 
-        await supabase.from("checklist_item").insert(itemsToInsert);
-
-        // Re-fetch the updated list
-        const { data: updatedItems, error: refetchError } = await supabase
+        const { data: insertedItems, error: insertError } = await supabase
           .from("checklist_item")
-          .select("*")
-          .eq("student_id", student_id);
+          .insert(itemsToInsert)
+          .select();
 
-        if (!refetchError) {
-          const language = req.language || "en";
-          return res.json({
-            success: true,
-            data: (updatedItems || []).map((row) => {
-              const localized = localizeRow(row, language, [
-                "title",
-                "description",
-                "task_name",
-              ]);
-              return {
-                ...row,
-                title: localized.title ?? localized.task_name ?? row.title,
-                description: localized.description ?? row.description,
-                task_name: localized.task_name ?? row.task_name,
-              };
-            }),
+        if (insertError) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to seed checklist template items",
+            error: insertError.message,
           });
         }
+
+        existingItems = [...existingItems, ...(insertedItems || [])];
+      }
+    }
+
+    if (isNewlyEnrolled) {
+      const existingTaskNames = new Set(
+        existingItems
+          .filter((item) => item.target_semester === CURRENT_TERM)
+          .map((item) => item.task_name),
+      );
+
+      const missingTasks = ESSENTIAL_SETTLEMENT_TASKS.filter(
+        (task) => !existingTaskNames.has(task.task_name),
+      );
+
+      if (missingTasks.length > 0) {
+        const seedPayload = missingTasks.map((task) => ({
+          student_id,
+          task_name: task.task_name,
+          status: "Pending",
+          target_semester: CURRENT_TERM,
+        }));
+
+        const { data: seededItems, error: seedError } = await supabase
+          .from("checklist_item")
+          .insert(seedPayload)
+          .select();
+
+        if (seedError) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to seed settlement checklist tasks",
+            error: seedError.message,
+          });
+        }
+
+        existingItems = [...existingItems, ...(seededItems || [])];
       }
     }
 
     const language = req.language || "en";
-    res.json({
+    const localizedItems = existingItems.map((row) => {
+      const localized = localizeRow(row, language, ["title", "description", "task_name"]);
+      return {
+        ...row,
+        title: localized.title ?? localized.task_name ?? row.title,
+        description: localized.description ?? row.description,
+        task_name: localized.task_name ?? row.task_name,
+      };
+    });
+
+    const groupedChecklist = localizedItems.reduce((groups, item) => {
+      const semester = item.target_semester || "General";
+      if (!groups[semester]) groups[semester] = [];
+      groups[semester].push(item);
+      return groups;
+    }, {});
+
+    return res.json({
       success: true,
-      data: (existingItems || []).map((row) => {
-        const localized = localizeRow(row, language, [
-          "title",
-          "description",
-          "task_name",
-        ]);
-        return {
-          ...row,
-          title: localized.title ?? localized.task_name ?? row.title,
-          description: localized.description ?? row.description,
-          task_name: localized.task_name ?? row.task_name,
-        };
-      }),
+      is_new_fresher: isNewlyEnrolled,
+      data: groupedChecklist,
     });
   } catch (err) {
     res.status(500).json({
@@ -267,6 +316,7 @@ const getStudentChecklist = async (req, res) => {
     });
   }
 };
+
 
 const updateChecklistItem = async (req, res) => {
   try {
