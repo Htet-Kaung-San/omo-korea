@@ -1,29 +1,47 @@
 # Backend Status
 
-Last updated: <fill in date>
+Last updated: 2026-07-13
 
 ## Stack in use
-- Runtime/framework: <e.g. Node.js + Express / Fastify / NestJS>
-- ORM/DB layer: <e.g. Prisma / Sequelize / raw pg>
-- DB: PostgreSQL — hosted where? <local / Supabase / Railway / etc.>
-- Auth approach: <e.g. JWT, student-ID based login, session-based>
+- Runtime/framework: Node.js + Express 5
+- ORM/DB layer: Supabase JS client (`@supabase/supabase-js`) against PostgreSQL
+- DB: PostgreSQL on Supabase (`db/schema.sql`, `db/migration.sql`, `db/seed.sql`)
+- Auth approach: JWT (`middlewares/auth.js` — `authenticateToken`, `requireAdmin`); student-ID login
 
 ## Done
 | Feature | Status | Files/routes | Notes |
 |---|---|---|---|
-| e.g. Auth (signup/login) | Done | /routes/auth.js, /models/User.js | uses student ID + password |
-|  |  |  |  |
+| Auth (signup/login/reset) | Done | `POST /api/students/login\|signup\|forgot-password\|reset-password` | bcrypt + JWT |
+| Profile | Done | `GET/PATCH /api/students/:student_id`, `PUT /api/students/profile` | major join, language pref |
+| Checklist | Done | `GET/PUT /api/students/checklist/...` | settlement tasks seeded on enrollment |
+| Scholarships | Done | `GET /api/students/scholarships`, `POST .../apply` | localized fields |
+| Boards / community | Done | boards, posts, comments, like, report | |
+| Courses / enrollments | Done | `/courses`, `/enrollments` | |
+| Search | Done | `GET /api/students/search` | courses, notices, facilities, posts |
+| Notices / notifications | Done | `/notices`, `/notifications` | |
+| Emergency guide | Done | `GET /api/students/emergency-guide` | `emergencyGuideService.js` (+ visa office / jeonse tip) |
+| Campus facilities | Done | `GET /api/students/campus-facilities`, `/facilities` | cafeteria scrape + shuttle metadata |
+| Career opportunities | Done | `GET /api/students/career-opportunities` | JobKorea scraper |
+| AI assistant | Done | `/api/ai/*`, `/api/students/ai-dashboard` | chat, RAG docs, major gap, course recs |
+| Multilingual | Partial | `languageMiddleware` + `languageInterceptor` | Accept-Language → `req.language`; response auto-translate |
+| Admin RBAC | Done | `requireAdmin` on list/delete students | `student.is_admin` |
 
 ## In progress
 | Feature | Status | Blocker |
 |---|---|---|
-|  |  |  |
+| Broader i18n coverage | Partial | DB `language_pref` currently EN/KO/ZH only; product wants JA/VI too |
 
 ## Not started
-- (copy remaining items from PROJECT_CONTEXT.md feature list)
+- Map / GPS integration (immigration, hospitals, pharmacies, banks as map layer)
+- Dedicated housing/lease scam guide product surface (tip now lives on emergency-guide only)
+- Smart deadline notification engine
+- Extracurricular/club recommendation HTTP route (`ai/programRecommendationEngine.js` exists, unwired)
+- Work-permit / legal-info API (needs human/legal review)
 
 ## Known issues / tech debt
--
+- `middleware/authMiddleware.js` (`verifyToken`) is unused; live auth is `middlewares/auth.js`
+- Local stash `temporary stash before merging partner branch` may still exist — drop manually if obsolete
+- `scratch/` scripts are local utilities, not part of the API
 
 ## DB schema snapshot
-<paste `\d` output or migration file summary here so Cursor doesn't have to guess>
+See `db/schema.sql`: `major`, `student`, `course`, `enrollment`, `facility`, `notice`, `post`, checklist tables in migrations. Auth fields include `is_admin`, `language_pref`, `deletion_requested`, `intake_term`.

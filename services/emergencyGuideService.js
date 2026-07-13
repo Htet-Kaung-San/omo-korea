@@ -21,6 +21,21 @@ const FALLBACK_DATABASE_CONTACTS = [
 const FALLBACK_GUIDE_TEXT =
   "Stay calm. Say: '저 다쳤어요 (I'm hurt)' or '도와주세요 (Please help).' Share your location and student ID if possible.";
 
+const FALLBACK_VISA_OFFICES = [
+  {
+    name: 'Busan Immigration Office',
+    unit: 'Main Branch',
+    phone: '051-461-3000',
+    address: 'Busan, Jung-gu, Jungang-daero 146',
+  },
+];
+
+// Needs human/legal review before presenting as verified legal advice.
+const JEONSE_FRAUD_PREVENTION = {
+  notice:
+    "Before signing any housing contract, check the Certified Copy of Real Estate Register (등기부등본) to secure your deposit.",
+};
+
 const COUNTRY_FLAGS = {
   Mongolia: '🇲🇳',
   Myanmar: '🇲🇲',
@@ -109,6 +124,8 @@ async function getEmergencyGuide(language = 'en') {
       quick_access: buildQuickAccess(localizedRows),
       database_contacts: [...embassyContacts, ...nearestContacts],
       guide_text: FALLBACK_GUIDE_TEXT,
+      visa_offices: FALLBACK_VISA_OFFICES,
+      jeonse_fraud_prevention: JEONSE_FRAUD_PREVENTION,
       source: 'supabase',
     };
   }
@@ -117,6 +134,8 @@ async function getEmergencyGuide(language = 'en') {
     quick_access: FALLBACK_QUICK_ACCESS,
     database_contacts: FALLBACK_DATABASE_CONTACTS,
     guide_text: FALLBACK_GUIDE_TEXT,
+    visa_offices: FALLBACK_VISA_OFFICES,
+    jeonse_fraud_prevention: JEONSE_FRAUD_PREVENTION,
     source: 'fallback',
   };
 }
