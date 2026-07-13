@@ -1,251 +1,57 @@
-# HeyPNU
-## 부산대학교 외국인 유학생 통합 지원 서비스
- 
----
- 
-### 1. 프로젝트 소개
- 
-#### 1.1. 개발배경 및 필요성
- 
-대한민국은 'Study Korea 300K Project'를 통해 2027년까지 외국인 유학생 30만 명 유치를 목표로 하고 있으며, 부산대학교 역시 매년 증가하는 외국인 유학생을 맞이하고 있습니다. 그러나 실제 유학생들은 입학 준비 단계부터 재학 중 생활 전반에 걸쳐 파편화된 정보 환경 속에서 많은 어려움을 겪고 있습니다.
- 
-외국인 유학생 대상 설문조사에 따르면, 대학 지원 과정에서 정보 탐색의 어려움을 호소하는 비율이 높으며, 입국 이후에도 행정 절차, 언어 장벽, 생활 정보 부족으로 인한 정착 어려움이 지속되는 것으로 나타났습니다. 특히 필요한 정보를 여러 플랫폼에서 개별적으로 찾아야 하는 비효율적인 구조와, 부산대학교에 특화된 정보(학과 안내, 캠퍼스 시설, 행정 절차 등)를 외국어로 제공하는 통합 서비스가 존재하지 않는다는 점이 핵심 문제입니다.
- 
-**HeyPNU**는 이러한 문제를 해결하기 위해, 유학 준비생부터 재학생까지 부산대학교 유학의 전 과정을 하나의 플랫폼에서 지원하는 AI 기반 통합 서비스입니다.
- 
-#### 1.2. 개발 목표 및 주요 내용
- 
-본 프로젝트의 목표는 외국인 유학생이 부산대학교 유학 준비부터 졸업 이후 진로까지, 필요한 모든 정보와 기능을 한 곳에서 이용할 수 있는 통합 플랫폼을 구축하는 것입니다.
- 
-- **유학 준비생**: MBTI·관심 분야·언어 실력 기반 학과 추천 AI, 나라별 서류 체크리스트, 장학 정보
-- **재학생**: 수강 과목 추천 AI, 졸업요건 체크리스트, 캠퍼스 맵, 학교 시설 가이드, 커뮤니티 게시판, 취업 정보
-- **공통**: 다국어 지원(6개 언어+), 비자연장 알림, Emergency 긴급 기능, 주변 생활 편의 정보
-#### 1.3. 세부내용
- 
-**① 유학 준비생 기능**
-- MBTI 유형, 장점, 관심 분야, 언어 실력을 입력하면 AI가 적합한 학과·전공을 추천하고 목표 기반 격차 분석(Goal-Oriented Gap Analysis) 리포트를 제공
-- 국가별 비자 신청 서류 체크리스트 자동 생성, 마감일 임박 알림
-- GKS(정부초청장학금)·대학 자체 장학금 등 사용자 조건 맞춤형 장학 정보 통합 제공
+# Hey! PNU — fullstack monorepo
 
-**② 재학생 기능**
-- 전공·이수 학점 분석 기반 다음 학기 수강 과목 추천 AI
-- 졸업요건 체크리스트 (전공·교양·어학 이수 현황 자동 계산, 미충족 요건 표시)
-- 비교과 프로그램 추천 AI (동아리, 공모전, 봉사활동 등)
-- 학교 시설 사용 가이드 (학식 메뉴, 버스, 도서관 등 연동)
-- 캠퍼스 맵 (GPS 기반 건물·시설 위치 안내)
-- 인턴십 및 알바 정보, 기숙사·국제처.학과 공지사항 통합 제공
-  
-**③ 공통 기능**
-- 한국어·영어·중국어·일본어·베트남어 등 다국어 UI (문화적 맥락 반영 현지화)
-- 비자 만료일 기반 단계별 연장 알림 (D-90 / D-60 / D-30 / D-7)
-- Emergency 긴급 정보, 법적 정보
-- 주변 상점·병원·마트·약국 위치 및 정보
-- 집·부동산 주의 동향 및 전세 사기 예방 가이드
-#### 1.4. 기존 서비스 대비 차별성
- 
-| 구분 | Study in Korea | Hi Korea | Go! Go! Hanguk | **HeyPNU** |
-|---|---|---|---|---|
-| AI 학과 추천 | ❌ | ❌ | ❌ | ✅ MBTI·관심 분야 기반 |
-| 부산대 특화 정보 | ❌ | ❌ | ❌ | ✅ PNU 전용 커스터마이징 |
-| 졸업요건 관리 | ❌ | ❌ | ❌ | ✅ 자동 체크리스트 |
-| 다국어 UI | 한/영 일부 | 한국어 중심 | 제한적 | ✅ 6개 언어+ 현지화 |
-| 커뮤니티 | ❌ | ❌ | ❌ | ✅ 학적 인증 기반 멘토 매칭 |
-| 비자연장 알림 | ❌ | 일부 | D-4만 | ✅ 전 비자 종류 단계별 알림 |
-| 생활 편의 정보 | ❌ | ❌ | ❌ | ✅ 상점·병원·부동산 통합 |
- 
-#### 1.5. 사회적가치 도입 계획
- 
-**(1) 유학생 정착 지원을 통한 대학 행정 효율 강화**
-AI 기반 컨시어지 서비스와 맞춤형 체크리스트로 언어 장벽과 행정 절차의 복잡함을 해소하여, 국제처 담당 인력의 업무 부담을 줄이고 부산대학교의 국제화 역량을 강화합니다.
- 
-**(2) 지역 산업 맞춤형 인재 양성 및 지역 소멸 문제 해소**
-AI 학과 추천과 Goal-Oriented Gap Analysis를 통해 유학생의 역량을 지역 산업 수요와 연결하여, 졸업 후 지역 기업 취업 및 정주로 이어지는 선순환 구조를 형성합니다. 이는 학령인구 감소로 인한 지역 소멸 문제를 해결하는 실질적 도구로 활용될 수 있습니다.
- 
-**(3) 글로벌 커뮤니티 형성 및 사회 통합 촉진**
-멘토링 매칭·스터디 그룹 기능으로 유학생 간 유대감을 강화하고 내국인 학생 및 지역 주민과의 교류 기회를 확대하여, 다문화 수용성을 높이고 지역 사회 내 공동체 의식을 함양합니다.
- 
-**(4) 비자 준수 및 법적 안정성 확보**
-비자 종류별(D-2, D-4, D-10, E-7 등) 갱신 안내와 합법적 아르바이트 정보 제공으로 불법 체류 등 사회적 부작용을 예방하고, 유학생이 법적 권리를 보호받으며 안전하게 정착할 수 있도록 돕습니다.
- 
----
- 
-### 2. 상세설계
- 
-#### 2.1. 시스템 구성도
- 
-> 시스템 구성도(infra, front, back 등의 node 간의 관계) 사진을 삽입하세요. 
- 
-#### 2.2. 사용 기술
- 
-| 분야 | 기술 스택 | 버전 | 활용 목적 |
-|---|---|---|---|
-| **Frontend** | ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white) | React v18 / TS v5 / Tailwind v3 | 다국어 반응형 웹 UI, 대시보드 컴포넌트 개발 |
-| **Backend** | ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white) ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white) | Node.js v20 / Express v4 | REST API 서버, 비즈니스 로직 및 AI API 연동 처리 |
-| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white) | v16 | 유학생 정보, 체크리스트, 커뮤니티 데이터 관리 |
-| **AI** | ![Claude](https://img.shields.io/badge/Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white) | - | 학과·과목 추천, 공지사항 다국어 요약 |
-| **Infra** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) ![AWS](https://img.shields.io/badge/AWS_EC2-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white) | - | 프론트엔드 배포 / 백엔드 서버 운영 |
-| **생성형 AI · AI 코딩 도구** | ![GitHub Copilot](https://img.shields.io/badge/GitHub_Copilot-181717?style=for-the-badge&logo=github&logoColor=white) ![Claude](https://img.shields.io/badge/Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white) ![Cursor](https://img.shields.io/badge/Cursor-000000?style=for-the-badge&logoColor=white) | - | 코드 자동완성·리팩토링·디버깅, 기획 및 문서 작성 보조 |
-| **협업** | ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white) | - | 버전 관리, 문서화 및 일정 관리 |
- 
----
- 
-### 3. 개발결과
- 
-#### 3.1. 전체시스템 흐름도
- 
-```
-[준비생 사용자]                      [재학생 사용자]
-       │                                    │
-       ▼                                    ▼
- MBTI·관심분야·언어 입력           학점·수강이력 입력
-       │                                    │
-       ▼                                    ▼
- AI 학과 추천 엔진                  AI 과목 추천 엔진
- (Claude API)                       (Claude API)
-       │                                    │
-       ▼                                    ▼
- 나라별 서류 체크리스트              졸업요건 체크리스트
- 장학 정보 매칭                      비교과 프로그램 추천
-       |                       캠퍼스 맵 · 시설 가이드
-       │                                    │
-       └──────────────┬─────────────────────┘
-                      ▼
-           [공통 기능 레이어]
-      ┌──────────────────────────────┐
-      │  다국어 UI (6개 언어+)        │
-      │  비자연장 알림 (D-90~D-7)     │
-      │  Emergency 긴급 기능          │
-      │  커뮤니티 게시판              │
-      │  생활 편의 정보               │
-      └──────────────────────────────┘
-                      │
-                      ▼
-          [Backend: Node.js + Express]
-          [Database: PostgreSQL]
-                      │
-            ┌─────────┴─────────┐
-            ▼                   ▼
-      Claude API           Gemini API
-   (학과·과목 추천)       (공지 다국어 요약)
-                      │
-                      ▼
-          [배포: Vercel(FE) + AWS EC2(BE)]
-```
- 
-#### 3.2. 기능설명
- 
-> 각 페이지마다 사용자의 입력 종류와 입력에 따른 결과를 설명하고 시연 영상을 첨부하세요.
->
-> ex. 학과 추천 페이지:
->
-> - MBTI 유형, 관심 분야, 언어 실력을 선택·입력하면 AI 분석이 시작됩니다.
->
-> - 분석 완료 시 적합도 순으로 정렬된 학과 추천 목록과 Goal-Oriented Gap Analysis 리포트가 표시됩니다.
->
-> - 각 학과 카드를 클릭하면 입학 요건, 장학금, 졸업 후 진로 정보로 이동합니다.
->
-> (시연 영상 첨부)
- 
-#### 3.3. 기능명세서
+Local integration branch: `integration/heypnu-fullstack`
 
-| 기능 ID | 대분류 | 소분류 (기능명) | 기능 상세 설명 | 입력 데이터 | 출력 및 처리 결과 | 지원 플랫폼 |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **F-01** | 온보딩 | 언어 설정 | 앱/웹 최초 진입 시 사용자가 선호하는 다국어 인터페이스를 선택함 | 언어 선택 (한국어, 영어, 중국어, 베트남어 등) | 선택한 언어 설정을 로컬 스토리지/쿠키에 저장하고 화면 번역 리소스를 매핑하여 표시함 | Web / Mobile |
-| **F-02** | 회원가입 | 학생 구분 선택 | 회원가입 프로세스 시작 시 국내 학생 또는 외국인 유학생 역할 선택 | 학생 유형 (국내 학생 / 외국인 유학생) | 가입 폼 요건을 동적으로 변경함 (외국인 유학생 선택 시 비자 정보 필수 활성화) | Web / Mobile |
-| **F-03** | 회원가입 | 계정 생성 | 이메일과 비밀번호를 이용하여 회원 계정을 등록함 | 이름, 이메일 주소, 비밀번호, 비밀번호 확인 | 입력값 유효성 검사 후 Supabase Auth를 통해 신규 사용자(`users` 테이블) 등록 | Web / Mobile |
-| **F-04** | 인증 | 로그인 | 가입된 계정 정보를 입력하여 앱 세션을 시작함 | 이메일, 비밀번호 | 로그인 성공 시 세션 토큰을 발급하고 메인 대시보드로 이동시킴 | Web / Mobile |
-| **F-05** | 대시보드 | 홈 화면 구성 | 학생 유형 및 언어 설정에 맞는 메인 화면을 보여줌 | 인증 세션 정보 | 개인 맞춤형 추천 과목 위젯, 마감 임박 알림, 커뮤니티 소식 목록 렌더링 | Web / Mobile |
-| **F-06** | 대시보드 | 실시간 알림 | 학사 공지, 장학금 마감, 커뮤니티 답글 등의 소식을 전달함 | 새 알림 이벤트 데이터 | Firebase Cloud Messaging(FCM)을 통해 모바일에 푸시 알림을 발송하고 앱 내 알림 배지 업데이트 | Mobile |
-| **F-07** | 프로필 | 상세 프로필 설정 | 추천 알고리즘에 활용할 개인 성향 및 학업 프로필 정보를 기입함 | 국적, MBTI, 강점/약점 키워드, 구사 가능 언어 | `profiles` 및 `interests` 테이블 데이터 수정 및 동기화 | Web / Mobile |
-| **F-08** | 프로필 | 학생 신분 인증 | 재학 사실 증명을 위해 서류를 제출하고 학생증을 인증함 | 학번, 비자 종류 (D-2/D-4), 학생증 이미지 파일 | 이미지를 Supabase Storage에 업로드하고 상태를 '승인 대기(`verification_pending`)'로 업데이트 | Web / Mobile |
-| **F-09** | 학업 관리 | AI 과목/학과 추천 | 사용자의 프로필 역량을 기반으로 적합한 과목과 학과를 AI로 분석하여 추천함 | 프로필 정보 (MBTI, 관심 분야, 어학 역량 등) | 분석 스코어와 함께 추천 과목 목록을 정렬하여 출력 (`course_recommendations` 테이블) | Web / Mobile |
-| **F-10** | 학업 관리 | 졸업 체크리스트 | 졸업에 필요한 취득 학점 및 세부 요구 조건을 확인하고 관리함 | 이수 완료 과목 리스트 | 잔여 학점 계산 및 카테고리별 이수 완료 진척도를 그래프로 시각화 (`graduation_checklist`) | Web / Mobile |
-| **F-11** | 정보 조회 | 장학금 상세 검색 | 유학생이 신청 가능한 장학금을 조회하고 검색함 | 검색어, 마감일 필터 조건 | 조건에 맞는 장학금 정보 및 외부 신청 링크 목록 표시 (`scholarships` 테이블) | Web / Mobile |
-| **F-12** | 정보 조회 | 채용 및 알바 정보 | 유학생 맞춤형 시간제 근무나 인턴십 정보를 필터링하여 제공함 | 고용 형태 필터 (시간제/인턴), 언어 필터 | 워크넷 API 연동 및 조건에 부합하는 외국인 채용 정보 출력 (`job_opportunities` 테이블) | Web / Mobile |
-| **F-13** | 커뮤니티 | 글로벌 소모임 개설 | 다국어 교류나 스터디를 위한 모임을 생성함 | 모임명, 카테고리, 모임 설명 | `community_groups` 테이블에 새로운 그룹 데이터 삽입 | Web / Mobile |
-| **F-14** | 커뮤니티 | 소모임 가입 및 탈퇴 | 원하는 소모임에 멤버로 참가하거나 탈퇴함 | 그룹 ID, 사용자 ID | `community_members` 테이블에 가입 정보 기록 및 실시간 참여 인원 업데이트 | Web / Mobile |
-
-#### 3.4. 디렉토리 구조
- 
 ```
-HeyPNU/
-├── client/                        # React 프론트엔드
-│   ├── public/                    # 정적 파일 (로고, 아이콘 등)
-│   └── src/
-│       ├── components/            # 공통 UI 컴포넌트
-│       ├── pages/
-│       │   ├── PrepStudent/       # 준비생 기능 (학과추천, 서류체크리스트 등)
-│       │   ├── CurrentStudent/    # 재학생 기능 (과목추천, 졸업요건 등)
-│       │   └── Common/            # 공통 기능 (비자알림, 긴급, 커뮤니티 등)
-│       ├── hooks/                 # 커스텀 훅
-│       ├── utils/                 # 다국어 처리 등 유틸리티 함수
-│       └── types/                 # TypeScript 타입 정의
-├── server/                        # Node.js 백엔드
-│   ├── routes/                    # API 라우터
-│   ├── controllers/               # 비즈니스 로직
-│   ├── models/                    # DB 모델 (PostgreSQL)
-│   ├── services/                  # AI API 연동 (Claude, Gemini)
-│   └── middleware/                # 인증, 다국어 미들웨어
-├── docs/                          # 시스템 구성도, 기능명세서 등
-├── .env.example
-├── .gitignore
-└── README.md
+/
+├── frontend/   # React + Vite UI (from ui-frontend)
+├── backend/    # Node + Express API (from backend-dev)
+├── README.md
+└── .gitignore
 ```
 
- 
-#### 3.5. AI 도구 활용
--- 자르갈 작성 예
- 
-### 4. 설치 및 사용 방법
- 
-```bash
-# 레포지토리 클론
-git clone https://github.com/PNU-2026-AI-Hackathon/[팀_레포명].git
-cd HeyPNU
- 
-# 환경변수 설정
-cp .env.example .env.local
-# .env.local 에 Claude API Key, Gemini API Key 등 입력
- 
-# 프론트엔드 실행
-cd client
+## Prerequisites
+
+- Node.js 20+
+- Supabase project credentials for the backend
+
+## Setup
+
+```powershell
+# Backend
+cd backend
+copy .env.example .env
+# Fill SUPABASE_URL, SUPABASE_KEY, JWT_SECRET in .env
 npm install
-npm start
- 
-# 백엔드 실행
-cd server
+
+# Frontend
+cd ..\frontend
+copy .env.example .env
 npm install
+```
+
+## Run locally (two terminals)
+
+```powershell
+# Terminal 1 — API on :3000
+cd backend
+npm run dev
+
+# Terminal 2 — UI on :5173 (proxies /api → :3000)
+cd frontend
 npm run dev
 ```
- 
-> 필요한 환경변수 목록은 `.env.example` 파일을 참고하세요.
- 
----
- 
-### 5. 소개 및 시연 영상
--- 밍구 + 츄 작성 예정 
- 
-### 6. 팀 소개
- 
-| 판킨킨자우 (팀장) | 텟 까웅 산 | 비얌바수렝 투브신자르갈 | 츄딴띤자 | 에르덴 오치르 노밍구 |
-|---|---|---|---|---|
-| <img src="https://avatars.githubusercontent.com/u/167033161?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/142887402?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/163098030?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/120101937?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/291190850?v=4" width="100" height="100"/> |
-| 팀장 · 백엔드 | 풀스택 | AI 엔지니어 | 프론트엔드 | 프론트엔드 보조 · 기획 |
-| 컴퓨터공전공 | 인공지능전공 | 컴퓨터공전공 | 컴퓨터공전공 | 생명과학전공 |
-| pankhinkhinzaw12@gmail.com | htetsan206@gmail.com | tuvshinjargalbyambasuren@gmail.com | chyu2310@gmail.com | nmngoo15@gmail.com |
- 
----
- 
-### 7. 해커톤 참여 후기
- 
-- **[판킨킨자우]**
-  - 내용 작성
-- **[텟 까웅 산]**
-  - 내용 작성
-- **[비얌바수렝 투브신자르갈]**
-  - 내용 작성
-- **[츄딴띤자]**
-  - 내용 작성
-- **[에르덴 오치르 노밍구]**
-  - 내용 작성
- 
+
+Set `VITE_API_MODE=real` in `frontend/.env` to hit the live API.
+
+## API contract
+
+See `hey_pnu_integration_docs.pdf` (local reference; keep untracked unless the team chooses to version it).
+
+Key routes:
+
+- `GET /api/students/emergency-guide`
+- `GET /api/students/campus-facilities`
+- `PUT /api/students/profile` (Bearer token)
+- `GET /api/students/ai-dashboard` (Bearer token)
+- `GET /api/students/notifications` (Bearer token)

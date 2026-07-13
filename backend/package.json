@@ -1,0 +1,29 @@
+{
+  "name": "hey-pnu-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Hey! PNU",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "joi": "^18.2.3",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}
