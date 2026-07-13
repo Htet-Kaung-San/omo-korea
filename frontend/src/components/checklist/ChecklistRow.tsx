@@ -2,6 +2,7 @@ import type { ChecklistItem } from '@/types/api'
 import { Card } from '@/components/ui/Card'
 import { Check, Lock } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
+import { localizeChecklistText } from '@/utils/checklistLocalization'
 
 interface ChecklistRowProps {
   item: ChecklistItem
@@ -24,6 +25,8 @@ export function ChecklistRow({
 }: ChecklistRowProps) {
   const { t } = useLanguage()
   const isBlocked = locked && !item.completed
+  const title = localizeChecklistText(item.title, t)
+  const description = localizeChecklistText(item.description, t)
   const content = (
     <label className={['flex items-start gap-3', isBlocked ? 'cursor-not-allowed' : 'cursor-pointer'].join(' ')}>
       <button
@@ -34,7 +37,7 @@ export function ChecklistRow({
           isBlocked
             ? t('checklist.lockedLabel', { reason: lockReason ?? '' })
             : t('checklist.markLabel', {
-                title: item.title,
+                title,
                 state: item.completed
                   ? t('checklist.stateIncomplete')
                   : t('checklist.stateComplete'),
@@ -65,9 +68,11 @@ export function ChecklistRow({
             item.completed ? 'text-pnu-muted line-through' : isBlocked ? 'text-slate-500' : 'text-pnu-text',
           ].join(' ')}
         >
-          {item.title}
+          {title}
         </span>
-        <span className="mt-1 block text-sm leading-relaxed text-pnu-muted">{item.description}</span>
+        {description ? (
+          <span className="mt-1 block text-sm leading-relaxed text-pnu-muted">{description}</span>
+        ) : null}
 
         {isBlocked && lockReason && (
           <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700">

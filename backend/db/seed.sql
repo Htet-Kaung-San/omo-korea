@@ -13,6 +13,7 @@ ON CONFLICT (major_name) DO NOTHING;
 -- 2. SEED STUDENTS (Password is hashed 'password' using bcryptjs)
 INSERT INTO student (student_id, password, name, nationality, major_id, student_type, visa_status, language_pref, email, phone) VALUES
 ('202455393', '$2a$10$U9HkfeY2R0x.bF3uF3l70e6U5oH6k.vL03iP/M.aD3p/hJ1lH/eOm', 'Pan Khin Khin Zaw', 'Myanmar', 1, 'Freshman', 'D-2', 'en', 'pan@pnu.edu', '010-9999-8888'),
+('202600001', '$2b$10$CHlA1tzJuUJaTTtQAgcTvewHiInG0JX0465iR56Pk2x9BFW2MM7pC', 'Sample Student', 'Vietnam', 1, 'Current', 'D-2', 'en', '202600001@pnu.edu', '010-0000-0001'),
 ('202012345', '$2a$10$U9HkfeY2R0x.bF3uF3l70e6U5oH6k.vL03iP/M.aD3p/hJ1lH/eOm', 'Min-Jun Kim', 'South Korea', 1, 'Current', 'None', 'ko', 'mj@pnu.edu', '010-1234-5678'),
 ('202399999', '$2a$10$U9HkfeY2R0x.bF3uF3l70e6U5oH6k.vL03iP/M.aD3p/hJ1lH/eOm', 'Yuki Tanaka', 'Japan', 2, 'Current', 'D-2', 'ja', 'yuki@pnu.edu', '010-8888-7777')
 ON CONFLICT (student_id) DO NOTHING;

@@ -232,7 +232,7 @@ const getStudentChecklist = async (req, res) => {
           student_id,
           task_name: t.title,
           description: t.description,
-          status: "Pending",
+          status: "Not Started",
           target_semester: CURRENT_TERM,
         }));
 
@@ -268,7 +268,7 @@ const getStudentChecklist = async (req, res) => {
         const seedPayload = missingTasks.map((task) => ({
           student_id,
           task_name: task.task_name,
-          status: "Pending",
+          status: "Not Started",
           target_semester: CURRENT_TERM,
         }));
 
@@ -325,7 +325,12 @@ const getStudentChecklist = async (req, res) => {
 const updateChecklistItem = async (req, res) => {
   try {
     const { checklist_id } = req.params;
-    const { status } = req.body;
+    let { status } = req.body;
+
+    // Live DB constraint: Not Started | In Progress | Completed
+    if (status === "Pending" || status === "pending") {
+      status = "Not Started";
+    }
 
     const { data, error } = await supabase
       .from("checklist_item")
@@ -634,7 +639,7 @@ const signupStudent = async (req, res) => {
         student_id: String(student_id),
         task_name: item.title,
         description: item.description,
-        status: "Pending",
+        status: "Not Started",
       });
     }
 

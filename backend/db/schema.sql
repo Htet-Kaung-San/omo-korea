@@ -106,9 +106,11 @@ CREATE TABLE IF NOT EXISTS checklist_item (
     checklist_id SERIAL PRIMARY KEY,
     student_id VARCHAR(50) REFERENCES student(student_id) ON DELETE CASCADE,
     task_name VARCHAR(255) NOT NULL,
-    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed')),
+    status VARCHAR(20) DEFAULT 'Not Started' CHECK (status IN ('Not Started', 'In Progress', 'Completed')),
     due_date TIMESTAMP,
-    description TEXT
+    description TEXT,
+    target_semester VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexing for lookup speed optimizations

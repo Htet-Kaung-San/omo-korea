@@ -21,7 +21,7 @@ function CircleProgress({ value, max }: { value: number; max: number }) {
         <circle
           cx="50" cy="50" r={radius}
           fill="none"
-          stroke="#E2E8F0"
+          stroke="#D5DEE8"
           strokeWidth="8"
         />
         {/* Progress arc */}
@@ -38,16 +38,16 @@ function CircleProgress({ value, max }: { value: number; max: number }) {
         />
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#1E3A8A" />
-            <stop offset="100%" stopColor="#2563EB" />
+            <stop offset="0%" stopColor="#003d82" />
+            <stop offset="100%" stopColor="#0054a6" />
           </linearGradient>
         </defs>
       </svg>
       {/* Centre label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[20px] font-bold leading-none text-[#0F172A]">{value}</span>
-        <span className="text-[9px] text-[#64748B] mt-0.5">/ {max} cr</span>
-        <span className="text-[10px] font-semibold text-[#2563EB] mt-0.5">
+        <span className="text-[20px] font-bold leading-none text-pnu-text">{value}</span>
+        <span className="text-[9px] text-pnu-muted mt-0.5">/ {max} cr</span>
+        <span className="text-[10px] font-semibold text-pnu-blue-light mt-0.5">
           {max > 0 ? Math.round((value / max) * 100) : 0}%
         </span>
       </div>

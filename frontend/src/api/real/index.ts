@@ -150,11 +150,18 @@ export const realApi: HeyPnuApi = {
 
   async getChecklist(): Promise<ChecklistPayload> {
     const studentId = requireStudentId()
-    const items = await backendFetch<Parameters<typeof mapChecklistItem>[0][]>(
-      `/students/checklist/${studentId}`,
-    )
+    // Backend returns grouped checklist by semester plus is_new_fresher.
+    const body = await apiFetch<{
+      success: true
+      is_new_fresher?: boolean
+      data:
+        | Parameters<typeof mapChecklistItem>[0][]
+        | Record<string, Parameters<typeof mapChecklistItem>[0][]>
+    }>(`/students/checklist/${studentId}`)
 
-    return mapChecklistPayload(studentId, items)
+    return mapChecklistPayload(studentId, body.data, {
+      isNewFresher: body.is_new_fresher,
+    })
   },
 
   async updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem> {
@@ -162,7 +169,7 @@ export const realApi: HeyPnuApi = {
       `/students/checklist/${itemId}`,
       {
         method: 'PUT',
-        body: JSON.stringify({ status: completed ? 'Completed' : 'Pending' }),
+        body: JSON.stringify({ status: completed ? 'Completed' : 'Not Started' }),
       },
     )
 

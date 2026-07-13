@@ -24,9 +24,16 @@ interface BackendStudent {
 interface BackendChecklistItem {
   checklist_id: string | number
   title?: string | null
+  task_name?: string | null
   description?: string | null
   status?: string | null
 }
+
+type BackendChecklistData =
+  | BackendChecklistItem[]
+  | Record<string, BackendChecklistItem[]>
+  | null
+  | undefined
 
 interface BackendNotice {
   id: string
@@ -72,8 +79,22 @@ export function mapBackendStudent(data: BackendStudent): User {
   }
 }
 
-export function mapChecklistVariant(studentId: string): ChecklistVariant {
-  return isFreshmanStudent(studentId) ? 'NEW_STUDENT' : 'GRADUATION_REQUIREMENT'
+export function mapChecklistVariant(
+  studentId: string,
+  isNewFresher?: boolean,
+): ChecklistVariant {
+  if (isNewFresher === true || isFreshmanStudent(studentId)) return 'NEW_STUDENT'
+  return 'GRADUATION_REQUIREMENT'
+}
+
+export function flattenChecklistItems(data: BackendChecklistData): BackendChecklistItem[] {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object') {
+    return Object.values(data)
+      .flat()
+      .filter((item): item is BackendChecklistItem => Boolean(item && typeof item === 'object'))
+  }
+  return []
 }
 
 export function mapChecklistItem(item: BackendChecklistItem): ChecklistItem {
@@ -81,7 +102,7 @@ export function mapChecklistItem(item: BackendChecklistItem): ChecklistItem {
 
   return {
     id: String(item.checklist_id),
-    title: item.title ?? 'Untitled task',
+    title: item.title ?? item.task_name ?? 'Untitled task',
     description: item.description ?? '',
     completed: status === 'completed' || status === 'done' || status === 'true',
   }
@@ -89,11 +110,12 @@ export function mapChecklistItem(item: BackendChecklistItem): ChecklistItem {
 
 export function mapChecklistPayload(
   studentId: string,
-  items: BackendChecklistItem[],
+  items: BackendChecklistData,
+  options?: { isNewFresher?: boolean },
 ): ChecklistPayload {
   return {
-    variant: mapChecklistVariant(studentId),
-    items: items.map(mapChecklistItem),
+    variant: mapChecklistVariant(studentId, options?.isNewFresher),
+    items: flattenChecklistItems(items).map(mapChecklistItem),
   }
 }
 

@@ -20,8 +20,8 @@ export function Card({ children, className = '', onClick }: CardProps) {
           : undefined
       }
       className={[
-        'rounded-2xl border border-pnu-border bg-white p-4 shadow-sm',
-        onClick ? 'cursor-pointer transition hover:border-pnu-blue-light/40' : '',
+        'rounded-3xl border border-pnu-border bg-white p-4 shadow-sm',
+        onClick ? 'cursor-pointer transition hover:-translate-y-0.5 hover:border-pnu-blue-light/40 hover:shadow-md' : '',
         className,
       ]
         .filter(Boolean)

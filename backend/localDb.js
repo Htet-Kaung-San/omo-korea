@@ -40,6 +40,16 @@ const initialData = {
   ],
   students: [
     {
+      student_id: "202600001",
+      name: "Sample Student",
+      nationality: "Vietnam",
+      major_id: 1,
+      student_type: "Current",
+      visa_status: "D-2",
+      password: "password",
+      is_admin: false,
+    },
+    {
       student_id: "202455393",
       name: "Minh Nguyen",
       nationality: "Vietnam",
@@ -77,14 +87,14 @@ const initialData = {
       student_id: "202455393",
       title: "Submit graduation thesis outline",
       description: "Submit outline to academic office",
-      status: "Pending",
+      status: "Not Started",
     },
     {
       checklist_id: "c2",
       student_id: "202455393",
       title: "TOPIK Level 4 certificate",
       description: "Language requirement",
-      status: "Pending",
+      status: "Not Started",
     },
     {
       checklist_id: "c3",
@@ -99,14 +109,14 @@ const initialData = {
       student_id: "202612345",
       title: "Apply for Alien Registration Card (ARC)",
       description: "Visit immigration office within 90 days",
-      status: "Pending",
+      status: "Not Started",
     },
     {
       checklist_id: "f2",
       student_id: "202612345",
       title: "Open local bank account",
       description: "For scholarship and living expenses",
-      status: "Pending",
+      status: "Not Started",
     },
     {
       checklist_id: "f3",
@@ -121,7 +131,7 @@ const initialData = {
       student_id: "202012345",
       title: "Submit graduation thesis outline",
       description: "Submit outline to academic office",
-      status: "Pending",
+      status: "Not Started",
     },
     {
       checklist_id: "c21",
