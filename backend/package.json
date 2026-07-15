@@ -19,7 +19,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "joi": "^18.2.3",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "ws": "^8.21.1"
   },
   "devDependencies": {
     "jest": "^30.4.2",

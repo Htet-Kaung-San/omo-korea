@@ -119,13 +119,18 @@ function getDeadlineInfo(deadline, asOfDate) {
 }
 
 function passesEligibility(studentProfile, notice) {
+  const targetMajors = notice.targetMajors || notice.target_majors || [];
+  const targetNationalities = notice.targetNationalities || notice.target_nationalities || [];
+  const minYear = notice.minYear ?? notice.min_year;
+  const maxYear = notice.maxYear ?? notice.max_year;
+
   return (
-    matchesOptionalList(studentProfile.major, notice.targetMajors) &&
+    matchesOptionalList(studentProfile.major, targetMajors) &&
     matchesOptionalList(
       studentProfile.nationality,
-      notice.targetNationalities
+      targetNationalities
     ) &&
-    passesYearEligibility(studentProfile.year, notice.minYear, notice.maxYear)
+    passesYearEligibility(studentProfile.year, minYear, maxYear)
   );
 }
 
@@ -159,8 +164,8 @@ function buildMatchHint({
 }
 
 function scoreNotice(studentProfile, notice, asOfDate) {
-  const targetMajors = normalizeArray(notice.targetMajors);
-  const targetNationalities = normalizeArray(notice.targetNationalities);
+  const targetMajors = normalizeArray(notice.targetMajors || notice.target_majors || []);
+  const targetNationalities = normalizeArray(notice.targetNationalities || notice.target_nationalities || []);
 
   const majorMatch =
     targetMajors.length > 0 &&
@@ -174,8 +179,8 @@ function scoreNotice(studentProfile, notice, asOfDate) {
       .map(normalizeValue)
       .includes(normalizeValue(studentProfile.nationality));
 
-  const interestMatches = getMatches(studentProfile.interests, notice.tags);
-  const languageMatches = getMatches(studentProfile.languages, notice.languages);
+  const interestMatches = getMatches(studentProfile.interests, notice.tags || []);
+  const languageMatches = getMatches(studentProfile.languages, notice.languages || []);
   const deadlineInfo = getDeadlineInfo(notice.deadline, asOfDate);
 
   const priority = String(notice.priority || 'NORMAL').trim().toUpperCase();

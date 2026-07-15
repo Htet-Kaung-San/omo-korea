@@ -62,9 +62,13 @@ function passesYearEligibility(studentYear, minYear, maxYear) {
 }
 
 function passesEligibility(studentProfile, program) {
+  const eligibleMajors = program.eligibleMajors || program.eligible_majors || [];
+  const minYear = program.minYear ?? program.min_year;
+  const maxYear = program.maxYear ?? program.max_year;
+
   return (
-    isMajorEligible(studentProfile.major, program.eligibleMajors) &&
-    passesYearEligibility(studentProfile.year, program.minYear, program.maxYear)
+    isMajorEligible(studentProfile.major, eligibleMajors) &&
+    passesYearEligibility(studentProfile.year, minYear, maxYear)
   );
 }
 
@@ -93,20 +97,20 @@ function buildMatchHint({
 }
 
 function scoreProgram(studentProfile, program) {
-  const interestMatches = getMatches(studentProfile.interests, program.tags);
+  const interestMatches = getMatches(studentProfile.interests, program.tags || program.tag_list || []);
   const careerMatches = getMatches(
     studentProfile.careerAreas,
-    program.careerTags
+    program.careerTags || program.career_tags || []
   );
-  const eligibleMajors = normalizeArray(program.eligibleMajors);
+  const eligibleMajors = normalizeArray(program.eligibleMajors || program.eligible_majors || []);
   const receivesMajorScore = eligibleMajors
     .map(normalizeValue)
     .includes(normalizeValue(studentProfile.major));
-  const languageMatches = getMatches(studentProfile.languages, program.languages);
+  const languageMatches = getMatches(studentProfile.languages, program.languages || []);
   const isEligibleYear = isYearEligible(
     Number(studentProfile.year),
-    Number(program.minYear),
-    Number(program.maxYear)
+    Number(program.minYear ?? program.min_year),
+    Number(program.maxYear ?? program.max_year)
   );
 
   let score = 0;

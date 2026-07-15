@@ -42,17 +42,19 @@ function buildMatchHint({
 
 function scoreCourse(studentProfile, course) {
   const major = normalizeValue(studentProfile.major);
-  const courseDepartment = normalizeValue(course.department);
+  const courseDepartment = normalizeValue(course.department || course.major || '');
   const isMajorCourse = major !== '' && courseDepartment === major;
+  const courseTags = course.tags || course.tag_list || [];
   const interestMatches = getMatchingInterestTags(
     studentProfile.interests,
-    course.tags
+    courseTags
   );
   const cappedInterestMatches = Math.min(interestMatches.length, 2);
-  const isRequiredInMajor = course.type === 'REQUIRED' && isMajorCourse;
-  const isElectiveInMajor = course.type === 'ELECTIVE' && isMajorCourse;
+  const normalizedType = String(course.type || course.course_type || '').toUpperCase();
+  const isRequiredInMajor = normalizedType === 'REQUIRED' && isMajorCourse;
+  const isElectiveInMajor = normalizedType === 'ELECTIVE' && isMajorCourse;
   const isGenEdInterestMatch =
-    course.type === 'GEN_ED' && interestMatches.length > 0;
+    normalizedType === 'GEN_ED' && interestMatches.length > 0;
 
   let score = 0;
 
@@ -98,7 +100,7 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
 
   return courses
     .filter((course) => !completedCourseIds.has(String(course.id)))
-    .filter((course) => requestedType === 'ALL' || course.type === requestedType)
+    .filter((course) => requestedType === 'ALL' || String(course.type || course.course_type || '').toUpperCase() === requestedType)
     .map((course) => ({
       ...course,
       ...scoreCourse(studentProfile, course),

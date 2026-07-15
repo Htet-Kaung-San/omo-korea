@@ -10,10 +10,14 @@ function isGeminiConfigured() {
 
 // Generate embedding vector using Gemini text-embedding-004
 async function generateEmbedding(text) {
+  const isPlaceholder = !process.env.SUPABASE_URL || !process.env.SUPABASE_KEY || process.env.SUPABASE_URL.includes("placeholder");
+
   if (!isGeminiConfigured()) {
-    // Return a dummy 768-dim vector for testing/local offline mode
-    const dummy = new Array(768).fill(0).map(() => Math.random() * 0.1);
-    return dummy;
+    if (isPlaceholder) {
+      const dummy = new Array(768).fill(0).map(() => Math.random() * 0.1);
+      return dummy;
+    }
+    throw new Error("Gemini API key is not configured for embedding generation");
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_API_KEY}`;
@@ -136,7 +140,14 @@ async function syncDocument(docId) {
 // Retrieve relevant context chunks matching query and student parameters
 async function retrieveContext(queryText, filters = {}, limit = 3) {
   const isPlaceholder = !process.env.SUPABASE_URL || !process.env.SUPABASE_KEY || process.env.SUPABASE_URL.includes("placeholder");
-  const queryEmbedding = await generateEmbedding(queryText);
+
+  let queryEmbedding;
+  try {
+    queryEmbedding = await generateEmbedding(queryText);
+  } catch (embeddingErr) {
+    console.warn("Embedding generation failed; RAG context retrieval skipped:", embeddingErr.message);
+    return "";
+  }
 
   let results = [];
   if (isPlaceholder) {

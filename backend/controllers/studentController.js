@@ -52,6 +52,62 @@ function mapScholarshipRow(row, language = "en") {
   };
 }
 
+function normalizeSearchText(value) {
+  return String(value ?? "").toLowerCase().trim();
+}
+
+function getSearchTerms(query) {
+  return normalizeSearchText(query)
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function calculateSearchScore(item, queryTerms) {
+  const title = normalizeSearchText(item.title || item.course_name || item.name || item.major_name || item.program_name || item.scholarship_name || item.notice_title || item.label || "");
+  const content = normalizeSearchText(
+    item.content || item.description || item.summary || item.eligibility || item.department || item.provider || item.classroom || item.location || "",
+  );
+  const haystack = `${title} ${content}`;
+
+  if (!haystack) return 0;
+
+  let score = 0;
+  if (queryTerms.length === 0) return score;
+
+  const normalizedQuery = normalizeSearchText(queryTerms.join(" "));
+  if (haystack.includes(normalizedQuery)) score += 25;
+
+  queryTerms.forEach((term) => {
+    if (title.includes(term)) score += 10;
+    if (content.includes(term)) score += 4;
+    if (haystack.includes(term)) score += 2;
+  });
+
+  return score;
+}
+
+function rankSearchItems(items, query) {
+  const queryTerms = getSearchTerms(query);
+  return items
+    .map((item) => ({ ...item, _score: calculateSearchScore(item, queryTerms) }))
+    .filter((item) => item._score > 0)
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 6)
+    .map(({ _score, ...rest }) => rest);
+}
+
+async function fetchSearchTable(tableName, selectColumns = "*") {
+  try {
+    const { data, error } = await supabase.from(tableName).select(selectColumns);
+    if (error) {
+      return [];
+    }
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 const testConnection = async (req, res) => {
   try {
     const { data, error } = await supabase.from("major").select("*").limit(1);
@@ -1165,6 +1221,7 @@ const getFacilities = async (req, res) => {
 
 const getNotices = async (req, res) => {
   try {
+    const { q, limit = 20 } = req.query;
     const { data, error } = await supabase
       .from("notice")
       .select("*")
@@ -1175,7 +1232,28 @@ const getNotices = async (req, res) => {
         message: "Failed to fetch notices",
         error: error.message,
       });
-    res.json({ success: true, data });
+
+    const query = String(q || "").trim();
+    const noticeItems = Array.isArray(data) ? data : [];
+    const filtered = !query
+      ? noticeItems
+      : rankSearchItems(
+          noticeItems.map((item) => ({
+            ...item,
+            title: item.title || item.notice_title || item.name || "",
+            content: item.content || item.description || "",
+          })),
+          query,
+        );
+
+    const limitValue = Number(limit);
+    const sliced = filtered.slice(0, Number.isFinite(limitValue) ? limitValue : 20);
+
+    res.json({
+      success: true,
+      data: sliced,
+      meta: { query, total: sliced.length },
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1552,61 +1630,121 @@ const updateLanguagePreference = async (req, res) => {
 const globalSearch = async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q) {
+    const query = String(q || "").trim();
+
+    if (!query) {
       return res.json({
         success: true,
-        data: { courses: [], notices: [], facilities: [], posts: [] },
+        data: {
+          query: "",
+          courses: [],
+          notices: [],
+          scholarships: [],
+          programs: [],
+          majors: [],
+          documents: [],
+          facilities: [],
+          posts: [],
+        },
       });
     }
 
-    const query = String(q).toLowerCase();
+    const [courses, notices, scholarships, programs, majors, documents, facilities, posts] = await Promise.all([
+      fetchSearchTable("course"),
+      fetchSearchTable("notice"),
+      fetchSearchTable("scholarship"),
+      fetchSearchTable("extracurricular_program"),
+      fetchSearchTable("major"),
+      fetchSearchTable("kb_document"),
+      fetchSearchTable("facility"),
+      fetchSearchTable("post"),
+    ]);
 
-    // 1. Fetch courses
-    const { data: courses } = await supabase.from("course").select("*");
-    const matchedCourses = (courses || [])
-      .filter((c) => c.course_name.toLowerCase().includes(query))
-      .slice(0, 5);
+    const matchedCourses = rankSearchItems(
+      courses.map((course) => ({
+        ...course,
+        title: course.course_name || course.course_name_en || course.name || "",
+        content: course.description || course.department || course.classroom || "",
+      })),
+      query,
+    );
 
-    // 2. Fetch notices
-    const { data: notices } = await supabase.from("notice").select("*");
-    const matchedNotices = (notices || [])
-      .filter(
-        (n) =>
-          n.title.toLowerCase().includes(query) ||
-          n.content.toLowerCase().includes(query),
-      )
-      .slice(0, 5);
+    const matchedNotices = rankSearchItems(
+      notices.map((notice) => ({
+        ...notice,
+        title: notice.title || notice.notice_title || notice.name || "",
+        content: notice.content || notice.description || notice.department || "",
+      })),
+      query,
+    );
 
-    // 3. Fetch facilities
-    const { data: facilities } = await supabase.from("facility").select("*");
-    const matchedFacilities = (facilities || [])
-      .filter((f) => f.name.toLowerCase().includes(query))
-      .slice(0, 5);
+    const matchedScholarships = rankSearchItems(
+      scholarships.map((scholarship) => ({
+        ...scholarship,
+        title: scholarship.title || scholarship.name || scholarship.scholarship_name || "",
+        content: scholarship.description || scholarship.eligibility || scholarship.provider || "",
+      })),
+      query,
+    );
 
-    // 4. Fetch posts
-    const { data: posts } = await supabase.from("post").select(`
-      *,
-      student (
-        name
-      )
-    `);
-    const matchedPosts = (posts || [])
-      .filter(
-        (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.content.toLowerCase().includes(query),
-      )
-      .map((p) => ({
-        ...p,
-        student_name: p.student?.name || "Unknown Student",
-      }))
-      .slice(0, 5);
+    const matchedPrograms = rankSearchItems(
+      programs.map((program) => ({
+        ...program,
+        title: program.program_name || program.title || program.name || "",
+        content: program.description || program.department || program.eligibility || "",
+      })),
+      query,
+    );
+
+    const matchedMajors = rankSearchItems(
+      majors.map((major) => ({
+        ...major,
+        title: major.major_name || major.title || major.name || "",
+        content: major.department || major.description || major.summary || "",
+      })),
+      query,
+    );
+
+    const matchedDocuments = rankSearchItems(
+      documents.map((document) => ({
+        ...document,
+        title: document.title || document.name || "",
+        content: document.content || document.description || document.category || "",
+      })),
+      query,
+    );
+
+    const matchedFacilities = rankSearchItems(
+      facilities.map((facility) => ({
+        ...facility,
+        title: facility.name || facility.title || "",
+        content: facility.description || facility.location || facility.department || "",
+      })),
+      query,
+    );
+
+    const matchedPosts = rankSearchItems(
+      posts.map((post) => ({
+        ...post,
+        title: post.title || post.name || "",
+        content: post.content || post.description || "",
+      })),
+      query,
+    ).map((post) => ({
+      ...post,
+      student_name: post.student?.name || "Unknown Student",
+    }));
 
     res.json({
       success: true,
       data: {
+        query,
         courses: matchedCourses,
         notices: matchedNotices,
+        scholarships: matchedScholarships,
+        programs: matchedPrograms,
+        majors: matchedMajors,
+        documents: matchedDocuments,
         facilities: matchedFacilities,
         posts: matchedPosts,
       },

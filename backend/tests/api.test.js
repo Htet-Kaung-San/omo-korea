@@ -78,14 +78,22 @@ describe("Hey! PNU Backend API Integration Tests", () => {
 
   // 3. Test Global Search
   describe("GET /api/students/search", () => {
-    it("should return search results for query 'Library'", async () => {
+    it("should return structured, ranked search results for query 'Library'", async () => {
       const res = await request(app)
         .get("/api/students/search")
         .query({ q: "Library" })
         .expect(200);
 
       expect(res.body.success).toBe(true);
+      expect(res.body.data.query).toBe("Library");
+      expect(res.body.data.courses).toBeInstanceOf(Array);
+      expect(res.body.data.notices).toBeInstanceOf(Array);
+      expect(res.body.data.scholarships).toBeInstanceOf(Array);
+      expect(res.body.data.programs).toBeInstanceOf(Array);
+      expect(res.body.data.majors).toBeInstanceOf(Array);
+      expect(res.body.data.documents).toBeInstanceOf(Array);
       expect(res.body.data.facilities).toBeInstanceOf(Array);
+      expect(res.body.data.posts).toBeInstanceOf(Array);
     });
   });
 
