@@ -50,6 +50,16 @@ const initialData = {
       is_admin: false,
     },
     {
+      student_id: "202455474",
+      name: "Sam (Admin)",
+      nationality: "International",
+      major_id: 1,
+      student_type: "Current",
+      visa_status: "D-2",
+      password: "password",
+      is_admin: true,
+    },
+    {
       student_id: "202455393",
       name: "Minh Nguyen",
       nationality: "Vietnam",

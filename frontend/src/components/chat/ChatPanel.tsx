@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, Brain } from 'lucide-react'
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
+import { ManageMemoryModal } from './ManageMemoryModal'
 
 interface Message {
   id: string
@@ -15,6 +16,7 @@ export function ChatPanel() {
   const [input, setInput] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [sending, setSending] = useState(false)
+  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -62,9 +64,18 @@ export function ChatPanel() {
 
   return (
     <section className="flex max-h-[60dvh] min-h-[360px] flex-col overflow-hidden rounded-3xl border border-pnu-border bg-white shadow-2xl shadow-blue-950/20">
-      <header className="border-b border-pnu-border bg-pnu-surface px-4 py-3">
-        <h2 className="text-sm font-bold text-pnu-text">{t('chat.title')}</h2>
-        <p className="text-xs text-pnu-muted">{t('chat.subtitle')}</p>
+      <header className="border-b border-pnu-border bg-pnu-surface px-4 py-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-pnu-text">{t('chat.title')}</h2>
+          <p className="text-xs text-pnu-muted">{t('chat.subtitle')}</p>
+        </div>
+        <button
+          onClick={() => setIsMemoryModalOpen(true)}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-pnu-blue shadow-sm transition-colors hover:bg-pnu-blue-light/10"
+          title="Memory settings"
+        >
+          <Brain className="h-5 w-5" />
+        </button>
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
@@ -132,6 +143,7 @@ export function ChatPanel() {
           </button>
         </div>
       </form>
+      {isMemoryModalOpen && <ManageMemoryModal isOpen={isMemoryModalOpen} onClose={() => setIsMemoryModalOpen(false)} />}
     </section>
   )
 }

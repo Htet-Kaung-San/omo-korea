@@ -7,7 +7,7 @@ const { languageMiddleware } = require("./middleware/languageMiddleware");
 const { languageInterceptor } = require("./middleware/translationMiddleware");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const DEFAULT_CORS_ORIGINS = [
   "http://localhost:5173",

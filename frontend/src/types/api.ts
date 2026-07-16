@@ -11,6 +11,14 @@ export interface User {
   nationality: string
   major: string
   interests: string[]
+  studentType?: "Freshman" | "Current"
+  visaStatus?: string
+  language_pref?: string
+  email?: string
+  phone?: string
+  completed_courses?: string[]
+  deletion_requested?: boolean
+  intake_term?: "March" | "September"
 }
 
 export interface AuthResponse {
@@ -23,6 +31,32 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignupRequest {
+  studentId: string;
+  name: string;
+  nationality: string;
+  major: string;
+  student_type: "Freshman" | "Current";
+  visa_status: string;
+  password: string;
+  language_pref?: string;
+  is_in_korea?: boolean;
+  mbti?: string;
+  d2_semester?: number;
+  completed_courses?: string[];
+  intake_term?: "March" | "September";
+}
+
+export interface MajorRecommendationRequest {
+  academicAreas: string[];
+  activities: string[];
+  strengths: string[];
+  careerAreas: string[];
+  learningStyles: string[];
+  topikLevel: number;
+  topN?: number;
+}
+
 export interface UpdateProfileRequest {
   name: string
   nationality: string
@@ -32,6 +66,11 @@ export interface UpdateProfileRequest {
   visaStatus?: string
   mbti?: string
   phone?: string
+  email?: string
+  completed_courses?: string[]
+  intake_term?: "March" | "September"
+  current_password?: string
+  new_password?: string
 }
 
 export interface ProgramItem {
@@ -160,9 +199,45 @@ export interface RecommendedCourse extends Course {
   matchHint?: string
 }
 
+export interface RecommendedMajor {
+  id: string;
+  name: string;
+  nameKo: string;
+  score: number;
+  rank: number;
+  reason: string;
+  eligibilityNote: string;
+  claudeReason: string | null;
+}
+
+export interface AiAnalysis {
+  summary: string;
+  gapAnalysis: string[];
+}
+
+export interface MajorRecommendationResponse {
+  success: boolean;
+  recommendationMethod: string;
+  recommendations: RecommendedMajor[];
+  aiAnalysis: AiAnalysis | null;
+  warning: string | null;
+}
+
 export interface CreditBreakdown {
   completed: number
   required: number
+}
+
+export interface Enrollment {
+  enrollment_id: number;
+  student_id: string;
+  course_id: number;
+  semester: string;
+  status: string;
+  course_name?: string;
+  credit?: number;
+  category?: string;
+  classroom?: string;
 }
 
 export interface GraduationProgress {
@@ -272,6 +347,8 @@ export interface HeyPnuApi {
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>
+  forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }>
+  resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
   getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
   getGraduationProgress(): Promise<GraduationProgress>
   getNotifications(): Promise<Notification[]>
@@ -286,4 +363,14 @@ export interface HeyPnuApi {
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>
+  getMemory(): Promise<string>
+  updateMemory(memory: string): Promise<void>
+  signup(data: SignupRequest): Promise<void>
+  recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>
+  getCourses(campus?: string): Promise<Course[]>
+  getEnrollments(studentId: string): Promise<Enrollment[]>
+  createEnrollment(studentId: string, courseId: number): Promise<Enrollment>
+  deleteEnrollment(enrollmentId: number): Promise<void>
+  requestAccountDeletion(studentId: string): Promise<void>
+  updateLanguagePreference(studentId: string, languagePref: string): Promise<void>
 }

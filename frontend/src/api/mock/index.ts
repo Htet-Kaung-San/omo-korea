@@ -5,14 +5,20 @@ import type {
   CareerOpportunitiesResponse,
   ChatMessageRequest,
   ChatMessageResponse,
-  ChecklistItem,
   ChecklistPayload,
   CourseType,
   EmergencyGuide,
+  
   GetCareerOpportunitiesParams,
   GraduationProgress,
   HeyPnuApi,
   LoginRequest,
+  SignupRequest,
+  
+  MajorRecommendationResponse,
+  Course,
+  Enrollment,
+  ChecklistItem,
   Notification,
   ProgramItem,
   RecommendedCourse,
@@ -247,6 +253,15 @@ export const mockApi: HeyPnuApi = {
     return updatedUser
   },
 
+  async forgotPassword(_studentId: string): Promise<{ maskedEmail: string; code: string }> {
+    await delay()
+    return { maskedEmail: 't***@example.com', code: '123456' }
+  },
+
+  async resetPassword(_studentId: string, _code: string, _newPassword: string): Promise<void> {
+    await delay()
+  },
+
   async getRecommendedCourses(type: CourseType | 'ALL' = 'ALL'): Promise<RecommendedCourse[]> {
     await delay()
     const studentId = getCurrentStudentId()
@@ -350,6 +365,52 @@ export const mockApi: HeyPnuApi = {
   async getPrograms(): Promise<ProgramItem[]> {
     await delay()
     return mockPrograms
+  },
+
+  async getMemory(): Promise<string> {
+    await delay()
+    return localStorage.getItem('mock_memory') || ''
+  },
+
+  async updateMemory(memory: string): Promise<void> {
+    await delay()
+    localStorage.setItem('mock_memory', memory)
+  },
+
+  async signup(_data: SignupRequest): Promise<void> {
+    await delay()
+  },
+
+  async recommendMajor(): Promise<MajorRecommendationResponse> {
+    await delay()
+    return { success: true, recommendationMethod: 'mock', recommendations: [], aiAnalysis: null, warning: null }
+  },
+
+  async getCourses(): Promise<Course[]> {
+    await delay()
+    return []
+  },
+
+  async getEnrollments(): Promise<Enrollment[]> {
+    await delay()
+    return []
+  },
+
+  async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
+    await delay()
+    return { enrollment_id: 1, student_id: studentId, course_id: courseId, semester: '2026-1', status: 'Enrolled' }
+  },
+
+  async deleteEnrollment(): Promise<void> {
+    await delay()
+  },
+
+  async requestAccountDeletion(): Promise<void> {
+    await delay()
+  },
+
+  async updateLanguagePreference(): Promise<void> {
+    await delay()
   },
 }
 
