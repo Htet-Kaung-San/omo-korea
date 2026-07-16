@@ -20,6 +20,14 @@ interface BackendStudent {
   major_name?: string | null
   department?: string | null
   interests?: string[] | null
+  student_type?: "Freshman" | "Current"
+  visa_status?: string
+  language_pref?: string
+  email?: string
+  phone?: string
+  completed_courses?: string[]
+  deletion_requested?: boolean
+  intake_term?: "March" | "September"
 }
 
 interface BackendChecklistItem {
@@ -77,6 +85,14 @@ export function mapBackendStudent(data: BackendStudent): User {
     nationality: data.nationality ?? '',
     major: data.major_name ?? data.department ?? '',
     interests: Array.isArray(data.interests) ? data.interests : [],
+    studentType: data.student_type,
+    visaStatus: data.visa_status,
+    language_pref: data.language_pref,
+    email: data.email,
+    phone: data.phone,
+    completed_courses: data.completed_courses,
+    deletion_requested: data.deletion_requested,
+    intake_term: data.intake_term,
   }
 }
 

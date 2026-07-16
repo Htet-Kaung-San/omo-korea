@@ -242,4 +242,56 @@ export const realApi: HeyPnuApi = {
     const programs = await backendFetch<ProgramItem[]>('/students/programs')
     return programs.map(mapProgramItem)
   },
+
+  async getMemory(): Promise<string> {
+    const res = await apiFetch<{ success: boolean; data: string }>("/ai/memory");
+    return res.data;
+  },
+
+  async updateMemory(memory: string): Promise<void> {
+    await apiFetch<{ success: boolean }>("/ai/memory", {
+      method: "PUT",
+      body: JSON.stringify({ memory }),
+    });
+  },
+
+  async forgotPassword(_studentId: string): Promise<{ maskedEmail: string; code: string }> {
+    throw new Error('Not implemented');
+  },
+
+  async resetPassword(_studentId: string, _code: string, _newPassword: string): Promise<void> {
+    throw new Error('Not implemented');
+  },
+
+  async signup(_data: any): Promise<void> {
+    throw new Error('Not implemented');
+  },
+
+  async recommendMajor(_data: any): Promise<any> {
+    throw new Error('Not implemented');
+  },
+
+  async getCourses(_campus?: string): Promise<any[]> {
+    throw new Error('Not implemented');
+  },
+
+  async getEnrollments(_studentId: string): Promise<any[]> {
+    throw new Error('Not implemented');
+  },
+
+  async createEnrollment(_studentId: string, _courseId: number): Promise<any> {
+    throw new Error('Not implemented');
+  },
+
+  async deleteEnrollment(_enrollmentId: number): Promise<void> {
+    throw new Error('Not implemented');
+  },
+
+  async requestAccountDeletion(_studentId: string): Promise<void> {
+    throw new Error('Not implemented');
+  },
+
+  async updateLanguagePreference(_studentId: string, _languagePref: string): Promise<void> {
+    throw new Error('Not implemented');
+  },
 }

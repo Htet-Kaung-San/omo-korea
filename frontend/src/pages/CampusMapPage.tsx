@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
 import { api } from '@/api'
-import { loadKakaoMaps, PNU_CENTER, type KakaoInfoWindow, type KakaoMap, type KakaoMarker } from '@/lib/kakaoMaps'
+import { loadNaverMaps, PNU_CENTER, type NaverInfoWindow, type NaverMap, type NaverMarker } from '@/lib/naverMaps'
 import type { MapFacility } from '@/types/api'
 
 const FACILITY_TYPE_STYLES: Record<string, string> = {
@@ -23,7 +23,7 @@ function buildInfoWindowContent(facility: MapFacility): string {
       : '',
   ].join('')
 
-  return `<div style="padding:10px 12px;min-width:180px;max-width:240px;">
+  return `<div style="padding:10px 12px;min-width:180px;max-width:240px;border-radius:12px;border:none;">
     <strong style="display:block;font-size:13px;color:#0f172a;">${facility.name}</strong>
     <span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600;">${facility.type}</span>
     ${details}
@@ -33,15 +33,15 @@ function buildInfoWindowContent(facility: MapFacility): string {
 export function CampusMapPage() {
   const { t } = useLanguage()
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<KakaoMap | null>(null)
+  const mapInstanceRef = useRef<NaverMap | null>(null)
   const markersRef = useRef<
     Array<{
       facility: MapFacility
-      marker: KakaoMarker
-      infoWindow: KakaoInfoWindow
+      marker: NaverMarker
+      infoWindow: NaverInfoWindow
     }>
   >([])
-  const activeInfoWindowRef = useRef<KakaoInfoWindow | null>(null)
+  const activeInfoWindowRef = useRef<NaverInfoWindow | null>(null)
 
   const [facilities, setFacilities] = useState<MapFacility[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -50,21 +50,21 @@ export function CampusMapPage() {
   const [loadingFacilities, setLoadingFacilities] = useState(true)
   const [mapReady, setMapReady] = useState(false)
 
-  const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY as string | undefined
+  const appKey = import.meta.env.VITE_NAVER_MAP_CLIENT_ID as string | undefined
 
   const focusFacility = useCallback(
     (facility: MapFacility) => {
-      const kakao = window.kakao
+      const naver = window.naver
       const map = mapInstanceRef.current
-      if (!kakao?.maps || !map) return
+      if (!naver?.maps || !map) return
 
       const entry = markersRef.current.find((item) => item.facility.id === facility.id)
       if (!entry) return
 
       activeInfoWindowRef.current?.close()
-      const position = new kakao.maps.LatLng(facility.latitude, facility.longitude)
+      const position = new naver.maps.LatLng(facility.latitude, facility.longitude)
       map.panTo(position)
-      map.setLevel(2)
+      map.setZoom(16, true)
       entry.infoWindow.open(map, entry.marker)
       activeInfoWindowRef.current = entry.infoWindow
       setSelectedId(facility.id)
@@ -87,13 +87,13 @@ export function CampusMapPage() {
 
   useEffect(() => {
     if (!appKey) {
-      setMapError(t('campusLife.mapMissingKey'))
+      setMapError('Naver Map is not configured yet. Add VITE_NAVER_MAP_CLIENT_ID to your frontend .env to enable the campus map.')
       return
     }
 
     let cancelled = false
 
-    loadKakaoMaps(appKey)
+    loadNaverMaps(appKey)
       .then(() => {
         if (!cancelled) setMapReady(true)
       })
@@ -107,25 +107,24 @@ export function CampusMapPage() {
   }, [appKey, t])
 
   useEffect(() => {
-    const kakao = window.kakao
-    if (!mapReady || !kakao?.maps || !mapRef.current || facilities.length === 0) return
+    const naver = window.naver
+    if (!mapReady || !naver?.maps || !mapRef.current || facilities.length === 0) return
 
-    const center = new kakao.maps.LatLng(PNU_CENTER.lat, PNU_CENTER.lng)
-    const map = new kakao.maps.Map(mapRef.current, { center, level: 3 })
+    const center = new naver.maps.LatLng(PNU_CENTER.lat, PNU_CENTER.lng)
+    const map = new naver.maps.Map(mapRef.current, { center, zoom: 15 })
     mapInstanceRef.current = map
 
     activeInfoWindowRef.current?.close()
     markersRef.current = []
 
     facilities.forEach((facility) => {
-      const position = new kakao.maps.LatLng(facility.latitude, facility.longitude)
-      const marker = new kakao.maps.Marker({ position, title: facility.name })
-      const infoWindow = new kakao.maps.InfoWindow({
+      const position = new naver.maps.LatLng(facility.latitude, facility.longitude)
+      const marker = new naver.maps.Marker({ position, map })
+      const infoWindow = new naver.maps.InfoWindow({
         content: buildInfoWindowContent(facility),
       })
 
-      marker.setMap(map)
-      kakao.maps.event.addListener(marker, 'click', () => focusFacility(facility))
+      naver.maps.Event.addListener(marker, 'click', () => focusFacility(facility))
       markersRef.current.push({ facility, marker, infoWindow })
     })
   }, [facilities, focusFacility, mapReady])
