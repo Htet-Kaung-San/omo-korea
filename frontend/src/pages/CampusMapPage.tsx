@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
 import { api } from '@/api'
-import { loadNaverMaps, PNU_CENTER, type NaverInfoWindow, type NaverMap, type NaverMarker } from '@/lib/naverMaps'
+import {
+  loadNaverMaps,
+  PNU_CENTER,
+  type NaverInfoWindow,
+  type NaverMap,
+  type NaverMarker,
+} from '@/lib/naverMaps'
 import type { MapFacility } from '@/types/api'
 
 const FACILITY_TYPE_STYLES: Record<string, string> = {
@@ -50,27 +56,24 @@ export function CampusMapPage() {
   const [loadingFacilities, setLoadingFacilities] = useState(true)
   const [mapReady, setMapReady] = useState(false)
 
-  const appKey = import.meta.env.VITE_NAVER_MAP_CLIENT_ID as string | undefined
+  const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID as string | undefined
 
-  const focusFacility = useCallback(
-    (facility: MapFacility) => {
-      const naver = window.naver
-      const map = mapInstanceRef.current
-      if (!naver?.maps || !map) return
+  const focusFacility = useCallback((facility: MapFacility) => {
+    const naver = window.naver
+    const map = mapInstanceRef.current
+    if (!naver?.maps || !map) return
 
-      const entry = markersRef.current.find((item) => item.facility.id === facility.id)
-      if (!entry) return
+    const entry = markersRef.current.find((item) => item.facility.id === facility.id)
+    if (!entry) return
 
-      activeInfoWindowRef.current?.close()
-      const position = new naver.maps.LatLng(facility.latitude, facility.longitude)
-      map.panTo(position)
-      map.setZoom(16, true)
-      entry.infoWindow.open(map, entry.marker)
-      activeInfoWindowRef.current = entry.infoWindow
-      setSelectedId(facility.id)
-    },
-    [],
-  )
+    activeInfoWindowRef.current?.close()
+    const position = new naver.maps.LatLng(facility.latitude, facility.longitude)
+    map.panTo(position)
+    map.setZoom(16, true)
+    entry.infoWindow.open(map, entry.marker)
+    activeInfoWindowRef.current = entry.infoWindow
+    setSelectedId(facility.id)
+  }, [])
 
   useEffect(() => {
     setLoadingFacilities(true)
@@ -86,14 +89,14 @@ export function CampusMapPage() {
   }, [t])
 
   useEffect(() => {
-    if (!appKey) {
-      setMapError('Naver Map is not configured yet. Add VITE_NAVER_MAP_CLIENT_ID to your frontend .env to enable the campus map.')
+    if (!clientId) {
+      setMapError(t('campusLife.mapMissingKey'))
       return
     }
 
     let cancelled = false
 
-    loadNaverMaps(appKey)
+    loadNaverMaps(clientId)
       .then(() => {
         if (!cancelled) setMapReady(true)
       })
@@ -104,7 +107,7 @@ export function CampusMapPage() {
     return () => {
       cancelled = true
     }
-  }, [appKey, t])
+  }, [clientId, t])
 
   useEffect(() => {
     const naver = window.naver
@@ -119,7 +122,11 @@ export function CampusMapPage() {
 
     facilities.forEach((facility) => {
       const position = new naver.maps.LatLng(facility.latitude, facility.longitude)
-      const marker = new naver.maps.Marker({ position, map })
+      const marker = new naver.maps.Marker({
+        position,
+        map,
+        title: facility.name,
+      })
       const infoWindow = new naver.maps.InfoWindow({
         content: buildInfoWindowContent(facility),
       })

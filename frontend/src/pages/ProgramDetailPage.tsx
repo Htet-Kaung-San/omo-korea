@@ -45,15 +45,9 @@ export function ProgramDetailPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-pnu-text">{program.title}</h1>
-                {program.hostDepartment ? (
-                  <p className="mt-1 text-xs font-medium text-pnu-muted">
-                    {t('academic.hostDepartment')}: {program.hostDepartment}
-                  </p>
-                ) : null}
                 {program.category ? (
                   <p className="mt-1 text-xs font-semibold text-pnu-blue-light">{program.category}</p>
                 ) : null}
-                <p className="mt-2 text-sm leading-relaxed text-pnu-muted">{program.description}</p>
                 {program.date ? (
                   <p className="mt-3 text-sm font-bold text-pnu-blue-light">{program.date}</p>
                 ) : null}
@@ -61,30 +55,17 @@ export function ProgramDetailPage() {
                   <p className="mt-2 text-xs text-pnu-muted">{program.matchHint}</p>
                 ) : null}
 
-                <div className="mt-4 flex flex-col gap-2">
-                  {program.sourceUrl ? (
-                    <a
-                      href={program.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-pnu-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-pnu-blue-light"
-                    >
-                      {t('academic.viewAnnouncement')}
-                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    </a>
-                  ) : null}
-                  {program.externalApplyUrl ? (
-                    <a
-                      href={program.externalApplyUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-pnu-border bg-white px-4 py-2.5 text-sm font-semibold text-pnu-text hover:bg-slate-50"
-                    >
-                      {t('academic.applyExternal')}
-                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    </a>
-                  ) : null}
-                </div>
+                {program.sourceUrl ? (
+                  <a
+                    href={program.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-pnu-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-pnu-blue-light"
+                  >
+                    {t('academic.viewAnnouncement')}
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                ) : null}
               </div>
             </div>
           </article>

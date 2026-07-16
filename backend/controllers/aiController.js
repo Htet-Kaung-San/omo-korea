@@ -884,11 +884,7 @@ async function fetchStudentContext(studentId) {
   }
 
   const questionnaire = data.questionnaire || {};
-  const interests = collectUserTags(
-    data.interest_tags,
-    data.interests,
-    questionnaire.interests,
-  );
+  const interests = collectUserTags(data.interests, questionnaire.interests);
 
   return {
     rawStudentInput: {
@@ -1066,9 +1062,7 @@ function mapRecommendedProgram(program) {
     description: program.description ?? "",
     date: program.date ?? "",
     category: program.category ?? null,
-    hostDepartment: program.hostDepartment ?? null,
     sourceUrl: program.sourceUrl ?? null,
-    externalApplyUrl: program.externalApplyUrl ?? null,
     score: program.score,
     matchHint: program.matchHint,
   };
@@ -1126,12 +1120,13 @@ async function getAiDashboard(req, res, next) {
     let matchedPrograms = [];
     try {
       matchedPrograms = await fetchRecommendedPrograms({
+        studentProfile: context.rawStudentInput.profile || {},
         userTags: context.rawStudentInput.profile.interests || [],
         limit: 20,
       });
     } catch (programErr) {
       console.warn(
-        "[extracurricular] failed to load published programs for dashboard:",
+        "[extracurricular] failed to load programs for dashboard:",
         programErr.message,
       );
       matchedPrograms = [];
@@ -1250,6 +1245,7 @@ async function getPrograms(req, res, next) {
     }
 
     const programs = await fetchRecommendedPrograms({
+      studentProfile: context.rawStudentInput.profile || {},
       userTags: context.rawStudentInput.profile.interests || [],
       limit: 50,
     });

@@ -1,11 +1,11 @@
-export type OneStopInlinePart =
+export type GuideInlinePart =
   | { type: 'text'; value: string }
   | { type: 'link'; label: string; href: string }
 
 const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 
-export function parseOneStopStep(text: string): OneStopInlinePart[] {
-  const parts: OneStopInlinePart[] = []
+export function parseGuideStep(text: string): GuideInlinePart[] {
+  const parts: GuideInlinePart[] = []
   let lastIndex = 0
 
   for (const match of text.matchAll(LINK_PATTERN)) {

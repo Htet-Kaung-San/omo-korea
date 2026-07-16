@@ -383,34 +383,29 @@ export const programs: ProgramItem[] = [
   {
     id: 'p1',
     title: 'AI Agent 해커톤 2026',
-    description: 'Build AI-powered student support tools with teammates from across PNU.',
+    description: 'Hackathon',
     date: '2026.07.18',
     category: 'Hackathon',
-    hostDepartment: '취업전략과',
     sourceUrl:
       'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509901',
-    externalApplyUrl: 'https://forms.gle/example-hackathon',
   },
   {
     id: 'p2',
     title: 'PNU 창업동아리 모집',
-    description: 'Join startup clubs and meet peers interested in entrepreneurship.',
+    description: 'Club',
     date: '2026.07.25',
     category: 'Club',
-    hostDepartment: '창업지원부',
     sourceUrl:
       'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509937',
   },
   {
     id: 'p3',
     title: 'International Student Career Camp',
-    description: 'Resume, interview, and networking sessions for international students.',
+    description: 'Career',
     date: '2026.08.02',
     category: 'Career',
-    hostDepartment: '취업전략과',
     sourceUrl:
       'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509809',
-    externalApplyUrl: 'https://www.jasoseol.com/example-career-camp',
   },
 ]
 
