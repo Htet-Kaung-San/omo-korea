@@ -1,29 +1,9 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
+import { GuideInlineText } from '@/components/guide/GuideInlineText'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
-import { parseOneStopStep, type OneStopInlinePart } from '@/i18n/oneStop/parseStep'
 import { oneStopSectionDefs } from '@/i18n/oneStop/sections'
-
-function renderInlineParts(parts: OneStopInlinePart[]) {
-  return parts.map((part, index) => {
-    if (part.type === 'link') {
-      return (
-        <a
-          key={`${part.href}-${index}`}
-          href={part.href}
-          target="_blank"
-          rel="noreferrer"
-          className="font-semibold text-pnu-blue underline decoration-pnu-blue/30 underline-offset-2 hover:text-pnu-blue-light"
-        >
-          {part.label}
-        </a>
-      )
-    }
-
-    return <span key={`text-${index}`}>{part.value}</span>
-  })
-}
 
 function OneStopAccordionItem({
   section,
@@ -67,7 +47,7 @@ function OneStopAccordionItem({
               {section.stepKeys.map((stepKey, index) => (
                 <li key={stepKey} className="flex gap-2 text-sm leading-relaxed text-pnu-muted">
                   <span className="font-bold text-pnu-blue">{index + 1}.</span>
-                  <span>{renderInlineParts(parseOneStopStep(t(stepKey)))}</span>
+                  <span><GuideInlineText text={t(stepKey)} /></span>
                 </li>
               ))}
             </ol>

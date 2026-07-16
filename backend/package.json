@@ -5,9 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest",
-    "scrape:notices": "node scripts/scrape-notices.mjs",
-    "extract:programs": "node scripts/extract-programs.mjs"
+    "test": "SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest"
   },
   "keywords": [],
   "author": "",

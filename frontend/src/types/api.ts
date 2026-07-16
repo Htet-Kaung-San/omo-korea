@@ -40,9 +40,7 @@ export interface ProgramItem {
   description: string
   date: string
   category?: string
-  hostDepartment?: string | null
   sourceUrl?: string | null
-  externalApplyUrl?: string | null
   score?: number
   matchHint?: string
 }

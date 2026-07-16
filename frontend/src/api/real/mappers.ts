@@ -182,21 +182,13 @@ export function mapMapFacility(row: BackendMapFacility): MapFacility {
 }
 
 export function mapProgramItem(program: ProgramItem): ProgramItem {
-  const sourceUrl = program.sourceUrl ?? null
-  let externalApplyUrl = program.externalApplyUrl ?? null
-  if (externalApplyUrl && sourceUrl && externalApplyUrl === sourceUrl) {
-    externalApplyUrl = null
-  }
-
   return {
     id: String(program.id),
     title: program.title,
     description: program.description,
     date: program.date,
     category: program.category,
-    hostDepartment: program.hostDepartment ?? null,
-    sourceUrl,
-    externalApplyUrl,
+    sourceUrl: program.sourceUrl ?? null,
     score: program.score,
     matchHint: program.matchHint,
   }

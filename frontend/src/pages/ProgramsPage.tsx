@@ -50,37 +50,23 @@ export function ProgramsPage() {
                   >
                     {program.title}
                   </Link>
-                  {program.hostDepartment ? (
-                    <p className="mt-0.5 text-xs text-pnu-muted">
-                      {t('academic.hostDepartment')}: {program.hostDepartment}
-                    </p>
+                  {program.category ? (
+                    <p className="mt-0.5 text-xs font-medium text-pnu-muted">{program.category}</p>
                   ) : null}
-                  <p className="mt-1 text-sm leading-relaxed text-pnu-muted">{program.description}</p>
-                  <p className="mt-2 text-xs font-semibold text-pnu-blue-light">{program.date}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {program.sourceUrl ? (
-                      <a
-                        href={program.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-pnu-blue-light hover:bg-blue-100"
-                      >
-                        {t('academic.viewAnnouncement')}
-                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                    {program.externalApplyUrl ? (
-                      <a
-                        href={program.externalApplyUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-full border border-pnu-border px-3 py-1.5 text-xs font-semibold text-pnu-text hover:bg-slate-50"
-                      >
-                        {t('academic.applyExternal')}
-                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                      </a>
-                    ) : null}
-                  </div>
+                  {program.date ? (
+                    <p className="mt-2 text-xs font-semibold text-pnu-blue-light">{program.date}</p>
+                  ) : null}
+                  {program.sourceUrl ? (
+                    <a
+                      href={program.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-pnu-blue-light hover:bg-blue-100"
+                    >
+                      {t('academic.viewAnnouncement')}
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                  ) : null}
                 </div>
               </div>
             </article>

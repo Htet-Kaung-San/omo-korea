@@ -1,5 +1,6 @@
 import type { LanguageCode, MessageDictionary } from './types'
 import { DEFAULT_LANGUAGE } from './languages'
+import { loadLibraryGuideMessages } from './libraryGuide'
 import { loadOneStopMessages } from './oneStop'
 
 type LocaleModule = { default: MessageDictionary }
@@ -37,14 +38,15 @@ async function loadEnglishFallback(): Promise<MessageDictionary> {
 
 export async function loadLocale(language: LanguageCode): Promise<MessageDictionary> {
   const loader = LOCALE_LOADERS[language] ?? LOCALE_LOADERS[DEFAULT_LANGUAGE]
-  const [messages, fallback, oneStopMessages] = await Promise.all([
+  const [messages, fallback, oneStopMessages, libraryMessages] = await Promise.all([
     loader().then((m) => m.default),
     loadEnglishFallback(),
     loadOneStopMessages(language),
+    loadLibraryGuideMessages(language),
   ])
   const merged =
     language === DEFAULT_LANGUAGE ? messages : { ...fallback, ...messages }
-  return { ...merged, ...oneStopMessages }
+  return { ...merged, ...oneStopMessages, ...libraryMessages }
 }
 
 export async function preloadLocale(language: LanguageCode): Promise<void> {

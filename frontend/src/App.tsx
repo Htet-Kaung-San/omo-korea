@@ -21,6 +21,7 @@ import { CampusLifePage } from '@/pages/CampusLifePage'
 import { CommunityPage } from '@/pages/CommunityPage'
 import { CampusGuidePage } from '@/pages/CampusGuidePage'
 import { CampusMapPage } from '@/pages/CampusMapPage'
+import { LibraryGuidePage } from '@/pages/LibraryGuidePage'
 import { OneStopGuidePage } from '@/pages/OneStopGuidePage'
 import { CommunityNoticesPage } from '@/pages/CommunityNoticesPage'
 import { CareerOpportunitiesPage } from '@/pages/CareerOpportunitiesPage'
@@ -70,10 +71,7 @@ function AppRoutes() {
         <Route path="academic/scholarships/:scholarshipId" element={<ScholarshipDetailPage />} />
         <Route path="campus-life" element={<CampusLifePage />} />
         <Route path="campus-life/one-stop" element={<OneStopGuidePage />} />
-        <Route
-          path="campus-life/library"
-          element={<CampusGuidePage titleKey="campusLife.libraryGuide" bodyKey="campusLife.libraryBody" />}
-        />
+        <Route path="campus-life/library" element={<LibraryGuidePage />} />
         <Route
           path="campus-life/cafeteria"
           element={
