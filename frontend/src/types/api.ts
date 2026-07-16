@@ -40,6 +40,9 @@ export interface ProgramItem {
   description: string
   date: string
   category?: string
+  hostDepartment?: string | null
+  sourceUrl?: string | null
+  externalApplyUrl?: string | null
   score?: number
   matchHint?: string
 }
@@ -123,6 +126,17 @@ export interface CampusFacilities {
   cafeteria_source?: string
   scraped_at?: string | null
   menu_date?: string | null
+}
+
+export interface MapFacility {
+  id: string
+  name: string
+  type: string
+  latitude: number
+  longitude: number
+  hours?: string | null
+  description?: string | null
+  floors?: string | null
 }
 
 export interface AiDashboard {
@@ -268,6 +282,7 @@ export interface HeyPnuApi {
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
   getEmergencyGuide(): Promise<EmergencyGuide>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
+  getMapFacilities(): Promise<MapFacility[]>
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>

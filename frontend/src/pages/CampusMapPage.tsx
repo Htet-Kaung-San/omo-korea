@@ -1,59 +1,136 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
+import { api } from '@/api'
+import { loadKakaoMaps, PNU_CENTER, type KakaoInfoWindow, type KakaoMap, type KakaoMarker } from '@/lib/kakaoMaps'
+import type { MapFacility } from '@/types/api'
 
-declare global {
-  interface Window {
-    naver?: {
-      maps: {
-        LatLng: new (lat: number, lng: number) => unknown
-        Map: new (
-          element: HTMLElement,
-          options: { center: unknown; zoom: number },
-        ) => unknown
-        Marker: new (options: { position: unknown; map: unknown }) => unknown
-      }
-    }
-  }
+const FACILITY_TYPE_STYLES: Record<string, string> = {
+  Library: 'bg-blue-100 text-blue-800',
+  Cafeteria: 'bg-green-100 text-green-800',
+  Administrative: 'bg-amber-100 text-amber-800',
+  Dormitory: 'bg-purple-100 text-purple-800',
 }
 
-const NAVER_MAP_SCRIPT_ID = 'naver-map-script'
-const PNU_LAT = 35.2338
-const PNU_LNG = 129.0794
+function buildInfoWindowContent(facility: MapFacility): string {
+  const details = [
+    facility.hours ? `<p style="margin:4px 0 0;font-size:12px;color:#64748b;">${facility.hours}</p>` : '',
+    facility.description
+      ? `<p style="margin:6px 0 0;font-size:12px;line-height:1.45;color:#475569;">${facility.description}</p>`
+      : '',
+    facility.floors
+      ? `<p style="margin:6px 0 0;font-size:11px;line-height:1.4;color:#94a3b8;">${facility.floors}</p>`
+      : '',
+  ].join('')
+
+  return `<div style="padding:10px 12px;min-width:180px;max-width:240px;">
+    <strong style="display:block;font-size:13px;color:#0f172a;">${facility.name}</strong>
+    <span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600;">${facility.type}</span>
+    ${details}
+  </div>`
+}
 
 export function CampusMapPage() {
   const { t } = useLanguage()
   const mapRef = useRef<HTMLDivElement>(null)
-  const [error, setError] = useState('')
-  const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID as string | undefined
+  const mapInstanceRef = useRef<KakaoMap | null>(null)
+  const markersRef = useRef<
+    Array<{
+      facility: MapFacility
+      marker: KakaoMarker
+      infoWindow: KakaoInfoWindow
+    }>
+  >([])
+  const activeInfoWindowRef = useRef<KakaoInfoWindow | null>(null)
+
+  const [facilities, setFacilities] = useState<MapFacility[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mapError, setMapError] = useState('')
+  const [facilitiesError, setFacilitiesError] = useState('')
+  const [loadingFacilities, setLoadingFacilities] = useState(true)
+  const [mapReady, setMapReady] = useState(false)
+
+  const appKey = import.meta.env.VITE_KAKAO_MAP_APP_KEY as string | undefined
+
+  const focusFacility = useCallback(
+    (facility: MapFacility) => {
+      const kakao = window.kakao
+      const map = mapInstanceRef.current
+      if (!kakao?.maps || !map) return
+
+      const entry = markersRef.current.find((item) => item.facility.id === facility.id)
+      if (!entry) return
+
+      activeInfoWindowRef.current?.close()
+      const position = new kakao.maps.LatLng(facility.latitude, facility.longitude)
+      map.panTo(position)
+      map.setLevel(2)
+      entry.infoWindow.open(map, entry.marker)
+      activeInfoWindowRef.current = entry.infoWindow
+      setSelectedId(facility.id)
+    },
+    [],
+  )
 
   useEffect(() => {
-    if (!clientId) {
-      setError(t('campusLife.mapMissingKey'))
+    setLoadingFacilities(true)
+    setFacilitiesError('')
+
+    api
+      .getMapFacilities()
+      .then(setFacilities)
+      .catch((err) =>
+        setFacilitiesError(err instanceof Error ? err.message : t('campusLife.mapFacilitiesError')),
+      )
+      .finally(() => setLoadingFacilities(false))
+  }, [t])
+
+  useEffect(() => {
+    if (!appKey) {
+      setMapError(t('campusLife.mapMissingKey'))
       return
     }
 
-    function renderMap() {
-      if (!mapRef.current || !window.naver?.maps) return
-      const center = new window.naver.maps.LatLng(PNU_LAT, PNU_LNG)
-      const map = new window.naver.maps.Map(mapRef.current, { center, zoom: 15 })
-      new window.naver.maps.Marker({ position: center, map })
-    }
+    let cancelled = false
 
-    if (window.naver?.maps) {
-      renderMap()
-      return
-    }
+    loadKakaoMaps(appKey)
+      .then(() => {
+        if (!cancelled) setMapReady(true)
+      })
+      .catch(() => {
+        if (!cancelled) setMapError(t('campusLife.mapLoadError'))
+      })
 
-    const existingScript = document.getElementById(NAVER_MAP_SCRIPT_ID) as HTMLScriptElement | null
-    const script = existingScript ?? document.createElement('script')
-    script.id = NAVER_MAP_SCRIPT_ID
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`
-    script.async = true
-    script.onload = renderMap
-    script.onerror = () => setError(t('campusLife.mapLoadError'))
-    if (!existingScript) document.head.appendChild(script)
-  }, [clientId, t])
+    return () => {
+      cancelled = true
+    }
+  }, [appKey, t])
+
+  useEffect(() => {
+    const kakao = window.kakao
+    if (!mapReady || !kakao?.maps || !mapRef.current || facilities.length === 0) return
+
+    const center = new kakao.maps.LatLng(PNU_CENTER.lat, PNU_CENTER.lng)
+    const map = new kakao.maps.Map(mapRef.current, { center, level: 3 })
+    mapInstanceRef.current = map
+
+    activeInfoWindowRef.current?.close()
+    markersRef.current = []
+
+    facilities.forEach((facility) => {
+      const position = new kakao.maps.LatLng(facility.latitude, facility.longitude)
+      const marker = new kakao.maps.Marker({ position, title: facility.name })
+      const infoWindow = new kakao.maps.InfoWindow({
+        content: buildInfoWindowContent(facility),
+      })
+
+      marker.setMap(map)
+      kakao.maps.event.addListener(marker, 'click', () => focusFacility(facility))
+      markersRef.current.push({ facility, marker, infoWindow })
+    })
+  }, [facilities, focusFacility, mapReady])
+
+  const error = mapError || facilitiesError
 
   return (
     <div>
@@ -64,10 +141,59 @@ export function CampusMapPage() {
             {error}
           </div>
         ) : null}
+
+        {loadingFacilities ? (
+          <p className="text-sm text-pnu-muted">{t('common.loading')}</p>
+        ) : null}
+
         <div
           ref={mapRef}
           className="h-[360px] overflow-hidden rounded-2xl border border-pnu-border bg-slate-100"
         />
+
+        {facilities.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-pnu-muted">
+              {t('campusLife.mapLegend')}
+            </p>
+            <div className="space-y-2">
+              {facilities.map((facility) => {
+                const typeStyle = FACILITY_TYPE_STYLES[facility.type] ?? 'bg-slate-100 text-slate-700'
+                const isSelected = selectedId === facility.id
+
+                return (
+                  <button
+                    key={facility.id}
+                    type="button"
+                    onClick={() => focusFacility(facility)}
+                    className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:border-pnu-blue-light/40 hover:shadow-md ${
+                      isSelected ? 'border-pnu-blue ring-1 ring-pnu-blue/20' : 'border-pnu-border'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 className="text-sm font-bold text-pnu-text">{facility.name}</h2>
+                        {facility.hours ? (
+                          <p className="mt-1 text-xs text-pnu-muted">{facility.hours}</p>
+                        ) : null}
+                        {facility.description ? (
+                          <p className="mt-2 text-sm leading-relaxed text-pnu-muted">
+                            {facility.description}
+                          </p>
+                        ) : null}
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${typeStyle}`}
+                      >
+                        {facility.type}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

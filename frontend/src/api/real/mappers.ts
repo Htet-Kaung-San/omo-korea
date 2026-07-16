@@ -3,6 +3,7 @@ import type {
   ChecklistPayload,
   ChecklistVariant,
   CourseType,
+  MapFacility,
   Notification,
   NotificationCategory,
   NotificationPriority,
@@ -156,13 +157,46 @@ export function mapScholarshipItem(scholarship: ScholarshipItem): ScholarshipIte
   }
 }
 
+interface BackendMapFacility {
+  facility_id: number
+  name: string
+  type: string
+  latitude: number | string
+  longitude: number | string
+  hours?: string | null
+  details?: string | null
+  floors?: string | null
+}
+
+export function mapMapFacility(row: BackendMapFacility): MapFacility {
+  return {
+    id: String(row.facility_id),
+    name: row.name,
+    type: row.type,
+    latitude: Number(row.latitude),
+    longitude: Number(row.longitude),
+    hours: row.hours ?? null,
+    description: row.details ?? null,
+    floors: row.floors ?? null,
+  }
+}
+
 export function mapProgramItem(program: ProgramItem): ProgramItem {
+  const sourceUrl = program.sourceUrl ?? null
+  let externalApplyUrl = program.externalApplyUrl ?? null
+  if (externalApplyUrl && sourceUrl && externalApplyUrl === sourceUrl) {
+    externalApplyUrl = null
+  }
+
   return {
     id: String(program.id),
     title: program.title,
     description: program.description,
     date: program.date,
     category: program.category,
+    hostDepartment: program.hostDepartment ?? null,
+    sourceUrl,
+    externalApplyUrl,
     score: program.score,
     matchHint: program.matchHint,
   }

@@ -4,6 +4,7 @@ import type {
   EmergencyGuide,
   CampusFacilities,
   GraduationProgress,
+  MapFacility,
   Notification,
   ProgramItem,
   ScholarshipItem,
@@ -385,6 +386,10 @@ export const programs: ProgramItem[] = [
     description: 'Build AI-powered student support tools with teammates from across PNU.',
     date: '2026.07.18',
     category: 'Hackathon',
+    hostDepartment: '취업전략과',
+    sourceUrl:
+      'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509901',
+    externalApplyUrl: 'https://forms.gle/example-hackathon',
   },
   {
     id: 'p2',
@@ -392,6 +397,9 @@ export const programs: ProgramItem[] = [
     description: 'Join startup clubs and meet peers interested in entrepreneurship.',
     date: '2026.07.25',
     category: 'Club',
+    hostDepartment: '창업지원부',
+    sourceUrl:
+      'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509937',
   },
   {
     id: 'p3',
@@ -399,6 +407,10 @@ export const programs: ProgramItem[] = [
     description: 'Resume, interview, and networking sessions for international students.',
     date: '2026.08.02',
     category: 'Career',
+    hostDepartment: '취업전략과',
+    sourceUrl:
+      'https://www.pusan.ac.kr/kor/CMS/Board/Board.do?mCode=MN095&mode=view&mgr_seq=3&board_seq=1509809',
+    externalApplyUrl: 'https://www.jasoseol.com/example-career-camp',
   },
 ]
 
@@ -465,6 +477,66 @@ export const mockEmergencyGuide: EmergencyGuide = {
   guide_text:
     "Stay calm. Say: '저 다쳤어요 (I'm hurt)' or '도와주세요 (Please help).' Share your location and student ID if possible.",
 }
+
+export const mockMapFacilities: MapFacility[] = [
+  {
+    id: '1',
+    name: 'PNU Main Library (중앙도서관)',
+    type: 'Library',
+    latitude: 35.2335,
+    longitude: 129.0792,
+    hours: '06:00 - 23:00',
+    description:
+      'Main campus study resources. Features extensive reading rooms on the 3rd floor.',
+    floors:
+      '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers',
+  },
+  {
+    id: '2',
+    name: 'Geumjeong Hall Cafeteria (금정회관)',
+    type: 'Cafeteria',
+    latitude: 35.2312,
+    longitude: 129.0811,
+    hours: '08:00 - 19:00',
+    description:
+      'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.',
+    floors: '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café',
+  },
+  {
+    id: '3',
+    name: 'Moonchang Hall Cafeteria (문창회관)',
+    type: 'Cafeteria',
+    latitude: 35.2348,
+    longitude: 129.078,
+    hours: '11:00 - 18:30',
+    description:
+      'North campus cafeteria featuring Western-style options and sandwich counters.',
+    floors: '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center',
+  },
+  {
+    id: '4',
+    name: 'University Headquarters (대학본부)',
+    type: 'Administrative',
+    latitude: 35.2301,
+    longitude: 129.0825,
+    hours: '09:00 - 18:00',
+    description:
+      'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.',
+    floors:
+      "1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President's Office",
+  },
+  {
+    id: '5',
+    name: 'Woongbee Hall Dormitory (웅비관)',
+    type: 'Dormitory',
+    latitude: 35.2365,
+    longitude: 129.0755,
+    hours: '24 Hours',
+    description:
+      'Freshman international dorms located near the Geumjeongsan mountain edge.',
+    floors: '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen',
+  },
+]
 
 export const mockCampusFacilities: CampusFacilities = {
   shuttle_bus_metadata: {

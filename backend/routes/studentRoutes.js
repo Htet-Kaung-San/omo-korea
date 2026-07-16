@@ -50,6 +50,7 @@ const {
   runMajorGapAnalysis,
   getCourseRecommendations,
   getAiDashboard,
+  getPrograms,
   getStudentNotifications,
 } = require("../controllers/aiController");
 
@@ -81,6 +82,7 @@ router.put("/checklist/:checklist_id", authenticateToken, updateChecklistItem);
 router.get("/notifications/:student_id", authenticateToken, getNotifications);
 router.get("/notifications", authenticateToken, getStudentNotifications);
 router.get("/ai-dashboard", authenticateToken, getAiDashboard);
+router.get("/programs", authenticateToken, getPrograms);
 router.put(
   "/profile",
   authenticateToken,

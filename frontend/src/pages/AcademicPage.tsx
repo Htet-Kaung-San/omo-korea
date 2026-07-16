@@ -149,25 +149,30 @@ export function AcademicPage() {
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-pnu-border bg-white shadow-sm">
-            <div className="divide-y divide-pnu-border">
-              {programs.map((program) => {
-                const Icon = getProgramIconForItem(program)
-                return (
-                  <div key={program.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2.5">
-                    <Icon className="h-4 w-4 shrink-0 text-pnu-blue" />
-                    <Link
-                      to={`/academic/programs/${program.id}`}
-                      className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"
-                    >
-                      {program.title}
-                    </Link>
-                    <span className="text-[11px] font-medium text-pnu-muted">{program.date}</span>
-                  </div>
-                )
-              })}
+          {!loading && programs.length === 0 && !error ? (
+            <p className="text-sm text-pnu-muted">{t('academic.noPrograms')}</p>
+          ) : null}
+          {programs.length > 0 ? (
+            <div className="overflow-hidden rounded-2xl border border-pnu-border bg-white shadow-sm">
+              <div className="divide-y divide-pnu-border">
+                {programs.map((program) => {
+                  const Icon = getProgramIconForItem(program)
+                  return (
+                    <div key={program.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2.5">
+                      <Icon className="h-4 w-4 shrink-0 text-pnu-blue" />
+                      <Link
+                        to={`/academic/programs/${program.id}`}
+                        className="line-clamp-1 text-[13px] font-semibold text-pnu-text hover:text-pnu-blue-light"
+                      >
+                        {program.title}
+                      </Link>
+                      <span className="text-[11px] font-medium text-pnu-muted">{program.date}</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          ) : null}
         </section>
 
         <section className="space-y-3">

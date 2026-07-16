@@ -28,6 +28,7 @@ import {
   mapChecklistItem,
   mapChecklistPayload,
   mapNotice,
+  mapMapFacility,
   mapProgramItem,
   mapRecommendedCourse,
   mapScholarshipItem,
@@ -211,6 +212,13 @@ export const realApi: HeyPnuApi = {
     return backendFetch<CampusFacilities>(`/students/campus-facilities${query}`)
   },
 
+  async getMapFacilities() {
+    const facilities = await backendFetch<Parameters<typeof mapMapFacility>[0][]>(
+      '/students/facilities',
+    )
+    return facilities.map(mapMapFacility)
+  },
+
   async getAiDashboard(): Promise<AiDashboard> {
     const dashboard = await backendFetch<{
       recommendedCourses?: Parameters<typeof mapRecommendedCourse>[0][]
@@ -231,7 +239,7 @@ export const realApi: HeyPnuApi = {
   },
 
   async getPrograms(): Promise<ProgramItem[]> {
-    const dashboard = await this.getAiDashboard()
-    return dashboard.matchedPrograms
+    const programs = await backendFetch<ProgramItem[]>('/students/programs')
+    return programs.map(mapProgramItem)
   },
 }
