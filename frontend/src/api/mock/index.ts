@@ -26,6 +26,7 @@ import {
   DEMO_PASSWORD,
   DEMO_STUDENT_ID,
   mockCampusFacilities,
+  mockMapFacilities,
   mockCareerOpportunities,
   mockChatIntents,
   mockEmergencyGuide,
@@ -321,6 +322,11 @@ export const mockApi: HeyPnuApi = {
   async getCampusFacilities(): Promise<CampusFacilities> {
     await delay()
     return mockCampusFacilities
+  },
+
+  async getMapFacilities() {
+    await delay()
+    return mockMapFacilities
   },
 
   async getAiDashboard(): Promise<AiDashboard> {

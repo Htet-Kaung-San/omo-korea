@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ExternalLink } from 'lucide-react'
 import { api } from '@/api'
 import type { ProgramItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -30,6 +31,10 @@ export function ProgramsPage() {
         ) : null}
         {loading ? <p className="text-sm text-pnu-muted">{t('academic.loading')}</p> : null}
 
+        {!loading && !error && programs.length === 0 ? (
+          <p className="text-sm text-pnu-muted">{t('academic.noPrograms')}</p>
+        ) : null}
+
         {programs.map((program) => {
           const Icon = getProgramIconForItem(program)
           return (
@@ -38,15 +43,44 @@ export function ProgramsPage() {
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-pnu-blue">
                   <Icon className="h-5 w-5" strokeWidth={1.8} />
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <Link
                     to={`/academic/programs/${program.id}`}
                     className="text-sm font-bold text-pnu-text hover:text-pnu-blue-light"
                   >
                     {program.title}
                   </Link>
+                  {program.hostDepartment ? (
+                    <p className="mt-0.5 text-xs text-pnu-muted">
+                      {t('academic.hostDepartment')}: {program.hostDepartment}
+                    </p>
+                  ) : null}
                   <p className="mt-1 text-sm leading-relaxed text-pnu-muted">{program.description}</p>
                   <p className="mt-2 text-xs font-semibold text-pnu-blue-light">{program.date}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {program.sourceUrl ? (
+                      <a
+                        href={program.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-pnu-blue-light hover:bg-blue-100"
+                      >
+                        {t('academic.viewAnnouncement')}
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                    {program.externalApplyUrl ? (
+                      <a
+                        href={program.externalApplyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full border border-pnu-border px-3 py-1.5 text-xs font-semibold text-pnu-text hover:bg-slate-50"
+                      >
+                        {t('academic.applyExternal')}
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </article>
