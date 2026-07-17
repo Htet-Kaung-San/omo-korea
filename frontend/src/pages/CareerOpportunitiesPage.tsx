@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { useCareerRecommendations } from '@/hooks/useCareerRecommendations'
 import type { CareerJobType, CareerOpportunity } from '@/types/api'
 import { matchesCareerQuery, matchesCareerType } from '@/utils/career'
+import { useSavedJobs } from '@/utils/savedJobs'
 
 const LATEST_PAGE_SIZE = 20
 
@@ -20,6 +21,7 @@ const FILTERS: Array<{ id: CareerJobType | 'all'; labelKey: string }> = [
 
 export function CareerOpportunitiesPage() {
   const { t } = useLanguage()
+  const { isSaved, toggle } = useSavedJobs()
   const {
     items: recommended,
     loading: recommendedLoading,
@@ -32,7 +34,6 @@ export function CareerOpportunitiesPage() {
   const [sortByDeadline, setSortByDeadline] = useState(false)
   const [showAllRecommended, setShowAllRecommended] = useState(false)
   const [showAllLatest, setShowAllLatest] = useState(false)
-  const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set())
 
   const [latest, setLatest] = useState<CareerOpportunity[]>([])
   const [loading, setLoading] = useState(true)
@@ -83,15 +84,6 @@ export function CareerOpportunitiesPage() {
     ? filteredRecommended
     : filteredRecommended.slice(0, 3)
   const visibleLatest = showAllLatest ? filteredLatest : filteredLatest.slice(0, 5)
-
-  function toggleBookmark(id: string) {
-    setBookmarks((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   return (
     <div className="pb-6">
@@ -192,8 +184,8 @@ export function CareerOpportunitiesPage() {
                     key={`rec-${opportunity.id}`}
                     opportunity={opportunity}
                     variant="recommended"
-                    bookmarked={bookmarks.has(opportunity.id)}
-                    onToggleBookmark={toggleBookmark}
+                    bookmarked={isSaved(opportunity.id)}
+                    onToggleBookmark={toggle}
                   />
                 ))}
               </div>
@@ -227,6 +219,8 @@ export function CareerOpportunitiesPage() {
                     key={`latest-${opportunity.id}`}
                     opportunity={opportunity}
                     variant="latest"
+                    bookmarked={isSaved(opportunity.id)}
+                    onToggleBookmark={toggle}
                   />
                 ))}
               </div>

@@ -7,6 +7,7 @@ import type {
   FacilityRoom,
   FaqItem,
   MapFacility,
+  NoticeChannel,
   Notification,
   NotificationCategory,
   NotificationPriority,
@@ -56,6 +57,10 @@ interface BackendNotice {
   deadline?: string
   category: NotificationCategory
   priority: NotificationPriority
+  source?: string | null
+  channel?: NoticeChannel | null
+  sourceUrl?: string | null
+  read?: boolean
 }
 
 interface BackendCourse {
@@ -148,9 +153,10 @@ export function mapNotice(notice: BackendNotice): Notification {
     date: notice.date ?? notice.deadline ?? '',
     category: notice.category,
     priority: notice.priority,
-    source: null,
-    channel: null,
-    read: false,
+    source: notice.source ?? null,
+    channel: notice.channel ?? null,
+    sourceUrl: notice.sourceUrl ?? null,
+    read: notice.read ?? false,
   }
 }
 

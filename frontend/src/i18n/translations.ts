@@ -4,4 +4,4 @@ export {
   LANGUAGE_OPTIONS,
   normalizeLanguageCode,
 } from './languages'
-export { loadLocale, preloadLocale } from './loadLocale'
+export { loadLocale, preloadLocale, clearLocaleCache } from './loadLocale'

@@ -151,11 +151,19 @@ CREATE TABLE IF NOT EXISTS community_post (
 -- 6. UNIVERSITY NOTICES TABLE
 CREATE TABLE IF NOT EXISTS notice (
     notice_id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
+    title TEXT NOT NULL,
     content TEXT NOT NULL,
     language VARCHAR(20) DEFAULT 'English',
-    posted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    posted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source TEXT,
+    source_url TEXT,
+    external_id TEXT,
+    scraped_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS notice_source_url_uidx
+  ON notice (source_url)
+  WHERE source_url IS NOT NULL;
 
 -- 7. FORUM POSTS TABLE
 CREATE TABLE IF NOT EXISTS post (

@@ -23,6 +23,7 @@ const {
   getAcademicRecords,
   downloadAcademicTranscript,
   getNotices,
+  syncNotices,
   getNotifications,
   getCourses,
   getEnrollments,
@@ -81,6 +82,7 @@ router.get("/facilities/:facility_id", getFacilityById);
 router.get("/pnu-contacts", getPnuContacts);
 router.get("/faq", getFaqItems);
 router.get("/notices", getNotices);
+router.post("/notices/sync", syncNotices);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/scholarships", getAllScholarships);

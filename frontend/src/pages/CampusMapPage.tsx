@@ -25,6 +25,25 @@ import { distanceMeters, formatDistance } from '@/utils/geo'
 
 const TYPE_FILTERS = ['All', 'Library', 'Cafeteria', 'Academic', 'Administrative', 'Dormitory', 'Student Life'] as const
 
+function typeFilterLabelKey(type: (typeof TYPE_FILTERS)[number]): string {
+  switch (type) {
+    case 'All':
+      return 'campusMap.filterAll'
+    case 'Library':
+      return 'campusMap.typeLibrary'
+    case 'Cafeteria':
+      return 'campusMap.typeCafeteria'
+    case 'Academic':
+      return 'campusMap.typeAcademic'
+    case 'Administrative':
+      return 'campusMap.typeAdministrative'
+    case 'Dormitory':
+      return 'campusMap.typeDormitory'
+    case 'Student Life':
+      return 'campusMap.typeStudentLife'
+  }
+}
+
 function facilityIcon(type: string) {
   switch (type) {
     case 'Library':
@@ -276,7 +295,7 @@ export function CampusMapPage() {
                     : 'bg-white text-pnu-muted ring-1 ring-black/5'
                 }`}
               >
-                {type === 'All' ? t('campusMap.filterAll') : type}
+                {t(typeFilterLabelKey(type))}
               </button>
             ))}
           </div>

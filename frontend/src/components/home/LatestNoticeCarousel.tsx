@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronRight, Sparkles } from 'lucide-react'
 import type { Notification } from '@/types/api'
 import { useLanguage } from '@/context/LanguageContext'
+import { isExternalNotice, noticeHref } from '@/utils/notices'
 import sanjini from '@/assets/pnu-character.png'
 
 interface LatestNoticeCarouselProps {
@@ -72,6 +73,8 @@ export function LatestNoticeCarousel({
   }
 
   const notice = slides[index] ?? slides[0]
+  const href = noticeHref(notice)
+  const external = isExternalNotice(notice)
 
   return (
     <section className="shrink-0">
@@ -99,34 +102,65 @@ export function LatestNoticeCarousel({
         className="overflow-hidden rounded-[24px] bg-white px-4 pb-3 pt-4 transition active:scale-[0.99]"
         style={{ boxShadow: CARD_SHADOW }}
       >
-        <Link to={`/notifications/${notice.id}`} className="block">
-          <div className="mb-2.5 flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-pnu-blue/10 px-2.5 py-1 text-[10px] font-bold text-pnu-blue">
-              <Sparkles className="h-3 w-3" strokeWidth={2.2} />
-              {t('home.aiSummary')}
-            </span>
-            <span className="text-[11px] font-medium text-pnu-muted">
-              {formatRelativeTime(notice.date, t)}
-            </span>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-bold leading-snug tracking-tight text-pnu-text">
-                {notice.title}
-              </p>
-              <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-pnu-muted">
-                {notice.body}
-              </p>
+        {external ? (
+          <a href={href} target="_blank" rel="noreferrer" className="block">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-pnu-blue/10 px-2.5 py-1 text-[10px] font-bold text-pnu-blue">
+                <Sparkles className="h-3 w-3" strokeWidth={2.2} />
+                {t('home.aiSummary')}
+              </span>
+              <span className="text-[11px] font-medium text-pnu-muted">
+                {formatRelativeTime(notice.date, t)}
+              </span>
             </div>
-            <img
-              src={sanjini}
-              alt=""
-              className="h-16 w-16 shrink-0 object-contain object-bottom"
-              draggable={false}
-            />
-          </div>
-        </Link>
+
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold leading-snug tracking-tight text-pnu-text">
+                  {notice.title}
+                </p>
+                <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-pnu-muted">
+                  {notice.body}
+                </p>
+              </div>
+              <img
+                src={sanjini}
+                alt=""
+                className="h-16 w-16 shrink-0 object-contain object-bottom"
+                draggable={false}
+              />
+            </div>
+          </a>
+        ) : (
+          <Link to={href} className="block">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-pnu-blue/10 px-2.5 py-1 text-[10px] font-bold text-pnu-blue">
+                <Sparkles className="h-3 w-3" strokeWidth={2.2} />
+                {t('home.aiSummary')}
+              </span>
+              <span className="text-[11px] font-medium text-pnu-muted">
+                {formatRelativeTime(notice.date, t)}
+              </span>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold leading-snug tracking-tight text-pnu-text">
+                  {notice.title}
+                </p>
+                <p className="mt-1.5 line-clamp-2 text-[12px] leading-relaxed text-pnu-muted">
+                  {notice.body}
+                </p>
+              </div>
+              <img
+                src={sanjini}
+                alt=""
+                className="h-16 w-16 shrink-0 object-contain object-bottom"
+                draggable={false}
+              />
+            </div>
+          </Link>
+        )}
 
         {slides.length > 1 ? (
           <div className="mt-3 flex items-center justify-center gap-1.5">

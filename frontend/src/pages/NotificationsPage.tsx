@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
+  ArrowLeft,
   Bell,
   Bookmark,
   Building2,
@@ -26,6 +27,8 @@ import { mockNotifications } from '@/api/mock/data'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { useLanguage } from '@/context/LanguageContext'
 import type { NoticeChannel, Notification } from '@/types/api'
+import { isExternalNotice, noticeHref } from '@/utils/notices'
+import { useSavedNotices } from '@/utils/savedNotices'
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 
@@ -181,23 +184,21 @@ export function NotificationsPage() {
   const [error, setError] = useState('')
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all')
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({})
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
+  const navigate = useNavigate()
 
   useEffect(() => {
     setLoading(true)
     api
       .getNotifications()
       .then((items) => {
-        if (items.length >= 5) {
+        // Prefer live scraped notices; only pad with mock when API is empty.
+        if (items.length > 0) {
           setNotifications(items)
           return
         }
-        const titles = new Set(items.map((item) => item.title.toLowerCase()))
-        const extras = mockNotifications.filter(
-          (item) => !titles.has(item.title.toLowerCase()),
-        )
-        setNotifications([...items, ...extras])
+        setNotifications(mockNotifications)
       })
       .catch((err) =>
         setError(err instanceof Error ? err.message : t('notifications.loadError')),
@@ -250,21 +251,31 @@ export function NotificationsPage() {
     { id: 'important', labelKey: 'notices.tabImportant', icon: Star },
   ]
 
-  function toggleBookmark(id: string) {
-    setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }))
+  function toggleBookmark(notice: Notification) {
+    toggleSavedNotice(notice)
   }
 
   return (
     <div className="min-h-full bg-[#F5F7FB]">
       <header className="sticky top-0 z-10 bg-[#F5F7FB]/95 px-3 pb-2 pt-2.5 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 pt-0.5">
-            <h1 className="text-[22px] font-bold leading-none tracking-tight text-pnu-text">
-              {t('notices.title')}
-            </h1>
-            <p className="mt-1 text-[12px] font-medium text-pnu-muted">
-              {t('notices.subtitle')}
-            </p>
+          <div className="flex min-w-0 items-start gap-2 pt-0.5">
+            <button
+              type="button"
+              aria-label={t('common.goBack')}
+              onClick={() => navigate(-1)}
+              className="mt-0.5 rounded-xl bg-white p-1.5 text-pnu-muted shadow-sm ring-1 ring-black/8 transition hover:text-pnu-blue"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-bold leading-none tracking-tight text-pnu-text">
+                {t('notices.title')}
+              </h1>
+              <p className="mt-1 text-[12px] font-medium text-pnu-muted">
+                {t('notices.subtitle')}
+              </p>
+            </div>
           </div>
           <button
             type="button"
@@ -377,7 +388,9 @@ export function NotificationsPage() {
               <ul className="space-y-2">
                 {feedItems.map((item) => {
                   const Icon = item.Icon
-                  const saved = Boolean(bookmarked[item.id])
+                  const saved = isNoticeSaved(item.id)
+                  const href = noticeHref(item)
+                  const external = isExternalNotice(item)
                   return (
                     <li key={item.id}>
                       <div
@@ -387,27 +400,53 @@ export function NotificationsPage() {
                         <span
                           className={`mt-4 h-1.5 w-1.5 shrink-0 rounded-full ${item.dotTone}`}
                         />
-                        <Link
-                          to={`/notifications/${item.id}`}
-                          className="flex min-w-0 flex-1 items-start gap-2.5"
-                        >
-                          <span
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${item.iconTone}`}
+                        {external ? (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex min-w-0 flex-1 items-start gap-2.5"
                           >
-                            <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className={`text-[10px] font-bold ${item.channelTextTone}`}>
-                              {t(item.channelLabelKey)}
-                            </p>
-                            <p className="mt-0.5 line-clamp-2 text-[13px] font-bold leading-snug text-pnu-text">
-                              {item.title}
-                            </p>
-                            <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
-                              {item.source}
-                            </p>
-                          </div>
-                        </Link>
+                            <span
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${item.iconTone}`}
+                            >
+                              <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className={`text-[10px] font-bold ${item.channelTextTone}`}>
+                                {t(item.channelLabelKey)}
+                              </p>
+                              <p className="mt-0.5 line-clamp-2 text-[13px] font-bold leading-snug text-pnu-text">
+                                {item.title}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
+                                {item.source}
+                              </p>
+                            </div>
+                          </a>
+                        ) : (
+                          <Link
+                            to={href}
+                            className="flex min-w-0 flex-1 items-start gap-2.5"
+                          >
+                            <span
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] ${item.iconTone}`}
+                            >
+                              <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className={`text-[10px] font-bold ${item.channelTextTone}`}>
+                                {t(item.channelLabelKey)}
+                              </p>
+                              <p className="mt-0.5 line-clamp-2 text-[13px] font-bold leading-snug text-pnu-text">
+                                {item.title}
+                              </p>
+                              <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
+                                {item.source}
+                              </p>
+                            </div>
+                          </Link>
+                        )}
                         <div className="flex shrink-0 flex-col items-end gap-2">
                           <span className="text-[10px] font-medium text-pnu-muted">
                             {formatDate(item.date, locale)}
@@ -419,7 +458,7 @@ export function NotificationsPage() {
                             />
                             <button
                               type="button"
-                              onClick={() => toggleBookmark(item.id)}
+                              onClick={() => toggleBookmark(item)}
                               className={[
                                 'rounded-md p-0.5 transition',
                                 saved ? 'text-[#7C3AED]' : 'text-pnu-muted',

@@ -165,7 +165,7 @@ export const realApi: HeyPnuApi = {
 
   async getNotifications(): Promise<Notification[]> {
     const notifications = await backendFetch<Parameters<typeof mapNotice>[0][]>(
-      '/students/notifications',
+      '/students/notices',
     )
 
     return notifications.map(mapNotice)

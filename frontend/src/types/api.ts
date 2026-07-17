@@ -372,6 +372,8 @@ export interface Notification {
   priority: NotificationPriority
   source?: string | null
   channel?: NoticeChannel | null
+  /** External original post URL when scraped from a PNU board */
+  sourceUrl?: string | null
   read?: boolean
 }
 

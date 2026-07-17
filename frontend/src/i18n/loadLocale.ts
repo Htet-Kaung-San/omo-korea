@@ -30,6 +30,11 @@ const LOCALE_LOADERS: Record<LanguageCode, () => Promise<LocaleModule>> = {
 
 let englishFallbackPromise: Promise<MessageDictionary> | null = null
 
+/** Clear cached locale modules (needed after HMR updates to message files). */
+export function clearLocaleCache() {
+  englishFallbackPromise = null
+}
+
 async function loadEnglishFallback(): Promise<MessageDictionary> {
   if (!englishFallbackPromise) {
     englishFallbackPromise = LOCALE_LOADERS.en().then((module) => module.default)
@@ -38,6 +43,9 @@ async function loadEnglishFallback(): Promise<MessageDictionary> {
 }
 
 export async function loadLocale(language: LanguageCode): Promise<MessageDictionary> {
+  // Always re-import so newly added keys are picked up after HMR / edits.
+  clearLocaleCache()
+
   const loader = LOCALE_LOADERS[language] ?? LOCALE_LOADERS[DEFAULT_LANGUAGE]
   const [messages, fallback, oneStopMessages, libraryMessages, calendarMessages] =
     await Promise.all([
@@ -54,4 +62,14 @@ export async function loadLocale(language: LanguageCode): Promise<MessageDiction
 
 export async function preloadLocale(language: LanguageCode): Promise<void> {
   await loadLocale(language)
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept(
+    Object.keys(LOCALE_LOADERS).map((code) => `./locales/${code}`),
+    () => {
+      clearLocaleCache()
+      window.dispatchEvent(new Event('hey_pnu_locale_changed'))
+    },
+  )
 }
