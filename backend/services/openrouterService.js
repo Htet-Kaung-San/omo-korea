@@ -37,8 +37,10 @@ async function generateOpenRouterChat(message, history = []) {
     });
   }
 
-  // Configured with exact active free model IDs and their respective custom timeouts
+  // Prefer OPENROUTER_MODEL from .env, then free fallbacks
+  const preferredModel = process.env.OPENROUTER_MODEL;
   const modelConfig = [
+    ...(preferredModel ? [{ id: preferredModel, timeout: 30000 }] : []),
     { id: "google/gemma-4-31b-it:free", timeout: 7000 },
     { id: "meta-llama/llama-3.2-3b-instruct:free", timeout: 6000 },
     { id: "qwen/qwen3-next-80b-a3b-instruct:free", timeout: 8000 },

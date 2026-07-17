@@ -8,6 +8,8 @@ import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
+import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
+import { CreditsPage } from '@/pages/CreditsPage'
 import { RecommendedCoursesPage } from '@/pages/RecommendedCoursesPage'
 import { CourseDetailPage } from '@/pages/CourseDetailPage'
 import { ProgramsPage } from '@/pages/ProgramsPage'
@@ -30,6 +32,7 @@ import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
 import { WorkPermitPage } from '@/pages/WorkPermitPage'
 import { RelatedLawsPage } from '@/pages/RelatedLawsPage'
 import { AiAssistantPage } from '@/pages/AiAssistantPage'
+import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -67,6 +70,7 @@ function AppRoutes() {
         <Route path="ai" element={<AiAssistantPage />} />
         <Route path="map" element={<CampusMapPage />} />
         <Route path="academic" element={<AcademicPage />} />
+        <Route path="academic-calendar" element={<AcademicCalendarPage />} />
         <Route path="academic/recommended-courses" element={<RecommendedCoursesPage />} />
         <Route path="academic/recommended-courses/:courseId" element={<CourseDetailPage />} />
         <Route path="academic/programs" element={<ProgramsPage />} />
@@ -115,8 +119,9 @@ function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
-        <Route path="courses" element={<Navigate to="/schedule" replace />} />
-        <Route path="checklist" element={<Navigate to="/" replace />} />
+        <Route path="courses" element={<CoursesDashboardPage />} />
+        <Route path="credits" element={<CreditsPage />} />
+        <Route path="checklist" element={<Navigate to="/credits" replace />} />
         <Route path="chat" element={<Navigate to="/ai" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

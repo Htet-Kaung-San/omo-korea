@@ -7,21 +7,27 @@ import type {
   ChatMessageResponse,
   ChecklistItem,
   ChecklistPayload,
+  Course,
   CourseType,
   EmergencyGuide,
+  Enrollment,
   GetCampusFacilitiesParams,
   GetCareerOpportunitiesParams,
   GraduationProgress,
   HeyPnuApi,
   LoginRequest,
+  MajorRecommendationRequest,
+  MajorRecommendationResponse,
   Notification,
   ProgramItem,
   RecommendedCourse,
   ScholarshipItem,
+  SignupRequest,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
 import { apiFetch, clearStoredToken } from '../client'
+import { CHAT_SUGGESTIONS } from '../mock/data'
 import { backendFetch } from './backendFetch'
 import {
   mapBackendStudent,
@@ -178,12 +184,20 @@ export const realApi: HeyPnuApi = {
   },
 
   async sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse> {
-    void data
-    return { reply: '' }
+    const studentId = resolveStudentId()
+    const response = await apiFetch<{ success: true; reply: string }>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: data.message,
+        studentId: studentId || undefined,
+      }),
+    })
+
+    return { reply: response.reply }
   },
 
   async getChatSuggestions(): Promise<string[]> {
-    return []
+    return CHAT_SUGGESTIONS
   },
 
   async getCareerOpportunities(
@@ -255,43 +269,107 @@ export const realApi: HeyPnuApi = {
     });
   },
 
-  async forgotPassword(_studentId: string): Promise<{ maskedEmail: string; code: string }> {
-    throw new Error('Not implemented');
+  async forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }> {
+    const response = await apiFetch<{
+      success: true
+      maskedEmail: string
+      code: string
+    }>('/students/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId }),
+      suppressToast: true,
+    })
+
+    return {
+      maskedEmail: response.maskedEmail,
+      code: response.code,
+    }
   },
 
-  async resetPassword(_studentId: string, _code: string, _newPassword: string): Promise<void> {
-    throw new Error('Not implemented');
+  async resetPassword(studentId: string, code: string, newPassword: string): Promise<void> {
+    await apiFetch<{ success: true }>('/students/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: studentId,
+        code,
+        new_password: newPassword,
+      }),
+      suppressToast: true,
+    })
   },
 
-  async signup(_data: any): Promise<void> {
-    throw new Error('Not implemented');
+  async signup(data: SignupRequest): Promise<void> {
+    await apiFetch<{ success: true }>('/students/signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: data.studentId,
+        name: data.name,
+        nationality: data.nationality,
+        major_name: data.major,
+        student_type: data.student_type,
+        visa_status: data.visa_status,
+        password: data.password,
+        language_pref: data.language_pref,
+        is_in_korea: data.is_in_korea,
+        mbti: data.mbti,
+        d2_semester: data.d2_semester,
+        completed_courses: data.completed_courses,
+        intake_term: data.intake_term,
+      }),
+      suppressToast: true,
+    })
   },
 
-  async recommendMajor(_data: any): Promise<any> {
-    throw new Error('Not implemented');
+  async recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse> {
+    return apiFetch<MajorRecommendationResponse>('/ai/recommend-major', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
   },
 
-  async getCourses(_campus?: string): Promise<any[]> {
-    throw new Error('Not implemented');
+  async getCourses(_campus?: string): Promise<Course[]> {
+    return backendFetch<Course[]>('/students/courses')
   },
 
-  async getEnrollments(_studentId: string): Promise<any[]> {
-    throw new Error('Not implemented');
+  async getEnrollments(studentId: string): Promise<Enrollment[]> {
+    return backendFetch<Enrollment[]>(`/students/enrollments/${encodeURIComponent(studentId)}`)
   },
 
-  async createEnrollment(_studentId: string, _courseId: number): Promise<any> {
-    throw new Error('Not implemented');
+  async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
+    return backendFetch<Enrollment>('/students/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: studentId,
+        course_id: courseId,
+      }),
+    })
   },
 
-  async deleteEnrollment(_enrollmentId: number): Promise<void> {
-    throw new Error('Not implemented');
+  async deleteEnrollment(enrollmentId: number): Promise<void> {
+    await backendFetch<unknown>(`/students/enrollments/${enrollmentId}`, {
+      method: 'DELETE',
+    })
   },
 
-  async requestAccountDeletion(_studentId: string): Promise<void> {
-    throw new Error('Not implemented');
+  async requestAccountDeletion(studentId: string): Promise<void> {
+    await backendFetch<unknown>(
+      `/students/${encodeURIComponent(studentId)}/request-delete`,
+      { method: 'PATCH' },
+    )
   },
 
-  async updateLanguagePreference(_studentId: string, _languagePref: string): Promise<void> {
-    throw new Error('Not implemented');
+  async updateLanguagePreference(studentId: string, languagePref: string): Promise<void> {
+    await backendFetch<unknown>(
+      `/students/${encodeURIComponent(studentId)}/language`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ language_pref: languagePref }),
+      },
+    )
+
+    const user = getSessionUser()
+    if (user && user.studentId === studentId) {
+      setSessionUser({ ...user, language_pref: languagePref })
+    }
   },
 }

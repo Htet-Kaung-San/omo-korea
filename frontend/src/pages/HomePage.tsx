@@ -1,28 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { api } from '@/api'
 import type {
   ChecklistItem,
   ChecklistVariant,
-  Enrollment,
   GraduationProgress,
   Notification,
-  RecommendedCourse,
 } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { GraduationCard } from '@/components/graduation/GraduationCard'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
-import { AcademicCalendarSection } from '@/components/home/AcademicCalendarSection'
-import { HomeHeroCard } from '@/components/home/HomeHeroCard'
-import { LatestNoticeCard } from '@/components/home/LatestNoticeCard'
-import { NextClassCard } from '@/components/home/NextClassCard'
+import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { QuickAccessGrid } from '@/components/home/QuickAccessGrid'
 import { ProgressBar } from '@/components/ui/ProgressBar'
-import { CourseTypeBadge } from '@/components/ui/Badge'
-import { getNextClass } from '@/utils/timetable'
-import sanjini from '@/assets/pnu-character.png'
 
 function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
   if (!item.creditRequirement || !progress) return false
@@ -41,15 +30,12 @@ function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null):
 }
 
 export function HomePage() {
-  const navigate = useNavigate()
   const { user } = useAuth()
-  const { language, locale, t } = useLanguage()
+  const { language, t } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [checklistVariant, setChecklistVariant] = useState<ChecklistVariant>('GRADUATION_REQUIREMENT')
-  const [recommendedCourses, setRecommendedCourses] = useState<RecommendedCourse[]>([])
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [latestNotice, setLatestNotice] = useState<Notification | null>(null)
+  const [notices, setNotices] = useState<Notification[]>([])
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -57,26 +43,19 @@ export function HomePage() {
 
   useEffect(() => {
     setLoading(true)
-    const studentId = user?.studentId
     Promise.all([
       api.getGraduationProgress(),
       api.getChecklist(),
-      api.getAiDashboard(),
-      studentId ? api.getEnrollments(studentId) : Promise.resolve([] as Enrollment[]),
       api.getNotifications(),
     ])
-      .then(([grad, checklistPayload, dashboard, enrollmentList, notifications]) => {
+      .then(([grad, checklistPayload, notifications]) => {
         setProgress(grad)
         setChecklist(checklistPayload.items)
         setChecklistVariant(checklistPayload.variant)
-        setRecommendedCourses(
-          dashboard.recommendedCourses.filter((course) => course.score > 0).slice(0, 4),
-        )
-        setEnrollments(enrollmentList)
         const sorted = [...notifications].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         )
-        setLatestNotice(sorted[0] ?? null)
+        setNotices(sorted)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
       .finally(() => setLoading(false))
@@ -98,8 +77,7 @@ export function HomePage() {
   const completedCount = checklist.filter((i) => i.completed).length
   const showChecklistSection =
     isFresher && checklist.length > 0 && completedCount < checklist.length
-
-  const nextClass = useMemo(() => getNextClass(enrollments), [enrollments])
+  const previewChecklist = checklist.slice(0, 2)
 
   function getLocalizedLockReason(item: ChecklistItem): string {
     if (!item.creditRequirement || !progress) return ''
@@ -133,150 +111,66 @@ export function HomePage() {
   }
 
   return (
-    <div className="relative">
-      <div className="space-y-6 px-4 py-4 pb-28">
-        {error ? (
-          <p className="rounded-[16px] bg-red-50 px-3 py-2 text-sm text-red-600">
-            {error}
-          </p>
-        ) : null}
+    <div className="relative animate-fade-in px-3.5 py-4">
+      {error ? (
+        <p className="mb-4 rounded-[16px] bg-red-50 px-3 py-2 text-[11px] text-red-600">
+          {error}
+        </p>
+      ) : null}
 
-        {loading ? <p className="text-sm text-pnu-muted">{t('home.loading')}</p> : null}
-
-        {!loading ? (
-          <>
-            <HomeHeroCard user={user} />
-
-            {showChecklistSection ? (
-              <section>
-                <div className="mb-3 flex items-center justify-between px-1">
-                  <h2 className="text-[17px] font-semibold tracking-tight text-pnu-text">
+      {loading ? (
+        <p className="text-[12px] text-pnu-muted">{t('home.loading')}</p>
+      ) : (
+        <div className="flex flex-col gap-6 pb-4">
+          {showChecklistSection ? (
+            <section className="shrink-0">
+              <div className="mb-2.5 flex items-end justify-between gap-2 px-0.5">
+                <div>
+                  <h2 className="text-[15px] font-bold tracking-tight text-pnu-text">
                     {t('home.newStudentChecklist')}
                   </h2>
-                  <Link to="/" className="text-[13px] font-semibold text-pnu-blue">
-                    {t('common.viewAll')}
-                  </Link>
+                  <p className="mt-0.5 text-[11px] font-medium text-pnu-muted">
+                    {t('home.checklistSubtitle')}
+                  </p>
                 </div>
-                <div className="rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/5">
-                  <div className="mb-3">
-                    <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-                      <span className="text-pnu-text">{t('home.checklistProgress')}</span>
-                      <span className="text-pnu-muted">
-                        {t('common.completedCount', {
-                          completed: completedCount,
-                          total: checklist.length,
-                        })}
-                      </span>
-                    </div>
-                    <ProgressBar value={completedCount} max={checklist.length} size="sm" />
-                  </div>
-                  <div className="divide-y divide-pnu-border">
-                    {checklist.map((item) => {
-                      const locked = isItemLocked(item, progress)
-                      const lockReason = locked ? getLocalizedLockReason(item) : undefined
-                      return (
-                        <ChecklistRow
-                          key={item.id}
-                          item={item}
-                          variant="plain"
-                          disabled={updatingId === item.id}
-                          locked={locked}
-                          lockReason={lockReason}
-                          onToggle={handleToggleChecklist}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-              </section>
-            ) : null}
-
-            <NextClassCard nextClass={nextClass} locale={locale} />
-
-            <AcademicCalendarSection />
-
-            <QuickAccessGrid />
-
-            <section>
-              <div className="mb-3 flex items-center justify-between px-1">
-                <h2 className="flex items-center gap-2 text-[17px] font-semibold tracking-tight text-pnu-text">
-                  <Sparkles className="h-4 w-4 text-pnu-blue" />
-                  {t('academic.recommendedCourses')}
-                </h2>
-                <Link
-                  to="/academic/recommended-courses"
-                  className="inline-flex items-center gap-0.5 text-[13px] font-semibold text-pnu-blue"
-                >
-                  {t('common.viewMore')}
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
+                <span className="text-[11px] font-semibold text-pnu-muted">
+                  {t('common.completedCount', {
+                    completed: completedCount,
+                    total: checklist.length,
+                  })}
+                </span>
               </div>
-
-              {recommendedCourses.length === 0 ? (
-                <p className="px-1 text-sm text-pnu-muted">{t('academic.noCourses')}</p>
-              ) : (
-                <div className="no-scrollbar -mx-4 overflow-x-auto px-4 pb-1">
-                  <div className="flex gap-3">
-                    {recommendedCourses.map((course) => (
-                      <article
-                        key={course.id}
-                        className="w-56 shrink-0 rounded-[20px] bg-white p-3.5 shadow-sm ring-1 ring-black/5"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <Link
-                              to={`/academic/recommended-courses/${course.id}`}
-                              className="line-clamp-1 text-sm font-semibold text-pnu-text"
-                            >
-                              {course.nameEn}
-                            </Link>
-                            <p className="mt-1 line-clamp-1 text-xs text-pnu-muted">{course.nameKo}</p>
-                          </div>
-                          <CourseTypeBadge type={course.type} />
-                        </div>
-                        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-pnu-muted">
-                          <span>{t('course.credits', { count: course.credits })}</span>
-                          <span>·</span>
-                          <span className="line-clamp-1">{course.department}</span>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
+              <div
+                className="overflow-hidden rounded-[24px] bg-white px-3.5 py-3.5"
+                style={{ boxShadow: '0 12px 32px rgba(15,23,42,0.08)' }}
+              >
+                <ProgressBar value={completedCount} max={checklist.length} size="sm" />
+                <div className="mt-2 divide-y divide-pnu-border">
+                  {previewChecklist.map((item) => {
+                    const locked = isItemLocked(item, progress)
+                    const lockReason = locked ? getLocalizedLockReason(item) : undefined
+                    return (
+                      <ChecklistRow
+                        key={item.id}
+                        item={item}
+                        variant="plain"
+                        disabled={updatingId === item.id}
+                        locked={locked}
+                        lockReason={lockReason}
+                        onToggle={handleToggleChecklist}
+                      />
+                    )
+                  })}
                 </div>
-              )}
+              </div>
             </section>
+          ) : null}
 
-            <LatestNoticeCard notice={latestNotice} />
+          <LatestNoticeCarousel notices={notices} />
 
-            {!isFresher && progress ? (
-              <section>
-                <div className="mb-3 flex items-center justify-between px-1">
-                  <h2 className="text-[17px] font-semibold tracking-tight text-pnu-text">
-                    {t('graduation.title')}
-                  </h2>
-                  <Link
-                    to="/schedule"
-                    className="inline-flex items-center gap-0.5 text-[13px] font-semibold text-pnu-blue"
-                  >
-                    {t('common.viewMore')}
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
-                <GraduationCard progress={progress} compact />
-              </section>
-            ) : null}
-          </>
-        ) : null}
-      </div>
-
-      <button
-        type="button"
-        onClick={() => navigate('/ai')}
-        aria-label={t('nav.aiAssistant')}
-        className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-black/8 transition active:scale-95"
-      >
-        <img src={sanjini} alt="" className="h-11 w-11 object-contain" />
-      </button>
+          <QuickAccessGrid />
+        </div>
+      )}
     </div>
   )
 }
