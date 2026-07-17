@@ -148,6 +148,9 @@ export function mapNotice(notice: BackendNotice): Notification {
     date: notice.date ?? notice.deadline ?? '',
     category: notice.category,
     priority: notice.priority,
+    source: null,
+    channel: null,
+    read: false,
   }
 }
 
@@ -174,6 +177,9 @@ export function mapScholarshipItem(scholarship: ScholarshipItem): ScholarshipIte
     eligibility: scholarship.eligibility,
     amount: scholarship.amount ?? null,
     provider: scholarship.provider ?? null,
+    category: scholarship.category ?? null,
+    tag: scholarship.tag ?? null,
+    deadlineAt: scholarship.deadlineAt ?? null,
   }
 }
 

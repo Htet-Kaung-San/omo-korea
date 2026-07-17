@@ -4,6 +4,7 @@ export type CourseType = 'REQUIRED' | 'ELECTIVE' | 'GEN_ED'
 
 export type NotificationCategory = 'REGISTRATION' | 'DEADLINE' | 'GENERAL'
 export type NotificationPriority = 'HIGH' | 'NORMAL'
+export type NoticeChannel = 'department' | 'international' | 'general'
 
 export interface User {
   studentId: string
@@ -84,6 +85,8 @@ export interface ProgramItem {
   matchHint?: string
 }
 
+export type ScholarshipCategory = 'department' | 'international' | 'government' | 'other'
+
 export interface ScholarshipItem {
   id: string
   title: string
@@ -92,6 +95,9 @@ export interface ScholarshipItem {
   eligibility: string
   amount?: string | null
   provider?: string | null
+  category?: ScholarshipCategory | null
+  tag?: string | null
+  deadlineAt?: string | null
 }
 
 export interface EmergencyQuickAccess {
@@ -364,6 +370,9 @@ export interface Notification {
   date: string
   category: NotificationCategory
   priority: NotificationPriority
+  source?: string | null
+  channel?: NoticeChannel | null
+  read?: boolean
 }
 
 export interface CreditRequirement {

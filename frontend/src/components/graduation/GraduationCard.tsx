@@ -112,6 +112,34 @@ export function GraduationCard({ progress, compact }: GraduationCardProps) {
   const { totalCompleted, totalRequired, breakdown } = progress
   const percentage = totalRequired > 0 ? Math.round((totalCompleted / totalRequired) * 100) : 0
 
+  if (compact) {
+    return (
+      <div className="rounded-[16px] bg-white px-3 py-2 shadow-sm ring-1 ring-black/5">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <p className="text-[12px] font-semibold text-pnu-text">
+            {totalCompleted}
+            <span className="font-medium text-pnu-muted"> / {totalRequired} cr</span>
+          </p>
+          <span className="rounded-full bg-pnu-blue/10 px-2 py-0.5 text-[10px] font-bold text-pnu-blue">
+            {t('graduation.donePercent', { percent: percentage })}
+          </span>
+        </div>
+        <div
+          className="h-1.5 overflow-hidden rounded-full bg-slate-100"
+          role="progressbar"
+          aria-valuenow={totalCompleted}
+          aria-valuemin={0}
+          aria-valuemax={totalRequired}
+        >
+          <div
+            className="h-full rounded-full bg-pnu-blue transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-[#E2E8F0] bg-white shadow-sm overflow-hidden">
       {/* ── Header strip ── */}
@@ -127,27 +155,23 @@ export function GraduationCard({ progress, compact }: GraduationCardProps) {
         </span>
       </div>
 
-      <div className="px-4 py-4"> {/* Reduced padding */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center"> {/* Reduced gap */}
-          
+      <div className="px-4 py-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="flex flex-col items-center justify-center gap-3 md:w-[30%] shrink-0">
             <CircleProgress value={totalCompleted} max={totalRequired} />
           </div>
 
-          {!compact && (
-            // Adjusted spacing and border logic
-            <div className="flex-1 space-y-3 w-full border-t border-[#F1F5F9] pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
-              {BARS.map(({ key, label, color }) => (
-                <BarRow
-                  key={key}
-                  label={label}
-                  completed={breakdown[key].completed}
-                  required={breakdown[key].required}
-                  color={color}
-                />
-              ))}
-            </div>
-          )}
+          <div className="flex-1 space-y-3 w-full border-t border-[#F1F5F9] pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+            {BARS.map(({ key, label, color }) => (
+              <BarRow
+                key={key}
+                label={label}
+                completed={breakdown[key].completed}
+                required={breakdown[key].required}
+                color={color}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
