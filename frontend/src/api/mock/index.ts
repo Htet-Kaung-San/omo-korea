@@ -8,7 +8,12 @@ import type {
   ChecklistPayload,
   CourseType,
   EmergencyGuide,
-  
+  FaqItem,
+  CommunityGroup,
+  CommunityMembersResponse,
+  CommunityPost,
+  CommunityScope,
+  CreateCommunityPostRequest,
   GetCareerOpportunitiesParams,
   GraduationProgress,
   HeyPnuApi,
@@ -21,6 +26,7 @@ import type {
   ChecklistItem,
   Notification,
   ProgramItem,
+  PnuContact,
   RecommendedCourse,
   ScholarshipItem,
   UpdateProfileRequest,
@@ -33,10 +39,14 @@ import {
   DEMO_STUDENT_ID,
   mockCampusFacilities,
   mockMapFacilities,
+  mockAcademicRecords,
   mockCareerOpportunities,
   mockChatIntents,
   mockEmergencyGuide,
+  mockFaqItems,
+  mockPnuContacts,
   mockPrograms,
+  mockRecommendedCareers,
   mockScholarships,
   mockChecklist,
   mockGraduationChecklist,
@@ -329,9 +339,53 @@ export const mockApi: HeyPnuApi = {
     return paginateMockCareerOpportunities(params)
   },
 
+  async getRecommendedCareerOpportunities() {
+    await delay()
+    return mockRecommendedCareers
+  },
+
   async getEmergencyGuide(): Promise<EmergencyGuide> {
     await delay()
     return mockEmergencyGuide
+  },
+
+  async getPnuContacts(): Promise<PnuContact[]> {
+    await delay()
+    return mockPnuContacts
+  },
+
+  async getFaqItems(): Promise<FaqItem[]> {
+    await delay()
+    return mockFaqItems
+  },
+
+  async getMyCommunityGroup(_scope: CommunityScope): Promise<CommunityGroup | null> {
+    await delay()
+    return null
+  },
+
+  async getCommunityPosts(_params: {
+    scope: CommunityScope
+    groupSlug?: string | null
+    groupId?: number | null
+  }): Promise<CommunityPost[]> {
+    await delay()
+    return []
+  },
+
+  async getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse> {
+    await delay()
+    throw new Error(`Community "${groupIdOrSlug}" is unavailable in mock mode`)
+  },
+
+  async createCommunityPost(_data: CreateCommunityPostRequest): Promise<CommunityPost> {
+    await delay()
+    throw new Error('Community posts require real API mode')
+  },
+
+  async likeCommunityPost(postId: string): Promise<{ id: string; likes: number }> {
+    await delay()
+    return { id: postId, likes: 1 }
   },
 
   async getCampusFacilities(): Promise<CampusFacilities> {
@@ -342,6 +396,34 @@ export const mockApi: HeyPnuApi = {
   async getMapFacilities() {
     await delay()
     return mockMapFacilities
+  },
+
+  async getMapFacility(id: string) {
+    await delay()
+    const facility = mockMapFacilities.find((item) => item.id === id)
+    if (!facility) throw new Error('Facility not found')
+    return facility
+  },
+
+  async getAcademicRecords() {
+    await delay()
+    return mockAcademicRecords
+  },
+
+  async downloadTranscript() {
+    await delay()
+    const lines = [
+      'Hey! PNU — Academic Transcript (Unofficial)',
+      `Student ID: ${mockAcademicRecords.studentId}`,
+      `Overall GPA: ${mockAcademicRecords.overallGpa} / ${mockAcademicRecords.gpaScale}`,
+      `Standing: ${mockAcademicRecords.standing}`,
+      `Credits: ${mockAcademicRecords.completedCredits} / ${mockAcademicRecords.requiredCredits}`,
+      '',
+      ...mockAcademicRecords.semesters.map(
+        (s) => `${s.semesterLabel}: ${s.gpa.toFixed(2)} / ${mockAcademicRecords.gpaScale}`,
+      ),
+    ]
+    return new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
   },
 
   async getAiDashboard(): Promise<AiDashboard> {

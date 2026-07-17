@@ -23,17 +23,24 @@ import { CampusLifePage } from '@/pages/CampusLifePage'
 import { CommunityPage } from '@/pages/CommunityPage'
 import { CampusGuidePage } from '@/pages/CampusGuidePage'
 import { CampusMapPage } from '@/pages/CampusMapPage'
+import { FacilityDetailPage } from '@/pages/FacilityDetailPage'
 import { LibraryGuidePage } from '@/pages/LibraryGuidePage'
 import { OneStopGuidePage } from '@/pages/OneStopGuidePage'
 import { CommunityNoticesPage } from '@/pages/CommunityNoticesPage'
+import { CommunityMembersPage } from '@/pages/CommunityMembersPage'
 import { CareerOpportunitiesPage } from '@/pages/CareerOpportunitiesPage'
 import { SupportPage } from '@/pages/SupportPage'
 import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
 import { WorkPermitPage } from '@/pages/WorkPermitPage'
 import { RelatedLawsPage } from '@/pages/RelatedLawsPage'
+import { ContactSupportPage } from '@/pages/ContactSupportPage'
+import { AppSupportPage } from '@/pages/AppSupportPage'
+import { FaqPage } from '@/pages/FaqPage'
+import { FeedbackPage } from '@/pages/FeedbackPage'
 import { AiAssistantPage } from '@/pages/AiAssistantPage'
+import { AcademicRecordsPage } from '@/pages/AcademicRecordsPage'
+import { ProfileStubPage } from '@/pages/ProfileStubPage'
 import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
@@ -69,6 +76,7 @@ function AppRoutes() {
         <Route path="schedule" element={<AcademicPage />} />
         <Route path="ai" element={<AiAssistantPage />} />
         <Route path="map" element={<CampusMapPage />} />
+        <Route path="map/:facilityId" element={<FacilityDetailPage />} />
         <Route path="academic" element={<AcademicPage />} />
         <Route path="academic-calendar" element={<AcademicCalendarPage />} />
         <Route path="academic/recommended-courses" element={<RecommendedCoursesPage />} />
@@ -93,6 +101,7 @@ function AppRoutes() {
         <Route path="campus-life/map" element={<CampusMapPage />} />
         <Route path="career-opportunities" element={<CareerOpportunitiesPage />} />
         <Route path="community" element={<CommunityPage />} />
+        <Route path="community/groups/:groupId/members" element={<CommunityMembersPage />} />
         <Route
           path="community/country-notices"
           element={
@@ -115,8 +124,16 @@ function AppRoutes() {
         <Route path="support/emergency" element={<EmergencySupportPage />} />
         <Route path="support/work-permit" element={<WorkPermitPage />} />
         <Route path="support/related-laws" element={<RelatedLawsPage />} />
+        <Route path="support/contact" element={<ContactSupportPage />} />
+        <Route path="support/app" element={<AppSupportPage />} />
+        <Route path="support/faq" element={<FaqPage />} />
+        <Route path="support/feedback" element={<FeedbackPage />} />
         <Route path="my" element={<ProfilePage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile/academic-records" element={<AcademicRecordsPage />} />
+        <Route path="profile/documents" element={<ProfileStubPage kind="documents" />} />
+        <Route path="profile/saved" element={<ProfileStubPage kind="saved" />} />
+        <Route path="profile/requests" element={<ProfileStubPage kind="requests" />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />

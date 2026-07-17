@@ -25,10 +25,19 @@ export interface NaverMapsApi {
       element: HTMLElement,
       options: { center: any; zoom: number; mapTypeId?: any }
     ) => NaverMap
-    Marker: new (options: { position: any; title?: string; map?: NaverMap }) => NaverMarker
+    Marker: new (options: {
+      position: any
+      title?: string
+      map?: NaverMap
+      icon?: { content: string; anchor?: any }
+    }) => NaverMarker
     InfoWindow: new (options: { content: string | HTMLElement; anchorSkew?: boolean }) => NaverInfoWindow
     Event: {
-      addListener: (target: NaverMap | NaverMarker, type: string, handler: () => void) => void
+      addListener: (
+        target: NaverMap | NaverMarker | NaverInfoWindow,
+        type: string,
+        handler: () => void,
+      ) => void
     }
     MapTypeId: {
       NORMAL: any
@@ -50,9 +59,28 @@ export function loadNaverMaps(appKey: string): Promise<NaverMapsApi> {
     }
 
     const existingScript = document.getElementById(NAVER_MAP_SCRIPT_ID) as HTMLScriptElement | null
-    const script = existingScript ?? document.createElement('script')
+    if (existingScript) {
+      // Script already injected; wait for maps API if still loading
+      const started = Date.now()
+      const wait = () => {
+        if (window.naver?.maps) {
+          resolve(window.naver)
+          return
+        }
+        if (Date.now() - started > 10000) {
+          reject(new Error('Naver Maps SDK timed out — check Client ID and Web Service URL'))
+          return
+        }
+        window.setTimeout(wait, 50)
+      }
+      wait()
+      return
+    }
+
+    const script = document.createElement('script')
     script.id = NAVER_MAP_SCRIPT_ID
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${appKey}`
+    // Current Maps API uses ncpKeyId (not ncpClientId) on oapi.map.naver.com
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(appKey)}`
     script.async = true
 
     script.onload = () => {
@@ -63,10 +91,9 @@ export function loadNaverMaps(appKey: string): Promise<NaverMapsApi> {
       resolve(window.naver)
     }
 
-    script.onerror = () => reject(new Error('Failed to load Naver Maps SDK'))
+    script.onerror = () =>
+      reject(new Error('Failed to load Naver Maps SDK — check Client ID / network'))
 
-    if (!existingScript) {
-      document.head.appendChild(script)
-    }
+    document.head.appendChild(script)
   })
 }

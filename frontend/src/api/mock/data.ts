@@ -1,12 +1,15 @@
 import type {
+  AcademicRecords,
   ChecklistItem,
   Course,
   EmergencyGuide,
   CampusFacilities,
+  FaqItem,
   GraduationProgress,
   MapFacility,
   Notification,
   ProgramItem,
+  PnuContact,
   ScholarshipItem,
   User,
 } from '@/types/api'
@@ -363,64 +366,116 @@ export const CHAT_SUGGESTIONS = [
 
 export const mockCareerOpportunities = [
   {
-    id: 'mock-ai-engineer-intern',
+    id: 'mock-samsung-swe',
     source: 'jobkorea',
-    company: 'PNU AI Lab',
-    title: 'AI Research Intern (Entry-level)',
-    deadline: '~08/15(금)',
-    role: 'AI Engineer',
+    company: 'Samsung Electronics',
+    title: 'Software Engineering Intern',
+    deadline: 'D-5',
+    role: 'Software Engineer',
     applicationType: '즉시지원',
     sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Seoul, Korea',
+    jobType: 'internship' as const,
   },
   {
-    id: 'mock-data-analyst',
+    id: 'mock-kakao-fe',
     source: 'jobkorea',
-    company: 'Busan Data Co.',
-    title: 'Junior Data Analyst',
-    deadline: '~08/20(수)',
-    role: 'Data Scientist',
+    company: 'Kakao',
+    title: 'Frontend Developer Intern',
+    deadline: 'D-12',
+    role: 'Frontend Developer',
     applicationType: '홈페이지',
     sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Jeju, Korea',
+    jobType: 'internship' as const,
   },
   {
-    id: 'mock-ux-designer',
+    id: 'mock-lg-data',
     source: 'jobkorea',
-    company: 'Design Studio KR',
-    title: 'UX/UI Designer (New Graduate)',
-    deadline: '~08/10(일)',
-    role: 'Product Designer',
+    company: 'LG Electronics',
+    title: 'Data Analyst Intern',
+    deadline: 'D-8',
+    role: 'Data Analyst',
     applicationType: '즉시지원',
     sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Seoul, Korea',
+    jobType: 'internship' as const,
   },
   {
-    id: 'mock-backend-developer',
+    id: 'mock-pnu-ra',
+    source: 'pnu',
+    company: 'Pusan National University',
+    title: 'Research Assistant (CS Lab)',
+    deadline: 'D-5',
+    role: 'Research Assistant',
+    applicationType: '홈페이지',
+    sourceUrl: 'https://www.pusan.ac.kr',
+    location: 'Busan, Korea',
+    jobType: 'part-time' as const,
+  },
+  {
+    id: 'mock-hyundai-me',
     source: 'jobkorea',
-    company: 'Startup Connect',
-    title: 'Backend Developer Internship',
-    deadline: '~08/25(화)',
+    company: 'Hyundai Motor',
+    title: 'Mechanical Engineering Intern',
+    deadline: 'D-7',
+    role: 'Mechanical Engineer',
+    applicationType: '즉시지원',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Ulsan, Korea',
+    jobType: 'internship' as const,
+  },
+  {
+    id: 'mock-naver-cloud',
+    source: 'jobkorea',
+    company: 'Naver Cloud',
+    title: 'Cloud Support Part-time',
+    deadline: 'D-10',
+    role: 'Cloud Engineer',
+    applicationType: '홈페이지',
+    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Seongnam, Korea',
+    jobType: 'part-time' as const,
+  },
+  {
+    id: 'mock-busan-volunteer',
+    source: 'pnu',
+    company: 'Busan City Hall',
+    title: 'International Student Volunteer Guide',
+    deadline: 'D-14',
+    role: 'Volunteer',
+    applicationType: '홈페이지',
+    sourceUrl: 'https://www.busan.go.kr',
+    location: 'Busan, Korea',
+    jobType: 'volunteer' as const,
+  },
+  {
+    id: 'mock-coupang-ft',
+    source: 'jobkorea',
+    company: 'Coupang',
+    title: 'New Graduate Backend Engineer',
+    deadline: 'D-21',
     role: 'Backend Developer',
     applicationType: '즉시지원',
     sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    location: 'Seoul, Korea',
+    jobType: 'full-time' as const,
+  },
+]
+
+/** Demo AI recommendations — replace via getRecommendedCareerOpportunities. */
+export const mockRecommendedCareers = [
+  {
+    ...mockCareerOpportunities[0],
+    matchReason: 'Matches your Computer Science interest',
   },
   {
-    id: 'mock-marketing-intern',
-    source: 'jobkorea',
-    company: 'Global Brands Korea',
-    title: 'Marketing Intern (Entry-level)',
-    deadline: '~08/18(월)',
-    role: 'Marketing Planner',
-    applicationType: '홈페이지',
-    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    ...mockCareerOpportunities[1],
+    matchReason: 'Popular with PNU CS students',
   },
   {
-    id: 'mock-system-engineer',
-    source: 'jobkorea',
-    company: 'Hyewoom Tech',
-    title: 'System Engineer (New Graduate)',
-    deadline: '~07/31(금)',
-    role: 'System Engineer',
-    applicationType: '즉시지원',
-    sourceUrl: 'https://www.jobkorea.co.kr/theme/entry-level-internship',
+    ...mockCareerOpportunities[2],
+    matchReason: 'Fits your Data Science interest',
   },
 ]
 
@@ -539,6 +594,60 @@ export const scholarships: ScholarshipItem[] = [
 
 export const mockScholarships = scholarships
 
+export const mockPnuContacts: PnuContact[] = [
+  {
+    id: 'oia',
+    name: 'Office of International Affairs (OIA)',
+    place: 'University Headquarters 2F',
+    hours: 'Weekdays 09:00 – 18:00',
+    phone: '051-510-1000',
+    email: 'oia@pusan.ac.kr',
+  },
+  {
+    id: 'one-stop',
+    name: 'One-Stop Service Center',
+    place: 'University Headquarters 1F',
+    hours: 'Weekdays 09:00 – 17:30',
+    phone: '051-510-1224',
+    email: null,
+  },
+  {
+    id: 'library',
+    name: 'Central Library Help Desk',
+    place: 'PNU Main Library 1F',
+    hours: 'Weekdays 09:00 – 18:00',
+    phone: '051-510-1800',
+    email: 'lib@pusan.ac.kr',
+  },
+]
+
+export const mockFaqItems: FaqItem[] = [
+  {
+    id: 'login',
+    question: 'I cannot log in to Hey! PNU. What should I do?',
+    answer:
+      'Confirm your student ID and password. Use Forgot password on the login screen, or contact OIA if your account was never created.',
+  },
+  {
+    id: 'language',
+    question: 'How do I change the app language?',
+    answer:
+      'Open Profile → Settings (gear) → Language, or use the language selector in the top bar.',
+  },
+  {
+    id: 'map',
+    question: 'Why is the campus map blank?',
+    answer:
+      'The map needs a valid Naver Maps Client ID and Web Service URL set to http://localhost (no port) for local development.',
+  },
+  {
+    id: 'visa',
+    question: 'Where can I get help with ARC / visa?',
+    answer:
+      'Visit Office of International Affairs (Headquarters 2F) or open Emergency / Contact Support in Help & Support.',
+  },
+]
+
 export const mockEmergencyGuide: EmergencyGuide = {
   quick_access: {
     police: { number: '112', label: 'Police' },
@@ -587,6 +696,20 @@ export const mockMapFacilities: MapFacility[] = [
       'Main campus study resources. Features extensive reading rooms on the 3rd floor.',
     floors:
       '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers',
+    subtitle: 'Study rooms, Books',
+    phone: '051-510-1800',
+    website: 'https://lib.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&q=80',
+    departments: [
+      { name: 'General Reading Rooms', floor: '1F' },
+      { name: 'Book Stacks & Reference', floor: '2F' },
+      { name: 'Silent Study Desks', floor: '3F' },
+    ],
+    amenities: [
+      { name: 'Study Rooms', floor: '1F-3F' },
+      { name: 'Computers', floor: '3F' },
+      { name: 'Copy Center', floor: '1F' },
+    ],
   },
   {
     id: '2',
@@ -598,6 +721,18 @@ export const mockMapFacilities: MapFacility[] = [
     description:
       'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.',
     floors: '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café',
+    subtitle: 'Food & Drinks',
+    phone: '051-510-1200',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80',
+    departments: [
+      { name: 'Student Cafeteria', floor: '1F' },
+      { name: 'Convenience Store & Cafe', floor: '2F' },
+    ],
+    amenities: [
+      { name: 'Korean Set Meals', floor: '1F' },
+      { name: 'Seating Lounge', floor: '1F' },
+    ],
   },
   {
     id: '3',
@@ -609,6 +744,18 @@ export const mockMapFacilities: MapFacility[] = [
     description:
       'North campus cafeteria featuring Western-style options and sandwich counters.',
     floors: '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center',
+    subtitle: 'Food & Drinks',
+    phone: '051-510-1210',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
+    departments: [
+      { name: 'International Buffet', floor: '1F' },
+      { name: 'Student Lounge', floor: '2F' },
+    ],
+    amenities: [
+      { name: 'Western Corner', floor: '1F' },
+      { name: 'Copy Center', floor: '2F' },
+    ],
   },
   {
     id: '4',
@@ -621,6 +768,19 @@ export const mockMapFacilities: MapFacility[] = [
       'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.',
     floors:
       "1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President's Office",
+    subtitle: 'Admin & Student Services',
+    phone: '051-510-1000',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80',
+    departments: [
+      { name: 'Student Service Center', floor: '1F' },
+      { name: 'Office of International Affairs', floor: '2F' },
+      { name: "President's Office", floor: '3F' },
+    ],
+    amenities: [
+      { name: 'Visa & ARC Desk', floor: '2F' },
+      { name: 'Information Desk', floor: '1F' },
+    ],
   },
   {
     id: '5',
@@ -632,8 +792,127 @@ export const mockMapFacilities: MapFacility[] = [
     description:
       'Freshman international dorms located near the Geumjeongsan mountain edge.',
     floors: '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen',
+    subtitle: 'International Housing',
+    phone: '051-510-3500',
+    website: 'https://dorm.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+    departments: [
+      { name: 'Lobby & Security', floor: '1F' },
+      { name: 'Student Rooms', floor: '2F-8F' },
+    ],
+    amenities: [
+      { name: 'Gym', floor: 'B1' },
+      { name: 'Laundry', floor: 'B1' },
+      { name: 'Kitchen', floor: 'B1' },
+    ],
+  },
+  {
+    id: '6',
+    name: 'Engineering Building 3',
+    type: 'Academic',
+    latitude: 35.233,
+    longitude: 129.0805,
+    hours: '08:00 AM - 10:00 PM',
+    description: 'Home of Computer Science and multimedia labs.',
+    floors: '2F: Seminar Room; 3F: CS Dept & Labs',
+    subtitle: 'Computer Science Dept.',
+    phone: '051-510-2200',
+    website: 'https://cse.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&q=80',
+    departments: [
+      { name: 'Computer Science Department', floor: '3F' },
+      { name: 'Multimedia Lab', floor: '3F' },
+      { name: 'Lecture Rooms 301-308', floor: '3F' },
+      { name: 'Seminar Room', floor: '2F' },
+    ],
+    amenities: [
+      { name: 'Computer Labs', floor: '3F' },
+      { name: 'Seminar Room', floor: '2F' },
+      { name: 'Student Lounge', floor: '1F' },
+    ],
+  },
+  {
+    id: '7',
+    name: 'IT Building',
+    type: 'Academic',
+    latitude: 35.2342,
+    longitude: 129.081,
+    hours: '08:00 AM - 09:00 PM',
+    description: 'Information technology classrooms and labs.',
+    floors: '1F-4F: IT classrooms and labs',
+    subtitle: 'IT & Computing',
+    phone: '051-510-2210',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
+    departments: [
+      { name: 'IT Help Desk', floor: '1F' },
+      { name: 'Programming Labs', floor: '2F-3F' },
+    ],
+    amenities: [
+      { name: 'Public Computers', floor: '1F' },
+      { name: 'Printer Room', floor: '1F' },
+    ],
+  },
+  {
+    id: '8',
+    name: 'Main Hall',
+    type: 'Administrative',
+    latitude: 35.2325,
+    longitude: 129.0788,
+    hours: '09:00 AM - 06:00 PM',
+    description: 'Central campus hall for events and ceremonies.',
+    floors: '1F: Lobby; 2F: Auditorium',
+    subtitle: 'Events & Ceremonies',
+    phone: '051-510-1100',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80',
+    departments: [
+      { name: 'Main Auditorium', floor: '2F' },
+      { name: 'Reception', floor: '1F' },
+    ],
+    amenities: [
+      { name: 'Event Hall', floor: '2F' },
+      { name: 'Cloakroom', floor: '1F' },
+    ],
+  },
+  {
+    id: '9',
+    name: 'Student Center',
+    type: 'Student Life',
+    latitude: 35.232,
+    longitude: 129.0798,
+    hours: '08:00 AM - 10:00 PM',
+    description: 'Clubs, student council, and campus activities hub.',
+    floors: '1F-3F: Club rooms and offices',
+    subtitle: 'Clubs & Activities',
+    phone: '051-510-1300',
+    website: 'https://www.pusan.ac.kr',
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80',
+    departments: [
+      { name: 'Student Council', floor: '2F' },
+      { name: 'Club Offices', floor: '1F-3F' },
+    ],
+    amenities: [
+      { name: 'Meeting Rooms', floor: '2F' },
+      { name: 'Lounge', floor: '1F' },
+    ],
   },
 ]
+
+export const mockAcademicRecords: AcademicRecords = {
+  studentId: '202600001',
+  overallGpa: 3.67,
+  gpaScale: 4.5,
+  standing: 'Good',
+  completedCredits: 72,
+  requiredCredits: 100,
+  semesters: [
+    { semesterLabel: '2024 Spring', gpa: 3.8 },
+    { semesterLabel: '2023 Fall', gpa: 3.6 },
+    { semesterLabel: '2023 Spring', gpa: 3.45 },
+    { semesterLabel: '2022 Fall', gpa: 3.3 },
+  ],
+}
 
 export const mockCampusFacilities: CampusFacilities = {
   shuttle_bus_metadata: {
@@ -727,7 +1006,110 @@ export const mockCampusFacilities: CampusFacilities = {
         week_end: '2026-07-18',
         prev_menu_date: '2026-07-10',
         next_menu_date: '2026-07-20',
-        rows: [],
+        rows: [
+          {
+            meal_type: '조식',
+            meal_label: '조식\n07:30~09:00',
+            columns: [
+              { day: 'mon', day_label: '월 2026.07.13', price: '3,500원', items: ['백미밥', '김치찌개', '계란후라이'], note: null },
+              { day: 'tue', day_label: '화 2026.07.14', price: '3,500원', items: ['백미밥', '북어국', '김구이'], note: null },
+              { day: 'wed', day_label: '수 2026.07.15', price: '3,500원', items: ['잡곡밥', '미역국', '생선까스'], note: null },
+              { day: 'thu', day_label: '목 2026.07.16', price: '3,500원', items: ['백미밥', '된장국', '스크램블에그'], note: null },
+              { day: 'fri', day_label: '금 2026.07.17', price: '3,500원', items: ['백미밥', '콩나물국', '햄구이'], note: null },
+              { day: 'sat', day_label: '토 2026.07.18', price: null, items: [], note: '미운영' },
+            ],
+          },
+          {
+            meal_type: '중식',
+            meal_label: '중식\n11:00~14:00',
+            columns: [
+              {
+                day: 'mon',
+                day_label: '월 2026.07.13',
+                price: '4,500원',
+                items: ['백미밥', '순두부찌개', '제육볶음', '배추김치'],
+                note: null,
+              },
+              {
+                day: 'tue',
+                day_label: '화 2026.07.14',
+                price: '4,500원',
+                items: ['백미밥', '육개장', '생선조림', '시금치나물'],
+                note: null,
+              },
+              {
+                day: 'wed',
+                day_label: '수 2026.07.15',
+                price: '4,500원',
+                items: ['잡곡밥', '김치찌개', '닭갈비', '콩나물무침'],
+                note: null,
+              },
+              {
+                day: 'thu',
+                day_label: '목 2026.07.16',
+                price: '4,500원',
+                items: ['백미밥', '미역국', '돈까스', '샐러드'],
+                note: null,
+              },
+              {
+                day: 'fri',
+                day_label: '금 2026.07.17',
+                price: '4,500원',
+                items: ['백미밥', '된장찌개', '불고기', '나물무침'],
+                note: null,
+              },
+              {
+                day: 'sat',
+                day_label: '토 2026.07.18',
+                price: '4,500원',
+                items: ['백미밥', '떡국', '생선구이', '깍두기'],
+                note: null,
+              },
+            ],
+          },
+          {
+            meal_type: '석식',
+            meal_label: '석식\n17:00~19:00',
+            columns: [
+              {
+                day: 'mon',
+                day_label: '월 2026.07.13',
+                price: '4,500원',
+                items: ['백미밥', '부대찌개', '계란말이', '단무지'],
+                note: null,
+              },
+              {
+                day: 'tue',
+                day_label: '화 2026.07.14',
+                price: '4,500원',
+                items: ['백미밥', '어묵국', '돼지갈비찜', '무생채'],
+                note: null,
+              },
+              {
+                day: 'wed',
+                day_label: '수 2026.07.15',
+                price: '4,500원',
+                items: ['잡곡밥', '청국장', '고등어구이', '상추겉절이'],
+                note: null,
+              },
+              {
+                day: 'thu',
+                day_label: '목 2026.07.16',
+                price: '4,500원',
+                items: ['백미밥', '소고기무국', '치킨너겟', '양배추샐러드'],
+                note: null,
+              },
+              {
+                day: 'fri',
+                day_label: '금 2026.07.17',
+                price: '4,500원',
+                items: ['백미밥', '김치찌개', '오징어볶음', '콩자반'],
+                note: null,
+              },
+              { day: 'sat', day_label: '토 2026.07.18', price: null, items: [], note: '미운영' },
+            ],
+          },
+        ],
       },
     },
     {

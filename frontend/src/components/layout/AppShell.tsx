@@ -55,10 +55,19 @@ export function AppShell() {
       )
     }
     if (to === '/map') {
-      return location.pathname === '/map' || location.pathname.startsWith('/campus-life/map')
+      return (
+        location.pathname === '/map' ||
+        location.pathname.startsWith('/map/') ||
+        location.pathname.startsWith('/campus-life/map')
+      )
     }
     if (to === '/profile') {
-      return location.pathname === '/profile' || location.pathname === '/my'
+      return (
+        location.pathname === '/profile' ||
+        location.pathname === '/my' ||
+        location.pathname.startsWith('/profile/') ||
+        location.pathname.startsWith('/support')
+      )
     }
     return location.pathname === to || location.pathname.startsWith(`${to}/`)
   }

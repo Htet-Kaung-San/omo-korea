@@ -90,7 +90,7 @@ function LibraryAccordionItem({
 
 export function LibraryGuidePage() {
   const { t } = useLanguage()
-  const [openId, setOpenId] = useState(libraryGuideSectionDefs[0]?.id ?? '')
+  const [openId, setOpenId] = useState('')
 
   return (
     <div>

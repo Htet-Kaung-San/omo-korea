@@ -21,7 +21,7 @@ dist-ssr/
 build/
 
 # =========================
-# Environment files (IMPORTANT 🔐)
+# Environment files (IMPORTANT)
 # =========================
 .env
 .env.*
@@ -41,16 +41,8 @@ build/
 *.tsbuildinfo
 
 # =========================
-# OS / system files
-# =========================
-Thumbs.db
-
-# =========================
-# Optional: coverage / testing
+# Cache / coverage
 # =========================
 coverage/
-
-# =========================
-# Optional: cache
-# =========================
-.cache/.vite/
+.cache/
+.vite/
