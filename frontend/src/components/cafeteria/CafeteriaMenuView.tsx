@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
 import type { CampusFacility } from '@/types/api'
+import { findGeumjeongStudentCafeteria } from '@/utils/cafeteria'
 
 interface CafeteriaMenuViewProps {
   cafeterias: CampusFacility[]
@@ -15,20 +16,36 @@ function formatWeekLabel(menu: CampusFacility['menu']) {
   return null
 }
 
+function defaultCafeteriaId(cafeterias: CampusFacility[], hallsWithMenus: CampusFacility[]) {
+  const preferred =
+    findGeumjeongStudentCafeteria(hallsWithMenus) ?? findGeumjeongStudentCafeteria(cafeterias)
+  return preferred?.id ?? hallsWithMenus[0]?.id ?? cafeterias[0]?.id ?? ''
+}
+
 export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }: CafeteriaMenuViewProps) {
   const { t } = useLanguage()
   const hallsWithMenus = useMemo(
     () => cafeterias.filter((hall) => hall.menu && hall.menu.rows.length > 0),
     [cafeterias],
   )
-  const [activeId, setActiveId] = useState(hallsWithMenus[0]?.id ?? cafeterias[0]?.id ?? '')
+  const hallOptions = hallsWithMenus.length > 0 ? hallsWithMenus : cafeterias
+  const [activeId, setActiveId] = useState(() => defaultCafeteriaId(cafeterias, hallsWithMenus))
+
+  useEffect(() => {
+    if (cafeterias.length === 0) return
+    const stillValid = hallOptions.some((hall) => hall.id === activeId)
+    if (!activeId || !stillValid) {
+      setActiveId(defaultCafeteriaId(cafeterias, hallsWithMenus))
+    }
+  }, [activeId, cafeterias, hallOptions, hallsWithMenus])
 
   const activeHall =
-    hallsWithMenus.find((hall) => hall.id === activeId) ?? hallsWithMenus[0] ?? cafeterias[0]
+    hallOptions.find((hall) => hall.id === activeId) ??
+    findGeumjeongStudentCafeteria(hallOptions) ??
+    hallOptions[0]
   const menu = activeHall?.menu
   const dayColumns = menu?.rows[0]?.columns ?? []
   const weekLabel = formatWeekLabel(menu)
-  const hallOptions = hallsWithMenus.length > 0 ? hallsWithMenus : cafeterias
 
   if (!activeHall) {
     return <p className="text-sm text-pnu-muted">{t('campusLife.noMenuData')}</p>

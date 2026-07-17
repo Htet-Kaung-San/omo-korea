@@ -11,6 +11,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { QuickAccessGrid } from '@/components/home/QuickAccessGrid'
+import { CafeteriaTodayPreview } from '@/components/home/CafeteriaTodayPreview'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
 function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
@@ -169,6 +170,8 @@ export function HomePage() {
           <LatestNoticeCarousel notices={notices} />
 
           <QuickAccessGrid />
+
+          <CafeteriaTodayPreview />
         </div>
       )}
     </div>
