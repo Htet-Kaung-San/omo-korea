@@ -17,7 +17,7 @@ export function PageHeader({
   subtitle,
   back,
   action,
-  showLanguagePicker = true,
+  showLanguagePicker = false,
 }: PageHeaderProps) {
   const navigate = useNavigate()
   const { t } = useLanguage()

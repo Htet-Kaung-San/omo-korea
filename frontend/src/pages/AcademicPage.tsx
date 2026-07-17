@@ -26,60 +26,14 @@ import {
   Download,
 } from "lucide-react";
 import { exportTimetableToIcs } from "@/utils/icsExporter";
-
-interface TimeSlot {
-  day: number; // 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri
-  dayLabel: string;
-  start: string;
-  end: string;
-}
-
-// Consistent mock schedules assigned to course IDs for timetable mapping
-const COURSE_SCHEDULES: Record<number, TimeSlot[]> = {
-  1: [
-    { day: 1, dayLabel: "Mon", start: "09:00", end: "10:30" },
-    { day: 3, dayLabel: "Wed", start: "09:00", end: "10:30" },
-  ],
-  2: [
-    { day: 1, dayLabel: "Mon", start: "10:30", end: "12:00" },
-    { day: 3, dayLabel: "Wed", start: "10:30", end: "12:00" },
-  ],
-  3: [
-    { day: 2, dayLabel: "Tue", start: "09:00", end: "10:30" },
-    { day: 4, dayLabel: "Thu", start: "09:00", end: "10:30" },
-  ],
-  4: [
-    { day: 2, dayLabel: "Tue", start: "10:30", end: "12:00" },
-    { day: 4, dayLabel: "Thu", start: "10:30", end: "12:00" },
-  ],
-  5: [
-    { day: 1, dayLabel: "Mon", start: "13:00", end: "14:30" },
-    { day: 3, dayLabel: "Wed", start: "13:00", end: "14:30" },
-  ],
-  6: [
-    { day: 2, dayLabel: "Tue", start: "13:00", end: "14:30" },
-    { day: 4, dayLabel: "Thu", start: "13:00", end: "14:30" },
-  ],
-  7: [
-    { day: 1, dayLabel: "Mon", start: "14:30", end: "16:00" },
-    { day: 3, dayLabel: "Wed", start: "14:30", end: "16:00" },
-  ],
-  8: [
-    { day: 2, dayLabel: "Tue", start: "14:30", end: "16:00" },
-    { day: 4, dayLabel: "Thu", start: "14:30", end: "16:00" },
-  ],
-  9: [{ day: 5, dayLabel: "Fri", start: "09:00", end: "12:00" }],
-  10: [{ day: 5, dayLabel: "Fri", start: "13:00", end: "16:00" }],
-  11: [{ day: 3, dayLabel: "Wed", start: "16:00", end: "17:30" }],
-  12: [{ day: 4, dayLabel: "Thu", start: "16:00", end: "17:30" }],
-};
+import { COURSE_SCHEDULES, type ScheduledSlot } from "@/data/courseSchedules";
 import { slotsOverlap } from "@/utils/timetable";
 
 export function AcademicPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [viewTab, setViewTab] = useState<"CURRICULUM" | "TIMETABLE">(
-    "CURRICULUM",
+    "TIMETABLE",
   );
   const [allFilter, setAllFilter] = useState<CourseType | "ALL">("ALL");
   const [allCourses, setAllCourses] = useState<RecommendedCourse[]>([]);
@@ -192,7 +146,7 @@ export function AcademicPage() {
 
   // Get courses scheduled for the active day tab
   const daySchedule = useMemo(() => {
-    const list: { enrollment: Enrollment; slot: TimeSlot }[] = [];
+    const list: { enrollment: Enrollment; slot: ScheduledSlot }[] = [];
 
     enrollments.forEach((enrollment) => {
       const slots = COURSE_SCHEDULES[Number(enrollment.course_id)] || [];
@@ -214,39 +168,39 @@ export function AcademicPage() {
   return (
     <div className="pb-8">
       <PageHeader
-        title={t("academic.title")}
+        title={t("nav.schedule")}
         subtitle={t("academic.subtitle")}
       />
 
-      {/* Segmented View Switcher */}
-      <div className="px-5 mt-4">
-        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-          <button
-            onClick={() => setViewTab("CURRICULUM")}
-            className={`flex-grow py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-              viewTab === "CURRICULUM"
-                ? "bg-white text-pnu-text shadow-sm"
-                : "text-pnu-muted hover:text-pnu-text"
-            }`}
-          >
-            <List className="w-4 h-4" />
-            {t("academic.curriculum")}
-          </button>
+      {/* Segmented View Switcher — iOS style */}
+      <div className="px-4 mt-3">
+        <div className="flex rounded-[12px] bg-[#E5E5EA] p-1">
           <button
             onClick={() => setViewTab("TIMETABLE")}
-            className={`flex-grow py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[10px] py-2 text-[13px] font-semibold transition-all ${
               viewTab === "TIMETABLE"
                 ? "bg-white text-pnu-text shadow-sm"
-                : "text-pnu-muted hover:text-pnu-text"
+                : "text-pnu-muted"
             }`}
           >
             <Calendar className="w-4 h-4" />
             {t("academic.timetable")}
           </button>
+          <button
+            onClick={() => setViewTab("CURRICULUM")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[10px] py-2 text-[13px] font-semibold transition-all ${
+              viewTab === "CURRICULUM"
+                ? "bg-white text-pnu-text shadow-sm"
+                : "text-pnu-muted"
+            }`}
+          >
+            <List className="w-4 h-4" />
+            {t("academic.curriculum")}
+          </button>
         </div>
       </div>
 
-      <div className="space-y-5 px-5 py-5">
+      <div className="space-y-5 px-4 py-4">
         {profileIncomplete ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 flex items-start gap-2.5">
             <Info className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
@@ -344,41 +298,37 @@ export function AcademicPage() {
         )}
 
         {!loading && viewTab === "TIMETABLE" && (
-          <div className="space-y-5">
-            {/* Credits load indicator & ICS download */}
-            <div className="flex flex-col gap-3">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 rounded-2xl text-slate-100 flex items-center justify-between shadow-lg">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-                    Timetable Overview
-                  </span>
-                  <h4 className="text-sm font-bold">
-                    {t("academic.creditsHeader", {
-                      credits: totalTimetableCredits,
-                    })}
-                  </h4>
-                </div>
-                <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-                  <BookOpen className="w-5 h-5" />
-                </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between rounded-[20px] bg-white p-4 shadow-sm ring-1 ring-black/5">
+              <div>
+                <p className="text-[12px] font-medium text-pnu-muted">
+                  {t("academic.timetable")}
+                </p>
+                <p className="mt-0.5 text-[17px] font-semibold tracking-tight text-pnu-text">
+                  {t("academic.creditsHeader", {
+                    credits: totalTimetableCredits,
+                  })}
+                </p>
               </div>
-
-              {enrollments.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    exportTimetableToIcs(enrollments);
-                  }}
-                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.98] text-xs border border-indigo-500/30"
-                >
-                  <Download className="w-4 h-4" />
-                  {t("academic.downloadIcs")}
-                </button>
-              )}
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-pnu-blue/10 text-pnu-blue">
+                <BookOpen className="h-5 w-5" />
+              </div>
             </div>
 
-            {/* Daily schedule grid tabs */}
-            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-semibold select-none">
+            {enrollments.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  exportTimetableToIcs(enrollments);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-pnu-blue py-3 text-[13px] font-semibold text-white shadow-sm active:scale-[0.98]"
+              >
+                <Download className="h-4 w-4" />
+                {t("academic.downloadIcs")}
+              </button>
+            )}
+
+            <div className="flex rounded-[12px] bg-[#E5E5EA] p-1 text-[12px] font-semibold">
               {[
                 { day: 1, label: "Mon" },
                 { day: 2, label: "Tue" },
@@ -389,10 +339,10 @@ export function AcademicPage() {
                 <button
                   key={d.day}
                   onClick={() => setSelectedDayTab(d.day)}
-                  className={`flex-grow py-2 px-1 rounded-lg transition-all text-center ${
+                  className={`flex-1 rounded-[10px] py-2 text-center transition-all ${
                     selectedDayTab === d.day
                       ? "bg-white text-pnu-text shadow-sm"
-                      : "text-pnu-muted hover:text-pnu-text"
+                      : "text-pnu-muted"
                   }`}
                 >
                   {d.label}
@@ -400,53 +350,54 @@ export function AcademicPage() {
               ))}
             </div>
 
-            {/* Day chronological timeline */}
-            <div className="space-y-4 mt-2">
+            <div className="space-y-3">
               {daySchedule.length === 0 ? (
-                <div className="border border-dashed border-pnu-border rounded-2xl p-8 flex flex-col items-center justify-center text-pnu-muted gap-2 bg-slate-50/50">
-                  <Calendar className="w-8 h-8 text-pnu-muted/60" />
-                  <p className="text-xs font-medium">
+                <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] bg-white px-6 py-10 text-pnu-muted shadow-sm ring-1 ring-black/5">
+                  <Calendar className="h-8 w-8 opacity-50" />
+                  <p className="text-[13px] font-medium">
                     No classes scheduled for this day.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {daySchedule.map(({ enrollment, slot }) => (
+                daySchedule.map(({ enrollment, slot }, index) => {
+                  const tones = [
+                    "border-l-[#005BAC]",
+                    "border-l-[#34C759]",
+                    "border-l-[#FF9500]",
+                    "border-l-[#AF52DE]",
+                    "border-l-[#FF2D55]",
+                  ];
+                  return (
                     <div
-                      key={`${enrollment.enrollment_id}-${slot.day}`}
-                      className="border border-pnu-border bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex items-start justify-between gap-3"
+                      key={`${enrollment.enrollment_id}-${slot.day}-${slot.start}`}
+                      className={`flex items-start justify-between gap-3 rounded-[18px] border-l-4 bg-white p-4 shadow-sm ring-1 ring-black/5 ${tones[index % tones.length]}`}
                     >
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <div className="flex items-center gap-1.5 text-xs text-pnu-blue font-bold">
-                          <Clock className="w-3.5 h-3.5" />
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-[13px] font-semibold text-pnu-blue">
+                          <Clock className="h-3.5 w-3.5" />
                           <span>
-                            {slot.start} - {slot.end}
-                          </span>
-                          <span className="text-pnu-muted font-normal">•</span>
-                          <span className="text-[10px] text-pnu-muted font-semibold bg-pnu-surface px-1.5 py-0.5 rounded border border-pnu-border uppercase">
-                            {enrollment.category}
+                            {slot.start} – {slot.end}
                           </span>
                         </div>
-                        <h4 className="text-sm font-bold text-pnu-text leading-snug">
+                        <h4 className="text-[15px] font-semibold leading-snug text-pnu-text">
                           {enrollment.course_name}
                         </h4>
-                        <p className="text-[10px] text-pnu-muted font-semibold">
-                          {enrollment.credit} credits
+                        <p className="text-[12px] text-pnu-muted">
+                          {enrollment.classroom || `${enrollment.credit ?? 0} credits`}
                         </p>
                       </div>
-
                       <button
                         onClick={() =>
                           handleDropFromTimetable(enrollment.enrollment_id)
                         }
-                        className="p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all shadow-sm border border-rose-100"
+                        className="rounded-full bg-[#F2F2F7] p-2 text-[#FF3B30] transition active:scale-95"
                         title={t("academic.dropCourse")}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                  ))}
-                </div>
+                  );
+                })
               )}
             </div>
           </div>

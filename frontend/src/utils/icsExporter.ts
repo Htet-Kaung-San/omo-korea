@@ -1,49 +1,6 @@
-import type { Enrollment } from "@/types/api";
+﻿import type { Enrollment } from "@/types/api";
 
-interface TimeSlot {
-  day: number; // 1: Mon, ..., 5: Fri
-  start: string; // "09:00"
-  end: string; // "10:30"
-}
-
-const COURSE_SCHEDULES: Record<number, TimeSlot[]> = {
-  1: [
-    { day: 1, start: "09:00", end: "10:30" },
-    { day: 3, start: "09:00", end: "10:30" },
-  ],
-  2: [
-    { day: 1, start: "10:30", end: "12:00" },
-    { day: 3, start: "10:30", end: "12:00" },
-  ],
-  3: [
-    { day: 2, start: "09:00", end: "10:30" },
-    { day: 4, start: "09:00", end: "10:30" },
-  ],
-  4: [
-    { day: 2, start: "10:30", end: "12:00" },
-    { day: 4, start: "10:30", end: "12:00" },
-  ],
-  5: [
-    { day: 1, start: "13:00", end: "14:30" },
-    { day: 3, start: "13:00", end: "14:30" },
-  ],
-  6: [
-    { day: 2, start: "13:00", end: "14:30" },
-    { day: 4, start: "13:00", end: "14:30" },
-  ],
-  7: [
-    { day: 1, start: "14:30", end: "16:00" },
-    { day: 3, start: "14:30", end: "16:00" },
-  ],
-  8: [
-    { day: 2, start: "14:30", end: "16:00" },
-    { day: 4, start: "14:30", end: "16:00" },
-  ],
-  9: [{ day: 5, start: "09:00", end: "12:00" }],
-  10: [{ day: 5, start: "13:00", end: "16:00" }],
-  11: [{ day: 3, start: "16:00", end: "17:30" }],
-  12: [{ day: 4, start: "16:00", end: "17:30" }],
-};
+import { COURSE_SCHEDULES } from "@/data/courseSchedules";
 
 export function generateIcsString(enrollments: Enrollment[]): string {
   if (enrollments.length === 0) return "";
@@ -110,3 +67,4 @@ export function exportTimetableToIcs(enrollments: Enrollment[]): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+

@@ -29,6 +29,7 @@ import { SupportPage } from '@/pages/SupportPage'
 import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
 import { WorkPermitPage } from '@/pages/WorkPermitPage'
 import { RelatedLawsPage } from '@/pages/RelatedLawsPage'
+import { AiAssistantPage } from '@/pages/AiAssistantPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -62,6 +63,9 @@ function AppRoutes() {
         }
       >
         <Route index element={<HomePage />} />
+        <Route path="schedule" element={<AcademicPage />} />
+        <Route path="ai" element={<AiAssistantPage />} />
+        <Route path="map" element={<CampusMapPage />} />
         <Route path="academic" element={<AcademicPage />} />
         <Route path="academic/recommended-courses" element={<RecommendedCoursesPage />} />
         <Route path="academic/recommended-courses/:courseId" element={<CourseDetailPage />} />
@@ -108,12 +112,12 @@ function AppRoutes() {
         <Route path="support/work-permit" element={<WorkPermitPage />} />
         <Route path="support/related-laws" element={<RelatedLawsPage />} />
         <Route path="my" element={<ProfilePage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
-        <Route path="courses" element={<Navigate to="/academic" replace />} />
+        <Route path="courses" element={<Navigate to="/schedule" replace />} />
         <Route path="checklist" element={<Navigate to="/" replace />} />
-        <Route path="chat" element={<Navigate to="/" replace />} />
-        <Route path="profile" element={<Navigate to="/my" replace />} />
+        <Route path="chat" element={<Navigate to="/ai" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

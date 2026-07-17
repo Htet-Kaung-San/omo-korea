@@ -1,16 +1,16 @@
 @import 'tailwindcss';
 
 @theme {
-  /* PNU seal brand */
-  --color-pnu-blue: #003d82;
-  --color-pnu-blue-light: #0054a6;
-  --color-pnu-green: #009b4c;
-  --color-pnu-surface: #f4f7fb;
-  --color-pnu-border: #d5dee8;
-  --color-pnu-text: #0b1f3a;
-  --color-pnu-muted: #5b6b7c;
-  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-display: 'Georgia', 'Times New Roman', serif;
+  /* PNU brand — Apple-inspired mobile UI */
+  --color-pnu-blue: #005bac;
+  --color-pnu-blue-light: #0077d4;
+  --color-pnu-green: #34c759;
+  --color-pnu-surface: #f2f2f7;
+  --color-pnu-border: #e5e5ea;
+  --color-pnu-text: #1c1c1e;
+  --color-pnu-muted: #8e8e93;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
 }
 
 * {
@@ -26,12 +26,10 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background:
-    radial-gradient(ellipse at top left, rgba(0, 84, 166, 0.08), transparent 45%),
-    radial-gradient(ellipse at bottom right, rgba(0, 155, 76, 0.06), transparent 40%),
-    #e7eef6;
+  background: #e5e5ea;
   color: var(--color-pnu-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @keyframes chat-panel-enter {

@@ -178,122 +178,114 @@ export function ProfilePage() {
     return (
       <div>
         <PageHeader
-          title={t("profile.title")}
+          title={t("nav.profile")}
           subtitle={t("profile.subtitle")}
         />
 
-        <div className="px-5 py-5 space-y-4">
-          {/* Simple Profile Overview Banner Card */}
-          <div className="flex items-center gap-3.5 bg-white border border-pnu-border p-4 rounded-2xl shadow-sm">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pnu-primary/10 text-pnu-primary shrink-0">
-              <User className="h-6.5 w-6.5" />
+        <div className="space-y-4 px-4 py-4">
+          <div className="flex items-center gap-3.5 rounded-[22px] bg-white p-4 shadow-sm ring-1 ring-black/5">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-pnu-blue/10 text-pnu-blue shrink-0">
+              <User className="h-7 w-7" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-pnu-text truncate leading-snug">
+              <h3 className="truncate text-[17px] font-semibold tracking-tight text-pnu-text">
                 {user?.name || "Student"}
               </h3>
-              <p className="text-[10px] text-pnu-muted truncate mt-0.5 font-medium">
-                ID: {user?.studentId} •{" "}
+              <p className="mt-0.5 truncate text-[13px] font-medium text-pnu-muted">
+                {user?.studentId} ·{" "}
                 {user?.studentType === "Freshman"
                   ? t("auth.demoFreshman")
                   : t("auth.demoNonFreshman")}
               </p>
+              {user?.major ? (
+                <p className="mt-1 truncate text-[12px] text-pnu-blue">{user.major}</p>
+              ) : null}
             </div>
           </div>
 
-          {/* Menu Items List */}
-          <div className="bg-white border border-pnu-border rounded-2xl shadow-sm overflow-hidden divide-y divide-pnu-border/80">
-            {/* 1. Profile Option */}
+          <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5 divide-y divide-black/5">
             <button
               onClick={() => {
                 setError("");
                 setMessage("");
                 setActiveSubView("profile");
               }}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
             >
               <div className="flex items-center gap-3 text-pnu-text">
-                <User className="h-4.5 w-4.5 text-pnu-muted shrink-0" />
-                <span className="text-xs font-semibold">Profile Settings</span>
+                <User className="h-5 w-5 text-pnu-blue shrink-0" />
+                <span className="text-[15px] font-medium">Profile Settings</span>
               </div>
               <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
             </button>
 
-            {/* 2. Account & Security Option */}
             <button
               onClick={() => {
                 setError("");
                 setMessage("");
                 setActiveSubView("account");
               }}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
             >
               <div className="flex items-center gap-3 text-pnu-text">
-                <Lock className="h-4.5 w-4.5 text-pnu-muted shrink-0" />
-                <span className="text-xs font-semibold">{t("profile.tabAccount") || "Account & Security"}</span>
+                <Lock className="h-5 w-5 text-pnu-blue shrink-0" />
+                <span className="text-[15px] font-medium">{t("profile.tabAccount") || "Account & Security"}</span>
               </div>
               <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
             </button>
 
-            {/* 3. Language Option */}
             <button
               onClick={() => setActiveSubView("language")}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
             >
               <div className="flex items-center gap-3 text-pnu-text">
-                <Globe className="h-4.5 w-4.5 text-pnu-muted shrink-0" />
-                <span className="text-xs font-semibold">Language / 언어</span>
+                <Globe className="h-5 w-5 text-pnu-blue shrink-0" />
+                <span className="text-[15px] font-medium">Language / 언어</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-extrabold text-pnu-primary bg-pnu-primary/10 border border-pnu-primary/20 px-2.5 py-0.5 rounded uppercase tracking-wider">
+                <span className="rounded-full bg-pnu-blue/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-pnu-blue">
                   {language}
                 </span>
                 <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
               </div>
             </button>
 
-            {/* 4. Notifications Option */}
             <button
               onClick={() => navigate("/notifications")}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
             >
               <div className="flex items-center gap-3 text-pnu-text">
-                <Bell className="h-4.5 w-4.5 text-pnu-muted shrink-0" />
-                <span className="text-xs font-semibold">Notifications</span>
+                <Bell className="h-5 w-5 text-pnu-blue shrink-0" />
+                <span className="text-[15px] font-medium">Notifications</span>
               </div>
               <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
             </button>
 
-            {/* 5. Admin Knowledge Portal Option (admin only) */}
             {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
+              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
             >
               <div className="flex items-center gap-3 text-pnu-text">
-                <Database className="h-4.5 w-4.5 text-pnu-muted shrink-0" />
-                <span className="text-xs font-semibold">Admin Knowledge Portal</span>
+                <Database className="h-5 w-5 text-pnu-blue shrink-0" />
+                <span className="text-[15px] font-medium">Admin Knowledge Portal</span>
               </div>
               <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
             </button>
             )}
-
-            {/* 6. Log out Option */}
-            <button
-              onClick={() => {
-                if (window.confirm("Are you sure you want to log out?")) {
-                  logout();
-                }
-              }}
-              className="w-full flex items-center justify-between p-4 hover:bg-red-50/50 transition-colors text-left text-red-600"
-            >
-              <div className="flex items-center gap-3">
-                <LogOut className="h-4.5 w-4.5 text-red-500 shrink-0" />
-                <span className="text-xs font-semibold">Log out</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-red-400" />
-            </button>
           </div>
+
+          <button
+            onClick={() => {
+              if (window.confirm("Are you sure you want to log out?")) {
+                logout();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-white px-4 py-3.5 text-[15px] font-semibold text-[#FF3B30] shadow-sm ring-1 ring-black/5 active:bg-red-50"
+          >
+            <LogOut className="h-5 w-5" />
+            Log out
+          </button>
         </div>
       </div>
     );

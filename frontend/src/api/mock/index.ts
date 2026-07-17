@@ -391,14 +391,56 @@ export const mockApi: HeyPnuApi = {
     return []
   },
 
-  async getEnrollments(): Promise<Enrollment[]> {
+  async getEnrollments(studentId: string): Promise<Enrollment[]> {
     await delay()
-    return []
+    const key = `mock_enrollments_${studentId}`
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      try {
+        return JSON.parse(stored) as Enrollment[]
+      } catch {
+        /* fall through to defaults */
+      }
+    }
+    const defaults: Enrollment[] = [
+      {
+        enrollment_id: 1,
+        student_id: studentId,
+        course_id: 2,
+        semester: '2026-1',
+        status: 'Enrolled',
+        course_name: 'Data Structures',
+        credit: 3,
+        classroom: 'Building 3 · Room 302',
+      },
+      {
+        enrollment_id: 2,
+        student_id: studentId,
+        course_id: 1,
+        semester: '2026-1',
+        status: 'Enrolled',
+        course_name: 'Introduction to Computer Science',
+        credit: 3,
+        classroom: 'Building 2 · Room 201',
+      },
+    ]
+    localStorage.setItem(key, JSON.stringify(defaults))
+    return defaults
   },
 
   async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
     await delay()
-    return { enrollment_id: 1, student_id: studentId, course_id: courseId, semester: '2026-1', status: 'Enrolled' }
+    const key = `mock_enrollments_${studentId}`
+    const existing = await this.getEnrollments(studentId)
+    const created: Enrollment = {
+      enrollment_id: Date.now(),
+      student_id: studentId,
+      course_id: courseId,
+      semester: '2026-1',
+      status: 'Enrolled',
+    }
+    localStorage.setItem(key, JSON.stringify([...existing, created]))
+    return created
   },
 
   async deleteEnrollment(): Promise<void> {

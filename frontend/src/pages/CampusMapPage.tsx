@@ -140,10 +140,10 @@ export function CampusMapPage() {
 
   return (
     <div>
-      <PageHeader title={t('campusLife.campusMap')} subtitle={t('campusLife.mapSubtitle')} back />
-      <div className="space-y-4 px-5 py-5">
+      <PageHeader title={t('nav.campusMap')} subtitle={t('campusLife.mapSubtitle')} />
+      <div className="space-y-4 px-4 py-4">
         {error ? (
-          <div className="rounded-2xl border border-dashed border-pnu-border bg-white p-4 text-sm leading-relaxed text-pnu-muted">
+          <div className="rounded-[18px] bg-white p-4 text-sm leading-relaxed text-pnu-muted shadow-sm ring-1 ring-black/5">
             {error}
           </div>
         ) : null}
@@ -154,12 +154,12 @@ export function CampusMapPage() {
 
         <div
           ref={mapRef}
-          className="h-[360px] overflow-hidden rounded-2xl border border-pnu-border bg-slate-100"
+          className="h-[380px] overflow-hidden rounded-[22px] bg-slate-100 shadow-sm ring-1 ring-black/5"
         />
 
         {facilities.length > 0 ? (
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-pnu-muted">
+            <p className="px-1 text-[13px] font-semibold text-pnu-muted">
               {t('campusLife.mapLegend')}
             </p>
             <div className="space-y-2">
@@ -172,18 +172,18 @@ export function CampusMapPage() {
                     key={facility.id}
                     type="button"
                     onClick={() => focusFacility(facility)}
-                    className={`w-full rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:border-pnu-blue-light/40 hover:shadow-md ${
-                      isSelected ? 'border-pnu-blue ring-1 ring-pnu-blue/20' : 'border-pnu-border'
+                    className={`w-full rounded-[18px] bg-white p-4 text-left shadow-sm ring-1 transition active:scale-[0.99] ${
+                      isSelected ? 'ring-pnu-blue/40' : 'ring-black/5'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h2 className="text-sm font-bold text-pnu-text">{facility.name}</h2>
+                        <h2 className="text-[15px] font-semibold text-pnu-text">{facility.name}</h2>
                         {facility.hours ? (
-                          <p className="mt-1 text-xs text-pnu-muted">{facility.hours}</p>
+                          <p className="mt-1 text-[12px] text-pnu-muted">{facility.hours}</p>
                         ) : null}
                         {facility.description ? (
-                          <p className="mt-2 text-sm leading-relaxed text-pnu-muted">
+                          <p className="mt-2 text-[13px] leading-relaxed text-pnu-muted">
                             {facility.description}
                           </p>
                         ) : null}
