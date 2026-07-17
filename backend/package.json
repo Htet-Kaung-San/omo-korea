@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "SUPABASE_URL=placeholder SUPABASE_KEY=placeholder jest"
+    "seed:map-profile": "node scripts/seed-map-profile.mjs",
+    "seed:support": "node scripts/seed-support.mjs",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",

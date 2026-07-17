@@ -9,6 +9,12 @@ import type {
   ChecklistPayload,
   CourseType,
   EmergencyGuide,
+  FaqItem,
+  CommunityGroup,
+  CommunityMembersResponse,
+  CommunityPost,
+  CommunityScope,
+  CreateCommunityPostRequest,
   GetCampusFacilitiesParams,
   GetCareerOpportunitiesParams,
   GraduationProgress,
@@ -16,19 +22,28 @@ import type {
   LoginRequest,
   Notification,
   ProgramItem,
+  PnuContact,
   RecommendedCourse,
   ScholarshipItem,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken } from '../client'
+import { apiFetch, clearStoredToken, getStoredToken } from '../client'
 import { backendFetch } from './backendFetch'
+import {
+  mapCommunityGroup,
+  mapCommunityMember,
+  mapCommunityPost,
+} from './communityMappers'
 import {
   mapBackendStudent,
   mapChecklistItem,
   mapChecklistPayload,
   mapNotice,
+  mapAcademicRecords,
+  mapFaqItem,
   mapMapFacility,
+  mapPnuContact,
   mapProgramItem,
   mapRecommendedCourse,
   mapScholarshipItem,
@@ -201,8 +216,87 @@ export const realApi: HeyPnuApi = {
     )
   },
 
+  /**
+   * AI engineers: point this at your ranking service.
+   * Contract: CareerOpportunity[] (optional location, jobType, matchReason, logoUrl).
+   */
+  async getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]> {
+    return backendFetch<CareerOpportunity[]>('/students/career-recommendations')
+  },
+
   async getEmergencyGuide(): Promise<EmergencyGuide> {
     return backendFetch<EmergencyGuide>('/students/emergency-guide')
+  },
+
+  async getPnuContacts(): Promise<PnuContact[]> {
+    const rows = await backendFetch<Parameters<typeof mapPnuContact>[0][]>(
+      '/students/pnu-contacts',
+    )
+    return rows.map(mapPnuContact)
+  },
+
+  async getFaqItems(): Promise<FaqItem[]> {
+    const rows = await backendFetch<Parameters<typeof mapFaqItem>[0][]>(
+      '/students/faq',
+    )
+    return rows.map(mapFaqItem)
+  },
+
+  async getMyCommunityGroup(scope: CommunityScope): Promise<CommunityGroup | null> {
+    const row = await backendFetch<Parameters<typeof mapCommunityGroup>[0] | null>(
+      `/students/community/my-group?scope=${encodeURIComponent(scope)}`,
+    )
+    return row ? mapCommunityGroup(row) : null
+  },
+
+  async getCommunityPosts(params: {
+    scope: CommunityScope
+    groupSlug?: string | null
+    groupId?: number | null
+  }): Promise<CommunityPost[]> {
+    const query = new URLSearchParams()
+    query.set('scope', params.scope)
+    if (params.groupSlug) query.set('group_slug', params.groupSlug)
+    if (params.groupId) query.set('group_id', String(params.groupId))
+    const rows = await backendFetch<Parameters<typeof mapCommunityPost>[0][]>(
+      `/students/community/posts?${query.toString()}`,
+    )
+    return rows.map(mapCommunityPost)
+  },
+
+  async getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse> {
+    const payload = await backendFetch<{
+      group: Parameters<typeof mapCommunityGroup>[0]
+      members: Array<{ id: string; name: string; nationality: string; major: string }>
+    }>(`/students/community/groups/${encodeURIComponent(groupIdOrSlug)}/members`)
+
+    return {
+      group: mapCommunityGroup(payload.group),
+      members: payload.members.map(mapCommunityMember),
+    }
+  },
+
+  async createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost> {
+    const row = await backendFetch<Parameters<typeof mapCommunityPost>[0]>(
+      '/students/community/posts',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          content: data.content,
+          scope: data.scope,
+          group_id: data.groupId ?? null,
+          group_slug: data.groupSlug ?? null,
+        }),
+      },
+    )
+    return mapCommunityPost(row)
+  },
+
+  async likeCommunityPost(postId: string): Promise<{ id: string; likes: number }> {
+    return backendFetch<{ id: string; likes: number }>(
+      `/students/community/posts/${encodeURIComponent(postId)}/like`,
+      { method: 'POST' },
+    )
   },
 
   async getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities> {
@@ -217,6 +311,37 @@ export const realApi: HeyPnuApi = {
       '/students/facilities',
     )
     return facilities.map(mapMapFacility)
+  },
+
+  async getMapFacility(id: string) {
+    const facility = await backendFetch<Parameters<typeof mapMapFacility>[0]>(
+      `/students/facilities/${encodeURIComponent(id)}`,
+    )
+    return mapMapFacility(facility)
+  },
+
+  async getAcademicRecords() {
+    const studentId = resolveStudentId()
+    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0]>(
+      `/students/academic-records/${encodeURIComponent(studentId)}`,
+    )
+    return mapAcademicRecords(records)
+  },
+
+  async downloadTranscript() {
+    const studentId = resolveStudentId()
+    const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
+    const token = getStoredToken()
+    const headers = new Headers()
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+    const response = await fetch(
+      `${baseUrl}/students/academic-records/${encodeURIComponent(studentId)}/transcript`,
+      { headers },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to download transcript (${response.status})`)
+    }
+    return response.blob()
   },
 
   async getAiDashboard(): Promise<AiDashboard> {

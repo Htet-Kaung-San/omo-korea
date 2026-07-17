@@ -30,13 +30,103 @@ INSERT INTO course (course_name, course_name_en, credits, department, course_typ
 ('대학 수학 1', 'Calculus 1', 3, 'Mathematics', 'REQUIRED', 'Fri', '10:30', '12:00', 'Science Bldg 205');
 
 -- 4. SEED MAP FACILITIES
-INSERT INTO facility (name, type, latitude, longitude, hours, details, floors) VALUES
-('PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200, '06:00 - 23:00', 'Main campus study resources. Features extensive reading rooms on the 3rd floor.', '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers'),
-('Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100, '08:00 - 19:00', 'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.', '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café'),
-('Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000, '11:00 - 18:30', 'North campus cafeteria featuring Western-style options and sandwich counters.', '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center'),
-('University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500, '09:00 - 18:00', 'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.', '1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President''s Office'),
-('Woongbee Hall Dormitory (웅비관)', 'Dormitory', 35.236500, 129.075500, '24 Hours', 'Freshman international dorms located near the Geumjeongsan mountain edge.', '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen')
+INSERT INTO facility (
+  name, type, latitude, longitude, hours, details, floors,
+  subtitle, phone, website, image_url, departments, amenities
+) VALUES
+(
+  'PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200, '06:00 - 23:00',
+  'Main campus study resources. Features extensive reading rooms on the 3rd floor.',
+  '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers',
+  'Study rooms, Books', '051-510-1800', 'https://lib.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&q=80',
+  '[{"name":"General Reading Rooms","floor":"1F"},{"name":"Book Stacks & Reference","floor":"2F"},{"name":"Silent Study Desks","floor":"3F"}]'::jsonb,
+  '[{"name":"Study Rooms","floor":"1F-3F"},{"name":"Computers","floor":"3F"}]'::jsonb
+),
+(
+  'Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100, '08:00 - 19:00',
+  'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.',
+  '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café',
+  'Food & Drinks', '051-510-1200', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80',
+  '[{"name":"Student Cafeteria","floor":"1F"},{"name":"Convenience Store & Cafe","floor":"2F"}]'::jsonb,
+  '[{"name":"Korean Set Meals","floor":"1F"}]'::jsonb
+),
+(
+  'Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000, '11:00 - 18:30',
+  'North campus cafeteria featuring Western-style options and sandwich counters.',
+  '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center',
+  'Food & Drinks', '051-510-1210', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
+  '[{"name":"International Buffet","floor":"1F"},{"name":"Student Lounge","floor":"2F"}]'::jsonb,
+  '[{"name":"Western Corner","floor":"1F"}]'::jsonb
+),
+(
+  'University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500, '09:00 - 18:00',
+  'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.',
+  '1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President''s Office',
+  'Admin & Student Services', '051-510-1000', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80',
+  '[{"name":"Student Service Center","floor":"1F"},{"name":"Office of International Affairs","floor":"2F"}]'::jsonb,
+  '[{"name":"Visa & ARC Desk","floor":"2F"}]'::jsonb
+),
+(
+  'Woongbee Hall Dormitory (웅비관)', 'Dormitory', 35.236500, 129.075500, '24 Hours',
+  'Freshman international dorms located near the Geumjeongsan mountain edge.',
+  '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen',
+  'International Housing', '051-510-3500', 'https://dorm.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
+  '[{"name":"Lobby & Security","floor":"1F"},{"name":"Student Rooms","floor":"2F-8F"}]'::jsonb,
+  '[{"name":"Gym","floor":"B1"},{"name":"Laundry","floor":"B1"}]'::jsonb
+),
+(
+  'Engineering Building 3', 'Academic', 35.233000, 129.080500, '08:00 AM - 10:00 PM',
+  'Home of Computer Science and multimedia labs.',
+  '2F: Seminar Room; 3F: CS Dept & Labs',
+  'Computer Science Dept.', '051-510-2200', 'https://cse.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&q=80',
+  '[{"name":"Computer Science Department","floor":"3F"},{"name":"Multimedia Lab","floor":"3F"},{"name":"Lecture Rooms 301-308","floor":"3F"},{"name":"Seminar Room","floor":"2F"}]'::jsonb,
+  '[{"name":"Computer Labs","floor":"3F"},{"name":"Seminar Room","floor":"2F"}]'::jsonb
+),
+(
+  'IT Building', 'Academic', 35.234200, 129.081000, '08:00 AM - 09:00 PM',
+  'Information technology classrooms and labs.',
+  '1F-4F: IT classrooms and labs',
+  'IT & Computing', '051-510-2210', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
+  '[{"name":"IT Help Desk","floor":"1F"},{"name":"Programming Labs","floor":"2F-3F"}]'::jsonb,
+  '[{"name":"Public Computers","floor":"1F"}]'::jsonb
+),
+(
+  'Main Hall', 'Administrative', 35.232500, 129.078800, '09:00 AM - 06:00 PM',
+  'Central campus hall for events and ceremonies.',
+  '1F: Lobby; 2F: Auditorium',
+  'Events & Ceremonies', '051-510-1100', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80',
+  '[{"name":"Main Auditorium","floor":"2F"},{"name":"Reception","floor":"1F"}]'::jsonb,
+  '[{"name":"Event Hall","floor":"2F"}]'::jsonb
+),
+(
+  'Student Center', 'Student Life', 35.232000, 129.079800, '08:00 AM - 10:00 PM',
+  'Clubs, student council, and campus activities hub.',
+  '1F-3F: Club rooms and offices',
+  'Clubs & Activities', '051-510-1300', 'https://www.pusan.ac.kr',
+  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80',
+  '[{"name":"Student Council","floor":"2F"},{"name":"Club Offices","floor":"1F-3F"}]'::jsonb,
+  '[{"name":"Meeting Rooms","floor":"2F"}]'::jsonb
+)
 ON CONFLICT (name) DO NOTHING;
+
+-- 4b. Academic records demo for sample student
+INSERT INTO academic_summary (student_id, overall_gpa, gpa_scale, standing, completed_credits, required_credits)
+VALUES ('202600001', 3.67, 4.5, 'Good', 72, 100)
+ON CONFLICT (student_id) DO NOTHING;
+
+INSERT INTO academic_record (student_id, semester_label, gpa, sort_order) VALUES
+('202600001', '2024 Spring', 3.80, 1),
+('202600001', '2023 Fall', 3.60, 2),
+('202600001', '2023 Spring', 3.45, 3),
+('202600001', '2022 Fall', 3.30, 4);
 
 -- 5. SEED NOTICES
 INSERT INTO notice (title, content, language, posted_date) VALUES

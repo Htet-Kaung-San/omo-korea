@@ -92,7 +92,7 @@ function OneStopAccordionItem({
 
 export function OneStopGuidePage() {
   const { t } = useLanguage()
-  const [openId, setOpenId] = useState(oneStopSectionDefs[0]?.id ?? '')
+  const [openId, setOpenId] = useState('')
 
   return (
     <div>

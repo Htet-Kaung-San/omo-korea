@@ -119,6 +119,80 @@ export interface EmergencyGuide {
   guide_text: string
 }
 
+export interface PnuContact {
+  id: string
+  name: string
+  place: string
+  hours: string
+  phone: string
+  email: string | null
+}
+
+export interface FaqItem {
+  id: string
+  question: string
+  answer: string
+}
+
+export type CommunityScope = 'department' | 'country' | 'all'
+
+export interface CommunityGroup {
+  id: string
+  groupId: number
+  slug: string
+  scope: CommunityScope
+  name: string
+  icon: string
+  memberCount: number
+  newPostCount: number
+  joined: boolean
+  bannerTitle: string
+  bannerBody: string
+}
+
+export interface CommunityMember {
+  id: string
+  name: string
+  nationality: string
+  major: string
+  avatarTone: string
+}
+
+export interface CommunityPost {
+  id: string
+  groupId: number | null
+  groupSlug: string | null
+  scope: CommunityScope
+  content: string
+  hashtags: string[]
+  likes: number
+  comments: number
+  createdAt: string
+  authorName: string
+  authorInitials: string
+  authorMajor: string
+  majorTone: string
+  authorNationality: string
+  timeAgo: string
+  eventDate?: {
+    month: string
+    day: string
+    weekday: string
+  } | null
+}
+
+export interface CommunityMembersResponse {
+  group: CommunityGroup
+  members: CommunityMember[]
+}
+
+export interface CreateCommunityPostRequest {
+  content: string
+  scope: CommunityScope
+  groupId?: number | null
+  groupSlug?: string | null
+}
+
 export interface CafeteriaMenuColumn {
   day: string
   day_label: string
@@ -174,6 +248,32 @@ export interface MapFacility {
   hours?: string | null
   description?: string | null
   floors?: string | null
+  subtitle?: string | null
+  phone?: string | null
+  website?: string | null
+  imageUrl?: string | null
+  departments?: FacilityRoom[]
+  amenities?: FacilityRoom[]
+}
+
+export interface FacilityRoom {
+  name: string
+  floor: string
+}
+
+export interface AcademicSemesterRecord {
+  semesterLabel: string
+  gpa: number
+}
+
+export interface AcademicRecords {
+  studentId: string
+  overallGpa: number
+  gpaScale: number
+  standing: string
+  completedCredits: number
+  requiredCredits: number
+  semesters: AcademicSemesterRecord[]
 }
 
 export interface AiDashboard {
@@ -301,6 +401,8 @@ export interface ApiError {
   status?: number
 }
 
+export type CareerJobType = 'internship' | 'part-time' | 'full-time' | 'volunteer'
+
 export interface CareerOpportunity {
   id: string
   source: string
@@ -310,6 +412,12 @@ export interface CareerOpportunity {
   role: string | null
   applicationType: string | null
   sourceUrl: string
+  /** Optional fields for Internships UI + AI recommendations */
+  location?: string | null
+  jobType?: CareerJobType | null
+  logoUrl?: string | null
+  /** Short reason from the AI recommender (shown under recommended cards) */
+  matchReason?: string | null
 }
 
 export interface CareerSummary {
@@ -355,9 +463,28 @@ export interface HeyPnuApi {
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
   getChatSuggestions(): Promise<string[]>
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
+  /**
+   * AI hook-point: personalized internship/job recommendations.
+   * Backend: GET /students/career-recommendations
+   */
+  getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]>
   getEmergencyGuide(): Promise<EmergencyGuide>
+  getPnuContacts(): Promise<PnuContact[]>
+  getFaqItems(): Promise<FaqItem[]>
+  getMyCommunityGroup(scope: CommunityScope): Promise<CommunityGroup | null>
+  getCommunityPosts(params: {
+    scope: CommunityScope
+    groupSlug?: string | null
+    groupId?: number | null
+  }): Promise<CommunityPost[]>
+  getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse>
+  createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost>
+  likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
   getMapFacilities(): Promise<MapFacility[]>
+  getMapFacility(id: string): Promise<MapFacility>
+  getAcademicRecords(): Promise<AcademicRecords>
+  downloadTranscript(): Promise<Blob>
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>

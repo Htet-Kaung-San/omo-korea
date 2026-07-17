@@ -12,14 +12,50 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { User, Globe, LogOut, Bell, Database, ChevronRight, ChevronLeft, Lock, BookOpen } from "lucide-react";
+import pnuCharacter from "@/assets/pnu-character.png";
+import {
+  User,
+  Globe,
+  LogOut,
+  Bell,
+  Database,
+  ChevronRight,
+  ChevronLeft,
+  Lock,
+  BookOpen,
+  FileText,
+  Plane,
+  Bookmark,
+  Inbox,
+  HelpCircle,
+  Settings,
+} from "lucide-react";
+
+function yearLabelFromStudentId(studentId?: string, studentType?: string): string {
+  if (!studentId || studentId.length < 4) {
+    return studentType === "Freshman" ? "1st Year" : "Student";
+  }
+  const intakeYear = Number(studentId.slice(0, 4));
+  if (!Number.isFinite(intakeYear)) {
+    return studentType === "Freshman" ? "1st Year" : "Student";
+  }
+  const now = new Date();
+  const academicYear = now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1;
+  const year = Math.max(1, Math.min(6, academicYear - intakeYear + 1));
+  const ordinal =
+    year === 1 ? "1st" : year === 2 ? "2nd" : year === 3 ? "3rd" : `${year}th`;
+  return `${ordinal} Year`;
+}
 
 export function ProfilePage() {
   const { user, logout, refreshUser, isAdmin } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
-  const [activeSubView, setActiveSubView] = useState<"menu" | "profile" | "language" | "account">("menu");
+  const [activeSubView, setActiveSubView] = useState<
+    "menu" | "profile" | "language" | "account" | "visa" | "settings"
+  >("menu");
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Base details
   const [name, setName] = useState("");
@@ -74,6 +110,13 @@ export function ProfilePage() {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    api
+      .getNotifications()
+      .then((items) => setUnreadCount(items.length))
+      .catch(() => setUnreadCount(0));
+  }, []);
 
   // Load all catalog courses when editing profile
   useEffect(() => {
@@ -175,118 +218,305 @@ export function ProfilePage() {
 
   // ── VIEW 1: Main Menu Directory ───────────────────────────────────────────
   if (activeSubView === "menu") {
+    const yearMajor = [
+      yearLabelFromStudentId(user?.studentId, user?.studentType),
+      user?.major,
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    const infoRows = [
+      {
+        key: "personal",
+        label: t("profile.personalInfo"),
+        icon: User,
+        onClick: () => {
+          setError("");
+          setMessage("");
+          setActiveSubView("profile");
+        },
+      },
+      {
+        key: "records",
+        label: t("profile.academicRecords"),
+        icon: BookOpen,
+        onClick: () => navigate("/profile/academic-records"),
+      },
+      {
+        key: "documents",
+        label: t("profile.documents"),
+        icon: FileText,
+        onClick: () => navigate("/profile/documents"),
+      },
+      {
+        key: "visa",
+        label: t("profile.visaInfo"),
+        icon: Plane,
+        onClick: () => {
+          setError("");
+          setMessage("");
+          setActiveSubView("visa");
+        },
+      },
+    ];
+
+    const activityRows = [
+      {
+        key: "notifications",
+        label: t("profile.notifications"),
+        icon: Bell,
+        badge: unreadCount,
+        onClick: () => navigate("/notifications"),
+      },
+      {
+        key: "saved",
+        label: t("profile.saved"),
+        icon: Bookmark,
+        onClick: () => navigate("/profile/saved"),
+      },
+      {
+        key: "requests",
+        label: t("profile.requests"),
+        icon: Inbox,
+        onClick: () => navigate("/profile/requests"),
+      },
+      {
+        key: "help",
+        label: t("profile.helpSupport"),
+        icon: HelpCircle,
+        onClick: () => navigate("/support"),
+      },
+    ];
+
     return (
       <div>
-        <PageHeader
-          title={t("nav.profile")}
-          subtitle={t("profile.subtitle")}
-        />
+        <div className="flex items-center justify-between px-4 pb-1 pt-3">
+          <h1 className="text-[22px] font-bold tracking-tight text-pnu-text">
+            {t("nav.profile")}
+          </h1>
+          <button
+            type="button"
+            onClick={() => setActiveSubView("settings")}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-pnu-muted shadow-sm ring-1 ring-black/5"
+            aria-label={t("profile.settings")}
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        </div>
 
-        <div className="space-y-4 px-4 py-4">
+        <div className="space-y-5 px-4 py-4">
           <div className="flex items-center gap-3.5 rounded-[22px] bg-white p-4 shadow-sm ring-1 ring-black/5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-pnu-blue/10 text-pnu-blue shrink-0">
-              <User className="h-7 w-7" />
-            </div>
+            <img
+              src={pnuCharacter}
+              alt=""
+              className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-pnu-blue/15"
+            />
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-[17px] font-semibold tracking-tight text-pnu-text">
                 {user?.name || "Student"}
               </h3>
-              <p className="mt-0.5 truncate text-[13px] font-medium text-pnu-muted">
-                {user?.studentId} ·{" "}
-                {user?.studentType === "Freshman"
-                  ? t("auth.demoFreshman")
-                  : t("auth.demoNonFreshman")}
+              <p className="mt-0.5 truncate text-[13px] text-pnu-muted">{yearMajor}</p>
+              <p className="mt-1 truncate text-[12px] font-medium text-pnu-text">
+                {user?.studentId}
               </p>
-              {user?.major ? (
-                <p className="mt-1 truncate text-[12px] text-pnu-blue">{user.major}</p>
+              {user?.email ? (
+                <p className="truncate text-[12px] text-pnu-muted">{user.email}</p>
               ) : null}
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5 divide-y divide-black/5">
-            <button
-              onClick={() => {
-                setError("");
-                setMessage("");
-                setActiveSubView("profile");
-              }}
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
-            >
-              <div className="flex items-center gap-3 text-pnu-text">
-                <User className="h-5 w-5 text-pnu-blue shrink-0" />
-                <span className="text-[15px] font-medium">Profile Settings</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
-            </button>
+          <div>
+            <h2 className="mb-2 px-1 text-[13px] font-bold uppercase tracking-wide text-pnu-muted">
+              {t("profile.myInformation")}
+            </h2>
+            <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5 divide-y divide-black/5">
+              {infoRows.map((row) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  onClick={row.onClick}
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
+                >
+                  <div className="flex items-center gap-3 text-pnu-text">
+                    <row.icon className="h-5 w-5 shrink-0 text-pnu-blue" />
+                    <span className="text-[15px] font-medium">{row.label}</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
+                </button>
+              ))}
+            </div>
+          </div>
 
-            <button
-              onClick={() => {
-                setError("");
-                setMessage("");
-                setActiveSubView("account");
-              }}
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
-            >
-              <div className="flex items-center gap-3 text-pnu-text">
-                <Lock className="h-5 w-5 text-pnu-blue shrink-0" />
-                <span className="text-[15px] font-medium">{t("profile.tabAccount") || "Account & Security"}</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
-            </button>
+          <div>
+            <h2 className="mb-2 px-1 text-[13px] font-bold uppercase tracking-wide text-pnu-muted">
+              {t("profile.myActivities")}
+            </h2>
+            <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5 divide-y divide-black/5">
+              {activityRows.map((row) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  onClick={row.onClick}
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
+                >
+                  <div className="flex items-center gap-3 text-pnu-text">
+                    <row.icon className="h-5 w-5 shrink-0 text-pnu-blue" />
+                    <span className="text-[15px] font-medium">{row.label}</span>
+                    {"badge" in row && row.badge && row.badge > 0 ? (
+                      <span className="rounded-full bg-[#FF3B30] px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                        {row.badge > 99 ? "99+" : row.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
+                </button>
+              ))}
 
-            <button
-              onClick={() => setActiveSubView("language")}
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
-            >
-              <div className="flex items-center gap-3 text-pnu-text">
-                <Globe className="h-5 w-5 text-pnu-blue shrink-0" />
-                <span className="text-[15px] font-medium">Language / 언어</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="rounded-full bg-pnu-blue/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-pnu-blue">
-                  {language}
-                </span>
-                <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate("/notifications")}
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
-            >
-              <div className="flex items-center gap-3 text-pnu-text">
-                <Bell className="h-5 w-5 text-pnu-blue shrink-0" />
-                <span className="text-[15px] font-medium">Notifications</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
-            </button>
-
-            {isAdmin && (
-            <button
-              onClick={() => navigate("/admin")}
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
-            >
-              <div className="flex items-center gap-3 text-pnu-text">
-                <Database className="h-5 w-5 text-pnu-blue shrink-0" />
-                <span className="text-[15px] font-medium">Admin Knowledge Portal</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
-            </button>
-            )}
+              {isAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => navigate("/admin")}
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left active:bg-[#F2F2F7]"
+                >
+                  <div className="flex items-center gap-3 text-pnu-text">
+                    <Database className="h-5 w-5 shrink-0 text-pnu-blue" />
+                    <span className="text-[15px] font-medium">Admin Knowledge Portal</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <button
+            type="button"
             onClick={() => {
-              if (window.confirm("Are you sure you want to log out?")) {
+              if (window.confirm(t("profile.logoutConfirm"))) {
                 logout();
               }
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-white px-4 py-3.5 text-[15px] font-semibold text-[#FF3B30] shadow-sm ring-1 ring-black/5 active:bg-red-50"
+            className="flex w-full items-center justify-center gap-2 rounded-[18px] bg-[#FF3B30]/10 px-4 py-3.5 text-[15px] font-semibold text-[#FF3B30] active:bg-[#FF3B30]/15"
           >
             <LogOut className="h-5 w-5" />
-            Log out
+            {t("profile.logout")}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Settings (Account + Language shortcuts) ─────────────────────────
+  if (activeSubView === "settings") {
+    return (
+      <div className="flex min-h-[calc(100dvh-56px)] flex-col bg-pnu-surface">
+        <header className="sticky top-0 z-10 border-b border-pnu-border bg-pnu-surface/95 px-4 py-3.5 backdrop-blur">
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => setActiveSubView("menu")}
+              className="flex items-center text-sm font-semibold text-pnu-blue"
+            >
+              <ChevronLeft className="mr-0.5 h-5 w-5" />
+              {t("common.back")}
+            </button>
+            <h1 className="flex-1 pr-12 text-center text-sm font-bold text-pnu-text">
+              {t("profile.settings")}
+            </h1>
+          </div>
+        </header>
+        <div className="space-y-3 px-4 py-4">
+          <button
+            type="button"
+            onClick={() => {
+              setError("");
+              setMessage("");
+              setActiveSubView("account");
+            }}
+            className="flex w-full items-center justify-between rounded-[18px] bg-white px-4 py-3.5 shadow-sm ring-1 ring-black/5"
+          >
+            <div className="flex items-center gap-3">
+              <Lock className="h-5 w-5 text-pnu-blue" />
+              <span className="text-[15px] font-medium text-pnu-text">
+                {t("profile.tabAccount") || "Account & Security"}
+              </span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubView("language")}
+            className="flex w-full items-center justify-between rounded-[18px] bg-white px-4 py-3.5 shadow-sm ring-1 ring-black/5"
+          >
+            <div className="flex items-center gap-3">
+              <Globe className="h-5 w-5 text-pnu-blue" />
+              <span className="text-[15px] font-medium text-pnu-text">
+                {t("profile.language")}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-full bg-pnu-blue/10 px-2.5 py-0.5 text-[11px] font-bold uppercase text-pnu-blue">
+                {language}
+              </span>
+              <ChevronRight className="h-4 w-4 text-pnu-muted/60" />
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Visa Information ────────────────────────────────────────────────
+  if (activeSubView === "visa") {
+    return (
+      <div className="flex min-h-[calc(100dvh-56px)] flex-col bg-pnu-surface">
+        <header className="sticky top-0 z-10 border-b border-pnu-border bg-pnu-surface/95 px-4 py-3.5 backdrop-blur">
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setMessage("");
+                setActiveSubView("menu");
+              }}
+              className="flex items-center text-sm font-semibold text-pnu-blue"
+            >
+              <ChevronLeft className="mr-0.5 h-5 w-5" />
+              {t("common.back")}
+            </button>
+            <h1 className="flex-1 pr-12 text-center text-sm font-bold text-pnu-text">
+              {t("profile.visaInfo")}
+            </h1>
+          </div>
+        </header>
+        <form onSubmit={handleSave} className="space-y-4 px-4 py-5">
+          {message ? (
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
+          ) : null}
+          {error ? (
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+          ) : null}
+          <Card className="space-y-3 p-4">
+            <label className="block text-[13px] font-semibold text-pnu-text">
+              {t("profile.visaSelection") || "Visa status"}
+            </label>
+            <select
+              value={visaStatus}
+              onChange={(e) => setVisaStatus(e.target.value)}
+              className="w-full rounded-xl border border-pnu-border bg-white px-3 py-2.5 text-sm text-pnu-text"
+            >
+              <option value="">Select visa</option>
+              <option value="D-2">D-2</option>
+              <option value="D-4">D-4</option>
+              <option value="None">None</option>
+            </select>
+            <p className="text-[12px] leading-relaxed text-pnu-muted">
+              {t("profile.visaHint")}
+            </p>
+          </Card>
+          <Button type="submit" disabled={saving} className="w-full">
+            {saving ? t("common.loading") : t("profile.save")}
+          </Button>
+        </form>
       </div>
     );
   }

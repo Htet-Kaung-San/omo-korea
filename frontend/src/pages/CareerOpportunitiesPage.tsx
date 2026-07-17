@@ -1,175 +1,238 @@
-import { useEffect, useState } from 'react'
-import { Briefcase, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Filter, Search, SlidersHorizontal } from 'lucide-react'
 import { api } from '@/api'
-import type { CareerOpportunitiesResponse } from '@/types/api'
+import { CareerJobRow } from '@/components/career/CareerJobRow'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
+import { useCareerRecommendations } from '@/hooks/useCareerRecommendations'
+import type { CareerJobType, CareerOpportunity } from '@/types/api'
+import { matchesCareerQuery, matchesCareerType } from '@/utils/career'
 
-const PAGE_SIZE = 10
+const LATEST_PAGE_SIZE = 20
+
+const FILTERS: Array<{ id: CareerJobType | 'all'; labelKey: string }> = [
+  { id: 'all', labelKey: 'career.filterAll' },
+  { id: 'internship', labelKey: 'career.filterInternship' },
+  { id: 'part-time', labelKey: 'career.filterPartTime' },
+  { id: 'full-time', labelKey: 'career.filterFullTime' },
+  { id: 'volunteer', labelKey: 'career.filterVolunteer' },
+]
 
 export function CareerOpportunitiesPage() {
   const { t } = useLanguage()
-  const [page, setPage] = useState(1)
-  const [data, setData] = useState<CareerOpportunitiesResponse | null>(null)
+  const {
+    items: recommended,
+    loading: recommendedLoading,
+    error: recommendedError,
+  } = useCareerRecommendations()
+
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<CareerJobType | 'all'>('all')
+  const [showFilters, setShowFilters] = useState(false)
+  const [sortByDeadline, setSortByDeadline] = useState(false)
+  const [showAllRecommended, setShowAllRecommended] = useState(false)
+  const [showAllLatest, setShowAllLatest] = useState(false)
+  const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set())
+
+  const [latest, setLatest] = useState<CareerOpportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
-
     setLoading(true)
     setError('')
 
     api
-      .getCareerOpportunities({ page, limit: PAGE_SIZE })
+      .getCareerOpportunities({ page: 1, limit: LATEST_PAGE_SIZE })
       .then((response) => {
-        if (!cancelled) {
-          setData(response)
-        }
+        if (!cancelled) setLatest(response.opportunities)
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : t('career.loadError'))
-          setData(null)
+          setLatest([])
         }
       })
       .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
+        if (!cancelled) setLoading(false)
       })
 
     return () => {
       cancelled = true
     }
-  }, [page, t])
+  }, [t])
 
-  const pagination = data?.pagination
+  const filteredRecommended = useMemo(() => {
+    return recommended.filter(
+      (item) => matchesCareerQuery(item, query) && matchesCareerType(item, filter),
+    )
+  }, [recommended, query, filter])
+
+  const filteredLatest = useMemo(() => {
+    let items = latest.filter(
+      (item) => matchesCareerQuery(item, query) && matchesCareerType(item, filter),
+    )
+    if (sortByDeadline) {
+      items = [...items].sort((a, b) => a.deadline.localeCompare(b.deadline))
+    }
+    return items
+  }, [latest, query, filter, sortByDeadline])
+
+  const visibleRecommended = showAllRecommended
+    ? filteredRecommended
+    : filteredRecommended.slice(0, 3)
+  const visibleLatest = showAllLatest ? filteredLatest : filteredLatest.slice(0, 5)
+
+  function toggleBookmark(id: string) {
+    setBookmarks((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   return (
-    <div>
-      <PageHeader title={t('career.title')} subtitle={t('career.subtitle')} back />
+    <div className="pb-6">
+      <PageHeader title={t('career.title')} back />
 
-      <div className="space-y-4 px-5 py-5">
+      <div className="space-y-5 px-4 pt-3">
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl bg-white px-3.5 py-3 shadow-sm ring-1 ring-black/5">
+            <Search className="h-4 w-4 shrink-0 text-pnu-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('career.searchPlaceholder')}
+              className="min-w-0 flex-1 bg-transparent text-[14px] text-pnu-text outline-none placeholder:text-pnu-muted"
+            />
+          </div>
+          <button
+            type="button"
+            aria-label={t('career.openFilters')}
+            aria-pressed={showFilters}
+            onClick={() => setShowFilters((open) => !open)}
+            className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 transition ${
+              showFilters
+                ? 'bg-[#F97316] text-white ring-[#F97316]'
+                : 'bg-white text-pnu-muted ring-black/5'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+
+        {showFilters ? (
+          <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-black/5">
+            <label className="flex items-center gap-2 text-[13px] text-pnu-text">
+              <Filter className="h-4 w-4 text-[#F97316]" />
+              <input
+                type="checkbox"
+                checked={sortByDeadline}
+                onChange={(e) => setSortByDeadline(e.target.checked)}
+                className="rounded border-pnu-border"
+              />
+              {t('career.sortByDeadline')}
+            </label>
+          </div>
+        ) : null}
+
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {FILTERS.map((item) => {
+            const active = filter === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setFilter(item.id)}
+                className={`shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition ${
+                  active
+                    ? 'bg-[#F97316] text-white shadow-sm shadow-orange-200'
+                    : 'bg-[#F2F2F7] text-pnu-text'
+                }`}
+              >
+                {t(item.labelKey)}
+              </button>
+            )
+          })}
+        </div>
+
         {error ? (
-          <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         ) : null}
 
-        {loading ? <p className="text-sm text-pnu-muted">{t('career.loading')}</p> : null}
-
-        {!loading && data ? (
-          <>
-            <section className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-pnu-muted">
-                    {t('career.sourceLabel')}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-pnu-text">
-                    {t('career.totalCount', { count: pagination?.totalItems ?? 0 })}
-                  </p>
-                </div>
-                <a
-                  href={data.source}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-pnu-blue-light hover:bg-blue-100"
-                >
-                  {t('career.viewSource')}
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-              </div>
-
-              {data.careers.length > 0 ? (
-                <div className="mt-4">
-                  <p className="text-xs font-semibold text-pnu-text">{t('career.topRoles')}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {data.careers.slice(0, 6).map((career) => (
-                      <span
-                        key={career.name}
-                        className="rounded-full bg-pnu-surface px-2.5 py-1 text-xs font-medium text-pnu-muted"
-                      >
-                        {career.name} ({career.count})
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </section>
-
-            {data.opportunities.length === 0 ? (
-              <p className="text-sm text-pnu-muted">{t('career.noResults')}</p>
-            ) : (
-              data.opportunities.map((opportunity) => (
-                <article
-                  key={opportunity.id}
-                  className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
-                      <Briefcase className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-pnu-blue-light">{opportunity.company}</p>
-                          <h2 className="mt-1 text-sm font-bold text-pnu-text">{opportunity.title}</h2>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
-                          {opportunity.deadline}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-pnu-muted">
-                        {opportunity.role ? (
-                          <span className="rounded-full bg-pnu-surface px-2 py-0.5 font-medium text-pnu-text">
-                            {t('career.role')}: {opportunity.role}
-                          </span>
-                        ) : null}
-                        {opportunity.applicationType ? (
-                          <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
-                            {opportunity.applicationType}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))
-            )}
-
-            {pagination && pagination.totalPages > 1 ? (
-              <div className="flex items-center justify-between rounded-2xl border border-pnu-border bg-white px-4 py-3 shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={!pagination.hasPrevPage || loading}
-                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-pnu-text enabled:hover:bg-pnu-surface disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-                  {t('career.prev')}
-                </button>
-
-                <p className="text-sm font-medium text-pnu-muted">
-                  {t('career.pageInfo', {
-                    page: pagination.page,
-                    totalPages: pagination.totalPages,
-                  })}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => current + 1)}
-                  disabled={!pagination.hasNextPage || loading}
-                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-pnu-text enabled:hover:bg-pnu-surface disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t('career.next')}
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
+        <section>
+          <div className="mb-2 flex items-center justify-between px-1">
+            <h2 className="text-[16px] font-bold text-pnu-text">{t('career.recommended')}</h2>
+            {filteredRecommended.length > 3 ? (
+              <button
+                type="button"
+                onClick={() => setShowAllRecommended((v) => !v)}
+                className="text-[13px] font-semibold text-pnu-blue"
+              >
+                {showAllRecommended ? t('career.showLess') : t('career.viewAll')}
+              </button>
             ) : null}
-          </>
-        ) : null}
+          </div>
+
+          <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5">
+            {recommendedLoading ? (
+              <p className="px-4 py-6 text-center text-sm text-pnu-muted">{t('career.loading')}</p>
+            ) : recommendedError ? (
+              <p className="px-4 py-6 text-center text-sm text-rose-600">{recommendedError}</p>
+            ) : visibleRecommended.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-pnu-muted">
+                {t('career.noRecommendations')}
+              </p>
+            ) : (
+              <div className="divide-y divide-pnu-border/80">
+                {visibleRecommended.map((opportunity) => (
+                  <CareerJobRow
+                    key={`rec-${opportunity.id}`}
+                    opportunity={opportunity}
+                    variant="recommended"
+                    bookmarked={bookmarks.has(opportunity.id)}
+                    onToggleBookmark={toggleBookmark}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-2 flex items-center justify-between px-1">
+            <h2 className="text-[16px] font-bold text-pnu-text">{t('career.latest')}</h2>
+            {filteredLatest.length > 5 ? (
+              <button
+                type="button"
+                onClick={() => setShowAllLatest((v) => !v)}
+                className="text-[13px] font-semibold text-pnu-blue"
+              >
+                {showAllLatest ? t('career.showLess') : t('career.viewAll')}
+              </button>
+            ) : null}
+          </div>
+
+          <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-black/5">
+            {loading ? (
+              <p className="px-4 py-6 text-center text-sm text-pnu-muted">{t('career.loading')}</p>
+            ) : visibleLatest.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-pnu-muted">{t('career.noResults')}</p>
+            ) : (
+              <div className="divide-y divide-pnu-border/80">
+                {visibleLatest.map((opportunity) => (
+                  <CareerJobRow
+                    key={`latest-${opportunity.id}`}
+                    opportunity={opportunity}
+                    variant="latest"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   )
