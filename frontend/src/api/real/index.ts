@@ -3,31 +3,54 @@ import type {
   AuthResponse,
   CampusFacilities,
   CareerOpportunitiesResponse,
+  CareerOpportunity,
   ChatMessageRequest,
   ChatMessageResponse,
   ChecklistItem,
   ChecklistPayload,
+  Course,
   CourseType,
   EmergencyGuide,
+  Enrollment,
+  FaqItem,
+  CommunityGroup,
+  CommunityMembersResponse,
+  CommunityPost,
+  CommunityScope,
+  CreateCommunityPostRequest,
   GetCampusFacilitiesParams,
   GetCareerOpportunitiesParams,
   GraduationProgress,
   HeyPnuApi,
   LoginRequest,
+  MajorRecommendationRequest,
+  MajorRecommendationResponse,
   Notification,
   ProgramItem,
+  PnuContact,
   RecommendedCourse,
   ScholarshipItem,
+  SignupRequest,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken } from '../client'
+import { apiFetch, clearStoredToken, getStoredToken } from '../client'
+import { CHAT_SUGGESTIONS } from '../mock/data'
 import { backendFetch } from './backendFetch'
+import {
+  mapCommunityGroup,
+  mapCommunityMember,
+  mapCommunityPost,
+} from './communityMappers'
 import {
   mapBackendStudent,
   mapChecklistItem,
   mapChecklistPayload,
   mapNotice,
+  mapAcademicRecords,
+  mapFaqItem,
+  mapMapFacility,
+  mapPnuContact,
   mapProgramItem,
   mapRecommendedCourse,
   mapScholarshipItem,
@@ -177,12 +200,20 @@ export const realApi: HeyPnuApi = {
   },
 
   async sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse> {
-    void data
-    return { reply: '' }
+    const studentId = resolveStudentId()
+    const response = await apiFetch<{ success: true; reply: string }>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message: data.message,
+        studentId: studentId || undefined,
+      }),
+    })
+
+    return { reply: response.reply }
   },
 
   async getChatSuggestions(): Promise<string[]> {
-    return []
+    return CHAT_SUGGESTIONS
   },
 
   async getCareerOpportunities(
@@ -200,8 +231,87 @@ export const realApi: HeyPnuApi = {
     )
   },
 
+  /**
+   * AI engineers: point this at your ranking service.
+   * Contract: CareerOpportunity[] (optional location, jobType, matchReason, logoUrl).
+   */
+  async getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]> {
+    return backendFetch<CareerOpportunity[]>('/students/career-recommendations')
+  },
+
   async getEmergencyGuide(): Promise<EmergencyGuide> {
     return backendFetch<EmergencyGuide>('/students/emergency-guide')
+  },
+
+  async getPnuContacts(): Promise<PnuContact[]> {
+    const rows = await backendFetch<Parameters<typeof mapPnuContact>[0][]>(
+      '/students/pnu-contacts',
+    )
+    return rows.map(mapPnuContact)
+  },
+
+  async getFaqItems(): Promise<FaqItem[]> {
+    const rows = await backendFetch<Parameters<typeof mapFaqItem>[0][]>(
+      '/students/faq',
+    )
+    return rows.map(mapFaqItem)
+  },
+
+  async getMyCommunityGroup(scope: CommunityScope): Promise<CommunityGroup | null> {
+    const row = await backendFetch<Parameters<typeof mapCommunityGroup>[0] | null>(
+      `/students/community/my-group?scope=${encodeURIComponent(scope)}`,
+    )
+    return row ? mapCommunityGroup(row) : null
+  },
+
+  async getCommunityPosts(params: {
+    scope: CommunityScope
+    groupSlug?: string | null
+    groupId?: number | null
+  }): Promise<CommunityPost[]> {
+    const query = new URLSearchParams()
+    query.set('scope', params.scope)
+    if (params.groupSlug) query.set('group_slug', params.groupSlug)
+    if (params.groupId) query.set('group_id', String(params.groupId))
+    const rows = await backendFetch<Parameters<typeof mapCommunityPost>[0][]>(
+      `/students/community/posts?${query.toString()}`,
+    )
+    return rows.map(mapCommunityPost)
+  },
+
+  async getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse> {
+    const payload = await backendFetch<{
+      group: Parameters<typeof mapCommunityGroup>[0]
+      members: Array<{ id: string; name: string; nationality: string; major: string }>
+    }>(`/students/community/groups/${encodeURIComponent(groupIdOrSlug)}/members`)
+
+    return {
+      group: mapCommunityGroup(payload.group),
+      members: payload.members.map(mapCommunityMember),
+    }
+  },
+
+  async createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost> {
+    const row = await backendFetch<Parameters<typeof mapCommunityPost>[0]>(
+      '/students/community/posts',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          content: data.content,
+          scope: data.scope,
+          group_id: data.groupId ?? null,
+          group_slug: data.groupSlug ?? null,
+        }),
+      },
+    )
+    return mapCommunityPost(row)
+  },
+
+  async likeCommunityPost(postId: string): Promise<{ id: string; likes: number }> {
+    return backendFetch<{ id: string; likes: number }>(
+      `/students/community/posts/${encodeURIComponent(postId)}/like`,
+      { method: 'POST' },
+    )
   },
 
   async getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities> {
@@ -209,6 +319,50 @@ export const realApi: HeyPnuApi = {
       ? `?menu_date=${encodeURIComponent(params.menuDate)}`
       : ''
     return backendFetch<CampusFacilities>(`/students/campus-facilities${query}`)
+  },
+
+  async getMapFacilities() {
+    const facilities = await backendFetch<Parameters<typeof mapMapFacility>[0][]>(
+      '/students/facilities',
+    )
+    return facilities.map(mapMapFacility)
+  },
+
+  async getMapFacility(id: string) {
+    const facility = await backendFetch<Parameters<typeof mapMapFacility>[0]>(
+      `/students/facilities/${encodeURIComponent(id)}`,
+    )
+    return mapMapFacility(facility)
+  },
+
+  async getAcademicRecords() {
+    const studentId = resolveStudentId()
+    if (!studentId) {
+      throw new Error('Student ID is required to fetch academic records')
+    }
+    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0]>(
+      `/students/academic-records/${encodeURIComponent(studentId)}`,
+    )
+    return mapAcademicRecords(records)
+  },
+
+  async downloadTranscript() {
+    const studentId = resolveStudentId()
+    if (!studentId) {
+      throw new Error('Student ID is required to download transcript')
+    }
+    const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
+    const token = getStoredToken()
+    const headers = new Headers()
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+    const response = await fetch(
+      `${baseUrl}/students/academic-records/${encodeURIComponent(studentId)}/transcript`,
+      { headers },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to download transcript (${response.status})`)
+    }
+    return response.blob()
   },
 
   async getAiDashboard(): Promise<AiDashboard> {
@@ -231,7 +385,123 @@ export const realApi: HeyPnuApi = {
   },
 
   async getPrograms(): Promise<ProgramItem[]> {
-    const dashboard = await this.getAiDashboard()
-    return dashboard.matchedPrograms
+    const programs = await backendFetch<ProgramItem[]>('/students/programs')
+    return programs.map(mapProgramItem)
+  },
+
+  async getMemory(): Promise<string> {
+    const res = await apiFetch<{ success: boolean; data: string }>("/ai/memory");
+    return res.data;
+  },
+
+  async updateMemory(memory: string): Promise<void> {
+    await apiFetch<{ success: boolean }>("/ai/memory", {
+      method: "PUT",
+      body: JSON.stringify({ memory }),
+    });
+  },
+
+  async forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }> {
+    const response = await apiFetch<{
+      success: true
+      maskedEmail: string
+      code: string
+    }>('/students/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId }),
+      suppressToast: true,
+    })
+
+    return {
+      maskedEmail: response.maskedEmail,
+      code: response.code,
+    }
+  },
+
+  async resetPassword(studentId: string, code: string, newPassword: string): Promise<void> {
+    await apiFetch<{ success: true }>('/students/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: studentId,
+        code,
+        new_password: newPassword,
+      }),
+      suppressToast: true,
+    })
+  },
+
+  async signup(data: SignupRequest): Promise<void> {
+    await apiFetch<{ success: true }>('/students/signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: data.studentId,
+        name: data.name,
+        nationality: data.nationality,
+        major_name: data.major,
+        student_type: data.student_type,
+        visa_status: data.visa_status,
+        password: data.password,
+        language_pref: data.language_pref,
+        is_in_korea: data.is_in_korea,
+        mbti: data.mbti,
+        d2_semester: data.d2_semester,
+        completed_courses: data.completed_courses,
+        intake_term: data.intake_term,
+      }),
+      suppressToast: true,
+    })
+  },
+
+  async recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse> {
+    return apiFetch<MajorRecommendationResponse>('/ai/recommend-major', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async getCourses(_campus?: string): Promise<Course[]> {
+    return backendFetch<Course[]>('/students/courses')
+  },
+
+  async getEnrollments(studentId: string): Promise<Enrollment[]> {
+    return backendFetch<Enrollment[]>(`/students/enrollments/${encodeURIComponent(studentId)}`)
+  },
+
+  async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
+    return backendFetch<Enrollment>('/students/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: studentId,
+        course_id: courseId,
+      }),
+    })
+  },
+
+  async deleteEnrollment(enrollmentId: number): Promise<void> {
+    await backendFetch<unknown>(`/students/enrollments/${enrollmentId}`, {
+      method: 'DELETE',
+    })
+  },
+
+  async requestAccountDeletion(studentId: string): Promise<void> {
+    await backendFetch<unknown>(
+      `/students/${encodeURIComponent(studentId)}/request-delete`,
+      { method: 'PATCH' },
+    )
+  },
+
+  async updateLanguagePreference(studentId: string, languagePref: string): Promise<void> {
+    await backendFetch<unknown>(
+      `/students/${encodeURIComponent(studentId)}/language`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ language_pref: languagePref }),
+      },
+    )
+
+    const user = getSessionUser()
+    if (user && user.studentId === studentId) {
+      setSessionUser({ ...user, language_pref: languagePref })
+    }
   },
 }

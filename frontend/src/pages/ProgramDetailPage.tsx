@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Trophy, Users } from 'lucide-react'
+import { ExternalLink, Trophy, Users } from 'lucide-react'
 import { api } from '@/api'
 import type { ProgramItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -43,10 +43,29 @@ export function ProgramDetailPage() {
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-pnu-blue">
                 <ProgramDetailIcon program={program} />
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <h1 className="text-lg font-bold text-pnu-text">{program.title}</h1>
-                <p className="mt-2 text-sm leading-relaxed text-pnu-muted">{program.description}</p>
-                <p className="mt-3 text-sm font-bold text-pnu-blue-light">{program.date}</p>
+                {program.category ? (
+                  <p className="mt-1 text-xs font-semibold text-pnu-blue-light">{program.category}</p>
+                ) : null}
+                {program.date ? (
+                  <p className="mt-3 text-sm font-bold text-pnu-blue-light">{program.date}</p>
+                ) : null}
+                {program.matchHint ? (
+                  <p className="mt-2 text-xs text-pnu-muted">{program.matchHint}</p>
+                ) : null}
+
+                {program.sourceUrl ? (
+                  <a
+                    href={program.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-pnu-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-pnu-blue-light"
+                  >
+                    {t('academic.viewAnnouncement')}
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                ) : null}
               </div>
             </div>
           </article>

@@ -8,6 +8,8 @@ import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
+import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
+import { CreditsPage } from '@/pages/CreditsPage'
 import { RecommendedCoursesPage } from '@/pages/RecommendedCoursesPage'
 import { CourseDetailPage } from '@/pages/CourseDetailPage'
 import { ProgramsPage } from '@/pages/ProgramsPage'
@@ -21,13 +23,24 @@ import { CampusLifePage } from '@/pages/CampusLifePage'
 import { CommunityPage } from '@/pages/CommunityPage'
 import { CampusGuidePage } from '@/pages/CampusGuidePage'
 import { CampusMapPage } from '@/pages/CampusMapPage'
+import { FacilityDetailPage } from '@/pages/FacilityDetailPage'
+import { LibraryGuidePage } from '@/pages/LibraryGuidePage'
+import { OneStopGuidePage } from '@/pages/OneStopGuidePage'
 import { CommunityNoticesPage } from '@/pages/CommunityNoticesPage'
+import { CommunityMembersPage } from '@/pages/CommunityMembersPage'
 import { CareerOpportunitiesPage } from '@/pages/CareerOpportunitiesPage'
 import { SupportPage } from '@/pages/SupportPage'
 import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
 import { WorkPermitPage } from '@/pages/WorkPermitPage'
 import { RelatedLawsPage } from '@/pages/RelatedLawsPage'
-
+import { ContactSupportPage } from '@/pages/ContactSupportPage'
+import { AppSupportPage } from '@/pages/AppSupportPage'
+import { FaqPage } from '@/pages/FaqPage'
+import { FeedbackPage } from '@/pages/FeedbackPage'
+import { AiAssistantPage } from '@/pages/AiAssistantPage'
+import { AcademicRecordsPage } from '@/pages/AcademicRecordsPage'
+import { ProfileStubPage } from '@/pages/ProfileStubPage'
+import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
@@ -60,7 +73,12 @@ function AppRoutes() {
         }
       >
         <Route index element={<HomePage />} />
+        <Route path="schedule" element={<AcademicPage />} />
+        <Route path="ai" element={<AiAssistantPage />} />
+        <Route path="map" element={<CampusMapPage />} />
+        <Route path="map/:facilityId" element={<FacilityDetailPage />} />
         <Route path="academic" element={<AcademicPage />} />
+        <Route path="academic-calendar" element={<AcademicCalendarPage />} />
         <Route path="academic/recommended-courses" element={<RecommendedCoursesPage />} />
         <Route path="academic/recommended-courses/:courseId" element={<CourseDetailPage />} />
         <Route path="academic/programs" element={<ProgramsPage />} />
@@ -68,14 +86,8 @@ function AppRoutes() {
         <Route path="academic/scholarships" element={<ScholarshipsPage />} />
         <Route path="academic/scholarships/:scholarshipId" element={<ScholarshipDetailPage />} />
         <Route path="campus-life" element={<CampusLifePage />} />
-        <Route
-          path="campus-life/one-stop"
-          element={<CampusGuidePage titleKey="campusLife.oneStopGuide" bodyKey="campusLife.oneStopBody" />}
-        />
-        <Route
-          path="campus-life/library"
-          element={<CampusGuidePage titleKey="campusLife.libraryGuide" bodyKey="campusLife.libraryBody" />}
-        />
+        <Route path="campus-life/one-stop" element={<OneStopGuidePage />} />
+        <Route path="campus-life/library" element={<LibraryGuidePage />} />
         <Route
           path="campus-life/cafeteria"
           element={
@@ -89,6 +101,7 @@ function AppRoutes() {
         <Route path="campus-life/map" element={<CampusMapPage />} />
         <Route path="career-opportunities" element={<CareerOpportunitiesPage />} />
         <Route path="community" element={<CommunityPage />} />
+        <Route path="community/groups/:groupId/members" element={<CommunityMembersPage />} />
         <Route
           path="community/country-notices"
           element={
@@ -111,13 +124,22 @@ function AppRoutes() {
         <Route path="support/emergency" element={<EmergencySupportPage />} />
         <Route path="support/work-permit" element={<WorkPermitPage />} />
         <Route path="support/related-laws" element={<RelatedLawsPage />} />
+        <Route path="support/contact" element={<ContactSupportPage />} />
+        <Route path="support/app" element={<AppSupportPage />} />
+        <Route path="support/faq" element={<FaqPage />} />
+        <Route path="support/feedback" element={<FeedbackPage />} />
         <Route path="my" element={<ProfilePage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile/academic-records" element={<AcademicRecordsPage />} />
+        <Route path="profile/documents" element={<ProfileStubPage kind="documents" />} />
+        <Route path="profile/saved" element={<ProfileStubPage kind="saved" />} />
+        <Route path="profile/requests" element={<ProfileStubPage kind="requests" />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
-        <Route path="courses" element={<Navigate to="/academic" replace />} />
-        <Route path="checklist" element={<Navigate to="/" replace />} />
-        <Route path="chat" element={<Navigate to="/" replace />} />
-        <Route path="profile" element={<Navigate to="/my" replace />} />
+        <Route path="courses" element={<CoursesDashboardPage />} />
+        <Route path="credits" element={<CreditsPage />} />
+        <Route path="checklist" element={<Navigate to="/credits" replace />} />
+        <Route path="chat" element={<Navigate to="/ai" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

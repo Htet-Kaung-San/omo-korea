@@ -6,6 +6,7 @@ const {
 } = require("../services/jobKoreaScraperService");
 const { getEmergencyGuide } = require("../services/emergencyGuideService");
 const { getCampusFacilities } = require("../services/campusFacilitiesService");
+const communityService = require("../services/communityService");
 const { localizeRow } = require("../middleware/languageMiddleware");
 const {
   resolveLanguagePref,
@@ -1112,30 +1113,14 @@ const getBoardPosts = async (req, res) => {
       });
     }
 
-    const localDb = require("../localDb");
-    const localPosts = localDb.get("posts") || [];
-
-    // Map and overlay local metrics
     const posts = (data || [])
       .map((p) => {
-        const localPost = localPosts.find(
-          (lp) => Number(lp.post_id) === Number(p.post_id),
-        );
-        const likes_count = localPost
-          ? localPost.likes_count || 0
-          : p.likes_count || 0;
-        const liked_by = localPost
-          ? localPost.liked_by || []
-          : p.liked_by || [];
-        const reported = localPost
-          ? Boolean(localPost.reported)
-          : Boolean(p.reported);
         const { student, ...rest } = p;
         return {
           ...rest,
-          likes_count,
-          liked_by,
-          reported,
+          likes_count: p.likes_count || 0,
+          liked_by: p.liked_by || [],
+          reported: Boolean(p.reported),
           student_name: student?.name ?? "Unknown Student",
         };
       })
@@ -1209,7 +1194,240 @@ const getFacilities = async (req, res) => {
         message: "Failed to fetch facilities",
         error: error.message,
       });
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const getPnuContacts = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("pnu_contact")
+      .select("contact_id, slug, name, place, hours, phone, email, sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch PNU contacts",
+        error: error.message,
+      });
+    }
+
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const getFaqItems = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("faq_item")
+      .select("faq_id, slug, question, answer, sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch FAQ items",
+        error: error.message,
+      });
+    }
+
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const getFacilityById = async (req, res) => {
+  try {
+    const { facility_id } = req.params;
+
+    const { data, error } = await supabase
+      .from("facility")
+      .select("*")
+      .eq("facility_id", facility_id)
+      .single();
+
+    if (error || !data) {
+      if (error?.code === "PGRST116" || !data) {
+        return res.status(404).json({
+          success: false,
+          message: "Facility not found",
+        });
+      }
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch facility",
+        error: error.message,
+      });
+    }
+
     res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const getAcademicRecords = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const requesterId = String(req.user?.student_id ?? "");
+
+    if (requesterId && requesterId !== String(student_id) && !req.user?.is_admin) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+    }
+
+    const { data: summary, error: summaryError } = await supabase
+      .from("academic_summary")
+      .select("*")
+      .eq("student_id", student_id)
+      .single();
+
+    if (summaryError || !summary) {
+      if (summaryError?.code === "PGRST116" || !summary) {
+        return res.status(404).json({
+          success: false,
+          message: "Academic records not found for this student",
+        });
+      }
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch academic summary",
+        error: summaryError.message,
+      });
+    }
+
+    const { data: semesters, error: recordError } = await supabase
+      .from("academic_record")
+      .select("*")
+      .eq("student_id", student_id)
+      .order("sort_order", { ascending: true });
+
+    if (recordError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch semester records",
+        error: recordError.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        student_id: summary.student_id,
+        overall_gpa: Number(summary.overall_gpa),
+        gpa_scale: Number(summary.gpa_scale),
+        standing: summary.standing,
+        completed_credits: Number(summary.completed_credits),
+        required_credits: Number(summary.required_credits),
+        semesters: (semesters || []).map((row) => ({
+          semester_label: row.semester_label,
+          gpa: Number(row.gpa),
+          sort_order: row.sort_order,
+        })),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const downloadAcademicTranscript = async (req, res) => {
+  try {
+    const { student_id } = req.params;
+    const requesterId = String(req.user?.student_id ?? "");
+
+    if (requesterId && requesterId !== String(student_id) && !req.user?.is_admin) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+    }
+
+    const { data: student } = await supabase
+      .from("student")
+      .select("student_id, name, email, major_id")
+      .eq("student_id", student_id)
+      .single();
+
+    const { data: summary, error: summaryError } = await supabase
+      .from("academic_summary")
+      .select("*")
+      .eq("student_id", student_id)
+      .single();
+
+    if (!summary) {
+      return res.status(404).json({
+        success: false,
+        message: "Academic records not found for this student",
+        error: summaryError?.message,
+      });
+    }
+
+    const { data: semesters } = await supabase
+      .from("academic_record")
+      .select("*")
+      .eq("student_id", student_id)
+      .order("sort_order", { ascending: true });
+
+    const lines = [
+      "Hey! PNU — Academic Transcript (Unofficial)",
+      "==========================================",
+      `Student ID: ${student_id}`,
+      `Name: ${student?.name || "N/A"}`,
+      `Email: ${student?.email || "N/A"}`,
+      "",
+      `Overall GPA: ${Number(summary.overall_gpa).toFixed(2)} / ${Number(summary.gpa_scale).toFixed(1)}`,
+      `Standing: ${summary.standing}`,
+      `Credits: ${summary.completed_credits} / ${summary.required_credits}`,
+      "",
+      "Semester Performance",
+      "--------------------",
+      ...(semesters || []).map(
+        (row) =>
+          `${row.semester_label}: ${Number(row.gpa).toFixed(2)} / ${Number(summary.gpa_scale).toFixed(1)}`,
+      ),
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "This is a demo transcript for Hey! PNU and is not an official university document.",
+    ];
+
+    const body = lines.join("\n");
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="transcript-${student_id}.txt"`,
+    );
+    res.send(body);
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1821,45 +2039,41 @@ const likePost = async (req, res) => {
         .json({ success: false, message: "Student ID required" });
     }
 
-    const localDb = require("../localDb");
-    let localPost = localDb.findOne(
-      "posts",
-      (lp) => Number(lp.post_id) === Number(post_id),
-    );
+    const { data: post, error: fetchError } = await supabase
+      .from("post")
+      .select("post_id, likes_count")
+      .eq("post_id", post_id)
+      .single();
 
-    if (!localPost) {
-      localPost = localDb.insert("posts", {
-        post_id: Number(post_id),
-        likes_count: 0,
-        liked_by: [],
-        reported: false,
+    if (fetchError || !post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+        error: fetchError?.message,
       });
     }
 
-    let likedBy = localPost.liked_by || [];
-    let liked = false;
+    const nextCount = Number(post.likes_count || 0) + 1;
+    const { data: updated, error: updateError } = await supabase
+      .from("post")
+      .update({ likes_count: nextCount })
+      .eq("post_id", post_id)
+      .select("likes_count")
+      .single();
 
-    if (likedBy.includes(studentId)) {
-      likedBy = likedBy.filter((id) => id !== studentId);
-    } else {
-      likedBy.push(studentId);
-      liked = true;
+    if (updateError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to like post",
+        error: updateError.message,
+      });
     }
-
-    const updated = localDb.update(
-      "posts",
-      (lp) => Number(lp.post_id) === Number(post_id),
-      {
-        liked_by: likedBy,
-        likes_count: likedBy.length,
-      },
-    );
 
     res.json({
       success: true,
       data: {
         likes_count: updated.likes_count,
-        liked,
+        liked: true,
       },
     });
   } catch (err) {
@@ -1875,22 +2089,16 @@ const reportPost = async (req, res) => {
   try {
     const { post_id } = req.params;
 
-    const localDb = require("../localDb");
-    let localPost = localDb.findOne(
-      "posts",
-      (lp) => Number(lp.post_id) === Number(post_id),
-    );
+    const { error } = await supabase
+      .from("post")
+      .update({ reported: true })
+      .eq("post_id", post_id);
 
-    if (!localPost) {
-      localDb.insert("posts", {
-        post_id: Number(post_id),
-        likes_count: 0,
-        liked_by: [],
-        reported: true,
-      });
-    } else {
-      localDb.update("posts", (lp) => Number(lp.post_id) === Number(post_id), {
-        reported: true,
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to report post",
+        error: error.message,
       });
     }
 
@@ -2058,6 +2266,137 @@ const getCareerOpportunities = async (req, res, next) => {
   }
 };
 
+/**
+ * AI hook-point for personalized internship/job recommendations.
+ * AI engineers: replace the body with profile-aware ranking (RAG/LLM).
+ * Keep the response shape as CareerOpportunity[] with optional matchReason.
+ */
+const getCareerRecommendations = async (req, res, next) => {
+  try {
+    const data = await getCareerOpportunitiesPage({ page: 1, limit: 20 });
+    const recommended = (data.opportunities || []).slice(0, 3).map((item, index) => ({
+      ...item,
+      location: item.location || "Korea",
+      jobType: item.jobType || "internship",
+      matchReason: item.matchReason || "Popular entry-level opening",
+      recommendationRank: index + 1,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: recommended,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getMyCommunityGroupHandler = async (req, res) => {
+  try {
+    const scope = String(req.query.scope || "department");
+    if (!["department", "country", "all"].includes(scope)) {
+      return res.status(400).json({
+        success: false,
+        message: "scope must be department, country, or all",
+      });
+    }
+
+    const studentId = req.user?.student_id;
+    const profile = await communityService.getStudentProfileLite(studentId);
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const group = await communityService.getMyCommunityGroup(scope, profile);
+    return res.json({ success: true, data: group });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load community group",
+      error: err.message,
+    });
+  }
+};
+
+const getCommunityMembersHandler = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const result = await communityService.getCommunityMembers(groupId);
+    if (!result.group) {
+      return res.status(404).json({ success: false, message: "Community not found" });
+    }
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load community members",
+      error: err.message,
+    });
+  }
+};
+
+const getCommunityPostsHandler = async (req, res) => {
+  try {
+    const scope = String(req.query.scope || "all");
+    const groupId = req.query.group_id ? String(req.query.group_id) : null;
+    const groupSlug = req.query.group_slug ? String(req.query.group_slug) : null;
+
+    const posts = await communityService.listCommunityPosts({
+      scope,
+      groupId,
+      groupSlug,
+    });
+    return res.json({ success: true, data: posts });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load community posts",
+      error: err.message,
+    });
+  }
+};
+
+const createCommunityPostHandler = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    if (!studentId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { content, scope, group_id, group_slug } = req.body || {};
+    const post = await communityService.createCommunityPost({
+      studentId,
+      scope: scope || "all",
+      groupId: group_id,
+      groupSlug: group_slug,
+      content,
+    });
+
+    return res.status(201).json({ success: true, data: post });
+  } catch (err) {
+    const status = err.status || 500;
+    return res.status(status).json({
+      success: false,
+      message: err.message || "Failed to create post",
+      error: err.message,
+    });
+  }
+};
+
+const likeCommunityPostHandler = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const data = await communityService.likeCommunityPost(postId);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to like post",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   getAllStudents,
   requestStudentDeletion,
@@ -2079,6 +2418,11 @@ module.exports = {
   likePost,
   reportPost,
   getFacilities,
+  getFacilityById,
+  getPnuContacts,
+  getFaqItems,
+  getAcademicRecords,
+  downloadAcademicTranscript,
   getNotices,
   getNotifications,
   getCourses,
@@ -2091,6 +2435,12 @@ module.exports = {
   globalSearch,
   healthCheck,
   getCareerOpportunities,
+  getCareerRecommendations,
+  getMyCommunityGroupHandler,
+  getCommunityMembersHandler,
+  getCommunityPostsHandler,
+  createCommunityPostHandler,
+  likeCommunityPostHandler,
   getEmergencyGuideHandler,
   getCampusFacilitiesHandler,
 };

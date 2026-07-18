@@ -1,19 +1,146 @@
 import {
   AlertTriangle,
-  BriefcaseBusiness,
-  FileText,
+  BookOpen,
+  BookMarked,
+  IdCard,
+  FileBadge,
+  Headset,
+  CircleHelp,
+  MessageSquarePlus,
   type LucideIcon,
 } from 'lucide-react'
 
-export interface SupportCard {
+export type HelpTopicTone =
+  | 'emergency'
+  | 'onestop'
+  | 'library'
+  | 'contact'
+  | 'permit'
+  | 'app'
+
+export interface HelpTopic {
   id: string
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
+  path: string
+  icon: LucideIcon
+  tone: HelpTopicTone
+}
+
+export interface HelpMoreItem {
+  id: string
+  titleKey: string
+  descriptionKey: string
   path: string
   icon: LucideIcon
 }
 
-export const supportCards: SupportCard[] = [
+export const helpTopicToneStyles: Record<
+  HelpTopicTone,
+  { iconWrap: string; icon: string; title: string }
+> = {
+  emergency: {
+    iconWrap: 'bg-rose-50',
+    icon: 'text-rose-500',
+    title: 'text-rose-600',
+  },
+  onestop: {
+    iconWrap: 'bg-emerald-50',
+    icon: 'text-emerald-600',
+    title: 'text-emerald-700',
+  },
+  library: {
+    iconWrap: 'bg-violet-50',
+    icon: 'text-violet-600',
+    title: 'text-violet-700',
+  },
+  contact: {
+    iconWrap: 'bg-orange-50',
+    icon: 'text-orange-500',
+    title: 'text-orange-600',
+  },
+  permit: {
+    iconWrap: 'bg-teal-50',
+    icon: 'text-teal-600',
+    title: 'text-teal-700',
+  },
+  app: {
+    iconWrap: 'bg-sky-50',
+    icon: 'text-sky-600',
+    title: 'text-sky-700',
+  },
+}
+
+export const helpTopics: HelpTopic[] = [
+  {
+    id: 'emergency',
+    titleKey: 'support.topic.emergency',
+    descriptionKey: 'support.topic.emergencyDesc',
+    path: '/support/emergency',
+    icon: AlertTriangle,
+    tone: 'emergency',
+  },
+  {
+    id: 'one-stop',
+    titleKey: 'support.topic.oneStop',
+    descriptionKey: 'support.topic.oneStopDesc',
+    path: '/campus-life/one-stop',
+    icon: BookMarked,
+    tone: 'onestop',
+  },
+  {
+    id: 'library',
+    titleKey: 'support.topic.library',
+    descriptionKey: 'support.topic.libraryDesc',
+    path: '/campus-life/library',
+    icon: BookOpen,
+    tone: 'library',
+  },
+  {
+    id: 'contact',
+    titleKey: 'support.topic.contact',
+    descriptionKey: 'support.topic.contactDesc',
+    path: '/support/contact',
+    icon: IdCard,
+    tone: 'contact',
+  },
+  {
+    id: 'work-permit',
+    titleKey: 'support.topic.workPermit',
+    descriptionKey: 'support.topic.workPermitDesc',
+    path: '/support/work-permit',
+    icon: FileBadge,
+    tone: 'permit',
+  },
+  {
+    id: 'app-support',
+    titleKey: 'support.topic.appSupport',
+    descriptionKey: 'support.topic.appSupportDesc',
+    path: '/support/app',
+    icon: Headset,
+    tone: 'app',
+  },
+]
+
+export const helpMoreItems: HelpMoreItem[] = [
+  {
+    id: 'faq',
+    titleKey: 'support.more.faq',
+    descriptionKey: 'support.more.faqDesc',
+    path: '/support/faq',
+    icon: CircleHelp,
+  },
+  {
+    id: 'feedback',
+    titleKey: 'support.more.feedback',
+    descriptionKey: 'support.more.feedbackDesc',
+    path: '/support/feedback',
+    icon: MessageSquarePlus,
+  },
+]
+
+/** Kept for WorkPermit / RelatedLaws / Emergency static fallbacks */
+export const supportCards = [
   {
     id: 'emergency',
     title: 'Emergency',
@@ -26,14 +153,7 @@ export const supportCards: SupportCard[] = [
     title: 'Part-time Work Permit',
     description: 'Step-by-step application guide',
     path: '/support/work-permit',
-    icon: BriefcaseBusiness,
-  },
-  {
-    id: 'related-laws',
-    title: 'Related Laws',
-    description: 'Visa, labor, housing, rights',
-    path: '/support/related-laws',
-    icon: FileText,
+    icon: FileBadge,
   },
 ]
 

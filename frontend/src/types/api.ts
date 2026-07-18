@@ -4,6 +4,7 @@ export type CourseType = 'REQUIRED' | 'ELECTIVE' | 'GEN_ED'
 
 export type NotificationCategory = 'REGISTRATION' | 'DEADLINE' | 'GENERAL'
 export type NotificationPriority = 'HIGH' | 'NORMAL'
+export type NoticeChannel = 'department' | 'international' | 'general'
 
 export interface User {
   studentId: string
@@ -11,6 +12,14 @@ export interface User {
   nationality: string
   major: string
   interests: string[]
+  studentType?: "Freshman" | "Current"
+  visaStatus?: string
+  language_pref?: string
+  email?: string
+  phone?: string
+  completed_courses?: string[]
+  deletion_requested?: boolean
+  intake_term?: "March" | "September"
 }
 
 export interface AuthResponse {
@@ -23,6 +32,32 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignupRequest {
+  studentId: string;
+  name: string;
+  nationality: string;
+  major: string;
+  student_type: "Freshman" | "Current";
+  visa_status: string;
+  password: string;
+  language_pref?: string;
+  is_in_korea?: boolean;
+  mbti?: string;
+  d2_semester?: number;
+  completed_courses?: string[];
+  intake_term?: "March" | "September";
+}
+
+export interface MajorRecommendationRequest {
+  academicAreas: string[];
+  activities: string[];
+  strengths: string[];
+  careerAreas: string[];
+  learningStyles: string[];
+  topikLevel: number;
+  topN?: number;
+}
+
 export interface UpdateProfileRequest {
   name: string
   nationality: string
@@ -32,6 +67,11 @@ export interface UpdateProfileRequest {
   visaStatus?: string
   mbti?: string
   phone?: string
+  email?: string
+  completed_courses?: string[]
+  intake_term?: "March" | "September"
+  current_password?: string
+  new_password?: string
 }
 
 export interface ProgramItem {
@@ -40,9 +80,12 @@ export interface ProgramItem {
   description: string
   date: string
   category?: string
+  sourceUrl?: string | null
   score?: number
   matchHint?: string
 }
+
+export type ScholarshipCategory = 'department' | 'international' | 'government' | 'other'
 
 export interface ScholarshipItem {
   id: string
@@ -52,6 +95,9 @@ export interface ScholarshipItem {
   eligibility: string
   amount?: string | null
   provider?: string | null
+  category?: ScholarshipCategory | null
+  tag?: string | null
+  deadlineAt?: string | null
 }
 
 export interface EmergencyQuickAccess {
@@ -77,6 +123,80 @@ export interface EmergencyGuide {
   }
   database_contacts: EmergencyContact[]
   guide_text: string
+}
+
+export interface PnuContact {
+  id: string
+  name: string
+  place: string
+  hours: string
+  phone: string
+  email: string | null
+}
+
+export interface FaqItem {
+  id: string
+  question: string
+  answer: string
+}
+
+export type CommunityScope = 'department' | 'country' | 'all'
+
+export interface CommunityGroup {
+  id: string
+  groupId: number
+  slug: string
+  scope: CommunityScope
+  name: string
+  icon: string
+  memberCount: number
+  newPostCount: number
+  joined: boolean
+  bannerTitle: string
+  bannerBody: string
+}
+
+export interface CommunityMember {
+  id: string
+  name: string
+  nationality: string
+  major: string
+  avatarTone: string
+}
+
+export interface CommunityPost {
+  id: string
+  groupId: number | null
+  groupSlug: string | null
+  scope: CommunityScope
+  content: string
+  hashtags: string[]
+  likes: number
+  comments: number
+  createdAt: string
+  authorName: string
+  authorInitials: string
+  authorMajor: string
+  majorTone: string
+  authorNationality: string
+  timeAgo: string
+  eventDate?: {
+    month: string
+    day: string
+    weekday: string
+  } | null
+}
+
+export interface CommunityMembersResponse {
+  group: CommunityGroup
+  members: CommunityMember[]
+}
+
+export interface CreateCommunityPostRequest {
+  content: string
+  scope: CommunityScope
+  groupId?: number | null
+  groupSlug?: string | null
 }
 
 export interface CafeteriaMenuColumn {
@@ -125,6 +245,43 @@ export interface CampusFacilities {
   menu_date?: string | null
 }
 
+export interface MapFacility {
+  id: string
+  name: string
+  type: string
+  latitude: number
+  longitude: number
+  hours?: string | null
+  description?: string | null
+  floors?: string | null
+  subtitle?: string | null
+  phone?: string | null
+  website?: string | null
+  imageUrl?: string | null
+  departments?: FacilityRoom[]
+  amenities?: FacilityRoom[]
+}
+
+export interface FacilityRoom {
+  name: string
+  floor: string
+}
+
+export interface AcademicSemesterRecord {
+  semesterLabel: string
+  gpa: number
+}
+
+export interface AcademicRecords {
+  studentId: string
+  overallGpa: number
+  gpaScale: number
+  standing: string
+  completedCredits: number
+  requiredCredits: number
+  semesters: AcademicSemesterRecord[]
+}
+
 export interface AiDashboard {
   recommendedCourses: RecommendedCourse[]
   eligibleScholarships: ScholarshipItem[]
@@ -146,9 +303,45 @@ export interface RecommendedCourse extends Course {
   matchHint?: string
 }
 
+export interface RecommendedMajor {
+  id: string;
+  name: string;
+  nameKo: string;
+  score: number;
+  rank: number;
+  reason: string;
+  eligibilityNote: string;
+  claudeReason: string | null;
+}
+
+export interface AiAnalysis {
+  summary: string;
+  gapAnalysis: string[];
+}
+
+export interface MajorRecommendationResponse {
+  success: boolean;
+  recommendationMethod: string;
+  recommendations: RecommendedMajor[];
+  aiAnalysis: AiAnalysis | null;
+  warning: string | null;
+}
+
 export interface CreditBreakdown {
   completed: number
   required: number
+}
+
+export interface Enrollment {
+  enrollment_id: number;
+  student_id: string;
+  course_id: number;
+  semester: string;
+  status: string;
+  course_name?: string;
+  credit?: number;
+  category?: string;
+  classroom?: string;
 }
 
 export interface GraduationProgress {
@@ -177,6 +370,9 @@ export interface Notification {
   date: string
   category: NotificationCategory
   priority: NotificationPriority
+  source?: string | null
+  channel?: NoticeChannel | null
+  read?: boolean
 }
 
 export interface CreditRequirement {
@@ -214,6 +410,8 @@ export interface ApiError {
   status?: number
 }
 
+export type CareerJobType = 'internship' | 'part-time' | 'full-time' | 'volunteer'
+
 export interface CareerOpportunity {
   id: string
   source: string
@@ -223,6 +421,12 @@ export interface CareerOpportunity {
   role: string | null
   applicationType: string | null
   sourceUrl: string
+  /** Optional fields for Internships UI + AI recommendations */
+  location?: string | null
+  jobType?: CareerJobType | null
+  logoUrl?: string | null
+  /** Short reason from the AI recommender (shown under recommended cards) */
+  matchReason?: string | null
 }
 
 export interface CareerSummary {
@@ -258,6 +462,8 @@ export interface HeyPnuApi {
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>
+  forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }>
+  resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
   getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
   getGraduationProgress(): Promise<GraduationProgress>
   getNotifications(): Promise<Notification[]>
@@ -266,9 +472,39 @@ export interface HeyPnuApi {
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
   getChatSuggestions(): Promise<string[]>
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
+  /**
+   * AI hook-point: personalized internship/job recommendations.
+   * Backend: GET /students/career-recommendations
+   */
+  getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]>
   getEmergencyGuide(): Promise<EmergencyGuide>
+  getPnuContacts(): Promise<PnuContact[]>
+  getFaqItems(): Promise<FaqItem[]>
+  getMyCommunityGroup(scope: CommunityScope): Promise<CommunityGroup | null>
+  getCommunityPosts(params: {
+    scope: CommunityScope
+    groupSlug?: string | null
+    groupId?: number | null
+  }): Promise<CommunityPost[]>
+  getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse>
+  createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost>
+  likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
+  getMapFacilities(): Promise<MapFacility[]>
+  getMapFacility(id: string): Promise<MapFacility>
+  getAcademicRecords(): Promise<AcademicRecords>
+  downloadTranscript(): Promise<Blob>
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>
+  getMemory(): Promise<string>
+  updateMemory(memory: string): Promise<void>
+  signup(data: SignupRequest): Promise<void>
+  recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>
+  getCourses(campus?: string): Promise<Course[]>
+  getEnrollments(studentId: string): Promise<Enrollment[]>
+  createEnrollment(studentId: string, courseId: number): Promise<Enrollment>
+  deleteEnrollment(enrollmentId: number): Promise<void>
+  requestAccountDeletion(studentId: string): Promise<void>
+  updateLanguagePreference(studentId: string, languagePref: string): Promise<void>
 }

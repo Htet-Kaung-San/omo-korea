@@ -17,6 +17,11 @@ const {
   likePost,
   reportPost,
   getFacilities,
+  getFacilityById,
+  getPnuContacts,
+  getFaqItems,
+  getAcademicRecords,
+  downloadAcademicTranscript,
   getNotices,
   getNotifications,
   getCourses,
@@ -32,6 +37,12 @@ const {
   hardDeleteStudent,
   getAllStudents,
   getCareerOpportunities,
+  getCareerRecommendations,
+  getMyCommunityGroupHandler,
+  getCommunityMembersHandler,
+  getCommunityPostsHandler,
+  createCommunityPostHandler,
+  likeCommunityPostHandler,
   getEmergencyGuideHandler,
   getCampusFacilitiesHandler,
 } = require("../controllers/studentController");
@@ -50,6 +61,7 @@ const {
   runMajorGapAnalysis,
   getCourseRecommendations,
   getAiDashboard,
+  getPrograms,
   getStudentNotifications,
 } = require("../controllers/aiController");
 
@@ -65,11 +77,21 @@ router.get("/boards", getAllBoards);
 router.get("/boards/:board_id/posts", getBoardPosts);
 router.get("/posts/:post_id/comments", getPostComments);
 router.get("/facilities", getFacilities);
+router.get("/facilities/:facility_id", getFacilityById);
+router.get("/pnu-contacts", getPnuContacts);
+router.get("/faq", getFaqItems);
 router.get("/notices", getNotices);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/scholarships", getAllScholarships);
 router.get("/career-opportunities", getCareerOpportunities);
+router.get("/career-recommendations", getCareerRecommendations);
+router.get("/community/posts", authenticateToken, getCommunityPostsHandler);
+router.get(
+  "/community/groups/:groupId/members",
+  authenticateToken,
+  getCommunityMembersHandler,
+);
 router.get("/emergency-guide", getEmergencyGuideHandler);
 router.get("/campus-facilities", getCampusFacilitiesHandler);
 router.get("/courses", getCourses);
@@ -81,6 +103,7 @@ router.put("/checklist/:checklist_id", authenticateToken, updateChecklistItem);
 router.get("/notifications/:student_id", authenticateToken, getNotifications);
 router.get("/notifications", authenticateToken, getStudentNotifications);
 router.get("/ai-dashboard", authenticateToken, getAiDashboard);
+router.get("/programs", authenticateToken, getPrograms);
 router.put(
   "/profile",
   authenticateToken,
@@ -94,8 +117,25 @@ router.post("/scholarships/apply", authenticateToken, applyForScholarship);
 router.get("/dashboard-summary", authenticateToken, getDashboardSummary);
 router.post("/major-gap-analysis", authenticateToken, runMajorGapAnalysis);
 router.get("/course-recommendations", authenticateToken, getCourseRecommendations);
+router.get(
+  "/academic-records/:student_id/transcript",
+  authenticateToken,
+  downloadAcademicTranscript,
+);
+router.get(
+  "/academic-records/:student_id",
+  authenticateToken,
+  getAcademicRecords,
+);
 
 router.post("/posts", authenticateToken, validateBody(createPostSchema), createPost);
+router.get("/community/my-group", authenticateToken, getMyCommunityGroupHandler);
+router.post("/community/posts", authenticateToken, createCommunityPostHandler);
+router.post(
+  "/community/posts/:postId/like",
+  authenticateToken,
+  likeCommunityPostHandler,
+);
 router.post("/posts/:post_id/like", authenticateToken, likePost);
 router.post("/posts/:post_id/report", authenticateToken, reportPost);
 router.post("/comments", authenticateToken, validateBody(createCommentSchema), createComment);

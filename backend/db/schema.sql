@@ -68,7 +68,84 @@ CREATE TABLE IF NOT EXISTS facility (
     longitude NUMERIC(10, 6) NOT NULL,
     hours VARCHAR(150),
     details TEXT,
-    floors TEXT
+    floors TEXT,
+    subtitle VARCHAR(150),
+    phone VARCHAR(50),
+    website VARCHAR(255),
+    image_url TEXT,
+    departments JSONB DEFAULT '[]'::jsonb,
+    amenities JSONB DEFAULT '[]'::jsonb
+);
+
+-- 5b. ACADEMIC RECORDS (GPA / transcript demo)
+-- Use the same type as student.student_id in your DB (INTEGER on live Supabase).
+CREATE TABLE IF NOT EXISTS academic_summary (
+    student_id INTEGER PRIMARY KEY REFERENCES student(student_id) ON DELETE CASCADE,
+    overall_gpa NUMERIC(3, 2) NOT NULL,
+    gpa_scale NUMERIC(2, 1) NOT NULL DEFAULT 4.5,
+    standing VARCHAR(50) NOT NULL DEFAULT 'Good',
+    completed_credits INTEGER NOT NULL DEFAULT 0,
+    required_credits INTEGER NOT NULL DEFAULT 100
+);
+
+CREATE TABLE IF NOT EXISTS academic_record (
+    record_id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
+    semester_label VARCHAR(50) NOT NULL,
+    gpa NUMERIC(3, 2) NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+-- 5c. HELP & SUPPORT — PNU contacts + FAQ
+CREATE TABLE IF NOT EXISTS pnu_contact (
+    contact_id SERIAL PRIMARY KEY,
+    slug VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    place VARCHAR(255) NOT NULL,
+    hours VARCHAR(150) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS faq_item (
+    faq_id SERIAL PRIMARY KEY,
+    slug VARCHAR(50) UNIQUE NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true
+);
+
+-- 5d. COMMUNITY GROUPS + POSTS
+CREATE TABLE IF NOT EXISTS community_group (
+    group_id SERIAL PRIMARY KEY,
+    slug VARCHAR(80) UNIQUE NOT NULL,
+    scope VARCHAR(20) NOT NULL CHECK (scope IN ('department', 'country', 'all')),
+    name VARCHAR(200) NOT NULL,
+    icon VARCHAR(16) NOT NULL DEFAULT '🌐',
+    match_key VARCHAR(150),
+    banner_title VARCHAR(200) NOT NULL,
+    banner_body TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS community_post (
+    post_id SERIAL PRIMARY KEY,
+    group_id INTEGER REFERENCES community_group(group_id) ON DELETE SET NULL,
+    scope VARCHAR(20) NOT NULL CHECK (scope IN ('department', 'country', 'all')),
+    student_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    hashtags JSONB NOT NULL DEFAULT '[]'::jsonb,
+    likes_count INTEGER NOT NULL DEFAULT 0,
+    comments_count INTEGER NOT NULL DEFAULT 0,
+    event_month VARCHAR(8),
+    event_day VARCHAR(4),
+    event_weekday VARCHAR(8),
+    reported BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 6. UNIVERSITY NOTICES TABLE
@@ -119,3 +196,4 @@ CREATE INDEX IF NOT EXISTS idx_enrollment_student ON enrollment(student_id);
 CREATE INDEX IF NOT EXISTS idx_post_board ON post(board_id);
 CREATE INDEX IF NOT EXISTS idx_comment_post ON comment(post_id);
 CREATE INDEX IF NOT EXISTS idx_checklist_item_student ON checklist_item(student_id);
+CREATE INDEX IF NOT EXISTS idx_academic_record_student ON academic_record(student_id);

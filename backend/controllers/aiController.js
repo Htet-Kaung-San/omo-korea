@@ -1,3 +1,5 @@
+
+
 const departmentProfiles = require("../ai/departmentProfiles");
 const { recommendMajors } = require("../ai/recommendationEngine");
 const supabase = require("../supabaseClient");
@@ -902,6 +904,13 @@ const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
 const {
+  collectUserTags,
+  fetchRecommendedPrograms,
+} = require('../services/extracurricularProgramService');
+const {
+  pilotCourses,
+  pilotPrograms,
+  pilotScholarships,
   pilotCareers,
   gapTargetMajors,
 } = require('../ai/pilotCatalog');
@@ -924,6 +933,7 @@ async function fetchStudentContext(studentId) {
   }
 
   const questionnaire = data.questionnaire || {};
+  const interests = collectUserTags(data.interests, questionnaire.interests);
 
   return {
     rawStudentInput: {
@@ -938,7 +948,8 @@ async function fetchStudentContext(studentId) {
       },
       profile: {
         major: data.major?.major_name ?? null,
-        interests: data.interests || [],
+        interests,
+        interestTags: interests,
         languages: data.languages || [],
         academicAreas: data.academic_areas || [],
         activities: data.activities || [],
@@ -1105,6 +1116,7 @@ function mapRecommendedProgram(program) {
     description: program.description ?? "",
     date: program.date ?? "",
     category: program.category ?? null,
+    sourceUrl: program.sourceUrl ?? null,
     score: program.score,
     matchHint: program.matchHint,
   };
@@ -1158,14 +1170,27 @@ async function getAiDashboard(req, res, next) {
         };
       });
 
+    let matchedPrograms = [];
+    try {
+      matchedPrograms = await fetchRecommendedPrograms({
+        studentProfile: context.rawStudentInput.profile || {},
+        userTags: context.rawStudentInput.profile.interests || [],
+        limit: 20,
+      });
+    } catch (programErr) {
+      console.warn(
+        "[extracurricular] failed to load programs for dashboard:",
+        programErr.message,
+      );
+      matchedPrograms = [];
+    }
+
     return res.status(200).json({
       success: true,
       data: {
         recommendedCourses: dashboard.recommendedCourses,
         eligibleScholarships,
-        matchedPrograms: dashboard.recommendedPrograms.map(
-          mapRecommendedProgram,
-        ),
+        matchedPrograms: matchedPrograms.map(mapRecommendedProgram),
       },
       metadata: catalogs.metadata,
     });
@@ -1266,6 +1291,30 @@ async function getStudentNotifications(req, res, next) {
   }
 }
 
+async function getPrograms(req, res, next) {
+  try {
+    const context = await fetchStudentContext(req.user.student_id);
+    if (!context) {
+      const err = new Error("Student profile not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    const programs = await fetchRecommendedPrograms({
+      studentProfile: context.rawStudentInput.profile || {},
+      userTags: context.rawStudentInput.profile.interests || [],
+      limit: 50,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: programs.map(mapRecommendedProgram),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   recommendMajor,
   handleChat,
@@ -1283,5 +1332,6 @@ module.exports = {
   runMajorGapAnalysis,
   getCourseRecommendations,
   getAiDashboard,
+  getPrograms,
   getStudentNotifications,
 };
