@@ -948,6 +948,7 @@ async function fetchStudentContext(studentId) {
       },
       profile: {
         major: data.major?.major_name ?? null,
+        majorId: data.major_id ?? data.major?.major_id ?? data.major?.id ?? null,
         interests,
         interestTags: interests,
         languages: data.languages || [],
@@ -1335,3 +1336,4 @@ module.exports = {
   getPrograms,
   getStudentNotifications,
 };
+

@@ -1,7 +1,7 @@
 const TYPE_PRIORITY = {
   REQUIRED: 0,
-  ELECTIVE: 1,
-  GEN_ED: 2,
+  GEN_ED: 1,
+  ELECTIVE: 2,
 };
 
 function normalizeValue(value) {
@@ -12,14 +12,42 @@ function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function getCourseType(course) {
+function normalizeId(value) {
+  if (value === null || value === undefined || value === '') return '';
+  return String(value).trim();
+}
+
+function getCourseType(course = {}) {
   return String(
-    course.type ||
-    course.course_type ||
-    course.category ||
     course.raw?.category ||
+    course.category ||
+    course.course_type ||
+    course.type ||
     ''
   ).toUpperCase();
+}
+
+function getCourseMajorId(course = {}) {
+  return normalizeId(
+    course.raw?.major_id ||
+    course.major_id ||
+    course.majorId ||
+    ''
+  );
+}
+
+function isSameMajorCourse(studentProfile = {}, course = {}) {
+  const studentMajorId = normalizeId(studentProfile.majorId || studentProfile.major_id);
+  const courseMajorId = getCourseMajorId(course);
+
+  if (studentMajorId && courseMajorId && studentMajorId === courseMajorId) {
+    return true;
+  }
+
+  const major = normalizeValue(studentProfile.major);
+  const courseDepartment = normalizeValue(course.department || course.major || '');
+
+  return major !== '' && courseDepartment !== '' && courseDepartment === major;
 }
 
 function getMatchingInterestTags(studentInterests = [], courseTags = []) {
@@ -35,7 +63,7 @@ function buildMatchHint({
   interestMatches,
   isRequiredInMajor,
   isElectiveInMajor,
-  isGenEdInterestMatch,
+  isGenEdCourse,
 }) {
   const hints = [];
 
@@ -45,15 +73,13 @@ function buildMatchHint({
   }
   if (isRequiredInMajor) hints.push('Required course in your major');
   if (isElectiveInMajor) hints.push('Elective course in your major');
-  if (isGenEdInterestMatch) hints.push('General education course aligned with your interests');
+  if (isGenEdCourse) hints.push('General education course');
 
   return hints.join('; ');
 }
 
 function scoreCourse(studentProfile = {}, course = {}) {
-  const major = normalizeValue(studentProfile.major);
-  const courseDepartment = normalizeValue(course.department || course.major || '');
-  const isMajorCourse = major !== '' && courseDepartment === major;
+  const isMajorCourse = isSameMajorCourse(studentProfile, course);
   const courseTags = course.tags || course.tag_list || [];
   const interestMatches = getMatchingInterestTags(
     studentProfile.interests,
@@ -63,8 +89,7 @@ function scoreCourse(studentProfile = {}, course = {}) {
   const normalizedType = getCourseType(course);
   const isRequiredInMajor = normalizedType === 'REQUIRED' && isMajorCourse;
   const isElectiveInMajor = normalizedType === 'ELECTIVE' && isMajorCourse;
-  const isGenEdInterestMatch =
-    normalizedType === 'GEN_ED' && interestMatches.length > 0;
+  const isGenEdCourse = normalizedType === 'GEN_ED';
 
   let score = 0;
 
@@ -72,7 +97,7 @@ function scoreCourse(studentProfile = {}, course = {}) {
   score += cappedInterestMatches * 15;
   if (isRequiredInMajor) score += 20;
   if (isElectiveInMajor) score += 10;
-  if (isGenEdInterestMatch) score += 8;
+  if (isGenEdCourse) score += 8;
 
   return {
     score: Math.min(score, 100),
@@ -81,7 +106,7 @@ function scoreCourse(studentProfile = {}, course = {}) {
       interestMatches,
       isRequiredInMajor,
       isElectiveInMajor,
-      isGenEdInterestMatch,
+      isGenEdCourse,
     }),
   };
 }
@@ -98,14 +123,14 @@ function compareCourses(a, b) {
   return String(a.nameEn || a.title || '').localeCompare(String(b.nameEn || b.title || ''));
 }
 
-function buildFallbackCourse(course) {
+function buildFallbackCourse(course, matchHint) {
   const normalizedType = getCourseType(course);
 
   return {
     ...course,
-    type: course.type || normalizedType || 'ELECTIVE',
-    score: 10,
-    matchHint: 'General course recommendation. Add interests or academic profile details to improve matching.',
+    type: normalizedType || course.type || 'ELECTIVE',
+    score: normalizedType === 'GEN_ED' ? 15 : 10,
+    matchHint,
   };
 }
 
@@ -131,20 +156,32 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
   const scoredCourses = availableCourses
     .map((course) => ({
       ...course,
+      type: getCourseType(course) || course.type || 'ELECTIVE',
       ...scoreCourse(studentProfile, course),
     }))
     .sort(compareCourses);
 
-  const matchedCourses = scoredCourses.filter((course) => course.score > 0);
+  const matchedCourses = scoredCourses.filter((course) => course.score >= 40);
 
   if (matchedCourses.length > 0) {
     return matchedCourses.slice(0, limit);
   }
 
-  return availableCourses
-    .map(buildFallbackCourse)
-    .sort(compareCourses)
-    .slice(0, limit);
+  const generalEducationCourses = availableCourses
+    .filter((course) => getCourseType(course) === 'GEN_ED')
+    .map((course) =>
+      buildFallbackCourse(
+        course,
+        'General education course. Same-major courses are not available in the current course dataset.'
+      )
+    )
+    .sort(compareCourses);
+
+  if (generalEducationCourses.length > 0) {
+    return generalEducationCourses.slice(0, limit);
+  }
+
+  return [];
 }
 
 module.exports = {

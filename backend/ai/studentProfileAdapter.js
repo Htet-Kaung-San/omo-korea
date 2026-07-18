@@ -107,6 +107,7 @@ function adaptStudentProfile(rawInput = {}) {
     },
     recommendationProfile: {
       major: normalizeString(profile.major),
+      majorId: normalizeNumber(profile.majorId),
       interests: normalizeReadableArray(profile.interests),
       languages: normalizeReadableArray(profile.languages),
       gpa: normalizeNumber(profile.gpa),
@@ -125,3 +126,4 @@ function adaptStudentProfile(rawInput = {}) {
 module.exports = {
   adaptStudentProfile,
 };
+
