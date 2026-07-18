@@ -309,18 +309,56 @@ export function ScholarshipsPage() {
 
   useEffect(() => {
     setLoading(true)
-    api
-      .getScholarships()
-      .then((items) => {
-        if (items.length >= 5) {
-          setScholarships(items)
+    Promise.all([
+      api.getScholarships().catch(() => []),
+      api.getAiDashboard().catch(() => null),
+    ])
+      .then(([items, dashboard]) => {
+        const dashboardScholarships = dashboard?.eligibleScholarships ?? []
+        const betterById = new Map(dashboardScholarships.map((item) => [String(item.id), item]))
+
+        const merged = items.map((item) => {
+          const better = betterById.get(String(item.id))
+          if (!better) return item
+
+          return {
+            ...item,
+            ...better,
+            title:
+              item.title?.toLowerCase() === 'scholarship'
+                ? better.title
+                : item.title,
+            provider: item.provider || better.provider || 'PNU Scholarship Office',
+            deadline: item.deadline || better.deadline || t('scholarships.open'),
+            description: item.description || better.description,
+            eligibility: item.eligibility || better.eligibility,
+            amount: item.amount || better.amount,
+            category: item.category || better.category,
+            tag: item.tag || better.tag,
+            deadlineAt: item.deadlineAt || better.deadlineAt,
+          }
+        })
+
+        const dashboardOnly = dashboardScholarships.filter(
+          (item) => !merged.some((existing) => String(existing.id) === String(item.id)),
+        )
+
+        const realItems = [...merged, ...dashboardOnly].map((item) => ({
+          ...item,
+          provider: item.provider || 'PNU Scholarship Office',
+          deadline: item.deadline || t('scholarships.open'),
+        }))
+
+        if (realItems.length >= 5) {
+          setScholarships(realItems)
           return
         }
-        const titles = new Set(items.map((item) => item.title.toLowerCase()))
+
+        const titles = new Set(realItems.map((item) => item.title.toLowerCase()))
         const extras = mockScholarships.filter(
           (item) => !titles.has(item.title.toLowerCase()),
         )
-        setScholarships([...items, ...extras])
+        setScholarships([...realItems, ...extras])
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
@@ -613,3 +651,4 @@ export function ScholarshipsPage() {
     </div>
   )
 }
+

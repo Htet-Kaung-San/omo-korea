@@ -36,20 +36,35 @@ function formatScholarshipDeadline(deadline) {
 }
 
 function mapScholarshipRow(row, language = "en") {
-  const localized = localizeRow(row, language, [
-    "title",
-    "description",
-    "eligibility",
-  ]);
+  const title =
+    row.name ||
+    row.title ||
+    row.scholarship_name ||
+    row.scholarship_title ||
+    row.title_en ||
+    row.name_en ||
+    "Scholarship";
+
+  const description =
+    row.description ||
+    row.content ||
+    row.description_en ||
+    row.summary ||
+    "";
+
+  const deadline = row.deadline || row.deadline_at || row.application_deadline || "";
 
   return {
     id: String(row.scholarship_id ?? row.id),
-    title: localized.title ?? "Scholarship",
-    description: localized.description ?? "",
-    deadline: formatScholarshipDeadline(row.deadline),
-    eligibility: localized.eligibility ?? row.provider ?? "",
+    title,
+    description,
+    deadline: deadline || "",
+    eligibility: row.eligibility || row.requirements || "",
     amount: row.amount ?? null,
-    provider: row.provider ?? null,
+    provider: row.provider || row.organization || row.office || "PNU Scholarship Office",
+    category: row.category ?? null,
+    tag: row.tag ?? null,
+    deadlineAt: row.deadline_at ?? row.deadlineAt ?? null,
   };
 }
 
@@ -2444,3 +2459,4 @@ module.exports = {
   getEmergencyGuideHandler,
   getCampusFacilitiesHandler,
 };
+
