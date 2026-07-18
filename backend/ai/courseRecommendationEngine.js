@@ -12,6 +12,16 @@ function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function getCourseType(course) {
+  return String(
+    course.type ||
+    course.course_type ||
+    course.category ||
+    course.raw?.category ||
+    ''
+  ).toUpperCase();
+}
+
 function getMatchingInterestTags(studentInterests = [], courseTags = []) {
   const interestSet = new Set(normalizeArray(studentInterests).map(normalizeValue));
 
@@ -40,7 +50,7 @@ function buildMatchHint({
   return hints.join('; ');
 }
 
-function scoreCourse(studentProfile, course) {
+function scoreCourse(studentProfile = {}, course = {}) {
   const major = normalizeValue(studentProfile.major);
   const courseDepartment = normalizeValue(course.department || course.major || '');
   const isMajorCourse = major !== '' && courseDepartment === major;
@@ -50,7 +60,7 @@ function scoreCourse(studentProfile, course) {
     courseTags
   );
   const cappedInterestMatches = Math.min(interestMatches.length, 2);
-  const normalizedType = String(course.type || course.course_type || '').toUpperCase();
+  const normalizedType = getCourseType(course);
   const isRequiredInMajor = normalizedType === 'REQUIRED' && isMajorCourse;
   const isElectiveInMajor = normalizedType === 'ELECTIVE' && isMajorCourse;
   const isGenEdInterestMatch =
@@ -80,12 +90,23 @@ function compareCourses(a, b) {
   if (b.score !== a.score) return b.score - a.score;
 
   const typeDifference =
-    (TYPE_PRIORITY[a.type] ?? Number.MAX_SAFE_INTEGER) -
-    (TYPE_PRIORITY[b.type] ?? Number.MAX_SAFE_INTEGER);
+    (TYPE_PRIORITY[getCourseType(a)] ?? Number.MAX_SAFE_INTEGER) -
+    (TYPE_PRIORITY[getCourseType(b)] ?? Number.MAX_SAFE_INTEGER);
 
   if (typeDifference !== 0) return typeDifference;
 
-  return String(a.nameEn || '').localeCompare(String(b.nameEn || ''));
+  return String(a.nameEn || a.title || '').localeCompare(String(b.nameEn || b.title || ''));
+}
+
+function buildFallbackCourse(course) {
+  const normalizedType = getCourseType(course);
+
+  return {
+    ...course,
+    type: course.type || normalizedType || 'ELECTIVE',
+    score: 10,
+    matchHint: 'General course recommendation. Add interests or academic profile details to improve matching.',
+  };
 }
 
 function recommendCourses(studentProfile = {}, courses = [], options = {}) {
@@ -98,14 +119,30 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
       ? options.limit
       : courses.length;
 
-  return courses
+  const availableCourses = normalizeArray(courses)
     .filter((course) => !completedCourseIds.has(String(course.id)))
-    .filter((course) => requestedType === 'ALL' || String(course.type || course.course_type || '').toUpperCase() === requestedType)
+    .filter((course) => {
+      return (
+        requestedType === 'ALL' ||
+        getCourseType(course) === String(requestedType).toUpperCase()
+      );
+    });
+
+  const scoredCourses = availableCourses
     .map((course) => ({
       ...course,
       ...scoreCourse(studentProfile, course),
     }))
-    .filter((course) => course.score > 0)
+    .sort(compareCourses);
+
+  const matchedCourses = scoredCourses.filter((course) => course.score > 0);
+
+  if (matchedCourses.length > 0) {
+    return matchedCourses.slice(0, limit);
+  }
+
+  return availableCourses
+    .map(buildFallbackCourse)
     .sort(compareCourses)
     .slice(0, limit);
 }
