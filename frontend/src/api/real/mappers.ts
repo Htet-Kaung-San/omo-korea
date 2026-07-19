@@ -49,13 +49,18 @@ type BackendChecklistData =
   | undefined
 
 interface BackendNotice {
-  id: string
-  title: string
-  body: string
-  date?: string
-  deadline?: string
-  category: NotificationCategory
-  priority: NotificationPriority
+  id?: string | number
+  notice_id?: string | number
+  title?: string | null
+  body?: string | null
+  content?: string | null
+  date?: string | null
+  posted_date?: string | null
+  deadline?: string | null
+  category?: NotificationCategory | null
+  priority?: NotificationPriority | null
+  source?: string | null
+  source_url?: string | null
 }
 
 interface BackendCourse {
@@ -141,14 +146,16 @@ export function mapChecklistPayload(
 }
 
 export function mapNotice(notice: BackendNotice): Notification {
+  const source = notice.source ?? null
+
   return {
-    id: notice.id,
-    title: notice.title,
-    body: notice.body,
-    date: notice.date ?? notice.deadline ?? '',
-    category: notice.category,
-    priority: notice.priority,
-    source: null,
+    id: String(notice.id ?? notice.notice_id ?? ''),
+    title: notice.title ?? 'Untitled notice',
+    body: notice.body ?? notice.content ?? '',
+    date: notice.date ?? notice.posted_date ?? notice.deadline ?? '',
+    category: (notice.category ?? 'academic') as NotificationCategory,
+    priority: (notice.priority ?? 'normal') as NotificationPriority,
+    source,
     channel: null,
     read: false,
   }
@@ -303,3 +310,7 @@ export function mapProgramItem(program: ProgramItem): ProgramItem {
     matchHint: program.matchHint,
   }
 }
+
+
+
+
