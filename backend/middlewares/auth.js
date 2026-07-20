@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "hey-pnu-default-secret-key";
+const { JWT_SECRET } = require("../jwtConfig");
 
 /**
  * Middleware to verify JWT tokens on protected routes.
