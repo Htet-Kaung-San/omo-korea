@@ -19,7 +19,7 @@ import type {
   HeyPnuApi,
   LoginRequest,
   SignupRequest,
-  
+
   MajorRecommendationResponse,
   Course,
   Enrollment,

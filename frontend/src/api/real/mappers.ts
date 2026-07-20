@@ -50,16 +50,20 @@ type BackendChecklistData =
   | undefined
 
 interface BackendNotice {
-  id: string
-  title: string
-  body: string
-  date?: string
-  deadline?: string
-  category: NotificationCategory
-  priority: NotificationPriority
+  id?: string | number
+  notice_id?: string | number
+  title?: string | null
+  body?: string | null
+  content?: string | null
+  date?: string | null
+  posted_date?: string | null
+  deadline?: string | null
+  category?: NotificationCategory | null
+  priority?: NotificationPriority | null
   source?: string | null
   channel?: NoticeChannel | null
   sourceUrl?: string | null
+  source_url?: string | null
   read?: boolean
 }
 
@@ -146,16 +150,26 @@ export function mapChecklistPayload(
 }
 
 export function mapNotice(notice: BackendNotice): Notification {
+  const source = notice.source ?? null
+  const rawCategory = String(notice.category ?? 'GENERAL').toUpperCase()
+  const rawPriority = String(notice.priority ?? 'NORMAL').toUpperCase()
+  const category: NotificationCategory =
+    rawCategory === 'REGISTRATION' || rawCategory === 'DEADLINE' || rawCategory === 'GENERAL'
+      ? rawCategory
+      : 'GENERAL'
+  const priority: NotificationPriority =
+    rawPriority === 'HIGH' || rawPriority === 'NORMAL' ? rawPriority : 'NORMAL'
+
   return {
-    id: notice.id,
-    title: notice.title,
-    body: notice.body,
-    date: notice.date ?? notice.deadline ?? '',
-    category: notice.category,
-    priority: notice.priority,
-    source: notice.source ?? null,
+    id: String(notice.id ?? notice.notice_id ?? ''),
+    title: notice.title ?? 'Untitled notice',
+    body: notice.body ?? notice.content ?? '',
+    date: notice.date ?? notice.posted_date ?? notice.deadline ?? '',
+    category,
+    priority,
+    source,
     channel: notice.channel ?? null,
-    sourceUrl: notice.sourceUrl ?? null,
+    sourceUrl: notice.sourceUrl ?? notice.source_url ?? null,
     read: notice.read ?? false,
   }
 }
@@ -309,3 +323,7 @@ export function mapProgramItem(program: ProgramItem): ProgramItem {
     matchHint: program.matchHint,
   }
 }
+
+
+
+

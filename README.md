@@ -69,10 +69,10 @@ Never put secrets in `VITE_*` variables.
 
 Apply these once (safe to re-run where noted):
 
-1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables  
-2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ  
-3. `backend/supabase/community.sql` — community groups + posts  
-4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards  
+1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables
+2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ
+3. `backend/supabase/community.sql` — community groups + posts
+4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards
 
 Optional seed scripts (after migrations):
 
@@ -104,13 +104,13 @@ cd frontend
 npm run dev
 ```
 
-Demo login (if seeded): student ID `202600001` / password `password`  
+Demo login (if seeded): student ID `202600001` / password `password`
 (Or your existing Supabase student account.)
 
 ## Naver Maps (campus map)
 
-1. NCP console → Application → Maps → Dynamic Map enabled  
-2. Web Service URL: `http://localhost` (**no port**)  
+1. NCP console → Application → Maps → Dynamic Map enabled
+2. Web Service URL: `http://localhost` (**no port**)
 3. Put Client ID in `frontend/.env` as `VITE_NAVER_MAP_CLIENT_ID`
 
 ## Useful API routes

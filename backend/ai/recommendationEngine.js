@@ -6,76 +6,108 @@ const DIMENSION_WEIGHTS = {
   learningStyles: 0.1,
 };
 
-function calculateDimensionScore(selectedOptions = [], departmentTags = {}) {
-  const selectedSet = new Set(selectedOptions);
-  const totalWeight = Object.values(departmentTags).reduce(
-    (sum, weight) => sum + weight,
-    0,
-  );
+function normalizeScoreMap(input) {
+  if (!input) return {};
 
-  if (totalWeight === 0) {
-    return 0;
+  if (Array.isArray(input)) {
+    return input.reduce((acc, value) => {
+      const key = String(value || '').trim();
+      if (key) acc[key] = 1;
+      return acc;
+    }, {});
   }
 
-  const matchedWeight = Object.entries(departmentTags).reduce(
-    (sum, [optionId, weight]) =>
-      selectedSet.has(optionId) ? sum + weight : sum,
-    0,
-  );
+  if (typeof input === 'object') {
+    return Object.entries(input).reduce((acc, [key, value]) => {
+      const cleanKey = String(key || '').trim();
+      const score = Number(value);
+      if (cleanKey) acc[cleanKey] = Number.isFinite(score) ? score : 1;
+      return acc;
+    }, {});
+  }
 
-  return Number(((matchedWeight / totalWeight) * 100).toFixed(1));
+  const key = String(input || '').trim();
+  return key ? { [key]: 1 } : {};
 }
 
-function getEligibilityNote(department, topikLevel) {
-  if (!topikLevel) {
-    return `Verify Korean-language requirement. Standard requirement: TOPIK ${department.minTopik}.`;
-  }
+function calculateDimensionScore(userTags, departmentTags) {
+  const userMap = normalizeScoreMap(userTags);
+  const targetMap = normalizeScoreMap(departmentTags);
 
-  if (topikLevel >= department.minTopik) {
-    return `Korean requirement appears met: TOPIK ${department.minTopik} or above.`;
-  }
+  const targetEntries = Object.entries(targetMap);
+  if (targetEntries.length === 0) return 0;
 
-  return `Korean requirement may not be met: this department normally requires TOPIK ${department.minTopik} or above.`;
+  const totalWeight = targetEntries.reduce(
+    (sum, [, weight]) => sum + Math.max(1, Number(weight) || 1),
+    0,
+  );
+
+  if (totalWeight === 0) return 0;
+
+  const earnedWeight = targetEntries.reduce((sum, [tag, weight]) => {
+    return Object.prototype.hasOwnProperty.call(userMap, tag)
+      ? sum + Math.max(1, Number(weight) || 1)
+      : sum;
+  }, 0);
+
+  return Math.round((earnedWeight / totalWeight) * 100);
 }
 
 function buildReason(scores) {
   const matchedAreas = [];
 
-  if (scores.academicAreas >= 70) matchedAreas.push("academic interests");
-  if (scores.activities >= 70) matchedAreas.push("preferred activities");
-  if (scores.strengths >= 70) matchedAreas.push("strengths");
-  if (scores.careerAreas >= 70) matchedAreas.push("career goals");
-  if (scores.learningStyles >= 70) matchedAreas.push("learning style");
+  if (scores.academicAreas >= 70) matchedAreas.push('academic interests');
+  if (scores.activities >= 70) matchedAreas.push('preferred activities');
+  if (scores.strengths >= 70) matchedAreas.push('strengths');
+  if (scores.careerAreas >= 70) matchedAreas.push('career goals');
+  if (scores.learningStyles >= 70) matchedAreas.push('learning style');
 
   if (matchedAreas.length === 0) {
-    return "This department has a partial match with your current questionnaire answers.";
+    return 'This major is suggested as a possible starting point. Add more profile details to improve accuracy.';
   }
 
-  return `Strong match based on ${matchedAreas.join(", ")}.`;
+  return `This major matches your ${matchedAreas.join(', ')}.`;
 }
 
-function recommendMajors(userProfile, departmentProfiles, topN = 3) {
-  const results = departmentProfiles.map((department) => {
+function buildSafeProfile(userProfile = {}) {
+  return {
+    academicAreas: [],
+    activities: [],
+    strengths: [],
+    careerAreas: [],
+    learningStyles: [],
+    topikLevel: null,
+    ...userProfile,
+  };
+}
+
+function recommendMajors(userProfile = {}, departmentProfiles = [], topN = 3) {
+  const safeUserProfile = buildSafeProfile(userProfile);
+  const departments = Array.isArray(departmentProfiles) ? departmentProfiles : [];
+
+  const results = departments.map((department) => {
+    const tags = department.tags || {};
+
     const scores = {
       academicAreas: calculateDimensionScore(
-        userProfile.academicAreas,
-        department.tags.academicAreas,
+        safeUserProfile.academicAreas,
+        tags.academicAreas,
       ),
       activities: calculateDimensionScore(
-        userProfile.activities,
-        department.tags.activities,
+        safeUserProfile.activities,
+        tags.activities,
       ),
       strengths: calculateDimensionScore(
-        userProfile.strengths,
-        department.tags.strengths,
+        safeUserProfile.strengths,
+        tags.strengths,
       ),
       careerAreas: calculateDimensionScore(
-        userProfile.careerAreas,
-        department.tags.careerAreas,
+        safeUserProfile.careerAreas,
+        tags.careerAreas,
       ),
       learningStyles: calculateDimensionScore(
-        userProfile.learningStyles,
-        department.tags.learningStyles,
+        safeUserProfile.learningStyles,
+        tags.learningStyles,
       ),
     };
 
@@ -90,22 +122,19 @@ function recommendMajors(userProfile, departmentProfiles, topN = 3) {
       id: department.id,
       name: department.name,
       nameKo: department.nameKo,
-      score: Number(finalScore.toFixed(1)),
-      categoryScores: scores,
+      minTopik: department.minTopik,
+      score: Math.round(finalScore),
+      scores,
       reason: buildReason(scores),
-      eligibilityNote: getEligibilityNote(department, userProfile.topikLevel),
     };
   });
 
   return results
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topN)
-    .map((result, index) => ({
-      ...result,
-      rank: index + 1,
-    }));
+    .sort((a, b) => b.score - a.score || String(a.name || '').localeCompare(String(b.name || '')))
+    .slice(0, Number(topN) || 3);
 }
 
 module.exports = {
   recommendMajors,
+  calculateDimensionScore,
 };

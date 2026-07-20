@@ -337,6 +337,9 @@ export const realApi: HeyPnuApi = {
 
   async getAcademicRecords() {
     const studentId = resolveStudentId()
+    if (!studentId) {
+      throw new Error('Student ID is required to fetch academic records')
+    }
     const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0]>(
       `/students/academic-records/${encodeURIComponent(studentId)}`,
     )
@@ -345,6 +348,9 @@ export const realApi: HeyPnuApi = {
 
   async downloadTranscript() {
     const studentId = resolveStudentId()
+    if (!studentId) {
+      throw new Error('Student ID is required to download transcript')
+    }
     const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
     const token = getStoredToken()
     const headers = new Headers()
@@ -499,3 +505,6 @@ export const realApi: HeyPnuApi = {
     }
   },
 }
+
+
+

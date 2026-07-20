@@ -1,3 +1,5 @@
+
+
 const departmentProfiles = require("../ai/departmentProfiles");
 const { recommendMajors } = require("../ai/recommendationEngine");
 const supabase = require("../supabaseClient");
@@ -240,7 +242,7 @@ async function handleChat(req, res) {
     let studentId = req.body.studentId;
 
     // Extract studentId from Bearer token in Authorization header
-    if (!studentId && req.headers.authorization) {
+    if (!studentId && req.headers && req.headers.authorization) {
       const parts = req.headers.authorization.split(" ");
       if (parts.length === 2 && parts[0] === "Bearer") {
         const token = parts[1];
@@ -307,18 +309,25 @@ async function handleChat(req, res) {
 
     const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase);
 
+    let ragUsed = false;
+    let ragStatus = "not-used";
+
     // Retrieve grounding context from Vector RAG system
     let context = "";
     try {
       const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
       context = await ragService.retrieveContext(augmentedQuery, filters, 3);
     } catch (ragErr) {
+      ragStatus = "failed";
       console.error("RAG context retrieval failed:", ragErr.message);
     }
 
     let reply = null;
+    let provider = "fallback";
+    let isFallback = true;
+    let fallbackReason = "No provider was configured or the provider call failed.";
 
-    // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat!
+    // 1. If OpenRouter is configured in .env, call OpenRouter for real AI chat.
     if (isOpenRouterConfigured()) {
       try {
         let augmentedMsg = "";
@@ -326,11 +335,16 @@ async function handleChat(req, res) {
           augmentedMsg += `${academicPromptContext}\n`;
         }
         if (context) {
+          ragUsed = true;
+          ragStatus = "used";
           augmentedMsg += `PNU Knowledge Base Context:\n${context}\n\n`;
         }
         augmentedMsg += `User Question: ${message}`;
 
         reply = await generateOpenRouterChat(augmentedMsg, history);
+        provider = "openrouter";
+        isFallback = false;
+        fallbackReason = null;
       } catch (orErr) {
         console.error(
           "OpenRouter Chat Error, falling back to Gemini/Claude/FAQ:",
@@ -339,14 +353,21 @@ async function handleChat(req, res) {
       }
     }
 
-    // 2. If Gemini is configured in .env, call Gemini for real AI chat!
+    // 2. If Gemini is configured in .env, call Gemini for real AI chat.
     if (!reply && isGeminiConfigured()) {
       try {
         let geminiMsg = message;
         if (academicPromptContext) {
           geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
         }
+        if (context) {
+          ragUsed = true;
+          ragStatus = "used";
+        }
         reply = await generateGeminiChat(geminiMsg, userLangPref, context);
+        provider = "gemini";
+        isFallback = false;
+        fallbackReason = null;
       } catch (geminiErr) {
         console.error(
           "Gemini Chat Error, falling back to Claude/FAQ:",
@@ -355,7 +376,7 @@ async function handleChat(req, res) {
       }
     }
 
-    // 3. If Anthropic/Claude is configured in .env, call Claude for real AI chat!
+    // 3. If Anthropic/Claude is configured in .env, call Claude for real AI chat.
     if (!reply && process.env.ANTHROPIC_API_KEY && process.env.CLAUDE_MODEL) {
       try {
         const Anthropic = require("@anthropic-ai/sdk");
@@ -372,6 +393,9 @@ async function handleChat(req, res) {
           .filter((block) => block.type === "text")
           .map((block) => block.text)
           .join("");
+        provider = "claude";
+        isFallback = false;
+        fallbackReason = null;
       } catch (claudeErr) {
         console.error(
           "Claude Chat Error, falling back to local FAQ:",
@@ -380,7 +404,7 @@ async function handleChat(req, res) {
       }
     }
 
-    // 4. Fallback: Smart keyword matching
+    // 4. Fallback: Smart keyword matching.
     if (!reply) {
       const lowerMsg = message.toLowerCase();
       for (const faq of CAMPUS_FAQ) {
@@ -394,10 +418,17 @@ async function handleChat(req, res) {
       }
     }
 
-    // 5. Default general assistant response if no keyword matches
+    // 5. Default general assistant response if no keyword matches.
     if (!reply) {
       reply =
         "I'm the Hey! PNU Assistant. I can help you with campus inquiries such as ARC application, bank accounts, health insurance, thesis outline submissions, TOPIK requirements, library access, and cafeterias. Please ask about any of these topics!";
+    }
+
+    if (!reply || provider === "fallback") {
+      fallbackReason = "No provider key was configured or the provider call failed.";
+      if (provider !== "fallback") {
+        provider = "fallback";
+      }
     }
 
     // Save the conversation turn to the database if studentId is present
@@ -423,7 +454,17 @@ async function handleChat(req, res) {
       }
     }
 
-    return res.json({ success: true, reply });
+    return res.json({
+      success: true,
+      reply,
+      metadata: {
+        provider,
+        isFallback,
+        fallbackReason,
+        ragUsed,
+        ragStatus,
+      },
+    });
   } catch (err) {
     console.error("Chat controller error:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -547,13 +588,12 @@ async function handleChatStream(req, res) {
     }
 
     if (!isGeminiConfigured() && !isOpenRouterConfigured()) {
-      // Fallback: send matching FAQ or fallback text streamed back to UI
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
 
       const fallbackText =
-        "AI is not configured yet. PNU Smart Assistant is running in mockup mode.";
+        "AI provider is not configured. The assistant is using the built-in fallback response.";
       const words = fallbackText.split(" ");
       for (const word of words) {
         res.write(`data: ${JSON.stringify({ text: word + " " })}\n\n`);
@@ -587,10 +627,17 @@ async function handleChatStream(req, res) {
 
     // Retrieve grounding context from Vector RAG system
     let context = "";
+    let ragUsed = false;
+    let ragStatus = "not-used";
     try {
       const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
       context = await ragService.retrieveContext(augmentedQuery, filters, 3);
+      if (context) {
+        ragUsed = true;
+        ragStatus = "used";
+      }
     } catch (ragErr) {
+      ragStatus = "failed";
       console.error("RAG context retrieval failed for stream:", ragErr.message);
     }
 
@@ -670,6 +717,7 @@ async function handleChatStream(req, res) {
         } catch {}
       }
 
+      res.write(`data: ${JSON.stringify({ metadata: { provider: "openrouter", isFallback: false, ragUsed, ragStatus } })}\n\n`);
       res.write("data: [DONE]\n\n");
       res.end();
     } else {
@@ -697,6 +745,7 @@ async function handleChatStream(req, res) {
         buffer = buffer.slice(-100);
       }
 
+      res.write(`data: ${JSON.stringify({ metadata: { provider: "gemini", isFallback: false, ragUsed, ragStatus } })}\n\n`);
       res.write("data: [DONE]\n\n");
       res.end();
     }
@@ -853,6 +902,7 @@ const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
+const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
 const {
   collectUserTags,
   fetchRecommendedPrograms,
@@ -862,7 +912,6 @@ const {
   pilotPrograms,
   pilotScholarships,
   pilotCareers,
-  pilotNotices,
   gapTargetMajors,
 } = require('../ai/pilotCatalog');
 
@@ -899,6 +948,7 @@ async function fetchStudentContext(studentId) {
       },
       profile: {
         major: data.major?.major_name ?? null,
+        majorId: data.major_id ?? data.major?.major_id ?? data.major?.id ?? null,
         interests,
         interestTags: interests,
         languages: data.languages || [],
@@ -942,24 +992,26 @@ async function getDashboardSummary(req, res, next) {
     if (targetMajorId && !targetMajor) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid targetMajorId. Use a pilot department id such as artificial-intelligence.',
+        message: 'Invalid targetMajorId. Use a valid department id such as artificial-intelligence.',
       });
     }
 
+    const catalogs = await fetchDashboardCatalogs(supabase, { language: req.language || 'en' });
     const dashboard = buildStudentDashboard({
       rawStudentInput: context.rawStudentInput,
       targetMajor,
-      majors: departmentProfiles,
-      courses: pilotCourses,
-      programs: pilotPrograms,
-      scholarships: pilotScholarships,
+      majors: catalogs.majors,
+      courses: catalogs.courses,
+      programs: catalogs.programs,
+      scholarships: catalogs.scholarships,
       careers: pilotCareers,
-      notices: pilotNotices,
+      notices: catalogs.notices,
     });
 
     return res.status(200).json({
       success: true,
       data: dashboard,
+      metadata: catalogs.metadata,
     });
   } catch (err) {
     next(err);
@@ -981,7 +1033,7 @@ async function runMajorGapAnalysis(req, res, next) {
     if (!targetMajor) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid targetMajorId. Use a pilot department id such as artificial-intelligence.',
+        message: 'Invalid targetMajorId. Use a valid department id such as artificial-intelligence.',
       });
     }
 
@@ -1022,10 +1074,12 @@ async function getCourseRecommendations(req, res, next) {
       return next(err);
     }
 
+    const catalogs = await fetchDashboardCatalogs(supabase, { language: req.language || 'en' });
+    const courseCatalog = catalogs.courses;
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
-      pilotCourses,
+      courseCatalog,
       {
         completedCourseIds: adaptedProfile.completedCourseIds,
         limit,
@@ -1035,6 +1089,7 @@ async function getCourseRecommendations(req, res, next) {
     return res.status(200).json({
       success: true,
       data: recommendations,
+      metadata: catalogs.metadata,
     });
   } catch (err) {
     next(err);
@@ -1078,15 +1133,16 @@ async function getAiDashboard(req, res, next) {
       return next(err);
     }
 
+    const catalogs = await fetchDashboardCatalogs(supabase, { language });
     const dashboard = buildStudentDashboard({
       rawStudentInput: context.rawStudentInput,
       targetMajor: null,
-      majors: departmentProfiles,
-      courses: pilotCourses,
-      programs: pilotPrograms,
-      scholarships: pilotScholarships,
+      majors: catalogs.majors,
+      courses: catalogs.courses,
+      programs: catalogs.programs,
+      scholarships: catalogs.scholarships,
       careers: pilotCareers,
-      notices: pilotNotices,
+      notices: catalogs.notices,
       options: {
         courseLimit: 20,
         programLimit: 20,
@@ -1094,13 +1150,11 @@ async function getAiDashboard(req, res, next) {
       },
     });
 
-    const { data: scholarshipRows } = await supabase
-      .from("scholarship")
-      .select("*");
+    const scholarshipRows = catalogs.scholarships;
     const localizedScholarships = new Map(
-      (scholarshipRows || []).map((row) => [
-        String(row.scholarship_id ?? row.id),
-        localizeRow(row, language, ["title", "description", "eligibility"]),
+      scholarshipRows.map((row) => [
+        String(row.id),
+        row,
       ]),
     );
 
@@ -1139,6 +1193,7 @@ async function getAiDashboard(req, res, next) {
         eligibleScholarships,
         matchedPrograms: matchedPrograms.map(mapRecommendedProgram),
       },
+      metadata: catalogs.metadata,
     });
   } catch (err) {
     next(err);
@@ -1192,15 +1247,16 @@ async function getStudentNotifications(req, res, next) {
         };
       });
 
+    const catalogs = await fetchDashboardCatalogs(supabase, { language });
     const dashboard = buildStudentDashboard({
       rawStudentInput: context.rawStudentInput,
       targetMajor: null,
-      majors: departmentProfiles,
-      courses: pilotCourses,
-      programs: pilotPrograms,
-      scholarships: pilotScholarships,
+      majors: catalogs.majors,
+      courses: catalogs.courses,
+      programs: catalogs.programs,
+      scholarships: catalogs.scholarships,
       careers: pilotCareers,
-      notices: pilotNotices,
+      notices: catalogs.notices,
       options: {
         noticeLimit: 10,
       },
@@ -1229,6 +1285,7 @@ async function getStudentNotifications(req, res, next) {
     return res.status(200).json({
       success: true,
       data: notifications,
+      metadata: catalogs.metadata,
     });
   } catch (err) {
     next(err);
@@ -1279,3 +1336,4 @@ module.exports = {
   getPrograms,
   getStudentNotifications,
 };
+

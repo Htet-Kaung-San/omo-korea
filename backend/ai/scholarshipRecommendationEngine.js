@@ -67,18 +67,25 @@ function passesListEligibility(studentValue, eligibleValues) {
 }
 
 function passesEligibility(studentProfile, scholarship) {
+  const eligibleMajors = scholarship.eligibleMajors || scholarship.eligible_majors || [];
+  const eligibleNationalities = scholarship.eligibleNationalities || scholarship.eligible_nationalities || [];
+  const minGpa = scholarship.minGpa ?? scholarship.min_gpa;
+  const minTopikLevel = scholarship.minTopikLevel ?? scholarship.min_topik_level;
+  const minYear = scholarship.minYear ?? scholarship.min_year;
+  const maxYear = scholarship.maxYear ?? scholarship.max_year;
+
   return (
-    passesListEligibility(studentProfile.major, scholarship.eligibleMajors) &&
+    passesListEligibility(studentProfile.major, eligibleMajors) &&
     passesListEligibility(
       studentProfile.nationality,
-      scholarship.eligibleNationalities
+      eligibleNationalities
     ) &&
-    passesMinimum(studentProfile.gpa, scholarship.minGpa) &&
-    passesMinimum(studentProfile.topikLevel, scholarship.minTopikLevel) &&
+    passesMinimum(studentProfile.gpa, minGpa) &&
+    passesMinimum(studentProfile.topikLevel, minTopikLevel) &&
     passesYearEligibility(
       studentProfile.year,
-      scholarship.minYear,
-      scholarship.maxYear
+      minYear,
+      maxYear
     )
   );
 }
@@ -105,16 +112,16 @@ function buildMatchHint({
 
 function scoreScholarship(studentProfile, scholarship) {
   const majorMatch = listIncludesValue(
-    scholarship.eligibleMajors,
+    scholarship.eligibleMajors || scholarship.eligible_majors || [],
     studentProfile.major
   );
   const nationalityMatch = listIncludesValue(
-    scholarship.eligibleNationalities,
+    scholarship.eligibleNationalities || scholarship.eligible_nationalities || [],
     studentProfile.nationality
   );
-  const hasMinGpa = Number.isFinite(Number(scholarship.minGpa));
-  const hasMinTopikLevel = Number.isFinite(Number(scholarship.minTopikLevel));
-  const interestMatches = getMatches(studentProfile.interests, scholarship.tags);
+  const hasMinGpa = Number.isFinite(Number(scholarship.minGpa ?? scholarship.min_gpa));
+  const hasMinTopikLevel = Number.isFinite(Number(scholarship.minTopikLevel ?? scholarship.min_topik_level));
+  const interestMatches = getMatches(studentProfile.interests, scholarship.tags || []);
 
   let score = 10;
 

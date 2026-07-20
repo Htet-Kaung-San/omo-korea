@@ -1,4 +1,4 @@
-﻿import type { Enrollment } from "@/types/api";
+import type { Enrollment } from "@/types/api";
 
 import { COURSE_SCHEDULES } from "@/data/courseSchedules";
 
@@ -67,4 +67,3 @@ export function exportTimetableToIcs(enrollments: Enrollment[]): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-

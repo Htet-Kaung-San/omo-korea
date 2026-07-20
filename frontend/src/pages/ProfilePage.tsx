@@ -8,7 +8,6 @@ import {
 } from "@/data/options";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -935,7 +934,7 @@ export function ProfilePage() {
 
             const upcomingSem = (currentMonth >= 3 && currentMonth <= 8) ? "Fall" : "Spring";
             const upcomingSemTermStr = upcomingSem === "Fall" ? "2nd Semester" : "1st Semester";
-            
+
             const nextSemesterNumber = semestersCompleted + 1;
             const enteringYearNum = Math.min(4, Math.ceil(nextSemesterNumber / 2));
             const enteringYearStr = enteringYearNum === 1 ? "1st Year"

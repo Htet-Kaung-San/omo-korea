@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
+const WebSocket = require("ws");
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -10,6 +11,10 @@ if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("placeholder")) {
   );
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: {
+    transport: WebSocket,
+  },
+});
 
 module.exports = supabase;

@@ -156,7 +156,12 @@ export function CareerOpportunitiesPage() {
 
         <section>
           <div className="mb-2 flex items-center justify-between px-1">
-            <h2 className="text-[16px] font-bold text-pnu-text">{t('career.recommended')}</h2>
+            <div>
+              <h2 className="text-[16px] font-bold text-pnu-text">AI-Assisted Career Matches</h2>
+              <p className="mt-0.5 text-[12px] text-pnu-muted">
+                Profile and major fit are prioritized. When major-specific roles are limited, general entry-level opportunities are included.
+              </p>
+            </div>
             {filteredRecommended.length > 3 ? (
               <button
                 type="button"
@@ -231,3 +236,5 @@ export function CareerOpportunitiesPage() {
     </div>
   )
 }
+
+

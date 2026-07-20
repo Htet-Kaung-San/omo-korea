@@ -7,7 +7,13 @@ function isGeminiConfigured() {
 }
 
 async function generateEmbedding(text) {
+  const isPlaceholder = !process.env.SUPABASE_URL || !process.env.SUPABASE_KEY || process.env.SUPABASE_URL.includes("placeholder");
+
   if (!isGeminiConfigured()) {
+    if (isPlaceholder) {
+      const dummy = new Array(768).fill(0).map(() => Math.random() * 0.1);
+      return dummy;
+    }
     throw new Error("GEMINI_API_KEY is required for embeddings");
   }
 
@@ -94,7 +100,13 @@ async function syncDocument(docId) {
 }
 
 async function retrieveContext(queryText, filters = {}, limit = 3) {
-  const queryEmbedding = await generateEmbedding(queryText);
+  let queryEmbedding;
+  try {
+    queryEmbedding = await generateEmbedding(queryText);
+  } catch (embeddingErr) {
+    console.warn("Embedding generation failed; RAG context retrieval skipped:", embeddingErr.message);
+    return "";
+  }
 
   const { data, error } = await supabase.rpc("match_kb_chunks", {
     query_embedding: queryEmbedding,

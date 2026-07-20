@@ -125,10 +125,10 @@ export function SignupPage() {
 
   // Calculated D-4 IDs
   const calculatedD4Id = `${d4Year}${d4Intake}${d4Suffix.padStart(3, "0")}`;
-  
+
   // For D-2 students who do not have an ID yet, generate a temporary 9-digit ID starting with 999
   const calculatedD2TempId = `999${d4Year.substring(2)}${d4Suffix.padStart(4, "0")}`;
-  
+
   const finalStudentId = isD4 ? calculatedD4Id : (hasNoStudentId ? calculatedD2TempId : studentIdInput.trim());
 
   // Step 1 Validation: Language preference (implicit), Nationality, inKorea check, and completed MBTI
