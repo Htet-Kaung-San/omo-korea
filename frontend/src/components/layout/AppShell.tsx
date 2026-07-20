@@ -11,7 +11,7 @@ import {
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
 import { LanguageSelect } from '@/components/layout/LanguageSelect'
-import pnuSeal from '@/assets/pnu-seal.png'
+import pnuSeal from '@/assets/pnu-seal.svg'
 import sanjini from '@/assets/pnu-character.png'
 
 type TabItem = {

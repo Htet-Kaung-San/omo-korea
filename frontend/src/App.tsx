@@ -61,11 +61,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route
         element={
           <ProtectedRoute>

@@ -5,6 +5,8 @@ import { api } from "@/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { NATIONALITY_OPTIONS, ACADEMIC_HIERARCHY } from "@/data/options";
+import { LANGUAGE_OPTIONS } from "@/i18n/languages";
+import type { LanguageCode } from "@/i18n/languages";
 
 // ── SignupPage ────────────────────────────────────────────────────────────────
 
@@ -333,12 +335,14 @@ export function SignupPage() {
                   </label>
                   <select
                     value={language}
-                    onChange={(e) => setLanguage(e.target.value as "en" | "ko" | "zh")}
+                    onChange={(e) => setLanguage(e.target.value as LanguageCode)}
                     className={selectCls}
                   >
-                    <option value="en">English</option>
-                    <option value="ko">한국어</option>
-                    <option value="zh">中文</option>
+                    {LANGUAGE_OPTIONS.map((opt) => (
+                      <option key={opt.code} value={opt.code}>
+                        {opt.nativeLabel}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -451,10 +455,10 @@ export function SignupPage() {
                 {visaStatus === "D-2" && (
                   <div className="space-y-1.5 bg-blue-50/50 p-3 rounded-xl border border-blue-100 animate-fade-in">
                     <label className="block text-[13px] font-semibold text-[#1E3A8A]">
-                      Which D-2 semester are you in? <span className="text-red-500">*</span>
+                      Which D-2 semester did you join? <span className="text-red-500">*</span>
                     </label>
                     <p className="text-[10px] text-[#64748B] mb-2 leading-relaxed">
-                      Visa extension is required after 2 years. Please specify your current semester.
+                      Visa extension is required after 2 years. Please specify the semester you started your D-2 visa.
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       <button
