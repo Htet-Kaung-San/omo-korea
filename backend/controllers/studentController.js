@@ -162,6 +162,7 @@ const loginStudent = async (req, res) => {
       });
     }
 
+    console.log("loginStudent called with body:", req.body);
     const { data, error } = await supabase
       .from("student")
       .select(
@@ -175,6 +176,8 @@ const loginStudent = async (req, res) => {
       )
       .eq("student_id", student_id)
       .single();
+      
+    console.log("Supabase query result - Data:", data, "Error:", error);
 
     if (error || !data) {
       if (error?.code === "PGRST116" || !data) {
