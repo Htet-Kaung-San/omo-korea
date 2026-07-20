@@ -121,20 +121,20 @@ async function fetchRecommendedPrograms({
       user_tags: tags,
       result_limit: Math.max(limit * 3, 30),
     });
-    if (!error && Array.isArray(data)) {
+    if (!error && Array.isArray(data) && data.length > 0) {
       openRows = data.filter((row) => isOpenForApplication(row));
-    } else if (error) {
-      console.warn(
-        '[extracurricular] recommended_programs RPC unavailable, using table query:',
-        error.message,
-      );
     }
   } catch (err) {
-    console.warn('[extracurricular] RPC error:', err.message);
+    // Ignore RPC error and fall back to table query
   }
 
   if (!openRows.length) {
-    openRows = await fetchOpenCatalogPrograms();
+    try {
+      openRows = await fetchOpenCatalogPrograms();
+    } catch (err) {
+      console.error('[extracurricular] Failed to fetch programs from catalog table:', err.message);
+      openRows = [];
+    }
   }
 
   if (!openRows.length) return [];

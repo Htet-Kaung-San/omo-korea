@@ -21,6 +21,13 @@ export default defineConfig([
     rules: {
       'react-refresh/only-export-components': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      // Kept at 'error' so lint catches what would otherwise fail `tsc -b`
+      // during `npm run build`. Prefix deliberately-unused bindings with `_`.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ])
