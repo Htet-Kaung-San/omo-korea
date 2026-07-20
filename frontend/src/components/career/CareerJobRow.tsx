@@ -15,7 +15,7 @@ interface CareerJobRowProps {
   opportunity: CareerOpportunity
   variant: CareerJobRowVariant
   bookmarked?: boolean
-  onToggleBookmark?: (id: string) => void
+  onToggleBookmark?: (opportunity: CareerOpportunity) => void
 }
 
 export function CareerJobRow({
@@ -64,7 +64,12 @@ export function CareerJobRow({
         ) : null}
       </div>
 
-      {variant === 'recommended' ? (
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        {variant === 'latest' ? (
+          <span className="text-[13px] font-bold text-[#F97316]">
+            {formatDeadlineBadge(opportunity.deadline)}
+          </span>
+        ) : null}
         <button
           type="button"
           aria-label={t('career.bookmark')}
@@ -72,7 +77,7 @@ export function CareerJobRow({
           onClick={(event) => {
             event.preventDefault()
             event.stopPropagation()
-            onToggleBookmark?.(opportunity.id)
+            onToggleBookmark?.(opportunity)
           }}
           className={`rounded-lg p-2 transition ${
             bookmarked
@@ -86,11 +91,7 @@ export function CareerJobRow({
             fill={bookmarked ? 'currentColor' : 'none'}
           />
         </button>
-      ) : (
-        <span className="shrink-0 text-[14px] font-bold text-[#F97316]">
-          {formatDeadlineBadge(opportunity.deadline)}
-        </span>
-      )}
+      </div>
     </a>
   )
 }

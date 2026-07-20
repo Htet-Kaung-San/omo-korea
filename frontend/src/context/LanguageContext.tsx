@@ -10,6 +10,7 @@ import {
 import {
   DEFAULT_LANGUAGE,
   LANGUAGE_OPTIONS,
+  clearLocaleCache,
   loadLocale,
   normalizeLanguageCode,
   type LanguageCode,
@@ -71,8 +72,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setLocaleLoading(false)
       })
 
+    const onLocaleChanged = () => {
+      clearLocaleCache()
+      void loadLocale(language).then((loaded) => {
+        if (cancelled) return
+        setMessages(loaded)
+        if (language !== DEFAULT_LANGUAGE) {
+          void loadLocale(DEFAULT_LANGUAGE).then((english) => {
+            if (!cancelled) setFallbackMessages(english)
+          })
+        } else {
+          setFallbackMessages(loaded)
+        }
+      })
+    }
+    window.addEventListener('hey_pnu_locale_changed', onLocaleChanged)
+
     return () => {
       cancelled = true
+      window.removeEventListener('hey_pnu_locale_changed', onLocaleChanged)
     }
   }, [language])
 

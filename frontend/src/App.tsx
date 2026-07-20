@@ -40,6 +40,7 @@ import { FeedbackPage } from '@/pages/FeedbackPage'
 import { AiAssistantPage } from '@/pages/AiAssistantPage'
 import { AcademicRecordsPage } from '@/pages/AcademicRecordsPage'
 import { ProfileStubPage } from '@/pages/ProfileStubPage'
+import { SavedPage } from '@/pages/SavedPage'
 import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -132,7 +133,7 @@ function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="profile/academic-records" element={<AcademicRecordsPage />} />
         <Route path="profile/documents" element={<ProfileStubPage kind="documents" />} />
-        <Route path="profile/saved" element={<ProfileStubPage kind="saved" />} />
+        <Route path="profile/saved" element={<SavedPage />} />
         <Route path="profile/requests" element={<ProfileStubPage kind="requests" />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />

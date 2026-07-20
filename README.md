@@ -14,10 +14,13 @@ omo-korea/
 
 - Home dashboard, AI assistant (Sanjini), schedule
 - Campus map (Naver Maps) + facility detail
+- Cafeteria menus (금정회관 학생 식당 preview on Home)
+- Notices scraped from PNU boards with **direct links** to the original posts
 - Community (by department / country / all international)
-- Internships & Jobs (JobKorea + AI recommendation hook)
+- Internships & Jobs (JobKorea + AI recommendation hook) with save/bookmark
 - Help & Support (FAQ, contacts, emergency, work permit)
-- Profile + academic records
+- Profile, academic records, and Saved (jobs + notices)
+- 19 UI languages (EN, KO, ZH, MY, JA, TH, VI, …)
 
 ## Prerequisites
 
@@ -69,6 +72,7 @@ Apply these once (safe to re-run where noted):
 1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables
 2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ
 3. `backend/supabase/community.sql` — community groups + posts
+4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards
 
 Optional seed scripts (after migrations):
 
@@ -76,7 +80,15 @@ Optional seed scripts (after migrations):
 cd backend
 npm run seed:map-profile
 npm run seed:support
+npm run seed:notices
 ```
+
+`seed:notices` scrapes recent posts from:
+
+- International Student Center (`international.pusan.ac.kr`)
+- CSE department (`cse.pusan.ac.kr`)
+
+Tapping a notice in the app opens the original board URL when `source_url` is present.
 
 ## Run locally
 
@@ -107,6 +119,8 @@ Demo login (if seeded): student ID `202600001` / password `password`
 |--------|------|--------|
 | POST | `/api/students/login` | Auth |
 | GET | `/api/students/facilities` | Campus map |
+| GET | `/api/students/notices` | Notices (may auto-scrape; opens source URLs) |
+| POST | `/api/notices/sync` | Force notice scrape sync |
 | GET | `/api/students/pnu-contacts` | Support contacts |
 | GET | `/api/students/faq` | FAQ |
 | GET | `/api/students/community/my-group?scope=` | Community (auth) |

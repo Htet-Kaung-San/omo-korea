@@ -12,6 +12,7 @@ const {
   resolveLanguagePref,
   SUPPORTED_LANGUAGE_PREFS,
 } = require("../middleware/supportedLanguages");
+const { mapNoticeRow, scrapeRecentNotices } = require("../services/pnuNoticeScraperService");
 
 const JWT_SECRET = process.env.JWT_SECRET || "hey-pnu-default-secret-key";
 
@@ -1452,13 +1453,62 @@ const downloadAcademicTranscript = async (req, res) => {
   }
 };
 
+async function upsertScrapedNotices(rows) {
+  let inserted = 0;
+  let updated = 0;
+
+  for (const row of rows) {
+    const { data: existing, error: lookupError } = await supabase
+      .from("notice")
+      .select("notice_id")
+      .eq("source_url", row.source_url)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+
+    if (existing?.notice_id) {
+      const { error } = await supabase
+        .from("notice")
+        .update({
+          title: row.title,
+          content: row.content,
+          language: row.language,
+          posted_date: row.posted_date,
+          source: row.source,
+          external_id: row.external_id,
+          scraped_at: row.scraped_at,
+        })
+        .eq("notice_id", existing.notice_id);
+      if (error) throw error;
+      updated += 1;
+    } else {
+      const { error } = await supabase.from("notice").insert({
+        title: row.title,
+        content: row.content,
+        language: row.language,
+        posted_date: row.posted_date,
+        source: row.source,
+        source_url: row.source_url,
+        external_id: row.external_id,
+        scraped_at: row.scraped_at,
+      });
+      if (error) throw error;
+      inserted += 1;
+    }
+  }
+
+  return { inserted, updated };
+}
+
 const getNotices = async (req, res) => {
   try {
     const { q, limit = 20 } = req.query;
     const { data, error } = await supabase
       .from("notice")
       .select("*")
-      .order("posted_date", { ascending: false });
+      .order("posted_date", { ascending: false })
+      .limit(100);
+
     if (error)
       return res.status(500).json({
         success: false,
@@ -1466,21 +1516,46 @@ const getNotices = async (req, res) => {
         error: error.message,
       });
 
+    let rows = data || [];
+    const hasScraped = rows.some((row) => row.source_url);
+
+    // Auto-seed once when the source columns exist but no scraped rows yet.
+    if (!hasScraped) {
+      try {
+        const scraped = await scrapeRecentNotices();
+        if (scraped.length > 0) {
+          await upsertScrapedNotices(scraped);
+          const refreshed = await supabase
+            .from("notice")
+            .select("*")
+            .order("posted_date", { ascending: false })
+            .limit(100);
+          if (!refreshed.error) rows = refreshed.data || rows;
+        }
+      } catch (syncError) {
+        // Schema may not be migrated yet; keep returning whatever rows exist.
+        console.warn("[notices] auto-scrape skipped:", syncError.message);
+      }
+    }
+
+    const notices = rows.map(mapNoticeRow);
     const query = String(q || "").trim();
-    const noticeItems = Array.isArray(data) ? data : [];
     const filtered = !query
-      ? noticeItems
+      ? notices
       : rankSearchItems(
-          noticeItems.map((item) => ({
+          notices.map((item) => ({
             ...item,
-            title: item.title || item.notice_title || item.name || "",
-            content: item.content || item.description || "",
+            title: item.title || "",
+            content: item.body || "",
           })),
           query,
         );
 
     const limitValue = Number(limit);
-    const sliced = filtered.slice(0, Number.isFinite(limitValue) ? limitValue : 20);
+    const sliced = filtered.slice(
+      0,
+      Number.isFinite(limitValue) ? limitValue : 20,
+    );
 
     res.json({
       success: true,
@@ -1491,6 +1566,33 @@ const getNotices = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const syncNotices = async (req, res) => {
+  try {
+    const scraped = await scrapeRecentNotices();
+    const result = await upsertScrapedNotices(scraped);
+    res.json({
+      success: true,
+      data: {
+        scraped: scraped.length,
+        ...result,
+        bySource: scraped.reduce((acc, item) => {
+          acc[item.source] = (acc[item.source] || 0) + 1;
+          return acc;
+        }, {}),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message:
+        err.message?.includes("source_url")
+          ? "Run backend/supabase/notice_source.sql in Supabase SQL Editor first"
+          : "Failed to sync notices",
       error: err.message,
     });
   }
@@ -2439,6 +2541,7 @@ module.exports = {
   getAcademicRecords,
   downloadAcademicTranscript,
   getNotices,
+  syncNotices,
   getNotifications,
   getCourses,
   getEnrollments,

@@ -7,6 +7,7 @@ import type {
   FacilityRoom,
   FaqItem,
   MapFacility,
+  NoticeChannel,
   Notification,
   NotificationCategory,
   NotificationPriority,
@@ -60,7 +61,10 @@ interface BackendNotice {
   category?: NotificationCategory | null
   priority?: NotificationPriority | null
   source?: string | null
+  channel?: NoticeChannel | null
+  sourceUrl?: string | null
   source_url?: string | null
+  read?: boolean
 }
 
 interface BackendCourse {
@@ -147,17 +151,26 @@ export function mapChecklistPayload(
 
 export function mapNotice(notice: BackendNotice): Notification {
   const source = notice.source ?? null
+  const rawCategory = String(notice.category ?? 'GENERAL').toUpperCase()
+  const rawPriority = String(notice.priority ?? 'NORMAL').toUpperCase()
+  const category: NotificationCategory =
+    rawCategory === 'REGISTRATION' || rawCategory === 'DEADLINE' || rawCategory === 'GENERAL'
+      ? rawCategory
+      : 'GENERAL'
+  const priority: NotificationPriority =
+    rawPriority === 'HIGH' || rawPriority === 'NORMAL' ? rawPriority : 'NORMAL'
 
   return {
     id: String(notice.id ?? notice.notice_id ?? ''),
     title: notice.title ?? 'Untitled notice',
     body: notice.body ?? notice.content ?? '',
     date: notice.date ?? notice.posted_date ?? notice.deadline ?? '',
-    category: (notice.category ?? 'academic') as NotificationCategory,
-    priority: (notice.priority ?? 'normal') as NotificationPriority,
+    category,
+    priority,
     source,
-    channel: null,
-    read: false,
+    channel: notice.channel ?? null,
+    sourceUrl: notice.sourceUrl ?? notice.source_url ?? null,
+    read: notice.read ?? false,
   }
 }
 
