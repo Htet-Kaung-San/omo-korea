@@ -27,7 +27,27 @@ function normalizeId(value) {
   if (value === null || value === undefined || value === '') return '';
   return String(value).trim();
 }
+function getCourseIdentifiers(course = {}) {
+  return [
+    course.id,
+    course.course_id,
+    course.title,
+    course.name,
+    course.nameEn,
+    course.nameKo,
+    course.raw?.course_id,
+    course.raw?.course_name,
+    course.raw?.course_name_en,
+  ]
+    .filter((value) => value !== null && value !== undefined && value !== '')
+    .map(normalizeValue);
+}
 
+function isCompletedCourse(course = {}, completedCourses = new Set()) {
+  return getCourseIdentifiers(course).some((identifier) =>
+    completedCourses.has(identifier)
+  );
+}
 function getCourseType(course = {}) {
   return String(
     course.raw?.category ||
@@ -174,8 +194,8 @@ function scoreCourse(studentProfile = {}, course = {}) {
 
   if (isMajorCourse) score += 40;
   if (yearMatch) score += 18;
-  score += cappedInterestMatches * 15;
-  score += cappedMbtiMatches * 6;
+  score += cappedInterestMatches * 10;
+  score += cappedMbtiMatches * 3;
   if (isRequiredInMajor) score += 20;
   if (isElectiveInMajor) score += 10;
   if (isGenEdCourse) score += 8;
@@ -218,9 +238,11 @@ function buildFallbackCourse(course, matchHint) {
 }
 
 function recommendCourses(studentProfile = {}, courses = [], options = {}) {
-  const completedCourseIds = new Set(
-    normalizeArray(options.completedCourseIds).map(String)
-  );
+  const completedCourses = new Set(
+  normalizeArray(options.completedCourseIds)
+    .map(normalizeValue)
+    .filter(Boolean)
+);
   const requestedType = options.type || 'ALL';
   const limit =
     Number.isInteger(options.limit) && options.limit > 0
@@ -228,7 +250,7 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
       : courses.length;
 
   const availableCourses = normalizeArray(courses)
-    .filter((course) => !completedCourseIds.has(String(course.id)))
+    .filter((course) => !isCompletedCourse(course, completedCourses))
     .filter((course) => {
       return (
         requestedType === 'ALL' ||
