@@ -155,10 +155,7 @@ describe("Hey! PNU Backend API Integration Tests", () => {
       );
     });
 
-    // SKIPPED: the post table has no likes_count column, so this handler's
-    // lookup errors and returns 404. Un-skip after applying
-    // backend/supabase/post_engagement_and_schedule.sql.
-    it.skip("should allow upvoting the post using JWT authentication", async () => {
+    it("should allow upvoting the post using JWT authentication", async () => {
       expect(tempPostId).toBeDefined();
       expect(authToken).toBeDefined();
 
@@ -172,8 +169,7 @@ describe("Hey! PNU Backend API Integration Tests", () => {
       expect(res.body.data.liked).toBe(true);
     });
 
-    // SKIPPED: same missing-column cause as the upvote test above.
-    it.skip("should allow reporting the post using JWT authentication", async () => {
+    it("should allow reporting the post using JWT authentication", async () => {
       expect(tempPostId).toBeDefined();
       expect(authToken).toBeDefined();
 
@@ -226,12 +222,9 @@ describe("Hey! PNU Backend API Integration Tests", () => {
       expect(res.body.success).toBe(true);
     });
 
-    // SKIPPED: createEnrollment guards its overlap check on
-    // course.day_of_week/start_time/end_time, and the course table has none of
-    // those columns — so the guard never runs and no conflict is ever detected.
-    // Un-skip after applying backend/supabase/post_engagement_and_schedule.sql,
-    // which adds the columns and gives courses 8 and 9 overlapping slots.
-    it.skip("should reject enrolling in a conflicting course with 400 Bad Request", async () => {
+    // Courses 8 and 9 share Monday and overlap (09:30–10:45 vs 10:00–11:15),
+    // per backend/supabase/post_engagement_and_schedule.sql.
+    it("should reject enrolling in a conflicting course with 400 Bad Request", async () => {
       expect(authToken).toBeDefined();
 
       // Course 9 overlaps with Course 8 on Monday 09:30-10:45

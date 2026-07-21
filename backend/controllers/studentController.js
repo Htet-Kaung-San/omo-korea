@@ -2255,22 +2255,38 @@ const reportPost = async (req, res) => {
   try {
     const { post_id } = req.params;
 
-    const { error } = await supabase
+    const { data: post, error: fetchError } = await supabase
       .from("post")
-      .update({ reported: true })
+      .select("post_id, reports_count")
+      .eq("post_id", post_id)
+      .single();
+
+    if (fetchError || !post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+        error: fetchError?.message,
+      });
+    }
+
+    const nextCount = Number(post.reports_count || 0) + 1;
+    const { error: updateError } = await supabase
+      .from("post")
+      .update({ reports_count: nextCount })
       .eq("post_id", post_id);
 
-    if (error) {
+    if (updateError) {
       return res.status(500).json({
         success: false,
         message: "Failed to report post",
-        error: error.message,
+        error: updateError.message,
       });
     }
 
     res.json({
       success: true,
       message: "Post successfully reported and hidden from student feeds.",
+      data: { reports_count: nextCount },
     });
   } catch (err) {
     res.status(500).json({
