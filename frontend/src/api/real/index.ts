@@ -35,7 +35,6 @@ import type {
   User,
 } from '@/types/api'
 import { apiFetch, clearStoredToken, getStoredToken } from '../client'
-import { CHAT_SUGGESTIONS } from '../mock/data'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,
@@ -213,7 +212,11 @@ export const realApi: HeyPnuApi = {
   },
 
   async getChatSuggestions(): Promise<string[]> {
-    return CHAT_SUGGESTIONS
+    return [
+      'Course registration',
+      'Graduation credits',
+      'Dorm housing',
+    ]
   },
 
   async getCareerOpportunities(

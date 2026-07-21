@@ -62,3 +62,6 @@ agent-transcripts/
 
 # Source spreadsheets for course seeding (keep local; derived JSON is committed)
 *.xlsx
+
+# Local project docs (planning materials — may contain personal data)
+project-docs/
