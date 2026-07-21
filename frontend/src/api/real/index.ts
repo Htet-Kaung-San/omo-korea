@@ -30,7 +30,6 @@ import type {
   PnuContact,
   RecommendedCourse,
   ScholarshipItem,
-  SignupRequest,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
@@ -425,28 +424,6 @@ export const realApi: HeyPnuApi = {
         student_id: studentId,
         code,
         new_password: newPassword,
-      }),
-      suppressToast: true,
-    })
-  },
-
-  async signup(data: SignupRequest): Promise<void> {
-    await apiFetch<{ success: true }>('/students/signup', {
-      method: 'POST',
-      body: JSON.stringify({
-        student_id: data.studentId,
-        name: data.name,
-        nationality: data.nationality,
-        major_name: data.major,
-        student_type: data.student_type,
-        visa_status: data.visa_status,
-        password: data.password,
-        language_pref: data.language_pref,
-        is_in_korea: data.is_in_korea,
-        mbti: data.mbti,
-        d2_semester: data.d2_semester,
-        completed_courses: data.completed_courses,
-        intake_term: data.intake_term,
       }),
       suppressToast: true,
     })

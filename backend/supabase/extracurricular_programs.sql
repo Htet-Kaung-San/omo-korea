@@ -1,5 +1,8 @@
 -- Extracurricular programs — manual Supabase catalog
--- Table columns (do not alter): program_id, name, category, deadline, source_url
+--
+-- Core columns: program_id, name, category, deadline, source_url, description
+-- (run extracurricular_program_descriptions.sql to add description)
+--
 -- Enter rows in Table Editor. App ranks open programs for the student.
 
 -- Open programs: deadline still valid through tomorrow (or no deadline).
@@ -21,10 +24,11 @@ as $$
 $$;
 
 -- Example row:
--- insert into extracurricular_program (name, category, deadline, source_url)
+-- insert into extracurricular_program (name, category, deadline, source_url, description)
 -- values (
 --   '자기소개서 1:1 클리닉',
 --   'Career',
 --   current_date + 14,
---   'https://www.pusan.ac.kr/...'
+--   'https://www.pusan.ac.kr/...',
+--   '1:1 이력서 클리닉. 사전 신청 필요.'
 -- );
