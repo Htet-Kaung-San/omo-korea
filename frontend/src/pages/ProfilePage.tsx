@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import {
   INTEREST_OPTIONS,
-  ACADEMIC_HIERARCHY,
+  DEPARTMENT_MAJOR_OPTIONS,
   NATIONALITY_OPTIONS,
 } from "@/data/options";
 import { useAuth } from "@/context/AuthContext";
@@ -59,8 +59,6 @@ export function ProfilePage() {
   // Base details
   const [name, setName] = useState("");
   const [nationality, setNationality] = useState("");
-  const [selectedCollege, setSelectedCollege] = useState("");
-  const [selectedDept, setSelectedDept] = useState("");
   const [major, setMajor] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [completedCourses, setCompletedCourses] = useState<string[]>([]);
@@ -95,19 +93,6 @@ export function ProfilePage() {
     setCompletedCourses(user.completed_courses || []);
     setDeletionRequested(user.deletion_requested || false);
     setIntakeTerm(user.intake_term || "March");
-
-    // Resolve College and Department from user's current major
-    if (user.major) {
-      for (const college of ACADEMIC_HIERARCHY) {
-        for (const dept of college.departments) {
-          if (dept.majors.includes(user.major)) {
-            setSelectedCollege(college.name);
-            setSelectedDept(dept.name);
-            break;
-          }
-        }
-      }
-    }
   }, [user]);
 
   useEffect(() => {
@@ -807,80 +792,24 @@ export function ProfilePage() {
           </div>
         </div>
 
-        {/* Academic Hierarchy: College -> Department -> Major */}
+        {/* Academic Field: single Department / Major picker */}
         <div className="space-y-3.5 border-t border-pnu-border/40 pt-4 mt-2">
           <h3 className="text-xs font-bold text-pnu-text uppercase tracking-wider mb-1">
             {t("profile.academicFields")}
           </h3>
 
-          {/* College Select */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-pnu-text flex items-center gap-1.5">
-              <BookOpen className="w-4.5 h-4.5 text-pnu-muted" />
-              {t("profile.college")}
-            </label>
-            <select
-              value={selectedCollege}
-              onChange={(e) => {
-                setSelectedCollege(e.target.value);
-                setSelectedDept("");
-                setMajor("");
-              }}
-              className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
-            >
-              <option value="">{t("profile.selectCollege")}</option>
-              {ACADEMIC_HIERARCHY.map((c) => (
-                <option key={c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Department Select */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-pnu-text flex items-center gap-1.5">
               <BookOpen className="w-4.5 h-4.5 text-pnu-muted" />
               {t("profile.department")}
             </label>
             <select
-              value={selectedDept}
-              disabled={!selectedCollege}
-              onChange={(e) => {
-                setSelectedDept(e.target.value);
-                setMajor("");
-              }}
-              className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20 disabled:opacity-65"
-            >
-              <option value="">
-                {selectedCollege ? t("profile.selectDepartment") : t("profile.selectCollegeFirst")}
-              </option>
-              {(ACADEMIC_HIERARCHY.find((c) => c.name === selectedCollege)?.departments || []).map((d) => (
-                <option key={d.name} value={d.name}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Major Select */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-pnu-text flex items-center gap-1.5">
-              <BookOpen className="w-4.5 h-4.5 text-pnu-muted" />
-              {t("profile.major")}
-            </label>
-            <select
               value={major}
-              disabled={!selectedDept}
               onChange={(e) => setMajor(e.target.value)}
-              className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20 disabled:opacity-65"
+              className="w-full rounded-xl border border-pnu-border bg-white px-3.5 py-3 text-sm outline-none focus:border-pnu-blue-light focus:ring-2 focus:ring-pnu-blue-light/20"
             >
-              <option value="">
-                {selectedDept ? t("profile.selectMajor") : t("profile.selectDepartmentFirst")}
-              </option>
-              {((ACADEMIC_HIERARCHY.find((c) => c.name === selectedCollege)
-                ?.departments || []).find((d) => d.name === selectedDept)
-                ?.majors || []).map((m) => (
+              <option value="">{t("profile.selectDepartment")}</option>
+              {DEPARTMENT_MAJOR_OPTIONS.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
