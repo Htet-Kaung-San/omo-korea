@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
-// ── LoginPage ─────────────────────────────────────────────────────────────────
+// ?? LoginPage ?????????????????????????????????????????????????????????????????
 
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`. Deliberately
 // not a real student's account and deliberately not an admin, because this repo
@@ -169,7 +169,7 @@ export function LoginPage() {
               {submitting ? t('auth.loggingIn') : t('auth.login')}
             </button>
 
-            {/* Demo account — one-click access for reviewers */}
+            {/* Demo account ??? one-click access for reviewers */}
             <button
               type="button"
               onClick={() => {
@@ -182,19 +182,6 @@ export function LoginPage() {
               Use demo account
             </button>
           </form>
-
-          {/* Sign Up Prompt */}
-          <div className="mt-6 flex justify-center text-[13.5px]">
-            <span className="text-pnu-muted mr-1.5">Don't have an account?</span>
-            <Link
-              to="/signup"
-              className="font-bold text-pnu-blue hover:text-pnu-blue-light transition-colors"
-            >
-              Sign up
-            </Link>
-          </div>
-
-
         </div>
       </div>
 

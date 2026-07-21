@@ -4,7 +4,7 @@ export type CourseType = 'REQUIRED' | 'ELECTIVE' | 'GEN_ED'
 
 export type NotificationCategory = 'REGISTRATION' | 'DEADLINE' | 'GENERAL'
 export type NotificationPriority = 'HIGH' | 'NORMAL'
-export type NoticeChannel = 'department' | 'international' | 'general'
+export type NoticeChannel = 'department' | 'international' | 'general' | 'scholarship'
 
 export interface User {
   studentId: string
@@ -30,22 +30,6 @@ export interface AuthResponse {
 export interface LoginRequest {
   studentId: string
   password: string
-}
-
-export interface SignupRequest {
-  studentId: string;
-  name: string;
-  nationality: string;
-  major: string;
-  student_type: "Freshman" | "Current";
-  visa_status: string;
-  password: string;
-  language_pref?: string;
-  is_in_korea?: boolean;
-  mbti?: string;
-  d2_semester?: number;
-  completed_courses?: string[];
-  intake_term?: "March" | "September";
 }
 
 export interface MajorRecommendationRequest {
@@ -501,7 +485,6 @@ export interface HeyPnuApi {
   getPrograms(): Promise<ProgramItem[]>
   getMemory(): Promise<string>
   updateMemory(memory: string): Promise<void>
-  signup(data: SignupRequest): Promise<void>
   recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>
   getCourses(campus?: string): Promise<Course[]>
   getEnrollments(studentId: string): Promise<Enrollment[]>

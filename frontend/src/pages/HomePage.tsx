@@ -11,8 +11,8 @@ import { useLanguage } from '@/context/LanguageContext'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { QuickAccessGrid } from '@/components/home/QuickAccessGrid'
-import { CafeteriaTodayPreview } from '@/components/home/CafeteriaTodayPreview'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { mergeNoticeFeed } from '@/utils/noticeFeed'
 
 function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
   if (!item.creditRequirement || !progress) return false
@@ -48,15 +48,13 @@ export function HomePage() {
       api.getGraduationProgress(),
       api.getChecklist(),
       api.getNotifications(),
+      api.getScholarships().catch(() => []),
     ])
-      .then(([grad, checklistPayload, notifications]) => {
+      .then(([grad, checklistPayload, notifications, scholarships]) => {
         setProgress(grad)
         setChecklist(checklistPayload.items)
         setChecklistVariant(checklistPayload.variant)
-        const sorted = [...notifications].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-        )
-        setNotices(sorted)
+        setNotices(mergeNoticeFeed(notifications, scholarships))
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
       .finally(() => setLoading(false))
@@ -170,8 +168,6 @@ export function HomePage() {
           <LatestNoticeCarousel notices={notices} />
 
           <QuickAccessGrid />
-
-          <CafeteriaTodayPreview />
         </div>
       )}
     </div>

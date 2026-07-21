@@ -5,7 +5,8 @@ import { useLanguage } from '@/context/LanguageContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/LoginPage'
-import { SignupPage } from '@/pages/SignupPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
 import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
@@ -42,6 +43,7 @@ import { AcademicRecordsPage } from '@/pages/AcademicRecordsPage'
 import { ProfileStubPage } from '@/pages/ProfileStubPage'
 import { SavedPage } from '@/pages/SavedPage'
 import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
@@ -61,14 +63,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
-import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
-
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route

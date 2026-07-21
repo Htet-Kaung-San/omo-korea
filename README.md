@@ -251,9 +251,18 @@ npm install
 `frontend/.env`: set `VITE_API_MODE=real`, `VITE_API_BASE_URL=http://localhost:3000/api`, and `VITE_NAVER_MAP_CLIENT_ID`. Never put secrets in `VITE_*` variables.
 
 ### 3) Supabase SQL (run once in the SQL Editor)
-Apply the migration files under [`backend/supabase/`](backend/supabase/) — e.g. `map_profile_migration.sql`, `community.sql`, `notice_source.sql`, `support_contacts.sql`, and `post_engagement_and_schedule.sql` (post likes/reports + course schedule columns).
 
-Optional seed scripts:
+Apply these once (safe to re-run where noted):
+
+1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables
+2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ
+3. `backend/supabase/community.sql` — community groups + posts
+4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards
+5. `backend/supabase/extracurricular_program_descriptions.sql` — single `description` column for program body
+6. `backend/supabase/post_engagement_and_schedule.sql` — post likes/reports + course schedule columns
+
+Optional seed scripts (after migrations):
+
 ```bash
 cd backend
 npm run seed:map-profile
@@ -270,6 +279,8 @@ cd backend && npm run dev
 # Terminal 2 — UI on http://localhost:5173
 cd frontend && npm run dev
 ```
+
+Sign in with your PNU student ID and password.
 
 ### Tests
 ```bash

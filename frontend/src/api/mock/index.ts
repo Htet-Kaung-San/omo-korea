@@ -18,7 +18,6 @@ import type {
   GraduationProgress,
   HeyPnuApi,
   LoginRequest,
-  SignupRequest,
 
   MajorRecommendationResponse,
   Course,
@@ -457,10 +456,6 @@ export const mockApi: HeyPnuApi = {
   async updateMemory(memory: string): Promise<void> {
     await delay()
     localStorage.setItem('mock_memory', memory)
-  },
-
-  async signup(_data: SignupRequest): Promise<void> {
-    await delay()
   },
 
   async recommendMajor(): Promise<MajorRecommendationResponse> {
