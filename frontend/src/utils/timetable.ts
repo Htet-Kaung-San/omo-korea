@@ -227,7 +227,7 @@ export function getNextClass(enrollments: Enrollment[], now = new Date()): NextC
   for (const enrollment of enrollments) {
     const slots = getCourseSchedule(enrollment.course_id)
     for (const slot of slots) {
-      let dayOffset = 0
+      let dayOffset: number
       if (currentDay === 0) {
         // Weekend → next Monday + day-1
         dayOffset = (1 - now.getDay() + 7) % 7 || 7

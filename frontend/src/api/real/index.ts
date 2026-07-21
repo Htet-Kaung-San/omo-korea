@@ -34,7 +34,6 @@ import type {
   User,
 } from '@/types/api'
 import { apiFetch, clearStoredToken, getStoredToken } from '../client'
-import { CHAT_SUGGESTIONS } from '../mock/data'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,

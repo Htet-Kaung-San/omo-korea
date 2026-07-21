@@ -8,6 +8,8 @@
     "seed:map-profile": "node scripts/seed-map-profile.mjs",
     "seed:support": "node scripts/seed-support.mjs",
     "seed:notices": "node scripts/seed-notices.mjs",
+    "seed:test-fixtures": "node scripts/seed-test-fixtures.mjs",
+    "seed:courses": "node scripts/seed-courses-from-catalog.mjs",
     "test": "jest"
   },
   "keywords": [],

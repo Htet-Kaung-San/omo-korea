@@ -12,13 +12,7 @@ export function ManageMemoryModal({ isOpen, onClose }: ManageMemoryModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadMemory();
-    }
-  }, [isOpen]);
-
-  const loadMemory = async () => {
+  async function loadMemory() {
     setIsLoading(true);
     try {
       const data = await api.getMemory();
@@ -28,7 +22,13 @@ export function ManageMemoryModal({ isOpen, onClose }: ManageMemoryModalProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (isOpen) {
+      loadMemory();
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     setIsSaving(true);

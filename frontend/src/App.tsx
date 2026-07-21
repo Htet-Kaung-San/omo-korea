@@ -5,6 +5,8 @@ import { useLanguage } from '@/context/LanguageContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/LoginPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
 import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
@@ -41,6 +43,7 @@ import { AcademicRecordsPage } from '@/pages/AcademicRecordsPage'
 import { ProfileStubPage } from '@/pages/ProfileStubPage'
 import { SavedPage } from '@/pages/SavedPage'
 import { AcademicCalendarPage } from '@/pages/AcademicCalendarPage'
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
@@ -64,6 +67,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route
         element={
           <ProtectedRoute>
