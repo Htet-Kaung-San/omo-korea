@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
-  Bell,
   Bookmark,
-  Building2,
   ChevronRight,
   Clock3,
   FileText,
@@ -12,7 +10,6 @@ import {
   FlaskConical,
   Gift,
   Globe2,
-  LayoutGrid,
   Laptop,
   Megaphone,
   Plane,
@@ -33,8 +30,7 @@ import { useSavedNotices } from '@/utils/savedNotices'
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 
-type ChannelFilter = 'all' | NoticeChannel
-type FeedTab = 'latest' | 'unread' | 'important'
+type FeedTab = 'latest' | 'important'
 
 type DisplayNotice = Notification & {
   channel: NoticeChannel
@@ -184,7 +180,6 @@ export function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all')
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
@@ -211,47 +206,23 @@ export function NotificationsPage() {
 
   const catalog = useMemo(() => notifications.map(toDisplay), [notifications])
 
-  const unreadCount = useMemo(
-    () => catalog.filter((n) => !n.read).length,
-    [catalog],
-  )
-
-  const channelFiltered = useMemo(() => {
-    if (channelFilter === 'all') return catalog
-    return catalog.filter((n) => n.channel === channelFilter)
-  }, [catalog, channelFilter])
-
   const summaryItems = useMemo(
     () =>
-      [...channelFiltered]
+      [...catalog]
         .filter((n) => n.priority === 'HIGH' || (n.daysLeft != null && n.daysLeft >= 0 && n.daysLeft <= 14))
         .sort((a, b) => (a.daysLeft ?? 999) - (b.daysLeft ?? 999))
         .slice(0, 4),
-    [channelFiltered],
+    [catalog],
   )
 
   const feedItems = useMemo(() => {
-    let list = [...channelFiltered]
-    if (feedTab === 'unread') list = list.filter((n) => !n.read)
+    let list = [...catalog]
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }, [channelFiltered, feedTab])
-
-  const channelChips: {
-    id: ChannelFilter
-    labelKey: string
-    icon: LucideIcon
-  }[] = [
-    { id: 'all', labelKey: 'notices.filterAll', icon: LayoutGrid },
-    { id: 'department', labelKey: 'notices.channelDepartment', icon: Building2 },
-    { id: 'international', labelKey: 'notices.channelInternational', icon: Globe2 },
-    { id: 'scholarship', labelKey: 'notices.channelScholarship', icon: Gift },
-    { id: 'general', labelKey: 'notices.channelGeneral', icon: Megaphone },
-  ]
+  }, [catalog, feedTab])
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
     { id: 'latest', labelKey: 'notices.tabLatest', icon: Clock3 },
-    { id: 'unread', labelKey: 'notices.tabUnread', icon: Bell },
     { id: 'important', labelKey: 'notices.tabImportant', icon: Star },
   ]
 
@@ -262,57 +233,23 @@ export function NotificationsPage() {
   return (
     <div className="min-h-full bg-[#F5F7FB]">
       <header className="sticky top-0 z-10 bg-[#F5F7FB]/95 px-3 pb-2 pt-2.5 backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 items-start gap-2 pt-0.5">
-            <button
-              type="button"
-              aria-label={t('common.goBack')}
-              onClick={() => navigate(-1)}
-              className="mt-0.5 rounded-xl bg-white p-1.5 text-pnu-muted shadow-sm ring-1 ring-black/8 transition hover:text-pnu-blue"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="text-[22px] font-bold leading-none tracking-tight text-pnu-text">
-                {t('notices.title')}
-              </h1>
-              <p className="mt-1 text-[12px] font-medium text-pnu-muted">
-                {t('notices.subtitle')}
-              </p>
-            </div>
-          </div>
+        <div className="flex items-start gap-2 pt-0.5">
           <button
             type="button"
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[#F3E8FF] text-[#7C3AED]"
-            aria-label={t('notifications.title')}
+            aria-label={t('common.goBack')}
+            onClick={() => navigate(-1)}
+            className="mt-0.5 rounded-xl bg-white p-1.5 text-pnu-muted shadow-sm ring-1 ring-black/8 transition hover:text-pnu-blue"
           >
-            <Bell className="h-4 w-4" strokeWidth={2} />
-            {unreadCount > 0 ? (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#F3E8FF]" />
-            ) : null}
+            <ArrowLeft className="h-5 w-5" />
           </button>
-        </div>
-
-        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-0.5">
-          {channelChips.map(({ id, labelKey, icon: Icon }) => {
-            const active = channelFilter === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setChannelFilter(id)}
-                className={[
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition',
-                  active
-                    ? 'bg-[#7C3AED] text-white shadow-sm'
-                    : 'bg-white text-[#7C3AED] ring-1 ring-[#7C3AED]/25',
-                ].join(' ')}
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                {t(labelKey)}
-              </button>
-            )
-          })}
+          <div className="min-w-0">
+            <h1 className="text-[22px] font-bold leading-none tracking-tight text-pnu-text">
+              {t('notices.title')}
+            </h1>
+            <p className="mt-1 text-[12px] font-medium text-pnu-muted">
+              {t('notices.subtitle')}
+            </p>
+          </div>
         </div>
       </header>
 
@@ -362,11 +299,7 @@ export function NotificationsPage() {
                           : 'bg-white text-pnu-muted ring-1 ring-black/8',
                       ].join(' ')}
                     >
-                      {id === 'unread' && !active ? (
-                        <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
-                      ) : (
-                        <Icon className="h-3 w-3" strokeWidth={2} />
-                      )}
+                      <Icon className="h-3 w-3" strokeWidth={2} />
                       {t(labelKey)}
                     </button>
                   )
