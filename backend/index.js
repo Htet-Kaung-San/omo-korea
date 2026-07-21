@@ -61,8 +61,8 @@ app.use("/api/ai", aiRoutes);
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Hey! PNU backend running on http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Hey! PNU backend running on http://0.0.0.0:${PORT}`);
   });
 }
 
