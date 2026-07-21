@@ -213,7 +213,11 @@ export const realApi: HeyPnuApi = {
   },
 
   async getChatSuggestions(): Promise<string[]> {
-    return CHAT_SUGGESTIONS
+    return [
+      'Course registration',
+      'Graduation credits',
+      'Dorm housing',
+    ]
   },
 
   async getCareerOpportunities(

@@ -26,9 +26,9 @@ import {
 type Message = ChatMessage
 
 const DEFAULT_SUGGESTIONS = [
-  'How to extend my visa?',
-  'Part-time job rules?',
   'Course registration',
+  'Graduation credits',
+  'Dorm housing',
 ]
 
 function formatTime(ts: number, locale: string) {
