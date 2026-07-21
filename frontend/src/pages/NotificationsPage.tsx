@@ -28,6 +28,7 @@ import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { useLanguage } from '@/context/LanguageContext'
 import type { NoticeChannel, Notification } from '@/types/api'
 import { isExternalNotice, noticeHref } from '@/utils/notices'
+import { mergeNoticeFeed } from '@/utils/noticeFeed'
 import { useSavedNotices } from '@/utils/savedNotices'
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
@@ -58,8 +59,9 @@ function daysUntil(dateIso: string): number | null {
 function inferChannel(n: Notification): NoticeChannel {
   if (n.channel) return n.channel
   const hay = `${n.title} ${n.body} ${n.source ?? ''}`.toLowerCase()
+  if (/scholarship|gift|aid|장학|bursary|stipend/.test(hay)) return 'scholarship'
   if (/international|visa|dorm|exchange|외국인|국제|기숙사/.test(hay)) return 'international'
-  if (/department|학과|major|course registration|scholarship|research|engineering|computer/.test(hay)) {
+  if (/department|학과|major|course registration|research|engineering|computer/.test(hay)) {
     return 'department'
   }
   if (n.category === 'GENERAL') return 'general'
@@ -91,6 +93,15 @@ function pickVisual(n: Notification, channel: NoticeChannel): {
       channelTextTone: 'text-[#E11D48]',
     }
   }
+  if (/scholarship|gift|aid|장학|bursary|stipend/.test(hay) || channel === 'scholarship') {
+    return {
+      Icon: Gift,
+      iconTone: 'bg-[#DCFCE7] text-[#16A34A]',
+      dotTone: 'bg-[#16A34A]',
+      channelLabelKey: 'notices.channelScholarship',
+      channelTextTone: 'text-[#16A34A]',
+    }
+  }
   if (/dorm|housing|plane|flight/.test(hay)) {
     return {
       Icon: Plane,
@@ -98,15 +109,6 @@ function pickVisual(n: Notification, channel: NoticeChannel): {
       dotTone: 'bg-[#E11D48]',
       channelLabelKey: 'notices.channelInternational',
       channelTextTone: 'text-[#E11D48]',
-    }
-  }
-  if (/scholarship|gift|aid/.test(hay)) {
-    return {
-      Icon: Gift,
-      iconTone: 'bg-[#DCFCE7] text-[#16A34A]',
-      dotTone: 'bg-[#F59E0B]',
-      channelLabelKey: 'notices.channelDepartment',
-      channelTextTone: 'text-[#7C3AED]',
     }
   }
   if (/research|lab|flask/.test(hay)) {
@@ -190,15 +192,16 @@ export function NotificationsPage() {
 
   useEffect(() => {
     setLoading(true)
-    api
-      .getNotifications()
-      .then((items) => {
-        // Prefer live scraped notices; only pad with mock when API is empty.
-        if (items.length > 0) {
-          setNotifications(items)
-          return
-        }
-        setNotifications(mockNotifications)
+    Promise.all([
+      api.getNotifications().catch(() => []),
+      api.getScholarships().catch(() => []),
+    ])
+      .then(([items, scholarships]) => {
+        const feed =
+          items.length > 0
+            ? mergeNoticeFeed(items, scholarships)
+            : mergeNoticeFeed(mockNotifications, scholarships)
+        setNotifications(feed)
       })
       .catch((err) =>
         setError(err instanceof Error ? err.message : t('notifications.loadError')),
@@ -242,6 +245,7 @@ export function NotificationsPage() {
     { id: 'all', labelKey: 'notices.filterAll', icon: LayoutGrid },
     { id: 'department', labelKey: 'notices.channelDepartment', icon: Building2 },
     { id: 'international', labelKey: 'notices.channelInternational', icon: Globe2 },
+    { id: 'scholarship', labelKey: 'notices.channelScholarship', icon: Gift },
     { id: 'general', labelKey: 'notices.channelGeneral', icon: Megaphone },
   ]
 

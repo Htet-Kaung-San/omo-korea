@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
-  Award,
   BookOpen,
   Briefcase,
   GraduationCap,
   Megaphone,
   Sparkles,
   Users,
+  UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
@@ -17,13 +17,18 @@ const CARD_SHADOW = '0 12px 32px rgba(15,23,42,0.08)'
 const tiles: Array<{ to: string; labelKey: string; icon: LucideIcon; tone: string }> = [
   { to: '/courses', labelKey: 'home.qaCourses', icon: BookOpen, tone: 'bg-[#E8F3FF] text-[#005BAC]' },
   { to: '/credits', labelKey: 'home.qaGraduation', icon: GraduationCap, tone: 'bg-[#F3E8FF] text-[#7C3AED]' },
-  { to: '/academic/scholarships', labelKey: 'home.qaScholarships', icon: Award, tone: 'bg-[#FFF4E5] text-[#EA580C]' },
-  { to: '/notifications', labelKey: 'home.qaNotices', icon: Megaphone, tone: 'bg-[#FFE8EC] text-[#E11D48]' },
   {
     to: '/academic/programs',
     labelKey: 'home.qaExtracurricular',
     icon: Sparkles,
     tone: 'bg-[#E8F8ED] text-[#16A34A]',
+  },
+  { to: '/notifications', labelKey: 'home.qaNotices', icon: Megaphone, tone: 'bg-[#FFE8EC] text-[#E11D48]' },
+  {
+    to: '/campus-life/cafeteria',
+    labelKey: 'home.qaCafeteria',
+    icon: UtensilsCrossed,
+    tone: 'bg-[#FFF4E5] text-[#EA580C]',
   },
   { to: '/career-opportunities', labelKey: 'home.qaInternships', icon: Briefcase, tone: 'bg-[#FEF9C3] text-[#CA8A04]' },
   { to: '/support/emergency', labelKey: 'home.qaEmergency', icon: AlertTriangle, tone: 'bg-[#FEE2E2] text-[#DC2626]' },

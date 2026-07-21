@@ -69,7 +69,7 @@ function mapProgramRow(row, extras = {}) {
   return {
     id: String(row.program_id ?? row.id),
     title: row.name || 'Untitled program',
-    description: row.category ? String(row.category) : '',
+    description: row.description ? String(row.description) : '',
     date: formatDeadline(row.deadline),
     category: row.category || null,
     sourceUrl: row.source_url || null,
@@ -82,7 +82,7 @@ function toEngineProgram(row) {
   return {
     id: String(row.program_id ?? row.id),
     title: row.name || 'Untitled program',
-    description: row.category || '',
+    description: row.description || row.category || '',
     date: row.deadline || '',
     category: row.category || null,
     tags: categoryTags(row.category),
@@ -96,7 +96,7 @@ function toEngineProgram(row) {
 async function fetchOpenCatalogPrograms({ fetchLimit = 100 } = {}) {
   const { data, error } = await supabase
     .from('extracurricular_program')
-    .select('program_id, name, category, deadline, source_url')
+    .select('*')
     .order('deadline', { ascending: true, nullsFirst: false })
     .limit(fetchLimit);
 

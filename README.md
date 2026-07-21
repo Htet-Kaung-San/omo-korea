@@ -72,7 +72,8 @@ Apply these once (safe to re-run where noted):
 1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables
 2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ
 3. `backend/supabase/community.sql` — community groups + posts
-4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards
+4. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards  
+5. `backend/supabase/extracurricular_program_descriptions.sql` — single `description` column for program body  
 
 Optional seed scripts (after migrations):
 
@@ -104,8 +105,7 @@ cd frontend
 npm run dev
 ```
 
-Demo login (if seeded): student ID `202600001` / password `password`
-(Or your existing Supabase student account.)
+Sign in with your PNU student ID and password.
 
 ## Naver Maps (campus map)
 

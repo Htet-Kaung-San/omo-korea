@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { Eye, EyeOff, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -13,7 +13,7 @@ export function LoginPage() {
   const { login, isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
 
-  // Pre-fill fields for judges and testers, with Remember Me support
+  // Pre-fill student ID when Remember Me was used previously
   const [studentId, setStudentId] = useState(
     () => localStorage.getItem("hey_pnu_remembered_student_id") || ""
   )
@@ -84,7 +84,7 @@ export function LoginPage() {
       // We will assume the UI-frontend backend endpoint still works or will be implemented
       const res = await api.forgotPassword(forgotStudentId.trim())
       setForgotSuccess(
-        `A password reset code has been sent to your email:\n${res.maskedEmail}\n\n(Demo code: ${res.code || "123456"})`
+        `A password reset code has been sent to your email:\n${res.maskedEmail}`
       )
       setForgotStep(2)
     } catch (err) {
@@ -235,32 +235,6 @@ export function LoginPage() {
               {submitting ? t('auth.loggingIn') : t('auth.login')}
             </button>
           </form>
-
-          {/* Sign Up Prompt */}
-          <div className="mt-6 flex justify-center text-[13.5px]">
-            <span className="text-pnu-muted mr-1.5">Don't have an account?</span>
-            <Link
-              to="/signup"
-              className="font-bold text-pnu-blue hover:text-pnu-blue-light transition-colors"
-            >
-              Sign up
-            </Link>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setStudentId('202600001')
-              setPassword('password')
-              setError('')
-            }}
-            className="mt-6 mb-6 w-full rounded-xl border border-dashed border-pnu-border bg-white/60 px-4 py-3 text-left text-xs text-pnu-muted hover:border-pnu-blue-light/40 hover:bg-white transition-colors"
-          >
-            <span className="font-semibold text-pnu-text">{t('auth.sampleAccount')}</span>
-            <span className="mt-1 block">
-              {t('auth.sampleAccountHint', { id: '202600001', password: 'password' })}
-            </span>
-          </button>
         </div>
       </div>
 

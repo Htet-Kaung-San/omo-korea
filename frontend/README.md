@@ -12,16 +12,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`.
-
-## Demo login
-
-| Mode | Student ID | Password |
-|------|------------|----------|
-| Mock | any 9-digit ID (e.g. `202012345`) | `password` |
-| Real (if seeded) | `202600001` | `password` |
-
-Freshman status: the first 4 digits of `studentId` are treated as admission year.
+Open `http://localhost:5173` and sign in with your PNU student ID and password.
 
 ## Current features
 
