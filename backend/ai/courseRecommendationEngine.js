@@ -81,17 +81,10 @@ function getCourseYear(course = {}) {
 }
 
 function getStudentYear(studentProfile = {}) {
-  const explicitYear = Number(studentProfile.year || studentProfile.studentYear);
-  if (Number.isFinite(explicitYear) && explicitYear > 0) {
-    return Math.min(4, Math.max(1, explicitYear));
-  }
+  const explicitYear = Number(studentProfile.year ?? studentProfile.studentYear);
 
-  const studentId = normalizeId(studentProfile.studentId || studentProfile.student_id);
-  const admissionYear = Number(studentId.slice(0, 4));
-  const currentYear = new Date().getFullYear();
-
-  if (Number.isFinite(admissionYear) && admissionYear >= 2000 && admissionYear <= currentYear) {
-    return Math.min(4, Math.max(1, currentYear - admissionYear + 1));
+  if (Number.isInteger(explicitYear) && explicitYear >= 1 && explicitYear <= 8) {
+    return explicitYear;
   }
 
   return null;
@@ -292,4 +285,3 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
 module.exports = {
   recommendCourses,
 };
-

@@ -113,7 +113,7 @@ function adaptStudentProfile(rawInput = {}) {
   gpa: normalizeNumber(profile.gpa),
   nationality: normalizeString(profile.nationality),
   year: normalizeNumber(profile.year),
-  mbti: normalizeString(profile.mbti).toUpperCase(),
+  mbti: normalizeString(profile.mbti)?.toUpperCase() ?? null,
       academicAreas: normalizeReadableArray(profile.academicAreas),
       activities: normalizeReadableArray(profile.activities),
       strengths: normalizeReadableArray(profile.strengths),
@@ -127,5 +127,3 @@ function adaptStudentProfile(rawInput = {}) {
 module.exports = {
   adaptStudentProfile,
 };
-
-
