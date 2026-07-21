@@ -1,0 +1,10712 @@
+[
+ {
+  "major_id": 4,
+  "course_name": "국어국문학의기초",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 4,
+  "course_name": "문학의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 4,
+  "course_name": "고전문학자료와해석",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 4,
+  "course_name": "현대소설론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "현대문학텍스트읽기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어단어의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "문예비평",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 4,
+  "course_name": "한국학의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어문장분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어와방언",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "문학주제론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "시조와가사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "지역스토리텔링",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어의의미",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "국어맞춤법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 4,
+  "course_name": "고전작가의삶과문학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "초급중국어말하기",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 15,
+  "course_name": "초급중국어듣기",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국문학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국어문법과활용",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 15,
+  "course_name": "초급중국어쓰기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중급중국어말하기및듣기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국현대문학작품감상",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국영화와문화산업",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국고대문학사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국현대소설",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국어교과교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "고급중국어말하기및듣기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "기초중국어방언(회화)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국어교과논리및논술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국뉴스읽기와듣기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "고대중국어의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 15,
+  "course_name": "중국고전소설과콘텐츠",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "기초일본어(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어연습(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어문법(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본사정",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어회화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일문독해(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어강독",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본고전문법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본문학특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어작문(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본현대소설",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "현대일본대중문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본문학번역연습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본의언어와문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 10,
+  "course_name": "일본어교과교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영어회화",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영문학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영어음성음운론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 16,
+  "course_name": "중급영어회화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영문법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영문학사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영미문화의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "미국문학의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영어교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "영어의미론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 16,
+  "course_name": "고급영어작문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 16,
+  "course_name": "응용언어학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "기초프랑스어",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "기초프랑스어회화",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스어강독",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "유럽과프랑스미디어이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스산문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스어회화(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스어 확장구조와 문법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스문학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "17~18세기프랑스문학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "언어구조와번역(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스사회와역사(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스시",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스어글쓰기(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "프랑스어와의미",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 12,
+  "course_name": "20세기프랑스문학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 17,
+  "course_name": "기초독일어회화(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 17,
+  "course_name": "독문학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 17,
+  "course_name": "독일문화의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 17,
+  "course_name": "독일문학사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 17,
+  "course_name": "시청각독일어(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 17,
+  "course_name": "초급독일어회화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 17,
+  "course_name": "독일어문장구조",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 17,
+  "course_name": "독일시의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 17,
+  "course_name": "중급독일어회화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 17,
+  "course_name": "집중독일어(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "초급러시아어회화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "초급러시아어문법(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아문화와예술",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 13,
+  "course_name": "중급러시아어문법(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아언어학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 13,
+  "course_name": "중급러시아어회화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아문학과노벨문학상",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아역사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아소설의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 13,
+  "course_name": "토르플듣기·말하기(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아어번역연습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "토르플읽기·쓰기(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아영화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 13,
+  "course_name": "러시아문학비평",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "유적답사(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "동양사개설",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "서양사개설",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "동양사문헌강독",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "한국의역사가와학문세계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "유적답사(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "서양고중세사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "일본사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "한국고대사의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "서양의역사가와역사책",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 18,
+  "course_name": "동양중세사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "서양여성사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "조선시대사의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "서양사세미나",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "동양근현대사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 18,
+  "course_name": "한국현대사의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "논리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 19,
+  "course_name": "철학의기초",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 19,
+  "course_name": "중국철학사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 19,
+  "course_name": "사회철학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 19,
+  "course_name": "심화논리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "응용윤리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "인식론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 19,
+  "course_name": "칸트의철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "불교철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "미학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "중국도가철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "철학교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "법철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "철학논술교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "문화철학심층탐구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "기술철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 19,
+  "course_name": "현대사회와인도사상",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문고전의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한학연구입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문문학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문문법입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 14,
+  "course_name": "금석서예실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문학사의쟁점",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한국한문학배경론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한국한문학작가론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "역대한시명작선독",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "고급한문강독(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문문학과지역문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 14,
+  "course_name": "한문문학과전통문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "문화유산답사(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "고고학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "한국고고학개설",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "청동기시대고고학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "야외고고학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "불교고고학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "삼국시대고고학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "문화유산답사(II)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "문화유산답사(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 20,
+  "course_name": "디지털고고학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "일본고고학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "고고학연습(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "자연과학과고고학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "가야고고학특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "고고학특강(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "동아시아고고학특강(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 20,
+  "course_name": "고구려.백제고고학특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "언어와문화의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 21,
+  "course_name": "말소리의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 21,
+  "course_name": "통사론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 21,
+  "course_name": "언어와컴퓨팅",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 21,
+  "course_name": "실험음성학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "외국어로서의한국어교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "의미론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 21,
+  "course_name": "심리언어학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "언어학사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "광고언어학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "심화의미론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 21,
+  "course_name": "언어학강독",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "행정학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 22,
+  "course_name": "R 기반 조사방법론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 22,
+  "course_name": "일반행정법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 22,
+  "course_name": "인공지능과 디지털 거버넌스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "조직론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "한국정부론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "정책학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 22,
+  "course_name": "행정논술",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 22,
+  "course_name": "빅데이터기반 정책결정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "도시행정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 22,
+  "course_name": "행정학특강1",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 25,
+  "course_name": "정치학원론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 25,
+  "course_name": "헌법상통치구조",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 25,
+  "course_name": "국제정치론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 25,
+  "course_name": "서양정치사상",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 25,
+  "course_name": "한국정치론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 25,
+  "course_name": "미국정치론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 25,
+  "course_name": "외교정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 25,
+  "course_name": "현대국제안보",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 25,
+  "course_name": "국제기구론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "인간행동과사회환경",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회복지학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회복지실천론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 23,
+  "course_name": "여성복지론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "자원봉사론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회문제론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "의료사회복지론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회복지실천기술론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회복지행정론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 23,
+  "course_name": "청소년복지론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "프로그램개발과평가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "교정복지론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "집단지도방법론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "노인복지정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "국제사회복지론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "사회보장론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 23,
+  "course_name": "심화사회복지현장실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "사회사상사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 26,
+  "course_name": "사회학개론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 26,
+  "course_name": "사회학사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 26,
+  "course_name": "문화사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "가족사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "사회통계학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 26,
+  "course_name": "디지털과영상사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "도시사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "사회갈등론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "인권과사회운동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "경영과노동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "건강과질병의사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "해양사회학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "인터넷과정보사회",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 26,
+  "course_name": "세계화와사회변동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "심리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 27,
+  "course_name": "심리통계및실습(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 27,
+  "course_name": "청년심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "상담이론과 실제",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "학습심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "성격심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "공학심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "특수아상담",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "진로상담",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "심리평가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "의사소통의심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "상담사례연구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "가족상담",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "정서및동기심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 27,
+  "course_name": "뇌정보처리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "정보문화사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 28,
+  "course_name": "문헌정보학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 28,
+  "course_name": "지식분류론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "정보시스템론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "한국문헌학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "어린이와청소년자료",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "참고정보서비스론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 28,
+  "course_name": "디지털자료관리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "기록학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "정보검색론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "공공·학교도서관실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "독서지도론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "디지털도서관",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "교육매체론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 28,
+  "course_name": "문헌정보학연구법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "미디어커뮤니케이션학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 29,
+  "course_name": "저널리즘의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 29,
+  "course_name": "광고론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 29,
+  "course_name": "커뮤니케이션이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "비주얼커뮤니케이션",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "방송콘텐츠제작실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "뉴미디어콘텐츠제작및실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "엔터테인먼트콘텐츠의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "기사작성론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "대중문화론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 29,
+  "course_name": "데이터저널리즘",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "﻿디지털미디어와문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "정치광고론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "커뮤니케이션기초통계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 29,
+  "course_name": "언론학특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학적프로그래밍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "기초수학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학(I)실습",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "미분방정식(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "보험수학입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "선형대수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학(III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학(III)실습",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "해석학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "대수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "위상수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "실변수함수론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 30,
+  "course_name": "벡터해석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "미분기하학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "복소변수함수론(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "현대대수학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "편미분방정식",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 30,
+  "course_name": "수학적알고리즘(캡스톤디자인)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "기초역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "기초역학실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "현대물리기초(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "수리물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "AI와 머신러닝",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "기초양자실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "전자기학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "열물리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "양자역학입문(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "광학실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 35,
+  "course_name": "광학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "물리학도를 위한 응용전자공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "반도체물리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "응용고체물리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "입자물리학입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "핵물리학입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 35,
+  "course_name": "고급물리실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "통계학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "수리통계학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "통계프로그래밍언어(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "행렬대수",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "통계수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "통계적확률론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "회귀분석(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "다변량통계학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 31,
+  "course_name": "생물통계학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "통계적품질관리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "실험계획법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "베이지안통계학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "데이터마이닝입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 31,
+  "course_name": "시계열분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "물리화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "분석화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "유기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "생화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "무기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "기기 및 물리화학실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "유기화학(III)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "분자분광학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "기기분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "생화학실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 36,
+  "course_name": "생화학(III)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "유기금속화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "화학연구실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "나노소재화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 36,
+  "course_name": "컴퓨터응용화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "생명과학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "생명과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "일반생화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "일반미생물학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "일반미생물학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "분자생물학(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "미생물생리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 32,
+  "course_name": "에코데이터사이언스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "환경미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "병원미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "병원미생물학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "식품미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "식품미생물학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "식물미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 32,
+  "course_name": "미생물단백질조절론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "생명과학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "생명과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "생화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "분자생물학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "분자생물학실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "분자유전학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "세포생물학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 37,
+  "course_name": "분자생리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "분자의생명과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "식물분자생물학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "후생학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "식물분자세포생리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "RNA생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "기초신경생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "생식발생학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "고급분자생물학연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 37,
+  "course_name": "응용면역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "생명과학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "생명과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "세포생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "생물공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "동물계통분류학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "식물형태학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "생태학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "생화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "캡스톤디자인고급생명과학실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 33,
+  "course_name": "면역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "신경과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "식물발생학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "암생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 33,
+  "course_name": "기계생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 38,
+  "course_name": "물리학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "지질환경과학개론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "광물학및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "화성암석학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "구조지질학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "원격탐사학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "퇴적암석학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 38,
+  "course_name": "암석기재학및실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 38,
+  "course_name": "분석지구화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 38,
+  "course_name": "지진학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 38,
+  "course_name": "환경지질학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "대기환경과학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "수리대기과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "일반기상학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "대기통계학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "대기화학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "대기역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "종관기상학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 34,
+  "course_name": "기후학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "미기상학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "구름물리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 34,
+  "course_name": "수치예보",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 39,
+  "course_name": "해양학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "생물해양학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "물리해양학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "화학해양학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "지질해양학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "자료분석을위한파이썬",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 39,
+  "course_name": "해양조사및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 39,
+  "course_name": "딥러닝기반해양자료분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 39,
+  "course_name": "부유생물학및실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 39,
+  "course_name": "해양식물플랑크톤생태학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 39,
+  "course_name": "해양환경과오염",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "창의적공학설계",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "일반물리학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "기계공학개론",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "생명과학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "공학미분방정식",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "고체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "열역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "수치해석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "재료공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "시스템모델링및제어",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "기계요소설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "기계공학실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "공학설계실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "마이크로나노공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "기계진동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "응용유체역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "공학통계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "학생자율연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "차세대파워트레인공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 5,
+  "course_name": "종합설계과제(Capstone 2)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 5,
+  "course_name": "학생자율연구(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 40,
+  "course_name": "응용열전달",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 40,
+  "course_name": "에너지시스템설계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 41,
+  "course_name": "데이터 기반 공학설계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 41,
+  "course_name": "유한요소법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 43,
+  "course_name": "인간-기계상호작용",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 43,
+  "course_name": "메카트로닉스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 43,
+  "course_name": "스마트팩토리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 44,
+  "course_name": "원자력공학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 44,
+  "course_name": "방사선공학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 44,
+  "course_name": "발전계통공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 45,
+  "course_name": "CAD/CAM",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 45,
+  "course_name": "정밀기계계측",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "공학미적분학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "조선해양공학개론",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "공통기초실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "공학미분방정식",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "고체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "유체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "공학입문설계",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "열역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "전기공학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "동역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "파이썬프로그래밍",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "수치해석",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "선체저항",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "구조역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "건조공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "열전달",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "선체운동학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "해양구조물시스템공학 개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "선박기본설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "구조실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "운동해양실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "진동음향실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "해양구조물설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 50,
+  "course_name": "스마트제어공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "조선해양캡스톤디자인(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "전산유체역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "최적설계론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "해양자원처리공정",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 50,
+  "course_name": "선박진동학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "공학미적분학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "항공우주공학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "동역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "열역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "공학수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "고체역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "우주시스템개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "공학프로그래밍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "어드벤처디자인",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "항공역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "항공기구조역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "항공IT융합실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "CAD(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "열전달",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "궤도역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "공업교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "항공기개념설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 46,
+  "course_name": "회전익항공기공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "로켓과우주발사체",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 46,
+  "course_name": "유한요소법개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료공학입문",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "공업수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료과학개론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "열역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "유기재료화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "양자물리화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "X-선회절및결정학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료의전자기적성질",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료상평형및상변화",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "세라믹재료",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "응용재료화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "이동현상및속도론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "고분자재료개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "철강신소재",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "반도체소자개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "고체결함",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료빅데이터분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료공학실험 (II)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "재료종합설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 51,
+  "course_name": "복합재료",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "실용유리공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "제련공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 51,
+  "course_name": "금속가공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "컴퓨터프로그래밍",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "물리화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "유기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "공학미분방정식",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "물리화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "유기화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "분석화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "재료과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자물리화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자기기분석실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자화학실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자이동현상",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자기기분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "합성수지",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자가공실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "고분자가공설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 47,
+  "course_name": "기능성고분자(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 47,
+  "course_name": "나노복합재료",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "공학미적분학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "컴퓨터프로그래밍",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "산업공학현장이해",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "데이터구조및알고리즘",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "공학통계(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "제조공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "경영과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "머신러닝수학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "창의적공학설계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "CAD",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "인간공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "확률과정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "회귀분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "최적화모형과응용",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "데이터마이닝",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "공급사슬관리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "데이터베이스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "산업안전공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "시설계획및물류시스템",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "종합설계프로젝트",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 52,
+  "course_name": "딥러닝",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "시뮬레이션최적화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 52,
+  "course_name": "스마트제조",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "컴퓨터프로그래밍",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "물리화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "공학수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기소재시스템물리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기소재형성공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기바이오소재",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "하이브리드소재",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "계면공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기소재설계및실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기소재형성공학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "광기능소재개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "창의연구실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "전산소재공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 54,
+  "course_name": "반도체공정화학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "반도체공정실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "전산소재공학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 54,
+  "course_name": "유기전자재료",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "공학수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "수화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "미생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "유체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경양론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경기기분석",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "반응공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경공학수질실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "소각및열분해공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "미세먼지제어공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "온실가스관리공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경창의프로젝트",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경지능모델링",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "환경안전및핵폐기물관리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "공학컴퓨팅개론",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "공학수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "물리화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "유기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "화공양론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "공정시스템공학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "반응공학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "화공열역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "화공생명공학실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "열및물질전달",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "반도체소재물리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "기기분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "창의적설계(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 48,
+  "course_name": "나노재료및화합물과AI",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "효소및단백질공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 48,
+  "course_name": "나노재료공정",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 49,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "일반물리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "일반화학실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 49,
+  "course_name": "공학통계학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "논술과작문교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국어학의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국어문법론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "문학교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "고전소설론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "조선조시가론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "현대시론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국문학사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국어교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 56,
+  "course_name": "현대문학비평이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "희곡과영상문학론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "중세국어론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국어문법교육연습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 56,
+  "course_name": "국어교재연구및지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어회화(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영문학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어습득과통사론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 57,
+  "course_name": "교실상황프리젠테이션",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "응용영어음성학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어독해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "외국어교수학습론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영미문학사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 57,
+  "course_name": "교사전문성발달을위한영어회화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어교수법세미나",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "의사소통을위한영어문법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어과교육과정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 57,
+  "course_name": "영어교재연구및지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 55,
+  "course_name": "언어학과독일어교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 55,
+  "course_name": "실용독일어회화(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 55,
+  "course_name": "독일어평가론(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 55,
+  "course_name": "고급독일어문법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 55,
+  "course_name": "독일어구문교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 55,
+  "course_name": "독일문화예술교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 55,
+  "course_name": "독일문학사교육연구",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 55,
+  "course_name": "독일어과논술지도",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 58,
+  "course_name": "프랑스어발음연습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 58,
+  "course_name": "프랑스문학과사회",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 58,
+  "course_name": "중급프랑스어학교문법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 58,
+  "course_name": "프랑스어회화연습(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 58,
+  "course_name": "멀티미디어를활용한불어교수법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 58,
+  "course_name": "프랑스어교육과논리논술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 58,
+  "course_name": "불문학교재강독",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 58,
+  "course_name": "프랑스어교재연구및지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육철학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 61,
+  "course_name": "성격과교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육심리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육방법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육통계학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "생활지도및상담론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 61,
+  "course_name": "부산시민의삶과교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육학교과교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "평생교육프로그램개발론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "집단상담기초이론과실제",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "교육학교과교재및연구법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 61,
+  "course_name": "평생교육경영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "영유아발달과교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "유아교육개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "아동권리와복지",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "아동관찰및행동연구",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "아동음악",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "아동과학지도",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "부모교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "언어지도",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "현장연구",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "유아멀티미디어교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "유아교과교재및연구법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "보육교사론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 59,
+  "course_name": "유아교육평가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 59,
+  "course_name": "아동생활지도",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "특수교육학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "인간발달의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "지적장애학생교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "정서·행동장애학생교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "초등음악교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "초등국어교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "중도·중복장애학생교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "특수교육대상학생진단및평가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "기본교육과정중등국어교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "학습장애학생교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "시각장애학생교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 62,
+  "course_name": "초등미술교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "특수교육공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "특수교육과논리및논술",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "특수교육교육과정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 62,
+  "course_name": "초등사회교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "사회학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "문화와사회",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "미시경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "정치학실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "정치학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "일반사회교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "법과사회",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "시민교육과사회윤리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "한국경제의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "경제사개설",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "정치사상사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "민법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "일반사회논리및논술",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 60,
+  "course_name": "국제정치학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 60,
+  "course_name": "정치경제학이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "동아시아사입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 63,
+  "course_name": "한국사입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 63,
+  "course_name": "한국고대사교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 63,
+  "course_name": "동아시아고대사교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "역사논리및논술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "역사학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "일본사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "역사교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 63,
+  "course_name": "한국중세사교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "동아시아사회경제사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "한국사회경제사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "서양중세사교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "한국근대사교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "서양현대사교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 63,
+  "course_name": "역사평가방법론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "인문지리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 64,
+  "course_name": "경제지리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 64,
+  "course_name": "농촌지리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "아시아지리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "세계지리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "지리교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 64,
+  "course_name": "도시지리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 64,
+  "course_name": "지리정보체계론(GIS)및실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "아메리카지리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "유럽·아프리카지리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "지리교재연구및지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "부산권지역연구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "지형발달사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 64,
+  "course_name": "지도와문명",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "윤리학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "정치와국가윤리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "응용윤리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "민주주의론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "동양윤리사상",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "서양고ㆍ중세윤리교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "도덕과교육과정과교육현장",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "통일교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "서양윤리고전강독",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "동양윤리교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "서양정치사상사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "도덕심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "윤리와논술",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 65,
+  "course_name": "동양ㆍ한국윤리교재연구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 65,
+  "course_name": "인성교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "기초수리논리및집합론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "미분적분학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "선형대수학및지도(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "수학교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "해석학및지도(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "현대대수학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "미분기하학입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "거리공간론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "응용복소해석학(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "수학교육과정",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "실함수론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 69,
+  "course_name": "수학교육연구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 69,
+  "course_name": "대수학특론(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반물리학연습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "물리실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "수리물리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반물리학연습(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반물리학(III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반지구과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "일반지구과학실험(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "열및통계물리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "양자역학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "물리교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 66,
+  "course_name": "전자기학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 66,
+  "course_name": "고체물리학입문",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 66,
+  "course_name": "물리교육실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "과학수학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "물리화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "유기화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반생물학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반지구과학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "일반생물학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "물리화학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "화학교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "분석화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 70,
+  "course_name": "유기합성",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "물리화학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "화학논리 및 논술",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "무기화학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 70,
+  "course_name": "무기화학실험",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "과학수학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "일반생물학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "일반지구과학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "일반생물학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "세포생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "분류학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "세포생물학실험",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "일반물리학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "유전학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "생명과학교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "생명과학교재및연구법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "고급생물학(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "발생학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 67,
+  "course_name": "통합생태학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 67,
+  "course_name": "미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반생물학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반지구과학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반지구과학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "전산천문학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구물질과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구물질과학실험",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반물리학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반화학실험(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "대기관측및해석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구과학교육론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "천문학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "천문학실험",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구물질화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "종관분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "종관분석실습",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구환경과학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "고체지구물리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 71,
+  "course_name": "관측천문학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지질구조해석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구유체역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 71,
+  "course_name": "지구과학수업분석및평가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "축구(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "단체경기(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "특수체육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "스포츠커리어디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "수영(자유형)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "육상(멀리뛰기)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "운동생리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "수영(평영)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "체조(마루운동Ⅱ)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "배구(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "육상(높이뛰기)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "배드민턴(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "농구(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "테니스(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "대내경기(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "스포츠심리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "초급한국무용의이론과실제",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "대외경기(경기기능과과학적원리)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "체육교과교재및연구법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "스포츠동작분석의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "체육측정평가",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "건강교육",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 68,
+  "course_name": "체육사·철학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "골프(경기전략과지도법)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 68,
+  "course_name": "평생스포츠",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "경제학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "무역학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "글로벌경제와 리더십(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제마케팅",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제상무론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제통상법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "미시경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "회계학원리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "기업법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제금융경제론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 109,
+  "course_name": "무역계약론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "산업정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제경영학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제경제의계량분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제자원환경경제",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "국제물류관리론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "무역결제론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "외환론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "무역보험론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 109,
+  "course_name": "한국무역경제론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제통계학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제학원론(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 112,
+  "course_name": "회계학원리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 112,
+  "course_name": "글로벌경제와 리더십(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 112,
+  "course_name": "미시경제학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 112,
+  "course_name": "시장경제의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "문화경제의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "계량경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제사개설",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "고급거시경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "조세론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "환경경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "국제경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제학설사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "재정학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "도시경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "산업조직론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "화폐금융론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "게임이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "파생상품의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "금융기관과시장",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "보건경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제학특강(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "인사관리경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "한국경제론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "경제변동론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 112,
+  "course_name": "행동경제학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "글로벌경제와 리더십(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광경영학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "호텔경영론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광정책론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "여행사경영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광개발론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광컨벤션커뮤니케이션론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "여가론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "지속가능관광론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "외식산업경영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "관광심리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "PCO 창업론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 110,
+  "course_name": "전시컨벤션시설운영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "경제학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 111,
+  "course_name": "글로벌경제와 리더십(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 111,
+  "course_name": "정책학의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 111,
+  "course_name": "공공조직론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 111,
+  "course_name": "공직적성론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "헌법(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "행정법(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "인사정책론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 111,
+  "course_name": "사회정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "지방재정론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "산업융합정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "다문화정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 111,
+  "course_name": "민법의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "경영학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "경제학원론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "재무회계(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "마케팅관리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "오퍼레이션스 매니지먼트",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "경영의세계사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "기업윤리와 사회적책임",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "상법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "증권시장론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "원가회계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "경영정보처리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "소비자행동론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "비즈니스애널리틱스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "국제경영전략",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "투자론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "경영정보시스템",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 3,
+  "course_name": "고객관계관리와인공지능",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "빅테크기업과인공지능",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "다국적기업관리론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "마케팅조사론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "계량경영학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "회계감사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "세법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "국제비교경영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "금융기관경영론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "노사관계론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "기술경영",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "국제아웃소싱전략",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "행동재무론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "재무회계연습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "금융데이터마이닝",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "비즈니스모델링",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "옵션이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "리스크관리론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 3,
+  "course_name": "디지털회계및세무",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식품학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "생물",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식품영양과통계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "조리원리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "생애주기영양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식품재료학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "기초유기화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식품화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식사요법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식사요법실습",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 114,
+  "course_name": "단체급식관리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "캡스톤디자인-International Approach",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "고급영양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "단체급식실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "지역사회영양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "식품가공 및 저장학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 114,
+  "course_name": "건강기능식품학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "색채와텍스타일디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "인체와의복설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션산업의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "코스튬크래프트",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션소재구조학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션리테일링",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패턴및의복제작(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션마케팅(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "디지털패션디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "텍스타일디자인CAD",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션드레이핑(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션상품기획과캡스톤디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "한국복식제작",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "패션디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 116,
+  "course_name": "캡스톤디자인패션스튜디오",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 116,
+  "course_name": "피복과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "보육교사론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "정신건강",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "가족관계학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "건강가정론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "아동발달",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "가족복지",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "한국가정생활문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "아동과학지도",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "보육학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "아동·가족실습및봉사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 113,
+  "course_name": "아동상담",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "이상심리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "부부교육",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "아동미술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 113,
+  "course_name": "보육실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내디자인CAD(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "기초디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "공간과디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내건축계획론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "환경색채학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "공간조형론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내디자인스튜디오I(캡스톤디자인I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내환경론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "환경디자인과심리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "가구디자인과문화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내디자인마케팅",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "실내디자인스튜디오III(캡스톤디자인III)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "특수공간디자인의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 117,
+  "course_name": "공간디자인스튜디오(캡스톤디자인V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 117,
+  "course_name": "공간환경과복지",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "레저스포츠(V)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠소비자행동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "응용해부학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠과학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "레저스포츠(VI)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "운동손상학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠생체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "운동처방",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠경영학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠영양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "레저스포츠(VII)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "스포츠통계처리및논문작성방법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 115,
+  "course_name": "노화와건강운동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "유소년건강운동",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 115,
+  "course_name": "피트니스(II)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "이태리어딕션및가곡연구(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "합창(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "화성학(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "솔페이즈(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "합창(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "화성학(III)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "독일어딕션및가곡연구(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "한국가곡",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "프랑스어딕션및가곡연구(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "음악분석(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 75,
+  "course_name": "합창(V)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "성악문헌(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "성악앙상블(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "성악반주(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "영미딕션및가곡연구(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "OPERA WORKSHOP(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "합창(VII)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "통합예술교육 프로그램이해",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 75,
+  "course_name": "성악반주(III)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "반주법(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "심화솔페이즈(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "낭만에튜드연구",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "피아노앙상블(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "건반화성(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 76,
+  "course_name": "피아노문헌:고전주의",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 76,
+  "course_name": "스타일해석법",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 76,
+  "course_name": "피아노문헌:초기건반음악~바로크",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 76,
+  "course_name": "건반음악분석(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "심화건반화성",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "음악교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "실내악(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "예술콘텐츠기획",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "연주법연구",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 76,
+  "course_name": "교습론: 피아노 교수법(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "전공건반화성(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "기능화성학(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "대위법(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "음악소프트웨어(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "형식론및분석(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "제2실기(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "악기론(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 77,
+  "course_name": "현대음악분석및작곡기법(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "컴퓨터음악및스튜디오테크닉(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "서양음악사(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "제2실기(III)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "대위법(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "영상음악실습(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "음악과논리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "관현악·실내악 작품연구",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 77,
+  "course_name": "관현악법 및 편곡법(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "ORCHESTRA(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "STRING STUDY(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 78,
+  "course_name": "WIND STUDY(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 78,
+  "course_name": "ORCHESTRA(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "STRING STUDY(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "WIND STUDY(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "관현실내악(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "ORCHESTRA REPERTORY(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 78,
+  "course_name": "관현문헌연구(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 78,
+  "course_name": "ORCHESTRA(V)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "STRING STUDY(V)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "WIND STUDY(V)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "지휘법(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "관현실내악(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "ORCHESTRA(VII)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "STRING STUDY(VII)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "WIND STUDY(VII)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "공연예술경영(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "총보독법",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 78,
+  "course_name": "Orchestra Repertory(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "영상과입체(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "기초조소(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "공간과입체표현(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "인체조소(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "금속조각(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "디지털조각(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "현대작가론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "몰드메이킹(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "목조각(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "조소와3D모델링(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "석조각(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "조각사(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "테라코타(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "예비졸업작품제작(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 86,
+  "course_name": "창작과전시(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 86,
+  "course_name": "조소작품세미나(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "사군자",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "소묘(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "기초한국화(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "수묵화실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "채색화실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "전통재료와기법(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "동양미술사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "서.각실기(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "수묵화심화실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "채색화심화실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "한국화조형과표현(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 87,
+  "course_name": "한국화실기연구(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 87,
+  "course_name": "한국화졸업작품연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 88,
+  "course_name": "공간연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 88,
+  "course_name": "기초데생(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "기초회화(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "테크니컬오일페인팅(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "회화실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "판화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 88,
+  "course_name": "창작실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "융합매체연구(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "영상제작과프로젝션(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 88,
+  "course_name": "전시기획 및 조형실기(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 88,
+  "course_name": "창작실기(III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 88,
+  "course_name": "졸업전시설계(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "디지털표현기법(Ⅰ)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "공예사와 문화(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "CLAYWORK(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "기초물레성형(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자기초조형(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "산업도자캡스톤디자인(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자인테리어(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "생활도자(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자재료연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자조형(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "현대도예작품연구(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자캡스톤디자인(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자작품세미나(Ⅰ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "컨텐츠개발프로젝트",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "현대도자연구(Ⅰ)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자조형프로젝트(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 80,
+  "course_name": "현대도예트렌드연구(Ⅰ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 80,
+  "course_name": "도자조형캡스톤디자인(Ⅲ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "기초금속공예(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "텍스타일디자인(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유기초조형(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "장신구제작기법 및 렌더링",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "서피스디자인(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "금속공예(Ⅰ)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "라이노캐드(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "염색표현기법(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "색채론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "창업금속조형(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유예술세미나(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "패션제품과 예술장신구",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유조형연구(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "금속조형(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유예술세미나(III)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 81,
+  "course_name": "상업장신구",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "금속제품 캡스톤디자인(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유조형캡스톤디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 81,
+  "course_name": "섬유창업제품프로젝트(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "조형연구(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "기초공구스튜디오",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구목조형표현연구(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "디자인제도",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구제작스튜디오(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "디자인마케팅스튜디오(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "기초목조형스튜디오(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구재료연구",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "조형예술론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "디지털디자인(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구디자인스튜디오(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "목가구조형연구(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "리빙프로덕트스튜디오(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "AI 창작스튜디오(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "목조형",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구디자인스튜디오(III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 79,
+  "course_name": "가구조형캡스톤디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 79,
+  "course_name": "목조형스튜디오(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 89,
+  "course_name": "성악세미나(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 89,
+  "course_name": "현악창작분석(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 89,
+  "course_name": "성악세미나(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 89,
+  "course_name": "현악창작분석(III)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 89,
+  "course_name": "성악세미나(V)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 89,
+  "course_name": "현악창작분석(V)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 89,
+  "course_name": "성악세미나(VII)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 89,
+  "course_name": "현악창작분석(VII)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "정가(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "단소(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "정악합주(I)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "민요(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "정악합주(III)",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "민속악합주(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 90,
+  "course_name": "관악합주(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악이론발표토론(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악작곡세미나(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악조사실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악이론(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악이론발표토론(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악작곡세미나(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악조사실습(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악채보(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악이론발표토론(V)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악작곡세미나(V)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악조사실습(V)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "한국음악사(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "문화예술정책",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "음악교재연구 및 지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악과 컴퓨터(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악이론발표토론(VII)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악작곡세미나(VII)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악조사실습(VII)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 91,
+  "course_name": "공연기획및실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "문화예술교육개론",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 91,
+  "course_name": "국악교수학습방법",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기1-1(한국무용기초창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기I(한국무용I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기1(한국무용공연작품실습I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기III(한국무용III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기3(한국무용공연작품실습III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기2-1(한국무용레파토리I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기V(한국무용V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기5(한국무용공연작품실습V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기3-1(한국무용창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기VII(한국무용VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기7(한국무용공연작품실습VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 82,
+  "course_name": "한국무용 세미나",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 82,
+  "course_name": "전공실기4-1(한국무용퍼포먼스I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기1-1(발레기초창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기I(발레I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기1(발레공연작품실습I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기III(발레III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기3(발레공연작품실습III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기2-1(발레레파토리I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기V(발레V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기5(발레공연작품실습V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기3-1(발레창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기VII(발레VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기7(발레공연작품실습VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 83,
+  "course_name": "발레 세미나",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 83,
+  "course_name": "전공실기4-1(발레퍼포먼스I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기1-1(현대무용기초창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기I(현대무용I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기1(현대무용공연작품실습I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기III(현대무용III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기3(현대무용공연작품실습III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기2-1(현대무용레파토리I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기V(현대무용V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기5(현대무용공연작품실습V)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기3-1(현대무용창작실기I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기VII(현대무용VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기7(현대무용공연작품실습VII)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 84,
+  "course_name": "현대무용세미나",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 84,
+  "course_name": "전공실기4-1(현대무용퍼포먼스I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "디자인과생활",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "캐릭터디자인(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "기초디자인(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "컴퓨터그래픽(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "인터렉티브디자인(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "기초3D디자인",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "포토스튜디오",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "시각디자인(I)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "타이포그라피(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "첨단미디어디자인(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "인터랙티브콘텐츠디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "광고디자인(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "AI정보디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "편집디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "졸업작품프로젝트(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 92,
+  "course_name": "디지털미디어디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "디자인세미나(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "광고콘텐츠디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 92,
+  "course_name": "경험디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "디지털일러스트레이션",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "웹툰스토리텔링",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "라이프드로잉(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "디지털애니메이션(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "애니메이션융합프로젝트(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "2D애니메이션제작(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "스토리만화창작(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "애니메이션기법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "웹툰제작실기(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "캡스톤디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "3D애니메이션제작(Ⅰ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "모션그래픽(Ⅰ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "졸업작품(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 93,
+  "course_name": "디지털후반작업(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 93,
+  "course_name": "포트폴리오제작(Ⅰ)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 118,
+  "course_name": "자바프로그래밍",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "유니티프로그래밍",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "웹UI디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "3D영상스튜디오(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "발상과표현",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "키네틱타이포그래피",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "피지컬컴퓨팅",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "AI경험디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 118,
+  "course_name": "모바일프로그래밍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 118,
+  "course_name": "모션그래픽스튜디오",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 118,
+  "course_name": "뉴미디어와엔터테인먼트",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 118,
+  "course_name": "졸업연구(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "미디어테크놀러지",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "영화학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "미학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "예술이론의역사(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "세계영화의 역사와 전망",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "디지털편집",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "시나리오 창작 실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "영화촬영의 이론과 실제",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "전시기획워크숍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "영화미학의 생성과 전망",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "예술비평연습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 85,
+  "course_name": "축제기획워크숍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "다큐멘터리 영화 이론 및 실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "영상매체이론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "문화예술정책론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "연극영화와글쓰기",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "영상작품분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 85,
+  "course_name": "현대미학특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "간호학개론",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "기본간호학(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "기본간호학실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "인체의구조와기능(III)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "미생물과감염간호",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "비판적사고와간호과정",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "간호정보학",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "인체의구조와기능(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "인간관계론",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "성장과발달",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "성인간호학(II)",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "아동간호학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "여성건강간호학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "임상실습입문",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "성인간호학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "아동간호학(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "정신간호학(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "여성건강간호학(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "글로컬간호리더십",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "디지털헬스와간호",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "건강과노화",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "시뮬레이션통합실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "성인간호학임상실습(III)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "지역사회간호학실습(II)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "정신간호학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "간호관리학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "간호연구",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "성인간호학(IV)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "지역사회간호학(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "여성건강간호학(IV)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "간호관리학(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 108,
+  "course_name": "건강과스트레스관리",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "국제의료와보건정책",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 108,
+  "course_name": "보건의료통계",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물유전학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물생리학및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식량작물학 및 실습(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물생화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "생명과학실험설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물환경기상학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "작물육종학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "벼의 과학 및 실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물보호학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 98,
+  "course_name": "토양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물세포조직배양및실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물분자생물학 실험 및 실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "산업응용자원식물학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물생명공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물생명과학 캡스톤디자인(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 98,
+  "course_name": "식물자원·조경교재연구및지도법",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "정원식물과 사회",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "일반식물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "스마트원예의 이해와 진로",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "화훼원예학총론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "수확후생리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "식물병리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "치유농업개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "생화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "식물생장조절론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "조원학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "기초분자생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "과수원예학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 103,
+  "course_name": "채소원예학(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "원예캡스톤디자인",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "친환경농업",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 103,
+  "course_name": "식물조직배양학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물유전학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물식품학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물해부생리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물영양학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물육종학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "응용동물번식학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "육가공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물자원교육론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "유가공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물사료 및 사양학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 99,
+  "course_name": "형질전환조류생산및실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "치유농업과치유농업서비스의이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물소재종합설계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "동물자원연구및지도법",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 99,
+  "course_name": "양돈과학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 104,
+  "course_name": "일반생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "일반화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품과 건강",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품가공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "유기화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품미생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "세포생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품물성학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 104,
+  "course_name": "생화학(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품위생학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 104,
+  "course_name": "농산물가공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 104,
+  "course_name": "기능성식품학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 104,
+  "course_name": "식품독성학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "일반생물학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "생화학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "곤충생태학및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "세포생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "인체생리학및실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "일반미생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "생명유기화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "분자생물학(II)및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "식물병리학및실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "환경미생물학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "환경생태학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "작물유전육종학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "토양환경화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 100,
+  "course_name": "농약학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "식물영양 비료학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 100,
+  "course_name": "생물공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재화학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "의생명세포학및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "창의설계입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오의약품소재",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "인체대사",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "의료용생체재료학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "유기화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재공정",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재종합설계(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "약물전달시스템",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "인체해부생리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오테크놀로지",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "고분자콜로이드",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재종합설계(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 105,
+  "course_name": "바이오소재기기분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 105,
+  "course_name": "분자진단기술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "일반생물학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "일반물리학실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "공학미적분학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "일반물리학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "정역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "유체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오열역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오재료공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오산업기계공학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "전기전자공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오센서/생체계측및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오산업기계요소설계(Ⅰ)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "응용재료역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "진동공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "생체열전달",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오산업에너지공학(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "식품공정공학및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 106,
+  "course_name": "토양기계시스템공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 106,
+  "course_name": "바이오산업기계종합설계(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 101,
+  "course_name": "일반화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "공업수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경공학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "일반화학실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경에너지개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경수자원계획",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "수질오염관리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경미생물및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "대기오염공정실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 101,
+  "course_name": "연소공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "폐기물처리공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "하폐수처리",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "상하수도공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "대기오염방지기술",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "신에너지공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경생태학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 101,
+  "course_name": "환경에너지세미나",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 101,
+  "course_name": "폐기물실험및실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "프로그래밍기초(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "공업수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "기초전자공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "프로그래밍 설계 및 기법",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "전자기학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "데이터구조",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "회로이론(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "객체지향프로그래밍",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "인공지능수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "전자회로(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "신호및시스템",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "컴퓨터구조",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "컴퓨터네트워크",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "웹프로그래밍(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 107,
+  "course_name": "운영체제",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 107,
+  "course_name": "아날로그통신공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 107,
+  "course_name": "캡스톤 디자인 I",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 107,
+  "course_name": "데이터베이스(II)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 107,
+  "course_name": "실무알고리즘",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 107,
+  "course_name": "인공지능응용",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경학의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "기초스튜디오",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "환경과식물의이해",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "서양조경문화론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "데이터분석의 기초",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "경관의 이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경공간정보분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "디지털조경(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경설계스튜디오(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경재료학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경적산실무",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "동양조경사",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경계획 및 실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "도시환경분석과 시각화",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "가드닝과 실내조경",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "식재설계스튜디오",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "기후변화대응론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "단지및도시설계스튜디오",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "캡스톤디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 102,
+  "course_name": "자연공원론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "조경관련법규",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 102,
+  "course_name": "저영향개발론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "학생인턴(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "지역사회의학",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "진료역량개발과정",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "질병의이해와약물요법",
+  "credit": 5,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "자기계발(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "자기계발(III)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "소화기및영양학",
+  "credit": 5,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "가정의학임상실습(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "감염내과학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "내분비내과학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "류마티스내과학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "산부인과학임상실습(I)",
+  "credit": 5,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "소아청소년과학임상실습(I)",
+  "credit": 5,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "소화기내과학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "순환기내과학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "신경과학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "신장내과학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "영상의학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "외과학임상실습(I)",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "응급의학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "일반내과학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "정신건강의학임상실습(I)",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "진단검사의학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "혈액종양내과학임상실습(I)",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "호흡기내과학임상실습(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상의학종합과정(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상의학종합과정(III)",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "선택심화실습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상의학종합과정(IV)",
+  "credit": 9,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상의학종합과정(V)",
+  "credit": 9,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "의학연구(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상의학입문",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "의학연구(III)",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "생식계의학",
+  "credit": 5,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "성장발달노화",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "면역및피부질환",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 73,
+  "course_name": "의학연구(IV)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "심장혈관흉부외과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "재활의학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "마취통증의학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "성형외과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "정형외과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "신경외과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "안과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "이비인후과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "피부과학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "방사선종양학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "핵의학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "직업환경의학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "병리학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "해외임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "성형외과학심화과정",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "정형외과학심화과정",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "최신의학교육동향",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "최신의공학동향",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상영양학",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "외과적심화과정",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "기초의학실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "비뇨의학임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "비뇨의학심화과정",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "심리학의신경과학적이해",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "임상시험임상실습",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 73,
+  "course_name": "외상학–중증외상과외상센터",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의료인의 사색",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 74,
+  "course_name": "기초면역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의학연구방법론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 74,
+  "course_name": "유기화학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의료정보학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의학을 위한 신기술",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의료경영학의 기초",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의료기기의 이해",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의사와 리더십",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 74,
+  "course_name": "의생명과학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 119,
+  "course_name": "의생명공학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 119,
+  "course_name": "세포공학실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 119,
+  "course_name": "인공지능",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "물리전자공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "생화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "전자회로",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "생체유체역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "산학캡스톤디자인",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 119,
+  "course_name": "바이오헬스 진로설계",
+  "credit": 1,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "의료기기인허가",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "생체재료공정학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "뇌공학및신경공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "미세공정 이론 및 실습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "조직공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 119,
+  "course_name": "바이오센서공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "회귀분석과 통계학습",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 121,
+  "course_name": "데이터사이언스입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 121,
+  "course_name": "인공지능",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 121,
+  "course_name": "알고리즘",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 121,
+  "course_name": "의생명정보학개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "데이터베이스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "시계열데이터분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "신호및시스템",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "의료영상처리",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "고급프로그래밍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "웹/앱 프로그래밍",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "강화학습",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 121,
+  "course_name": "최적화개론",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 122,
+  "course_name": "첨단바이오공학입문",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "인터넷과웹기초",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 118,
+  "course_name": "컴퓨터및프로그래밍입문",
+  "credit": 4,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "정역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "전자기학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "재료공학개론",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "회로이론및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "유기화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "나노측정및표면분광학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "컴퓨터기반설계",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "휴머노이드센서공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "분자모델링",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "열유체공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "박막공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "에너지소재및소자실험(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "에너지시스템실험(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "에너지저장시스템공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "이차전지안전공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 124,
+  "course_name": "소프트로보틱스",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "캡스톤디자인(II)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "촉매공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 124,
+  "course_name": "AI기반이차전지성능예측공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "공학역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "측정및센서",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "공학재료학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "물리화학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "공학제도및CAD",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "공학수학(II)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "유체역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "나노FABRICATION실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "나노시스템설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "나노FABRICATION(I)",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "에너지변환소자공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "신호및시스템",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "전자회로및응용",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "휴머노이드공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "표면공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "센서소재공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "전자회로실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 125,
+  "course_name": "종합설계(II)",
+  "credit": 2,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "MEMS소자공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "표면분석기기학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 125,
+  "course_name": "반도체패키징",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "생명과학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "공학역학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "빛과전자기현상",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "고급물리실험",
+  "credit": 1,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "공학선형대수학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "빛과물질",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "전기회로및실험",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "바이오헬스실험",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "반도체공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "신호및시스템",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "생체조직공학",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "기계진동및설계",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "반도체공정실험(I)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "광학(I)",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "고체물리학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "유체역학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "박막공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "캡스톤디자인(II)",
+  "credit": 2,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "광NEMS",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "전자계측및실험",
+  "credit": 3,
+  "category": "REQUIRED"
+ },
+ {
+  "major_id": 126,
+  "course_name": "CEO창업특강",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "나노의학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "기기분석",
+  "credit": 3,
+  "category": "ELECTIVE"
+ },
+ {
+  "major_id": 126,
+  "course_name": "광계측공학",
+  "credit": 3,
+  "category": "ELECTIVE"
+ }
+]
