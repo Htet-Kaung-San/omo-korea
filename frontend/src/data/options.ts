@@ -207,6 +207,13 @@ export const MAJOR_OPTIONS = ACADEMIC_HIERARCHY.reduce<string[]>((acc, college) 
   return acc;
 }, []);
 
+// Flat, de-duplicated, alphabetically sorted list of every major. Backs the
+// single Department/Major picker on the profile — the College → Department →
+// Major cascade was removed because the three levels were confusing.
+export const DEPARTMENT_MAJOR_OPTIONS = Array.from(new Set(MAJOR_OPTIONS)).sort(
+  (a, b) => a.localeCompare(b),
+);
+
 export const NATIONALITY_OPTIONS = [
   "Vietnam",
   "China",
