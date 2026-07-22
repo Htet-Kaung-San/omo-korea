@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MapPin, Phone } from 'lucide-react'
 import { api } from '@/api'
 import type { EmergencyContact, EmergencyGuide } from '@/types/api'
@@ -99,12 +99,13 @@ export function EmergencySupportPage() {
       .finally(() => setLoading(false))
   }, [language, t])
 
-  const embassyContacts = useMemo(() => {
-    const embassies =
-      guide?.database_contacts.filter((contact) => contact.type === 'embassy') ?? []
-    if (!user?.nationality) return embassies
-    return embassies.filter((contact) => countryMatches(contact.country, user.nationality))
-  }, [guide, user?.nationality])
+  // Computed inline (no manual useMemo): the React Compiler memoizes these
+  // automatically, and a hand-written useMemo here couldn't be preserved.
+  const allEmbassies =
+    guide?.database_contacts.filter((contact) => contact.type === 'embassy') ?? []
+  const embassyContacts = user?.nationality
+    ? allEmbassies.filter((contact) => countryMatches(contact.country, user.nationality))
+    : allEmbassies
 
   const nearestContacts = guide?.database_contacts.filter((contact) => contact.type !== 'embassy') ?? []
 
