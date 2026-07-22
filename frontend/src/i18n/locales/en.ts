@@ -382,7 +382,6 @@ const messages: MessageDictionary = {
   'profile.myActivities': "My Activities",
   'profile.personalInfo': "Personal Information",
   'profile.officialInfoNotice': "This information is managed by the university and cannot be edited here.",
-  'profile.officialInfoNotice': "This information is managed by the university and cannot be edited here.",
   'profile.academicRecords': "Academic Records",
   'profile.documents': "My Documents",
   'profile.documentsEmpty': "Your uploaded documents will appear here soon.",
