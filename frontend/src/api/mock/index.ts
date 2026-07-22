@@ -10,7 +10,6 @@ import type {
   EmergencyGuide,
   FaqItem,
   CommunityGroup,
-  CommunityMembersResponse,
   CommunityPost,
   CommunityScope,
   CreateCommunityPostRequest,
@@ -54,6 +53,7 @@ import {
   mockFreshmanGraduation,
   mockNotifications,
 } from './data'
+import { countryMatches } from '@/utils/countryMatch'
 
 const delay = (ms = 350) => new Promise((r) => setTimeout(r, ms))
 
@@ -345,7 +345,19 @@ export const mockApi: HeyPnuApi = {
 
   async getEmergencyGuide(): Promise<EmergencyGuide> {
     await delay()
-    return mockEmergencyGuide
+    const studentId = getCurrentStudentId()
+    const user = getMockUser(studentId)
+    const embassies = mockEmergencyGuide.database_contacts.filter(
+      (contact) =>
+        contact.type === 'embassy' && countryMatches(contact.country, user.nationality),
+    )
+    const nearest = mockEmergencyGuide.database_contacts.filter(
+      (contact) => contact.type !== 'embassy',
+    )
+    return {
+      ...mockEmergencyGuide,
+      database_contacts: [...embassies, ...nearest],
+    }
   },
 
   async getPnuContacts(): Promise<PnuContact[]> {
@@ -372,11 +384,6 @@ export const mockApi: HeyPnuApi = {
     return []
   },
 
-  async getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse> {
-    await delay()
-    throw new Error(`Community "${groupIdOrSlug}" is unavailable in mock mode`)
-  },
-
   async createCommunityPost(_data: CreateCommunityPostRequest): Promise<CommunityPost> {
     await delay()
     throw new Error('Community posts require real API mode')
@@ -385,6 +392,11 @@ export const mockApi: HeyPnuApi = {
   async likeCommunityPost(postId: string): Promise<{ id: string; likes: number }> {
     await delay()
     return { id: postId, likes: 1 }
+  },
+
+  async deleteCommunityPost(postId: string): Promise<{ id: string }> {
+    await delay()
+    return { id: postId }
   },
 
   async getCampusFacilities(): Promise<CampusFacilities> {
@@ -407,22 +419,6 @@ export const mockApi: HeyPnuApi = {
   async getAcademicRecords() {
     await delay()
     return mockAcademicRecords
-  },
-
-  async downloadTranscript() {
-    await delay()
-    const lines = [
-      'Hey! PNU — Academic Transcript (Unofficial)',
-      `Student ID: ${mockAcademicRecords.studentId}`,
-      `Overall GPA: ${mockAcademicRecords.overallGpa} / ${mockAcademicRecords.gpaScale}`,
-      `Standing: ${mockAcademicRecords.standing}`,
-      `Credits: ${mockAcademicRecords.completedCredits} / ${mockAcademicRecords.requiredCredits}`,
-      '',
-      ...mockAcademicRecords.semesters.map(
-        (s) => `${s.semesterLabel}: ${s.gpa.toFixed(2)} / ${mockAcademicRecords.gpaScale}`,
-      ),
-    ]
-    return new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' })
   },
 
   async getAiDashboard(): Promise<AiDashboard> {

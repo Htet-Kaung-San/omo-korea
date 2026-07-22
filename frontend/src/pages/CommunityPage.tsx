@@ -1,113 +1,163 @@
-import { useEffect, useMemo, useState } from 'react'
-import {
-  BarChart3,
-  CalendarDays,
-  Image as ImageIcon,
-  Pencil,
-  Plus,
-  Search,
-  X,
-} from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, Filter, Plus, Search, X } from 'lucide-react'
 import { api } from '@/api'
 import { CommunityPostCard } from '@/components/community/CommunityPostCard'
-import { CommunityScopeBanner } from '@/components/community/CommunityScopeBanner'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useCommunityPostsFeed } from '@/hooks/useCommunityPostsFeed'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import type { CommunityGroup, CommunityPost, CommunityScope } from '@/types/api'
+import { translateCountryLabel, translateMajorLabel } from '@/i18n/community/tabLabels'
+import type { CommunityGroup, CommunityScope } from '@/types/api'
 
-const TABS: Array<{ id: CommunityScope; labelKey: string }> = [
-  { id: 'department', labelKey: 'community.tab.department' },
-  { id: 'country', labelKey: 'community.tab.country' },
-  { id: 'all', labelKey: 'community.tab.all' },
+const TAB_ORDER: CommunityScope[] = ['department', 'country', 'all']
+
+type CommunitySort = 'latest' | 'popularity'
+
+const SORT_OPTIONS: Array<{ id: CommunitySort; labelKey: string }> = [
+  { id: 'latest', labelKey: 'community.sortLatest' },
+  { id: 'popularity', labelKey: 'community.sortPopular' },
 ]
 
 export function CommunityPage() {
-  const { t } = useLanguage()
+  const { t, locale } = useLanguage()
   const { user } = useAuth()
 
   const [scope, setScope] = useState<CommunityScope>('department')
+  const [sort, setSort] = useState<CommunitySort>('latest')
+  const [sortOpen, setSortOpen] = useState(false)
+  const sortRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const [group, setGroup] = useState<CommunityGroup | null>(null)
-  const [posts, setPosts] = useState<CommunityPost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [groupLoading, setGroupLoading] = useState(true)
+  const [groupError, setGroupError] = useState('')
   const [posting, setPosting] = useState(false)
+
+  const feedGroupId = scope === 'all' ? null : (group?.groupId ?? null)
+  const feedEnabled = scope === 'all' || !groupLoading
+
+  const {
+    posts,
+    loading: postsLoading,
+    error: postsError,
+    upsertPost,
+    patchPost,
+    removePost,
+  } = useCommunityPostsFeed({
+    scope,
+    groupId: feedGroupId,
+    enabled: feedEnabled,
+  })
+
+  const loading = groupLoading || postsLoading
+  const error = groupError || postsError
 
   useEffect(() => {
     let cancelled = false
 
-    async function load() {
-      setLoading(true)
-      setError('')
+    async function loadGroup() {
+      setGroupLoading(true)
+      setGroupError('')
+      setGroup(null)
       try {
         if (scope === 'all') {
-          const nextPosts = await api.getCommunityPosts({ scope: 'all' })
-          if (cancelled) return
-          setGroup(null)
-          setPosts(nextPosts)
-        } else {
-          const myGroup = await api.getMyCommunityGroup(scope)
-          if (cancelled) return
-          setGroup(myGroup)
-          if (!myGroup) {
-            setPosts([])
-          } else {
-            const groupPosts = await api.getCommunityPosts({
-              scope,
-              groupSlug: myGroup.slug,
-              groupId: myGroup.groupId,
-            })
-            if (!cancelled) setPosts(groupPosts)
-          }
+          if (!cancelled) setGroup(null)
+          return
         }
+        const myGroup = await api.getMyCommunityGroup(scope)
+        if (!cancelled) setGroup(myGroup)
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('community.loadError'))
+          setGroupError(err instanceof Error ? err.message : t('community.loadError'))
           setGroup(null)
-          setPosts([])
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setGroupLoading(false)
       }
     }
 
-    void load()
+    void loadGroup()
     return () => {
       cancelled = true
     }
   }, [scope, t])
 
+  useEffect(() => {
+    if (!sortOpen) return
+    function handleClick(event: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setSortOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [sortOpen])
+
   const visiblePosts = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return posts
-    return posts.filter(
-      (post) =>
-        post.content.toLowerCase().includes(q) ||
-        post.authorName.toLowerCase().includes(q) ||
-        post.hashtags.some((tag) => tag.toLowerCase().includes(q)),
-    )
-  }, [posts, query])
+    const filtered = q
+      ? posts.filter(
+          (post) =>
+            post.content.toLowerCase().includes(q) ||
+            post.authorName.toLowerCase().includes(q) ||
+            post.hashtags.some((tag) => tag.toLowerCase().includes(q)),
+        )
+      : posts
+
+    const sorted = [...filtered]
+    if (sort === 'popularity') {
+      sorted.sort((a, b) => {
+        const scoreA = a.likes + a.comments
+        const scoreB = b.likes + b.comments
+        if (scoreB !== scoreA) return scoreB - scoreA
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+    } else {
+      sorted.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+    }
+    return sorted
+  }, [posts, query, sort])
+
+  const activeSort = SORT_OPTIONS.find((option) => option.id === sort) ?? SORT_OPTIONS[0]
+
+  const tabLabels = useMemo(
+    () => ({
+      department:
+        translateMajorLabel(group?.name || user?.major, t) || t('community.tab.department'),
+      country:
+        translateCountryLabel(user?.nationality, locale) || t('community.tab.country'),
+      all: t('community.tab.all'),
+    }),
+    [group?.name, user?.major, user?.nationality, t, locale],
+  )
 
   async function handleLike(postId: string) {
     try {
       const result = await api.likeCommunityPost(postId)
-      setPosts((current) =>
-        current.map((post) =>
-          post.id === result.id ? { ...post, likes: result.likes } : post,
-        ),
-      )
+      patchPost(result.id, { likes: result.likes })
     } catch {
       // ignore like failures for now
     }
   }
 
+  async function handleDelete(postId: string) {
+    try {
+      await api.deleteCommunityPost(postId)
+      removePost(postId)
+    } catch (err) {
+      setGroupError(err instanceof Error ? err.message : t('community.deleteError'))
+    }
+  }
+
+  const canCreatePost = scope === 'all' || Boolean(group)
+
   async function handleCreatePost() {
     const content = draft.trim()
-    if (content.length < 3 || posting) return
+    if (content.length < 3 || posting || !canCreatePost) return
 
     setPosting(true)
     try {
@@ -117,27 +167,15 @@ export function CommunityPage() {
         groupId: group?.groupId ?? null,
         groupSlug: group?.slug ?? (scope === 'all' ? 'all-intl' : null),
       })
-      setPosts((current) => [created, ...current])
+      upsertPost(created)
       setDraft('')
       setComposerOpen(false)
-      if (group) {
-        setGroup({ ...group, newPostCount: group.newPostCount + 1 })
-      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('community.postError'))
+      setGroupError(err instanceof Error ? err.message : t('community.postError'))
     } finally {
       setPosting(false)
     }
   }
-
-  const initials = (user?.name ?? 'Y')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('')
-
-  const groups = group ? [group] : []
 
   return (
     <div className="relative pb-24">
@@ -169,7 +207,7 @@ export function CommunityPage() {
               autoFocus
             />
             {query ? (
-              <button type="button" onClick={() => setQuery('')} aria-label="Clear">
+              <button type="button" onClick={() => setQuery('')} aria-label={t('common.clear')}>
                 <X className="h-4 w-4 text-pnu-muted" />
               </button>
             ) : null}
@@ -177,63 +215,83 @@ export function CommunityPage() {
         ) : null}
 
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {TABS.map((tab) => {
-            const active = scope === tab.id
+          {TAB_ORDER.map((tabId) => {
+            const active = scope === tabId
             return (
               <button
-                key={tab.id}
+                key={tabId}
                 type="button"
-                onClick={() => setScope(tab.id)}
-                className={`shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition ${
+                onClick={() => setScope(tabId)}
+                className={`max-w-[min(100%,14rem)] shrink-0 truncate rounded-full px-4 py-2 text-[13px] font-semibold transition ${
                   active
                     ? 'bg-pnu-blue text-white shadow-sm shadow-blue-200'
                     : 'bg-[#F2F2F7] text-pnu-text'
                 }`}
               >
-                {t(tab.labelKey)}
+                {tabLabels[tabId]}
               </button>
             )
           })}
         </div>
 
-        <CommunityScopeBanner scope={scope} groups={groups} />
-
         {error ? (
           <p className="rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         ) : null}
 
-        <section className="rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-black/5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pnu-blue/10 text-[12px] font-bold text-pnu-blue">
-              {initials || 'Y'}
-            </div>
+        <div className="flex items-center justify-end">
+          <div ref={sortRef} className="relative">
             <button
               type="button"
-              onClick={() => setComposerOpen(true)}
-              className="min-w-0 flex-1 rounded-full bg-[#F2F2F7] px-4 py-2.5 text-left text-[13px] text-pnu-muted"
+              onClick={() => setSortOpen((open) => !open)}
+              aria-expanded={sortOpen}
+              aria-haspopup="listbox"
+              className={[
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition',
+                sortOpen || sort !== 'latest'
+                  ? 'bg-pnu-blue/10 text-pnu-blue ring-1 ring-pnu-blue/20'
+                  : 'bg-white text-pnu-muted ring-1 ring-black/8',
+              ].join(' ')}
             >
-              {t('community.whatsOnMind')}
+              <Filter className="h-3.5 w-3.5" strokeWidth={2} />
+              {t(activeSort.labelKey)}
+              <ChevronDown
+                className={['h-3.5 w-3.5 transition-transform', sortOpen ? 'rotate-180' : ''].join(
+                  ' ',
+                )}
+                strokeWidth={2}
+              />
             </button>
-          </div>
-          <div className="mt-3 grid grid-cols-4 gap-1 border-t border-pnu-border/70 pt-3">
-            {[
-              { icon: Pencil, labelKey: 'community.action.post', tone: 'text-pnu-blue' },
-              { icon: ImageIcon, labelKey: 'community.action.photo', tone: 'text-emerald-600' },
-              { icon: BarChart3, labelKey: 'community.action.poll', tone: 'text-violet-600' },
-              { icon: CalendarDays, labelKey: 'community.action.event', tone: 'text-orange-500' },
-            ].map(({ icon: Icon, labelKey, tone }) => (
-              <button
-                key={labelKey}
-                type="button"
-                onClick={() => setComposerOpen(true)}
-                className="flex flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold text-pnu-muted transition hover:bg-[#F8F8FB]"
+
+            {sortOpen ? (
+              <div
+                role="listbox"
+                className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[160px] overflow-hidden rounded-[12px] bg-white py-1 shadow-lg ring-1 ring-black/8"
               >
-                <Icon className={`h-4 w-4 ${tone}`} strokeWidth={1.9} />
-                {t(labelKey)}
-              </button>
-            ))}
+                {SORT_OPTIONS.map((option) => {
+                  const active = sort === option.id
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => {
+                        setSort(option.id)
+                        setSortOpen(false)
+                      }}
+                      className={[
+                        'flex w-full px-3 py-2 text-left text-[12px] font-semibold transition',
+                        active ? 'bg-pnu-blue/10 text-pnu-blue' : 'text-pnu-text hover:bg-[#F8F8FB]',
+                      ].join(' ')}
+                    >
+                      {t(option.labelKey)}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
           </div>
-        </section>
+        </div>
 
         <section className="space-y-3">
           {loading ? (
@@ -246,7 +304,13 @@ export function CommunityPage() {
             </p>
           ) : (
             visiblePosts.map((post) => (
-              <CommunityPostCard key={post.id} post={post} onLike={handleLike} />
+              <CommunityPostCard
+                key={post.id}
+                post={post}
+                onLike={handleLike}
+                canDelete={Boolean(user?.studentId && post.authorStudentId === user.studentId)}
+                onDelete={handleDelete}
+              />
             ))
           )}
         </section>
@@ -255,8 +319,9 @@ export function CommunityPage() {
       <button
         type="button"
         onClick={() => setComposerOpen(true)}
+        disabled={!canCreatePost}
         aria-label={t('community.createPost')}
-        className="fixed bottom-24 right-[max(1rem,calc(50%-11.5rem))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-pnu-blue text-white shadow-lg shadow-blue-300/50 transition active:scale-95"
+        className="fixed bottom-24 right-[max(1rem,calc(50%-11.5rem))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-pnu-blue text-white shadow-lg shadow-blue-300/50 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Plus className="h-6 w-6" strokeWidth={2.2} />
       </button>
@@ -270,7 +335,7 @@ export function CommunityPage() {
                 type="button"
                 onClick={() => setComposerOpen(false)}
                 className="rounded-lg p-1 text-pnu-muted hover:bg-black/5"
-                aria-label="Close"
+                aria-label={t('community.close')}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -293,7 +358,7 @@ export function CommunityPage() {
               <button
                 type="button"
                 onClick={() => void handleCreatePost()}
-                disabled={draft.trim().length < 3 || posting}
+                disabled={draft.trim().length < 3 || posting || !canCreatePost}
                 className="rounded-full bg-pnu-blue px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-40"
               >
                 {t('community.action.post')}

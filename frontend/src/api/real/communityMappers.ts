@@ -1,4 +1,4 @@
-import type { CommunityGroup, CommunityMember, CommunityPost } from '@/types/api'
+import type { CommunityGroup, CommunityPost } from '@/types/api'
 
 const MAJOR_TONES = [
   'bg-sky-100 text-sky-700',
@@ -64,11 +64,6 @@ export function mapCommunityGroup(row: {
   scope: CommunityGroup['scope']
   name: string
   icon: string
-  member_count?: number
-  new_post_count?: number
-  joined?: boolean
-  banner_title: string
-  banner_body: string
 }): CommunityGroup {
   return {
     id: row.slug || String(row.group_id),
@@ -77,26 +72,6 @@ export function mapCommunityGroup(row: {
     scope: row.scope,
     name: row.name,
     icon: row.icon,
-    memberCount: row.member_count ?? 0,
-    newPostCount: row.new_post_count ?? 0,
-    joined: row.joined ?? true,
-    bannerTitle: row.banner_title,
-    bannerBody: row.banner_body,
-  }
-}
-
-export function mapCommunityMember(row: {
-  id: string
-  name: string
-  nationality: string
-  major: string
-}): CommunityMember {
-  return {
-    id: row.id,
-    name: row.name,
-    nationality: row.nationality,
-    major: row.major,
-    avatarTone: avatarToneFromName(row.name),
   }
 }
 
@@ -113,6 +88,7 @@ export function mapCommunityPost(row: {
   author_name: string
   author_nationality: string
   author_major: string
+  author_student_id?: string
   event_date?: CommunityPost['eventDate']
 }): CommunityPost {
   return {
@@ -125,6 +101,7 @@ export function mapCommunityPost(row: {
     likes: row.likes ?? 0,
     comments: row.comments ?? 0,
     createdAt: row.created_at,
+    authorStudentId: row.author_student_id ?? '',
     authorName: row.author_name,
     authorInitials: initialsFromName(row.author_name),
     authorMajor: row.author_major,
@@ -133,4 +110,60 @@ export function mapCommunityPost(row: {
     timeAgo: formatTimeAgo(row.created_at),
     eventDate: row.event_date ?? null,
   }
+}
+
+type SupabaseStudentJoin = {
+  student_id?: number
+  name?: string
+  nationality?: string
+  major?: { major_name?: string } | null
+} | null
+
+export type SupabaseCommunityPostRow = {
+  post_id: number
+  student_id?: number
+  group_id: number | null
+  scope: CommunityPost['scope']
+  content: string
+  hashtags?: string[] | null
+  likes_count?: number | null
+  comments_count?: number | null
+  created_at: string
+  event_month?: string | null
+  event_day?: string | null
+  event_weekday?: string | null
+  reported?: boolean | null
+  student?: SupabaseStudentJoin
+  community_group?: { slug?: string } | null
+}
+
+export function mapCommunityPostFromSupabase(row: SupabaseCommunityPostRow): CommunityPost {
+  return mapCommunityPost({
+    id: String(row.post_id),
+    group_id: row.group_id,
+    group_slug: row.community_group?.slug ?? null,
+    scope: row.scope,
+    content: row.content,
+    hashtags: Array.isArray(row.hashtags) ? row.hashtags : [],
+    likes: row.likes_count ?? 0,
+    comments: row.comments_count ?? 0,
+    created_at: row.created_at,
+    author_student_id:
+      row.student_id != null
+        ? String(row.student_id)
+        : row.student?.student_id != null
+          ? String(row.student.student_id)
+          : '',
+    author_name: row.student?.name ?? 'Student',
+    author_nationality: row.student?.nationality ?? 'International',
+    author_major: row.student?.major?.major_name ?? 'Student',
+    event_date:
+      row.event_month && row.event_day
+        ? {
+            month: row.event_month,
+            day: row.event_day,
+            weekday: row.event_weekday ?? '',
+          }
+        : null,
+  })
 }

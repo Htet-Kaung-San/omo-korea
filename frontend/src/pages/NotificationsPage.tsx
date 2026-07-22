@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Bell,
   Bookmark,
   Building2,
+  ChevronDown,
   ChevronRight,
   Clock3,
   FileText,
@@ -20,6 +21,7 @@ import {
   Star,
   Users,
   X,
+  Check,
   type LucideIcon,
 } from 'lucide-react'
 import { api } from '@/api'
@@ -33,8 +35,8 @@ import { useSavedNotices } from '@/utils/savedNotices'
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 
-type ChannelFilter = 'all' | NoticeChannel
-type FeedTab = 'latest' | 'unread' | 'important'
+type ChannelFilter = 'all' | Exclude<NoticeChannel, 'general'>
+type FeedTab = 'latest' | 'important'
 
 type DisplayNotice = Notification & {
   channel: NoticeChannel
@@ -186,7 +188,9 @@ export function NotificationsPage() {
   const [error, setError] = useState('')
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all')
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
   const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
   const navigate = useNavigate()
 
@@ -209,6 +213,19 @@ export function NotificationsPage() {
       .finally(() => setLoading(false))
   }, [language, t])
 
+  useEffect(() => {
+    if (!filterOpen) return
+
+    function handleClickOutside(event: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [filterOpen])
+
   const catalog = useMemo(() => notifications.map(toDisplay), [notifications])
 
   const unreadCount = useMemo(
@@ -223,16 +240,20 @@ export function NotificationsPage() {
 
   const summaryItems = useMemo(
     () =>
-      [...channelFiltered]
+      [...catalog]
         .filter((n) => n.priority === 'HIGH' || (n.daysLeft != null && n.daysLeft >= 0 && n.daysLeft <= 14))
         .sort((a, b) => (a.daysLeft ?? 999) - (b.daysLeft ?? 999))
         .slice(0, 4),
-    [channelFiltered],
+    [catalog],
   )
+
+  const carouselNotices = useMemo(() => {
+    if (summaryItems.length > 0) return summaryItems
+    return catalog.slice(0, 4)
+  }, [catalog, summaryItems])
 
   const feedItems = useMemo(() => {
     let list = [...channelFiltered]
-    if (feedTab === 'unread') list = list.filter((n) => !n.read)
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [channelFiltered, feedTab])
@@ -246,14 +267,15 @@ export function NotificationsPage() {
     { id: 'department', labelKey: 'notices.channelDepartment', icon: Building2 },
     { id: 'international', labelKey: 'notices.channelInternational', icon: Globe2 },
     { id: 'scholarship', labelKey: 'notices.channelScholarship', icon: Gift },
-    { id: 'general', labelKey: 'notices.channelGeneral', icon: Megaphone },
   ]
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
     { id: 'latest', labelKey: 'notices.tabLatest', icon: Clock3 },
-    { id: 'unread', labelKey: 'notices.tabUnread', icon: Bell },
     { id: 'important', labelKey: 'notices.tabImportant', icon: Star },
   ]
+
+  const activeChannel =
+    channelChips.find((chip) => chip.id === channelFilter) ?? channelChips[0]
 
   function toggleBookmark(notice: Notification) {
     toggleSavedNotice(notice)
@@ -292,28 +314,6 @@ export function NotificationsPage() {
             ) : null}
           </button>
         </div>
-
-        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-0.5">
-          {channelChips.map(({ id, labelKey, icon: Icon }) => {
-            const active = channelFilter === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setChannelFilter(id)}
-                className={[
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition',
-                  active
-                    ? 'bg-[#7C3AED] text-white shadow-sm'
-                    : 'bg-white text-[#7C3AED] ring-1 ring-[#7C3AED]/25',
-                ].join(' ')}
-              >
-                <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                {t(labelKey)}
-              </button>
-            )
-          })}
-        </div>
       </header>
 
       <div className="space-y-4 px-3 pb-6 pt-1">
@@ -326,8 +326,8 @@ export function NotificationsPage() {
           </p>
         ) : null}
 
-        {!loading && summaryItems.length > 0 ? (
-          <LatestNoticeCarousel notices={summaryItems} showHeader={false} />
+        {!loading && catalog.length > 0 ? (
+          <LatestNoticeCarousel notices={carouselNotices} showHeader={false} />
         ) : null}
 
         {!loading ? (
@@ -362,23 +362,75 @@ export function NotificationsPage() {
                           : 'bg-white text-pnu-muted ring-1 ring-black/8',
                       ].join(' ')}
                     >
-                      {id === 'unread' && !active ? (
-                        <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
-                      ) : (
-                        <Icon className="h-3 w-3" strokeWidth={2} />
-                      )}
+                      <Icon className="h-3 w-3" strokeWidth={2} />
                       {t(labelKey)}
                     </button>
                   )
                 })}
               </div>
-              <button
-                type="button"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-pnu-muted ring-1 ring-black/8"
-              >
-                <Filter className="h-3 w-3" strokeWidth={2} />
-                {t('notices.filter')}
-              </button>
+
+              <div ref={filterRef} className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen((open) => !open)}
+                  aria-expanded={filterOpen}
+                  aria-haspopup="listbox"
+                  className={[
+                    'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition',
+                    filterOpen || channelFilter !== 'all'
+                      ? 'bg-[#F3E8FF] text-[#7C3AED] ring-1 ring-[#7C3AED]/30'
+                      : 'bg-white text-pnu-muted ring-1 ring-black/8',
+                  ].join(' ')}
+                >
+                  <Filter className="h-3 w-3" strokeWidth={2} />
+                  <span className="max-w-[88px] truncate">
+                    {channelFilter === 'all' ? t('notices.filter') : t(activeChannel.labelKey)}
+                  </span>
+                  <ChevronDown
+                    className={[
+                      'h-3 w-3 transition-transform',
+                      filterOpen ? 'rotate-180' : '',
+                    ].join(' ')}
+                    strokeWidth={2}
+                  />
+                </button>
+
+                {filterOpen ? (
+                  <div
+                    role="listbox"
+                    className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[176px] overflow-hidden rounded-[12px] bg-white py-1 shadow-lg ring-1 ring-black/8"
+                    style={{ boxShadow: CARD_SHADOW }}
+                  >
+                    {channelChips.map(({ id, labelKey, icon: Icon }) => {
+                      const active = channelFilter === id
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          role="option"
+                          aria-selected={active}
+                          onClick={() => {
+                            setChannelFilter(id)
+                            setFilterOpen(false)
+                          }}
+                          className={[
+                            'flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-semibold transition',
+                            active
+                              ? 'bg-[#F3E8FF] text-[#7C3AED]'
+                              : 'text-pnu-text hover:bg-black/[0.03]',
+                          ].join(' ')}
+                        >
+                          <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                          <span className="min-w-0 flex-1 truncate">{t(labelKey)}</span>
+                          {active ? (
+                            <Check className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+                          ) : null}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {feedItems.length === 0 ? (

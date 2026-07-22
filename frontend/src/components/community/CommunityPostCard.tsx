@@ -1,12 +1,38 @@
-import { CalendarDays, MessageCircle, MoreHorizontal, Share2, ThumbsUp } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { CalendarDays, MessageCircle, MoreHorizontal, Share2, ThumbsUp, Trash2 } from 'lucide-react'
+import { useLanguage } from '@/context/LanguageContext'
+import { formatRelativeTime } from '@/utils/formatRelativeTime'
 import type { CommunityPost } from '@/types/api'
 
 interface CommunityPostCardProps {
   post: CommunityPost
   onLike?: (postId: string) => void
+  canDelete?: boolean
+  onDelete?: (postId: string) => void
 }
 
-export function CommunityPostCard({ post, onLike }: CommunityPostCardProps) {
+export function CommunityPostCard({ post, onLike, canDelete, onDelete }: CommunityPostCardProps) {
+  const { t, locale } = useLanguage()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  async function handleDelete() {
+    setMenuOpen(false)
+    if (!window.confirm(t('community.deleteConfirm'))) return
+    onDelete?.(post.id)
+  }
+
   return (
     <article className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-black/5">
       <div className="flex items-start gap-3">
@@ -25,16 +51,39 @@ export function CommunityPostCard({ post, onLike }: CommunityPostCardProps) {
                 </span>
               </div>
               <p className="mt-0.5 text-[12px] text-pnu-muted">
-                {post.timeAgo} · {post.authorNationality}
+                {formatRelativeTime(post.createdAt, t, locale)} · {post.authorNationality}
               </p>
             </div>
-            <button
-              type="button"
-              className="rounded-lg p-1 text-pnu-muted hover:bg-black/5"
-              aria-label="More"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
+            {canDelete ? (
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((open) => !open)}
+                  className="rounded-lg p-1 text-pnu-muted hover:bg-black/5"
+                  aria-label={t('community.postOptions')}
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+                {menuOpen ? (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-[calc(100%+4px)] z-20 min-w-[140px] overflow-hidden rounded-[12px] bg-white py-1 shadow-lg ring-1 ring-black/8"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => void handleDelete()}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-semibold text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t('community.deletePost')}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -78,7 +127,7 @@ export function CommunityPostCard({ post, onLike }: CommunityPostCardProps) {
         <button
           type="button"
           className="ml-auto inline-flex items-center gap-1.5 font-medium hover:text-pnu-blue"
-          aria-label="Share"
+          aria-label={t('community.action.share')}
         >
           <Share2 className="h-4 w-4" />
         </button>

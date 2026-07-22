@@ -1,8 +1,10 @@
 import type { LanguageCode, MessageDictionary } from './types'
 import { DEFAULT_LANGUAGE } from './languages'
 import { loadCalendarMessages } from './calendar'
+import { loadCommunityMessages } from './community'
 import { loadLibraryGuideMessages } from './libraryGuide'
 import { loadOneStopMessages } from './oneStop'
+import { loadWorkPermitGuideMessages } from './workPermitGuide'
 
 type LocaleModule = { default: MessageDictionary }
 
@@ -47,17 +49,19 @@ export async function loadLocale(language: LanguageCode): Promise<MessageDiction
   clearLocaleCache()
 
   const loader = LOCALE_LOADERS[language] ?? LOCALE_LOADERS[DEFAULT_LANGUAGE]
-  const [messages, fallback, oneStopMessages, libraryMessages, calendarMessages] =
+  const [messages, fallback, oneStopMessages, libraryMessages, calendarMessages, communityMessages, workPermitMessages] =
     await Promise.all([
       loader().then((m) => m.default),
       loadEnglishFallback(),
       loadOneStopMessages(language),
       loadLibraryGuideMessages(language),
       loadCalendarMessages(language),
+      loadCommunityMessages(language),
+      loadWorkPermitGuideMessages(language),
     ])
   const merged =
     language === DEFAULT_LANGUAGE ? messages : { ...fallback, ...messages }
-  return { ...merged, ...oneStopMessages, ...libraryMessages, ...calendarMessages }
+  return { ...merged, ...oneStopMessages, ...libraryMessages, ...calendarMessages, ...communityMessages, ...workPermitMessages }
 }
 
 export async function preloadLocale(language: LanguageCode): Promise<void> {

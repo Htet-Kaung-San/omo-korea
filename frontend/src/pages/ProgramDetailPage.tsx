@@ -7,6 +7,10 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
 import { getProgramIconForItem } from '@/utils/programIcons'
 
+function looksLikeHtml(value: string): boolean {
+  return /<\s*(p|div|table|br|ul|ol|h[1-6]|span|a|strong|em|tbody|tr|td|th)\b/i.test(value)
+}
+
 export function ProgramDetailPage() {
   const { programId } = useParams()
   const { language, t } = useLanguage()
@@ -86,9 +90,16 @@ export function ProgramDetailPage() {
                 {t('academic.programDetails')}
               </h2>
               {program.description?.trim() ? (
-                <div className="mt-4 whitespace-pre-wrap text-[15px] leading-[1.75] text-pnu-text">
-                  {program.description}
-                </div>
+                looksLikeHtml(program.description) ? (
+                  <div
+                    className="program-description-html mt-4 text-[15px] leading-[1.75] text-pnu-text"
+                    dangerouslySetInnerHTML={{ __html: program.description }}
+                  />
+                ) : (
+                  <div className="mt-4 whitespace-pre-wrap text-[15px] leading-[1.75] text-pnu-text">
+                    {program.description}
+                  </div>
+                )
               ) : (
                 <p className="mt-4 text-[14px] leading-relaxed text-pnu-muted">
                   {t('academic.noProgramDescription')}

@@ -1,5 +1,22 @@
 import { parseGuideStep } from '@/i18n/guide/parseStep'
 
+function renderTextWithBold(text: string, keyPrefix: string) {
+  const segments = text.split(/\*\*(.+?)\*\*/g)
+
+  return segments.map((segment, index) => {
+    if (!segment) return null
+    const isBold = index % 2 === 1
+    if (isBold) {
+      return (
+        <strong key={`${keyPrefix}-bold-${index}`} className="font-semibold text-pnu-text">
+          {segment}
+        </strong>
+      )
+    }
+    return <span key={`${keyPrefix}-text-${index}`}>{segment}</span>
+  })
+}
+
 export function GuideInlineText({ text }: { text: string }) {
   return (
     <>
@@ -18,7 +35,9 @@ export function GuideInlineText({ text }: { text: string }) {
           )
         }
 
-        return <span key={`text-${index}`}>{part.value}</span>
+        return (
+          <span key={`text-${index}`}>{renderTextWithBold(part.value, `part-${index}`)}</span>
+        )
       })}
     </>
   )

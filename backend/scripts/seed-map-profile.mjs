@@ -135,8 +135,8 @@ async function probeSchema() {
   if (error) throw new Error(`facility probe failed: ${error.message}`);
   const cols = Object.keys(data?.[0] || {});
   const { error: academicError } = await supabase
-    .from("academic_summary")
-    .select("student_id")
+    .from("academic_record")
+    .select("record_id, record_type")
     .limit(1);
   return {
     facilityColumns: cols,
@@ -150,7 +150,7 @@ async function main() {
   const schema = await probeSchema();
   console.log("facility columns:", schema.facilityColumns.join(", ") || "(empty table)");
   console.log("enrichment ready:", schema.hasEnrichment);
-  console.log("academic tables ready:", schema.hasAcademic);
+  console.log("academic table ready:", schema.hasAcademic);
 
   if (!schema.hasEnrichment || !schema.hasAcademic) {
     console.error("\nSchema not ready. In Supabase Dashboard → SQL Editor, run:");
@@ -223,30 +223,73 @@ async function main() {
     }
   }
 
-  console.log("\nUpserting academic records for 202600001...");
-  const { error: sumErr } = await supabase.from("academic_summary").upsert({
-    student_id: "202600001",
-    overall_gpa: 3.67,
-    gpa_scale: 4.5,
-    standing: "Good",
-    completed_credits: 72,
-    required_credits: 100,
-  });
-  if (sumErr) {
-    console.error("academic_summary FAIL", sumErr.message);
+  const { data: students, error: studentErr } = await supabase
+    .from("student")
+    .select("student_id")
+    .order("student_id", { ascending: true });
+
+  if (studentErr) {
+    console.error("student lookup FAIL", studentErr.message);
     process.exit(1);
   }
 
-  await supabase.from("academic_record").delete().eq("student_id", "202600001");
-  const { error: recErr } = await supabase.from("academic_record").insert([
-    { student_id: "202600001", semester_label: "2024 Spring", gpa: 3.8, sort_order: 1 },
-    { student_id: "202600001", semester_label: "2023 Fall", gpa: 3.6, sort_order: 2 },
-    { student_id: "202600001", semester_label: "2023 Spring", gpa: 3.45, sort_order: 3 },
-    { student_id: "202600001", semester_label: "2022 Fall", gpa: 3.3, sort_order: 4 },
-  ]);
-  if (recErr) {
-    console.error("academic_record FAIL", recErr.message);
-    process.exit(1);
+  if (!students?.length) {
+    console.warn("No students in student table — skipping academic records seed");
+  } else {
+    console.log(`\nUpserting academic records for ${students.length} student(s)...`);
+    for (let i = 0; i < students.length; i += 1) {
+      const studentId = students[i].student_id;
+      const overall = Math.min(3.3 + (i + 1) * 0.12, 4.0);
+      const completed = Math.min(60 + (i + 1) * 4, 100);
+      const standing = overall >= 3.7 ? "Good" : overall >= 3.5 ? "Satisfactory" : "Warning";
+
+      await supabase.from("academic_record").delete().eq("student_id", studentId);
+      const { error: recErr } = await supabase.from("academic_record").insert([
+        {
+          student_id: studentId,
+          record_type: "summary",
+          overall_gpa: overall,
+          gpa_scale: 4.5,
+          standing,
+          completed_credits: completed,
+          required_credits: 100,
+          sort_order: 0,
+        },
+        {
+          student_id: studentId,
+          record_type: "semester",
+          semester_label: "2024 Spring",
+          gpa: Math.min(overall + 0.13, 4.5),
+          sort_order: 1,
+        },
+        {
+          student_id: studentId,
+          record_type: "semester",
+          semester_label: "2023 Fall",
+          gpa: Math.max(overall - 0.07, 0),
+          sort_order: 2,
+        },
+        {
+          student_id: studentId,
+          record_type: "semester",
+          semester_label: "2023 Spring",
+          gpa: Math.max(overall - 0.22, 0),
+          sort_order: 3,
+        },
+        {
+          student_id: studentId,
+          record_type: "semester",
+          semester_label: "2022 Fall",
+          gpa: Math.max(overall - 0.37, 0),
+          sort_order: 4,
+        },
+      ]);
+      if (recErr) {
+        console.error("academic_record FAIL", studentId, recErr.message);
+        process.exit(1);
+      }
+      console.log("  seeded", studentId);
+    }
   }
 
   const { count } = await supabase

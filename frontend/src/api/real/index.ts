@@ -14,7 +14,6 @@ import type {
   Enrollment,
   FaqItem,
   CommunityGroup,
-  CommunityMembersResponse,
   CommunityPost,
   CommunityScope,
   CreateCommunityPostRequest,
@@ -38,7 +37,6 @@ import { CHAT_SUGGESTIONS } from '../mock/data'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,
-  mapCommunityMember,
   mapCommunityPost,
 } from './communityMappers'
 import {
@@ -282,18 +280,6 @@ export const realApi: HeyPnuApi = {
     return rows.map(mapCommunityPost)
   },
 
-  async getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse> {
-    const payload = await backendFetch<{
-      group: Parameters<typeof mapCommunityGroup>[0]
-      members: Array<{ id: string; name: string; nationality: string; major: string }>
-    }>(`/students/community/groups/${encodeURIComponent(groupIdOrSlug)}/members`)
-
-    return {
-      group: mapCommunityGroup(payload.group),
-      members: payload.members.map(mapCommunityMember),
-    }
-  },
-
   async createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost> {
     const row = await backendFetch<Parameters<typeof mapCommunityPost>[0]>(
       '/students/community/posts',
@@ -314,6 +300,13 @@ export const realApi: HeyPnuApi = {
     return backendFetch<{ id: string; likes: number }>(
       `/students/community/posts/${encodeURIComponent(postId)}/like`,
       { method: 'POST' },
+    )
+  },
+
+  async deleteCommunityPost(postId: string): Promise<{ id: string }> {
+    return backendFetch<{ id: string }>(
+      `/students/community/posts/${encodeURIComponent(postId)}`,
+      { method: 'DELETE' },
     )
   },
 
@@ -347,25 +340,6 @@ export const realApi: HeyPnuApi = {
       `/students/academic-records/${encodeURIComponent(studentId)}`,
     )
     return mapAcademicRecords(records)
-  },
-
-  async downloadTranscript() {
-    const studentId = resolveStudentId()
-    if (!studentId) {
-      throw new Error('Student ID is required to download transcript')
-    }
-    const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
-    const token = getStoredToken()
-    const headers = new Headers()
-    if (token) headers.set('Authorization', `Bearer ${token}`)
-    const response = await fetch(
-      `${baseUrl}/students/academic-records/${encodeURIComponent(studentId)}/transcript`,
-      { headers },
-    )
-    if (!response.ok) {
-      throw new Error(`Failed to download transcript (${response.status})`)
-    }
-    return response.blob()
   },
 
   async getAiDashboard(): Promise<AiDashboard> {

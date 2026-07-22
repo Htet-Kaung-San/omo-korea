@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapPin, Phone } from 'lucide-react'
 import { api } from '@/api'
 import type { EmergencyContact, EmergencyGuide } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { countryMatches } from '@/utils/countryMatch'
 
 function mapUrl(query: string) {
   return `https://map.naver.com/v5/search/${encodeURIComponent(query)}`
@@ -82,6 +84,7 @@ function DatabaseContactCard({
 }
 
 export function EmergencySupportPage() {
+  const { user } = useAuth()
   const { language, t } = useLanguage()
   const [guide, setGuide] = useState<EmergencyGuide | null>(null)
   const [loading, setLoading] = useState(true)
@@ -96,7 +99,13 @@ export function EmergencySupportPage() {
       .finally(() => setLoading(false))
   }, [language, t])
 
-  const embassyContacts = guide?.database_contacts.filter((contact) => contact.type === 'embassy') ?? []
+  const embassyContacts = useMemo(() => {
+    const embassies =
+      guide?.database_contacts.filter((contact) => contact.type === 'embassy') ?? []
+    if (!user?.nationality) return embassies
+    return embassies.filter((contact) => countryMatches(contact.country, user.nationality))
+  }, [guide, user?.nationality])
+
   const nearestContacts = guide?.database_contacts.filter((contact) => contact.type !== 'embassy') ?? []
 
   return (

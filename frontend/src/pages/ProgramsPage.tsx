@@ -13,6 +13,8 @@ type AiProgramItem = ProgramItem & {
   aiRecommended?: boolean
 }
 
+type ProgramTab = 'recommended' | 'all'
+
 function normalizeText(value?: string | null): string {
   return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase()
 }
@@ -132,6 +134,7 @@ export function ProgramsPage() {
   const [programs, setPrograms] = useState<AiProgramItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [tab, setTab] = useState<ProgramTab>('recommended')
 
   useEffect(() => {
     let cancelled = false
@@ -164,28 +167,37 @@ export function ProgramsPage() {
     }
   }, [language, t])
 
-  const aiRecommendedPrograms = useMemo(
-    () => programs.filter((program) => program.aiRecommended).slice(0, 6),
+  const recommendedPrograms = useMemo(
+    () => programs.filter((program) => program.aiRecommended),
     [programs],
   )
 
-  const otherPrograms = useMemo(() => {
-    const aiIds = new Set(aiRecommendedPrograms.map((program) => String(program.id)))
-    return programs.filter((program) => !aiIds.has(String(program.id)))
-  }, [aiRecommendedPrograms, programs])
+  useEffect(() => {
+    if (!loading && recommendedPrograms.length === 0 && tab === 'recommended') {
+      setTab('all')
+    }
+  }, [loading, recommendedPrograms.length, tab])
 
-  function renderProgramCard(program: AiProgramItem, variant: 'ai' | 'default') {
+  const visiblePrograms = tab === 'recommended' ? recommendedPrograms : programs
+
+  const tabs: { id: ProgramTab; labelKey: 'academic.recommendedForYou' | 'academic.allPrograms' }[] = [
+    { id: 'recommended', labelKey: 'academic.recommendedForYou' },
+    { id: 'all', labelKey: 'academic.allPrograms' },
+  ]
+
+  function renderProgramCard(program: AiProgramItem) {
     const Icon = getProgramIconForItem(program)
+    const showRecommendedDesign = tab === 'recommended' && Boolean(program.aiRecommended)
 
     return (
       <article
-        key={`${variant}-${program.id}`}
+        key={program.id}
         className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm"
       >
         <div className="flex items-start gap-3">
           <span
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-              variant === 'ai' ? 'bg-violet-50 text-violet-600' : 'bg-blue-50 text-pnu-blue'
+              showRecommendedDesign ? 'bg-violet-50 text-violet-600' : 'bg-blue-50 text-pnu-blue'
             }`}
           >
             <Icon className="h-5 w-5" strokeWidth={1.8} />
@@ -200,7 +212,7 @@ export function ProgramsPage() {
                 {program.title}
               </Link>
 
-              {variant === 'ai' ? (
+              {showRecommendedDesign ? (
                 <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
                   AI
                 </span>
@@ -215,7 +227,7 @@ export function ProgramsPage() {
               <p className="mt-2 text-xs font-semibold text-pnu-blue-light">{program.date}</p>
             ) : null}
 
-            {variant === 'ai' && program.matchHint ? (
+            {showRecommendedDesign && program.matchHint ? (
               <p className="mt-2 rounded-xl bg-violet-50 px-3 py-2 text-[12px] leading-relaxed text-violet-700">
                 {program.matchHint}
               </p>
@@ -242,20 +254,30 @@ export function ProgramsPage() {
     <div>
       <PageHeader title={t('academic.programs')} subtitle={t('academic.programsSubtitle')} back />
 
-      <div className="space-y-5 px-5 py-5">
-        <section className="rounded-[22px] bg-gradient-to-br from-violet-600 to-blue-600 p-4 text-white shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/15">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <div>
-              <h2 className="text-[16px] font-bold">AI Extracurricular Recommendations</h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/85">
-                Ranked using profile signals, academic year, program category, and international student relevance.
-              </p>
-            </div>
-          </div>
-        </section>
+      <div className="space-y-4 px-5 pb-6 pt-1">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto pb-0.5">
+          {tabs.map(({ id, labelKey }) => {
+            const active = tab === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={[
+                  'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition',
+                  active
+                    ? 'bg-violet-600 text-white shadow-sm'
+                    : 'bg-white text-violet-700 ring-1 ring-violet-200',
+                ].join(' ')}
+              >
+                {id === 'recommended' ? (
+                  <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+                ) : null}
+                {t(labelKey)}
+              </button>
+            )
+          })}
+        </div>
 
         {error ? (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
@@ -263,28 +285,13 @@ export function ProgramsPage() {
 
         {loading ? <p className="text-sm text-pnu-muted">{t('academic.loading')}</p> : null}
 
-        {!loading && !error && programs.length === 0 ? (
+        {!loading && !error && visiblePrograms.length === 0 ? (
           <p className="text-sm text-pnu-muted">{t('academic.noPrograms')}</p>
         ) : null}
 
-        {!loading && !error && aiRecommendedPrograms.length > 0 ? (
+        {!loading && !error && visiblePrograms.length > 0 ? (
           <section className="space-y-3">
-            <div className="px-1">
-              <h3 className="text-[15px] font-bold text-pnu-text">Recommended for You</h3>
-              <p className="mt-0.5 text-[12px] text-pnu-muted">
-                Duplicate programs are removed and match reasons are summarized for easier comparison.
-              </p>
-            </div>
-            {aiRecommendedPrograms.map((program) => renderProgramCard(program, 'ai'))}
-          </section>
-        ) : null}
-
-        {!loading && !error && otherPrograms.length > 0 ? (
-          <section className="space-y-3">
-            <div className="px-1">
-              <h3 className="text-[15px] font-bold text-pnu-text">All Programs</h3>
-            </div>
-            {otherPrograms.map((program) => renderProgramCard(program, 'default'))}
+            {visiblePrograms.map((program) => renderProgramCard(program))}
           </section>
         ) : null}
       </div>

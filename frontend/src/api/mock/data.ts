@@ -656,12 +656,40 @@ export const mockEmergencyGuide: EmergencyGuide = {
   },
   database_contacts: [
     {
+      id: 'embassy-myanmar',
+      type: 'embassy',
+      country: 'Myanmar',
+      name: 'Embassy of Myanmar',
+      phone: '+82-2-798-0327',
+      country_flag: '🇲🇲',
+      map_query: 'Embassy of Myanmar Seoul',
+    },
+    {
       id: 'embassy-mongolia',
       type: 'embassy',
+      country: 'Mongolia',
       name: 'Embassy of Mongolia',
       phone: '+82-2-794-1350',
       country_flag: '🇲🇳',
       map_query: 'Embassy of Mongolia Seoul',
+    },
+    {
+      id: 'embassy-china',
+      type: 'embassy',
+      country: 'China',
+      name: 'Embassy of China',
+      phone: '+82-2-738-1038',
+      country_flag: '🇨🇳',
+      map_query: 'Embassy of China Seoul',
+    },
+    {
+      id: 'embassy-vietnam',
+      type: 'embassy',
+      country: 'Vietnam',
+      name: 'Embassy of Vietnam',
+      phone: '+82-2-734-7948',
+      country_flag: '🇻🇳',
+      map_query: 'Embassy of Vietnam Seoul',
     },
     {
       id: 'hospital-pnu',
@@ -900,7 +928,7 @@ export const mockMapFacilities: MapFacility[] = [
 ]
 
 export const mockAcademicRecords: AcademicRecords = {
-  studentId: '202600001',
+  studentId: '202455393',
   overallGpa: 3.67,
   gpaScale: 4.5,
   standing: 'Good',

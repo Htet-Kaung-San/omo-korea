@@ -37,7 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_community_post_scope ON community_post (scope, cr
 CREATE INDEX IF NOT EXISTS idx_community_post_group ON community_post (group_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_community_post_student ON community_post (student_id);
 
--- Seed community groups (user's country/department matched via match_key)
+-- Seed community groups (country + all only; department groups are auto-created from major)
 INSERT INTO community_group (slug, scope, name, icon, match_key, banner_title, banner_body) VALUES
 (
   'all-intl',
@@ -47,42 +47,6 @@ INSERT INTO community_group (slug, scope, name, icon, match_key, banner_title, b
   NULL,
   'Welcome to the PNU Community!',
   'Ask questions, share tips, and build connections with fellow students.'
-),
-(
-  'dept-cse',
-  'department',
-  'Computer Science & Engineering',
-  '💻',
-  'Computer Science & Engineering',
-  'CSE Community',
-  'Find teammates, share lab tips, and follow CSE announcements.'
-),
-(
-  'dept-business',
-  'department',
-  'Business Administration',
-  '📊',
-  'Business Administration',
-  'Business Community',
-  'Network with business majors and share internship tips.'
-),
-(
-  'dept-intl',
-  'department',
-  'International Studies',
-  '🌍',
-  'International Studies',
-  'International Studies',
-  'Discuss global issues and campus events with your cohort.'
-),
-(
-  'dept-ee',
-  'department',
-  'Electrical Engineering',
-  '⚡',
-  'Electrical Engineering',
-  'Electrical Engineering',
-  'Ask course questions and form study groups.'
 ),
 (
   'country-myanmar',

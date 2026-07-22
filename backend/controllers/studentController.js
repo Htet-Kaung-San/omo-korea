@@ -1321,27 +1321,7 @@ const getAcademicRecords = async (req, res) => {
       });
     }
 
-    const { data: summary, error: summaryError } = await supabase
-      .from("academic_summary")
-      .select("*")
-      .eq("student_id", student_id)
-      .single();
-
-    if (summaryError || !summary) {
-      if (summaryError?.code === "PGRST116" || !summary) {
-        return res.status(404).json({
-          success: false,
-          message: "Academic records not found for this student",
-        });
-      }
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch academic summary",
-        error: summaryError.message,
-      });
-    }
-
-    const { data: semesters, error: recordError } = await supabase
+    const { data: rows, error: recordError } = await supabase
       .from("academic_record")
       .select("*")
       .eq("student_id", student_id)
@@ -1350,10 +1330,20 @@ const getAcademicRecords = async (req, res) => {
     if (recordError) {
       return res.status(500).json({
         success: false,
-        message: "Failed to fetch semester records",
+        message: "Failed to fetch academic records",
         error: recordError.message,
       });
     }
+
+    const summary = (rows || []).find((row) => row.record_type === "summary");
+    if (!summary) {
+      return res.status(404).json({
+        success: false,
+        message: "Academic records not found for this student",
+      });
+    }
+
+    const semesters = (rows || []).filter((row) => row.record_type === "semester");
 
     res.json({
       success: true,
@@ -1364,89 +1354,13 @@ const getAcademicRecords = async (req, res) => {
         standing: summary.standing,
         completed_credits: Number(summary.completed_credits),
         required_credits: Number(summary.required_credits),
-        semesters: (semesters || []).map((row) => ({
+        semesters: semesters.map((row) => ({
           semester_label: row.semester_label,
           gpa: Number(row.gpa),
           sort_order: row.sort_order,
         })),
       },
     });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Unexpected server error",
-      error: err.message,
-    });
-  }
-};
-
-const downloadAcademicTranscript = async (req, res) => {
-  try {
-    const { student_id } = req.params;
-    const requesterId = String(req.user?.student_id ?? "");
-
-    if (requesterId && requesterId !== String(student_id) && !req.user?.is_admin) {
-      return res.status(403).json({
-        success: false,
-        message: "Forbidden",
-      });
-    }
-
-    const { data: student } = await supabase
-      .from("student")
-      .select("student_id, name, email, major_id")
-      .eq("student_id", student_id)
-      .single();
-
-    const { data: summary, error: summaryError } = await supabase
-      .from("academic_summary")
-      .select("*")
-      .eq("student_id", student_id)
-      .single();
-
-    if (!summary) {
-      return res.status(404).json({
-        success: false,
-        message: "Academic records not found for this student",
-        error: summaryError?.message,
-      });
-    }
-
-    const { data: semesters } = await supabase
-      .from("academic_record")
-      .select("*")
-      .eq("student_id", student_id)
-      .order("sort_order", { ascending: true });
-
-    const lines = [
-      "Hey! PNU — Academic Transcript (Unofficial)",
-      "==========================================",
-      `Student ID: ${student_id}`,
-      `Name: ${student?.name || "N/A"}`,
-      `Email: ${student?.email || "N/A"}`,
-      "",
-      `Overall GPA: ${Number(summary.overall_gpa).toFixed(2)} / ${Number(summary.gpa_scale).toFixed(1)}`,
-      `Standing: ${summary.standing}`,
-      `Credits: ${summary.completed_credits} / ${summary.required_credits}`,
-      "",
-      "Semester Performance",
-      "--------------------",
-      ...(semesters || []).map(
-        (row) =>
-          `${row.semester_label}: ${Number(row.gpa).toFixed(2)} / ${Number(summary.gpa_scale).toFixed(1)}`,
-      ),
-      "",
-      `Generated: ${new Date().toISOString()}`,
-      "This is a demo transcript for Hey! PNU and is not an official university document.",
-    ];
-
-    const body = lines.join("\n");
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="transcript-${student_id}.txt"`,
-    );
-    res.send(body);
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -2337,7 +2251,18 @@ const hardDeleteStudent = async (req, res) => {
 
 const getEmergencyGuideHandler = async (req, res, next) => {
   try {
-    const data = await getEmergencyGuide(req.language || "en");
+    let nationality = null;
+
+    if (req.user?.student_id) {
+      const { data: student } = await supabase
+        .from("student")
+        .select("nationality")
+        .eq("student_id", req.user.student_id)
+        .maybeSingle();
+      nationality = student?.nationality ?? null;
+    }
+
+    const data = await getEmergencyGuide(req.language || "en", nationality);
 
     return res.status(200).json({
       success: true,
@@ -2438,23 +2363,6 @@ const getMyCommunityGroupHandler = async (req, res) => {
   }
 };
 
-const getCommunityMembersHandler = async (req, res) => {
-  try {
-    const { groupId } = req.params;
-    const result = await communityService.getCommunityMembers(groupId);
-    if (!result.group) {
-      return res.status(404).json({ success: false, message: "Community not found" });
-    }
-    return res.json({ success: true, data: result });
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to load community members",
-      error: err.message,
-    });
-  }
-};
-
 const getCommunityPostsHandler = async (req, res) => {
   try {
     const scope = String(req.query.scope || "all");
@@ -2517,6 +2425,26 @@ const likeCommunityPostHandler = async (req, res) => {
   }
 };
 
+const deleteCommunityPostHandler = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    if (!studentId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { postId } = req.params;
+    const data = await communityService.deleteCommunityPost({ postId, studentId });
+    return res.json({ success: true, data });
+  } catch (err) {
+    const status = err.status || 500;
+    return res.status(status).json({
+      success: false,
+      message: err.message || "Failed to delete post",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   getAllStudents,
   requestStudentDeletion,
@@ -2542,7 +2470,6 @@ module.exports = {
   getPnuContacts,
   getFaqItems,
   getAcademicRecords,
-  downloadAcademicTranscript,
   getNotices,
   syncNotices,
   getNotifications,
@@ -2558,10 +2485,10 @@ module.exports = {
   getCareerOpportunities,
   getCareerRecommendations,
   getMyCommunityGroupHandler,
-  getCommunityMembersHandler,
   getCommunityPostsHandler,
   createCommunityPostHandler,
   likeCommunityPostHandler,
+  deleteCommunityPostHandler,
   getEmergencyGuideHandler,
   getCampusFacilitiesHandler,
 };

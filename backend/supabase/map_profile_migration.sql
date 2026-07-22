@@ -23,23 +23,28 @@ BEGIN
   END IF;
 END $$;
 
--- 2) Academic tables (student_id is INTEGER in live Supabase)
-CREATE TABLE IF NOT EXISTS academic_summary (
-    student_id INTEGER PRIMARY KEY REFERENCES student(student_id) ON DELETE CASCADE,
-    overall_gpa NUMERIC(3, 2) NOT NULL,
-    gpa_scale NUMERIC(2, 1) NOT NULL DEFAULT 4.5,
-    standing VARCHAR(50) NOT NULL DEFAULT 'Good',
-    completed_credits INTEGER NOT NULL DEFAULT 0,
-    required_credits INTEGER NOT NULL DEFAULT 100
-);
-
+-- 2) Academic records (student_id is INTEGER in live Supabase)
 CREATE TABLE IF NOT EXISTS academic_record (
     record_id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
-    semester_label VARCHAR(50) NOT NULL,
-    gpa NUMERIC(3, 2) NOT NULL,
-    sort_order INTEGER NOT NULL DEFAULT 0
+    record_type VARCHAR(20) NOT NULL CHECK (record_type IN ('summary', 'semester')),
+    overall_gpa NUMERIC(3, 2),
+    gpa_scale NUMERIC(2, 1) DEFAULT 4.5,
+    standing VARCHAR(50) DEFAULT 'Good',
+    completed_credits INTEGER DEFAULT 0,
+    required_credits INTEGER DEFAULT 100,
+    semester_label VARCHAR(50),
+    gpa NUMERIC(3, 2),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT academic_record_type_fields CHECK (
+        (record_type = 'summary' AND overall_gpa IS NOT NULL AND semester_label IS NULL)
+        OR
+        (record_type = 'semester' AND semester_label IS NOT NULL AND gpa IS NOT NULL)
+    )
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_record_summary
+    ON academic_record(student_id) WHERE record_type = 'summary';
 
 CREATE INDEX IF NOT EXISTS idx_academic_record_student ON academic_record(student_id);
 
@@ -155,22 +160,43 @@ UPDATE facility SET
   amenities = COALESCE(amenities, '[{"name":"Dining","floor":"1F"}]'::jsonb)
 WHERE type = 'Cafeteria' OR name ILIKE '%Cafeteria%' OR name ILIKE '%회관%';
 
--- 4) Academic demo for sample student 202600001
-INSERT INTO academic_summary (
-  student_id, overall_gpa, gpa_scale, standing, completed_credits, required_credits
-) VALUES (
-  202600001, 3.67, 4.5, 'Good', 72, 100
-)
-ON CONFLICT (student_id) DO UPDATE SET
-  overall_gpa = EXCLUDED.overall_gpa,
-  gpa_scale = EXCLUDED.gpa_scale,
-  standing = EXCLUDED.standing,
-  completed_credits = EXCLUDED.completed_credits,
-  required_credits = EXCLUDED.required_credits;
+-- 4) Academic demo: one summary + semester history per student
+DO $$
+DECLARE
+  s RECORD;
+  idx INTEGER := 0;
+  overall NUMERIC(3, 2);
+  completed INTEGER;
+BEGIN
+  FOR s IN SELECT student_id FROM student ORDER BY student_id LOOP
+    idx := idx + 1;
+    overall := LEAST(3.30 + (idx * 0.12), 4.00);
+    completed := LEAST(60 + (idx * 4), 100);
 
-DELETE FROM academic_record WHERE student_id = 202600001;
-INSERT INTO academic_record (student_id, semester_label, gpa, sort_order) VALUES
-(202600001, '2024 Spring', 3.80, 1),
-(202600001, '2023 Fall', 3.60, 2),
-(202600001, '2023 Spring', 3.45, 3),
-(202600001, '2022 Fall', 3.30, 4);
+    DELETE FROM academic_record WHERE student_id = s.student_id;
+
+    INSERT INTO academic_record (
+      student_id, record_type, overall_gpa, gpa_scale, standing,
+      completed_credits, required_credits, sort_order
+    ) VALUES (
+      s.student_id,
+      'summary',
+      overall,
+      4.5,
+      CASE
+        WHEN overall >= 3.7 THEN 'Good'
+        WHEN overall >= 3.5 THEN 'Satisfactory'
+        ELSE 'Warning'
+      END,
+      completed,
+      100,
+      0
+    );
+
+    INSERT INTO academic_record (student_id, record_type, semester_label, gpa, sort_order) VALUES
+    (s.student_id, 'semester', '2024 Spring', LEAST(overall + 0.13, 4.50), 1),
+    (s.student_id, 'semester', '2023 Fall', GREATEST(overall - 0.07, 0), 2),
+    (s.student_id, 'semester', '2023 Spring', GREATEST(overall - 0.22, 0), 3),
+    (s.student_id, 'semester', '2022 Fall', GREATEST(overall - 0.37, 0), 4);
+  END LOOP;
+END $$;

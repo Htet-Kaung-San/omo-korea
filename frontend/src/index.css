@@ -71,3 +71,42 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.program-description-html table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.program-description-html th,
+.program-description-html td {
+  border: 1px solid var(--color-pnu-border);
+  padding: 0.55rem 0.65rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+.program-description-html th {
+  background: #f2f6fb;
+  font-weight: 700;
+}
+
+.program-description-html a {
+  color: var(--color-pnu-blue);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.program-description-html p,
+.program-description-html ul,
+.program-description-html ol {
+  margin: 0.75rem 0;
+}
+
+.program-description-html img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}

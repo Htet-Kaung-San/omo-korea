@@ -7,6 +7,24 @@ function normalize(value) {
     .replace(/\s+/g, " ");
 }
 
+function studentMajorName(user) {
+  return String(user?.major_name || user?.major || "").trim();
+}
+
+function slugifyLabel(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9가-힣]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function departmentSlugFromMajor(majorName) {
+  const base = slugifyLabel(majorName);
+  return base ? `department-${base}` : "";
+}
+
 function nationalityAliases(value) {
   const key = normalize(value);
   const aliases = new Set([key]);
@@ -34,7 +52,7 @@ function extractHashtags(content) {
   return [...new Set(matches)];
 }
 
-function mapGroupRow(row, { memberCount = 0, newPostCount = 0, joined = true } = {}) {
+function mapGroupRow(row) {
   return {
     id: row.slug || String(row.group_id),
     group_id: row.group_id,
@@ -43,48 +61,7 @@ function mapGroupRow(row, { memberCount = 0, newPostCount = 0, joined = true } =
     name: row.name,
     icon: row.icon,
     match_key: row.match_key,
-    member_count: memberCount,
-    new_post_count: newPostCount,
-    joined,
-    banner_title: row.banner_title,
-    banner_body: row.banner_body,
   };
-}
-
-async function countMembersForGroup(group) {
-  if (!group || group.scope === "all" || !group.match_key) return 0;
-
-  if (group.scope === "country") {
-    const aliases = nationalityAliases(group.match_key);
-    const { data, error } = await supabase.from("student").select("student_id, nationality");
-    if (error) throw error;
-    return (data || []).filter((student) =>
-      aliases.includes(normalize(student.nationality)),
-    ).length;
-  }
-
-  const { data, error } = await supabase
-    .from("student")
-    .select("student_id, major:major_id(major_name)");
-  if (error) throw error;
-
-  const target = normalize(group.match_key);
-  return (data || []).filter((student) => {
-    const majorName = normalize(student.major?.major_name);
-    return majorName === target || majorName.includes(target) || target.includes(majorName);
-  }).length;
-}
-
-async function countRecentPosts(groupId) {
-  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { count, error } = await supabase
-    .from("community_post")
-    .select("post_id", { count: "exact", head: true })
-    .eq("group_id", groupId)
-    .eq("reported", false)
-    .gte("created_at", since);
-  if (error) throw error;
-  return count || 0;
 }
 
 async function findGroupByScopeAndUser(scope, user) {
@@ -101,6 +78,22 @@ async function findGroupByScopeAndUser(scope, user) {
     return data;
   }
 
+  if (scope === "department") {
+    const majorName = studentMajorName(user);
+    const slug = departmentSlugFromMajor(majorName);
+    if (!slug) return null;
+
+    const { data, error: groupError } = await supabase
+      .from("community_group")
+      .select("*")
+      .eq("scope", "department")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (groupError) throw groupError;
+    return data;
+  }
+
   const { data: groups, error } = await supabase
     .from("community_group")
     .select("*")
@@ -108,12 +101,10 @@ async function findGroupByScopeAndUser(scope, user) {
     .eq("is_active", true);
   if (error) throw error;
 
-  const userValue =
-    scope === "country" ? normalize(user?.nationality) : normalize(user?.major_name || user?.major);
-
+  const userValue = normalize(user?.nationality);
   if (!userValue) return null;
 
-  const aliases = scope === "country" ? nationalityAliases(userValue) : [userValue];
+  const aliases = nationalityAliases(userValue);
 
   const match = (groups || []).find((group) => {
     const key = normalize(group.match_key);
@@ -134,14 +125,14 @@ async function ensureUserGroup(scope, user) {
   const raw =
     scope === "country"
       ? String(user?.nationality || "").trim()
-      : String(user?.major_name || user?.major || "").trim();
+      : studentMajorName(user);
   if (!raw) return null;
 
-  const slugBase = raw
-    .toLowerCase()
-    .replace(/[^a-z0-9가-힣]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const slug = `${scope}-${slugBase || "community"}`;
+  const slug =
+    scope === "department"
+      ? departmentSlugFromMajor(raw)
+      : `${scope}-${slugifyLabel(raw) || "community"}`;
+  if (!slug) return null;
   const name = scope === "country" ? `${raw} Community` : raw;
   const icon = scope === "country" ? "🌐" : "🎓";
 
@@ -171,92 +162,7 @@ async function ensureUserGroup(scope, user) {
 async function getMyCommunityGroup(scope, user) {
   const group = await ensureUserGroup(scope, user);
   if (!group) return null;
-
-  const [memberCount, newPostCount] = await Promise.all([
-    countMembersForGroup(group),
-    countRecentPosts(group.group_id),
-  ]);
-
-  return mapGroupRow(group, {
-    memberCount,
-    newPostCount,
-    joined: true,
-  });
-}
-
-async function getCommunityMembers(groupRef) {
-  let group = null;
-
-  const asNumber = Number(groupRef);
-  if (Number.isInteger(asNumber) && asNumber > 0) {
-    const { data, error } = await supabase
-      .from("community_group")
-      .select("*")
-      .eq("group_id", asNumber)
-      .maybeSingle();
-    if (error) throw error;
-    group = data;
-  }
-
-  if (!group) {
-    const { data, error } = await supabase
-      .from("community_group")
-      .select("*")
-      .eq("slug", String(groupRef))
-      .maybeSingle();
-    if (error) throw error;
-    group = data;
-  }
-
-  if (!group) return { group: null, members: [] };
-
-  let students = [];
-
-  if (group.scope === "country" && group.match_key) {
-    const aliases = nationalityAliases(group.match_key);
-    const { data, error: studentError } = await supabase
-      .from("student")
-      .select("student_id, name, nationality, major:major_id(major_name)")
-      .order("name", { ascending: true });
-    if (studentError) throw studentError;
-    students = (data || []).filter((student) =>
-      aliases.includes(normalize(student.nationality)),
-    );
-  } else if (group.scope === "department" && group.match_key) {
-    const target = normalize(group.match_key);
-    const { data, error: studentError } = await supabase
-      .from("student")
-      .select("student_id, name, nationality, major:major_id(major_name)")
-      .order("name", { ascending: true });
-    if (studentError) throw studentError;
-    students = (data || []).filter((student) => {
-      const majorName = normalize(student.major?.major_name);
-      return majorName === target || majorName.includes(target) || target.includes(majorName);
-    });
-  } else if (group.scope === "all") {
-    const { data, error: studentError } = await supabase
-      .from("student")
-      .select("student_id, name, nationality, major:major_id(major_name)")
-      .order("name", { ascending: true })
-      .limit(100);
-    if (studentError) throw studentError;
-    students = data || [];
-  }
-
-  const [memberCount, newPostCount] = await Promise.all([
-    Promise.resolve(students.length),
-    countRecentPosts(group.group_id),
-  ]);
-
-  return {
-    group: mapGroupRow(group, { memberCount, newPostCount, joined: true }),
-    members: students.map((student) => ({
-      id: String(student.student_id),
-      name: student.name,
-      nationality: student.nationality,
-      major: student.major?.major_name || "Student",
-    })),
-  };
+  return mapGroupRow(group);
 }
 
 async function listCommunityPosts({ scope, groupId, groupSlug }) {
@@ -319,6 +225,7 @@ async function listCommunityPosts({ scope, groupId, groupSlug }) {
     author_name: row.student?.name || "Student",
     author_nationality: row.student?.nationality || "International",
     author_major: row.student?.major?.major_name || "Student",
+    author_student_id: String(row.student_id),
     event_date:
       row.event_month && row.event_day
         ? {
@@ -356,6 +263,20 @@ async function createCommunityPost({ studentId, scope, groupId, groupSlug, conte
       .eq("slug", "all-intl")
       .maybeSingle();
     resolvedGroupId = allGroup?.group_id ?? null;
+  }
+
+  if (!resolvedGroupId && (scope === "department" || scope === "country")) {
+    const profile = await getStudentProfileLite(studentId);
+    if (profile) {
+      const group = await ensureUserGroup(scope, profile);
+      resolvedGroupId = group?.group_id ?? null;
+    }
+  }
+
+  if (!resolvedGroupId && (scope === "department" || scope === "country")) {
+    const err = new Error("Could not resolve community group for this post");
+    err.status = 400;
+    throw err;
   }
 
   const { data, error } = await supabase
@@ -396,6 +317,7 @@ async function createCommunityPost({ studentId, scope, groupId, groupSlug, conte
     author_name: data.student?.name || "Student",
     author_nationality: data.student?.nationality || "International",
     author_major: data.student?.major?.major_name || "Student",
+    author_student_id: String(data.student_id),
     event_date: null,
   };
 }
@@ -420,6 +342,39 @@ async function likeCommunityPost(postId) {
   return { id: String(data.post_id), likes: data.likes_count };
 }
 
+async function deleteCommunityPost({ postId, studentId }) {
+  const id = Number(postId);
+  if (!Number.isInteger(id) || id <= 0) {
+    const err = new Error("Invalid post id");
+    err.status = 400;
+    throw err;
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("community_post")
+    .select("post_id, student_id")
+    .eq("post_id", id)
+    .maybeSingle();
+  if (fetchError) throw fetchError;
+
+  if (!existing) {
+    const err = new Error("Post not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (Number(existing.student_id) !== Number(studentId)) {
+    const err = new Error("You can only delete your own posts");
+    err.status = 403;
+    throw err;
+  }
+
+  const { error } = await supabase.from("community_post").delete().eq("post_id", id);
+  if (error) throw error;
+
+  return { id: String(id) };
+}
+
 async function getStudentProfileLite(studentId) {
   const { data, error } = await supabase
     .from("student")
@@ -439,9 +394,9 @@ async function getStudentProfileLite(studentId) {
 
 module.exports = {
   getMyCommunityGroup,
-  getCommunityMembers,
   listCommunityPosts,
   createCommunityPost,
   likeCommunityPost,
+  deleteCommunityPost,
   getStudentProfileLite,
 };

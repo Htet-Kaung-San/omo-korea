@@ -60,3 +60,9 @@ Thumbs.db
 .cursor/
 agent-transcripts/
 project-docs/
+assets/
+
+# =========================
+# Supabase CLI (local)
+# =========================
+.supabase/

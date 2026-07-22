@@ -79,22 +79,28 @@ CREATE TABLE IF NOT EXISTS facility (
 
 -- 5b. ACADEMIC RECORDS (GPA / transcript demo)
 -- Use the same type as student.student_id in your DB (INTEGER on live Supabase).
-CREATE TABLE IF NOT EXISTS academic_summary (
-    student_id INTEGER PRIMARY KEY REFERENCES student(student_id) ON DELETE CASCADE,
-    overall_gpa NUMERIC(3, 2) NOT NULL,
-    gpa_scale NUMERIC(2, 1) NOT NULL DEFAULT 4.5,
-    standing VARCHAR(50) NOT NULL DEFAULT 'Good',
-    completed_credits INTEGER NOT NULL DEFAULT 0,
-    required_credits INTEGER NOT NULL DEFAULT 100
-);
-
+-- record_type: 'summary' (one per student) | 'semester' (GPA history)
 CREATE TABLE IF NOT EXISTS academic_record (
     record_id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
-    semester_label VARCHAR(50) NOT NULL,
-    gpa NUMERIC(3, 2) NOT NULL,
-    sort_order INTEGER NOT NULL DEFAULT 0
+    record_type VARCHAR(20) NOT NULL CHECK (record_type IN ('summary', 'semester')),
+    overall_gpa NUMERIC(3, 2),
+    gpa_scale NUMERIC(2, 1) DEFAULT 4.5,
+    standing VARCHAR(50) DEFAULT 'Good',
+    completed_credits INTEGER DEFAULT 0,
+    required_credits INTEGER DEFAULT 100,
+    semester_label VARCHAR(50),
+    gpa NUMERIC(3, 2),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT academic_record_type_fields CHECK (
+        (record_type = 'summary' AND overall_gpa IS NOT NULL AND semester_label IS NULL)
+        OR
+        (record_type = 'semester' AND semester_label IS NOT NULL AND gpa IS NOT NULL)
+    )
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_record_summary
+    ON academic_record(student_id) WHERE record_type = 'summary';
 
 -- 5c. HELP & SUPPORT — PNU contacts + FAQ
 CREATE TABLE IF NOT EXISTS pnu_contact (

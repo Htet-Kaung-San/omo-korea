@@ -94,6 +94,7 @@ export interface EmergencyContact {
   type: string
   name: string
   phone: string | null
+  country?: string | null
   country_flag?: string | null
   distance?: string | null
   map_query?: string | null
@@ -133,19 +134,6 @@ export interface CommunityGroup {
   scope: CommunityScope
   name: string
   icon: string
-  memberCount: number
-  newPostCount: number
-  joined: boolean
-  bannerTitle: string
-  bannerBody: string
-}
-
-export interface CommunityMember {
-  id: string
-  name: string
-  nationality: string
-  major: string
-  avatarTone: string
 }
 
 export interface CommunityPost {
@@ -158,6 +146,7 @@ export interface CommunityPost {
   likes: number
   comments: number
   createdAt: string
+  authorStudentId: string
   authorName: string
   authorInitials: string
   authorMajor: string
@@ -169,11 +158,6 @@ export interface CommunityPost {
     day: string
     weekday: string
   } | null
-}
-
-export interface CommunityMembersResponse {
-  group: CommunityGroup
-  members: CommunityMember[]
 }
 
 export interface CreateCommunityPostRequest {
@@ -472,14 +456,13 @@ export interface HeyPnuApi {
     groupSlug?: string | null
     groupId?: number | null
   }): Promise<CommunityPost[]>
-  getCommunityMembers(groupIdOrSlug: string): Promise<CommunityMembersResponse>
   createCommunityPost(data: CreateCommunityPostRequest): Promise<CommunityPost>
   likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
+  deleteCommunityPost(postId: string): Promise<{ id: string }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
   getMapFacilities(): Promise<MapFacility[]>
   getMapFacility(id: string): Promise<MapFacility>
   getAcademicRecords(): Promise<AcademicRecords>
-  downloadTranscript(): Promise<Blob>
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>

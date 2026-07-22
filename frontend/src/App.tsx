@@ -26,7 +26,6 @@ import { FacilityDetailPage } from '@/pages/FacilityDetailPage'
 import { LibraryGuidePage } from '@/pages/LibraryGuidePage'
 import { OneStopGuidePage } from '@/pages/OneStopGuidePage'
 import { CommunityNoticesPage } from '@/pages/CommunityNoticesPage'
-import { CommunityMembersPage } from '@/pages/CommunityMembersPage'
 import { CareerOpportunitiesPage } from '@/pages/CareerOpportunitiesPage'
 import { SupportPage } from '@/pages/SupportPage'
 import { EmergencySupportPage } from '@/pages/EmergencySupportPage'
@@ -100,7 +99,6 @@ function AppRoutes() {
         <Route path="campus-life/map" element={<CampusMapPage />} />
         <Route path="career-opportunities" element={<CareerOpportunitiesPage />} />
         <Route path="community" element={<CommunityPage />} />
-        <Route path="community/groups/:groupId/members" element={<CommunityMembersPage />} />
         <Route
           path="community/country-notices"
           element={
@@ -132,7 +130,6 @@ function AppRoutes() {
         <Route path="profile/academic-records" element={<AcademicRecordsPage />} />
         <Route path="profile/documents" element={<ProfileStubPage kind="documents" />} />
         <Route path="profile/saved" element={<SavedPage />} />
-        <Route path="profile/requests" element={<ProfileStubPage kind="requests" />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />

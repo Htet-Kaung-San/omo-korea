@@ -117,16 +117,46 @@ INSERT INTO facility (
 )
 ON CONFLICT (name) DO NOTHING;
 
--- 4b. Academic records demo for sample student
-INSERT INTO academic_summary (student_id, overall_gpa, gpa_scale, standing, completed_credits, required_credits)
-VALUES ('202600001', 3.67, 4.5, 'Good', 72, 100)
-ON CONFLICT (student_id) DO NOTHING;
+-- 4b. Academic records demo: one summary + semester history per student
+DO $$
+DECLARE
+  s RECORD;
+  idx INTEGER := 0;
+  overall NUMERIC(3, 2);
+  completed INTEGER;
+BEGIN
+  FOR s IN SELECT student_id FROM student ORDER BY student_id LOOP
+    idx := idx + 1;
+    overall := LEAST(3.30 + (idx * 0.12), 4.00);
+    completed := LEAST(60 + (idx * 4), 100);
 
-INSERT INTO academic_record (student_id, semester_label, gpa, sort_order) VALUES
-('202600001', '2024 Spring', 3.80, 1),
-('202600001', '2023 Fall', 3.60, 2),
-('202600001', '2023 Spring', 3.45, 3),
-('202600001', '2022 Fall', 3.30, 4);
+    DELETE FROM academic_record WHERE student_id = s.student_id;
+
+    INSERT INTO academic_record (
+      student_id, record_type, overall_gpa, gpa_scale, standing,
+      completed_credits, required_credits, sort_order
+    ) VALUES (
+      s.student_id,
+      'summary',
+      overall,
+      4.5,
+      CASE
+        WHEN overall >= 3.7 THEN 'Good'
+        WHEN overall >= 3.5 THEN 'Satisfactory'
+        ELSE 'Warning'
+      END,
+      completed,
+      100,
+      0
+    );
+
+    INSERT INTO academic_record (student_id, record_type, semester_label, gpa, sort_order) VALUES
+    (s.student_id, 'semester', '2024 Spring', LEAST(overall + 0.13, 4.50), 1),
+    (s.student_id, 'semester', '2023 Fall', GREATEST(overall - 0.07, 0), 2),
+    (s.student_id, 'semester', '2023 Spring', GREATEST(overall - 0.22, 0), 3),
+    (s.student_id, 'semester', '2022 Fall', GREATEST(overall - 0.37, 0), 4);
+  END LOOP;
+END $$;
 
 -- 5. SEED NOTICES
 INSERT INTO notice (title, content, language, posted_date) VALUES

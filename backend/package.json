@@ -8,6 +8,7 @@
     "seed:map-profile": "node scripts/seed-map-profile.mjs",
     "seed:support": "node scripts/seed-support.mjs",
     "seed:notices": "node scripts/seed-notices.mjs",
+    "seed:community-posts": "node scripts/seed-community-posts.mjs",
     "test": "jest"
   },
   "keywords": [],

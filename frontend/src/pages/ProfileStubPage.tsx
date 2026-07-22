@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, FileText, Bookmark, Inbox } from 'lucide-react'
+import { ChevronLeft, FileText } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 
-type StubKind = 'documents' | 'saved' | 'requests'
+type StubKind = 'documents'
 
 const META: Record<
   StubKind,
@@ -12,16 +12,6 @@ const META: Record<
     titleKey: 'profile.documents',
     bodyKey: 'profile.documentsEmpty',
     icon: FileText,
-  },
-  saved: {
-    titleKey: 'profile.saved',
-    bodyKey: 'profile.savedEmpty',
-    icon: Bookmark,
-  },
-  requests: {
-    titleKey: 'profile.requests',
-    bodyKey: 'profile.requestsEmpty',
-    icon: Inbox,
   },
 }
 

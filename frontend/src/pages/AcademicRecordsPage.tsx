@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Download } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
 import type { AcademicRecords } from '@/types/api'
@@ -11,7 +11,6 @@ export function AcademicRecordsPage() {
   const [records, setRecords] = useState<AcademicRecords | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -24,25 +23,6 @@ export function AcademicRecordsPage() {
       )
       .finally(() => setLoading(false))
   }, [t])
-
-  async function handleDownload() {
-    setDownloading(true)
-    try {
-      const blob = await api.downloadTranscript()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `transcript-${records?.studentId || 'student'}.txt`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : t('academicRecords.downloadError'))
-    } finally {
-      setDownloading(false)
-    }
-  }
 
   const progress =
     records && records.requiredCredits > 0
@@ -132,16 +112,6 @@ export function AcademicRecordsPage() {
                 </div>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={downloading}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-pnu-blue px-4 py-3.5 text-[15px] font-semibold text-white shadow-sm transition active:scale-[0.99] disabled:opacity-60"
-            >
-              <Download className="h-4 w-4" />
-              {downloading ? t('academicRecords.downloading') : t('academicRecords.download')}
-            </button>
           </>
         ) : null}
       </div>

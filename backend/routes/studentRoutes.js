@@ -21,7 +21,6 @@ const {
   getPnuContacts,
   getFaqItems,
   getAcademicRecords,
-  downloadAcademicTranscript,
   getNotices,
   syncNotices,
   getNotifications,
@@ -40,10 +39,10 @@ const {
   getCareerOpportunities,
   getCareerRecommendations,
   getMyCommunityGroupHandler,
-  getCommunityMembersHandler,
   getCommunityPostsHandler,
   createCommunityPostHandler,
   likeCommunityPostHandler,
+  deleteCommunityPostHandler,
   getEmergencyGuideHandler,
   getCampusFacilitiesHandler,
 } = require("../controllers/studentController");
@@ -89,12 +88,7 @@ router.get("/scholarships", getAllScholarships);
 router.get("/career-opportunities", getCareerOpportunities);
 router.get("/career-recommendations", getCareerRecommendations);
 router.get("/community/posts", authenticateToken, getCommunityPostsHandler);
-router.get(
-  "/community/groups/:groupId/members",
-  authenticateToken,
-  getCommunityMembersHandler,
-);
-router.get("/emergency-guide", getEmergencyGuideHandler);
+router.get("/emergency-guide", authenticateToken, getEmergencyGuideHandler);
 router.get("/campus-facilities", getCampusFacilitiesHandler);
 router.get("/courses", getCourses);
 
@@ -120,11 +114,6 @@ router.get("/dashboard-summary", authenticateToken, getDashboardSummary);
 router.post("/major-gap-analysis", authenticateToken, runMajorGapAnalysis);
 router.get("/course-recommendations", authenticateToken, getCourseRecommendations);
 router.get(
-  "/academic-records/:student_id/transcript",
-  authenticateToken,
-  downloadAcademicTranscript,
-);
-router.get(
   "/academic-records/:student_id",
   authenticateToken,
   getAcademicRecords,
@@ -137,6 +126,11 @@ router.post(
   "/community/posts/:postId/like",
   authenticateToken,
   likeCommunityPostHandler,
+);
+router.delete(
+  "/community/posts/:postId",
+  authenticateToken,
+  deleteCommunityPostHandler,
 );
 router.post("/posts/:post_id/like", authenticateToken, likePost);
 router.post("/posts/:post_id/report", authenticateToken, reportPost);
