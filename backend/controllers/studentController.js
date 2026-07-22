@@ -1,5 +1,4 @@
 const supabase = require("../supabaseClient");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
   getCareerOpportunitiesPage,
@@ -13,8 +12,14 @@ const {
   SUPPORTED_LANGUAGE_PREFS,
 } = require("../middleware/supportedLanguages");
 const { mapNoticeRow, scrapeRecentNotices } = require("../services/pnuNoticeScraperService");
+const supabaseAuth = require("../supabaseAuthClient");
+const {
+  verifyStudentPassword,
+  setStudentPassword,
+  SUPABASE_AUTH_MARKER,
+} = require("../services/studentAuthService");
 
-const JWT_SECRET = process.env.JWT_SECRET || "hey-pnu-default-secret-key";
+const { JWT_SECRET } = require("../jwtConfig");
 
 function formatScholarshipDeadline(deadline) {
   if (!deadline) {
@@ -163,7 +168,16 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    console.log("loginStudent called with body:", req.body);
+    // A password is mandatory. This previously fell through to an
+    // unauthenticated token when the field was absent, which let anyone who
+    // knew a student ID sign in as that student.
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing password",
+      });
+    }
+
     const { data, error } = await supabase
       .from("student")
       .select(
@@ -177,8 +191,6 @@ const loginStudent = async (req, res) => {
       )
       .eq("student_id", student_id)
       .single();
-      
-    console.log("Supabase query result - Data:", data, "Error:", error);
 
     if (error || !data) {
       if (error?.code === "PGRST116" || !data) {
@@ -195,21 +207,24 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Verify password if provided (supports passwordless login for dev test runner script compatibility)
-    if (password !== undefined) {
-      const isMatch = data.password.startsWith("$2")
-        ? await bcrypt.compare(password, data.password)
-        : password === data.password;
+    // Authenticate against the student's stored email, not a constructed one.
+    // Addresses are inconsistent across the table (@pusan.ac.kr, @pnu.edu and
+    // personal ones), so deriving the address locks most students out.
+    const { ok } = await verifyStudentPassword({
+      studentId: data.student_id,
+      email: data.email,
+      storedPassword: data.password,
+      password,
+    });
 
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid password",
-        });
-      }
+    if (!ok) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password",
+      });
     }
 
-    const { major, ...studentProfile } = data;
+    const { major, password: _storedPassword, ...studentProfile } = data;
 
     const token = jwt.sign({ student_id: data.student_id }, JWT_SECRET, {
       expiresIn: "7d",
@@ -535,6 +550,7 @@ const signupStudent = async (req, res) => {
       d2_semester,
       completed_courses,
       intake_term,
+      email,
     } = req.body;
 
     if (!student_id || !name || !password) {
@@ -568,8 +584,24 @@ const signupStudent = async (req, res) => {
       }
     }
 
-    // Hash the password with bcrypt
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Create the account in Supabase Auth. The student row stores a marker
+    // rather than a hash, so credentials live in exactly one place.
+    const emailToUse = email || `${student_id}@pusan.ac.kr`;
+    const { error: authError } = await supabaseAuth.auth.admin.createUser({
+      email: emailToUse,
+      password: password,
+      email_confirm: true,
+    });
+
+    if (authError) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to register user in Supabase Auth",
+        error: authError.message,
+      });
+    }
+
+    const hashedPassword = SUPABASE_AUTH_MARKER;
 
     let resolvedSignupLanguage = "en";
     if (language_pref) {
@@ -596,7 +628,7 @@ const signupStudent = async (req, res) => {
       is_in_korea: is_in_korea !== undefined ? is_in_korea : true,
       mbti: mbti || null,
       d2_semester: d2_semester || null,
-      email: `${student_id}@pnu.edu`,
+      email: emailToUse,
       phone: "010-0000-0000",
       completed_courses: completed_courses || [],
       intake_term: intake_term || "March",
@@ -635,7 +667,7 @@ const signupStudent = async (req, res) => {
           visa_status: visa_status || "None",
           password: hashedPassword,
           language_pref: resolvedSignupLanguage,
-          email: `${student_id}@pnu.edu`,
+          email: emailToUse,
           phone: "010-0000-0000",
         };
 
@@ -884,7 +916,7 @@ const updateStudentProfile = async (req, res) => {
 
       const { data: studentRecord } = await supabase
         .from("student")
-        .select("password")
+        .select("password, email")
         .eq("student_id", student_id)
         .single();
       if (!studentRecord) {
@@ -893,20 +925,34 @@ const updateStudentProfile = async (req, res) => {
           .json({ success: false, message: "Student not found." });
       }
 
-      const bcrypt = require("bcryptjs");
-      const isMatch = await bcrypt.compare(
-        current_password,
-        studentRecord.password,
-      );
-      if (!isMatch) {
+      // Same verification path as login, so this works whether the student has
+      // already moved to Supabase Auth or still carries a legacy bcrypt hash.
+      const { ok } = await verifyStudentPassword({
+        studentId: student_id,
+        email: studentRecord.email,
+        storedPassword: studentRecord.password,
+        password: current_password,
+      });
+
+      if (!ok) {
         return res.status(400).json({
           success: false,
           message: "Current password does not match.",
         });
       }
 
-      const salt = await bcrypt.genSalt(10);
-      updateData.password = await bcrypt.hash(new_password, salt);
+      try {
+        updateData.password = await setStudentPassword({
+          email: studentRecord.email,
+          newPassword: new_password,
+        });
+      } catch (passwordErr) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update password.",
+          error: passwordErr.message,
+        });
+      }
     }
 
     const { data, error } = await supabase
@@ -951,7 +997,9 @@ const updateStudentProfile = async (req, res) => {
   }
 };
 
-const recoveryCodes = new Map();
+// Where Supabase sends students after they click the recovery email. Must be
+// listed under Authentication → URL Configuration in the Supabase dashboard.
+const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:5173";
 
 const forgotPassword = async (req, res) => {
   try {
@@ -976,16 +1024,20 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const email = data.email || "student@pusan.ac.kr";
+    const email = data.email || `${student_id}@pusan.ac.kr`;
 
-    // Generate a 6-digit recovery code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    recoveryCodes.set(String(student_id), {
-      code,
-      expires: Date.now() + 10 * 60 * 1000, // 10 minutes
-    });
+    const { error: resetError } = await supabaseAuth.auth.resetPasswordForEmail(
+      email,
+      { redirectTo: `${APP_BASE_URL}/update-password` },
+    );
 
-    console.log(`[PASSWORD RESET] Generated code for ${student_id}: ${code}`);
+    if (resetError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send recovery email",
+        error: resetError.message,
+      });
+    }
 
     // Mask the email (e.g. htet_kaung_san@pusan.ac.kr -> ht**@pusan.ac.kr)
     const [localPart, domain] = email.split("@");
@@ -1003,7 +1055,6 @@ const forgotPassword = async (req, res) => {
       success: true,
       message: "Recovery code generated successfully",
       maskedEmail,
-      code, // Send code back for ease of use in demo/UI
     });
   } catch (err) {
     res.status(500).json({
@@ -1016,55 +1067,53 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { student_id, code, new_password } = req.body;
-    if (!student_id || !code || !new_password) {
+    const { access_token, new_password } = req.body;
+    if (!access_token || !new_password) {
       return res.status(400).json({
         success: false,
-        message: "Missing student_id, code, or new_password",
+        message: "Missing access_token or new_password",
       });
     }
 
-    const record = recoveryCodes.get(String(student_id));
-    if (!record) {
+    const { data: userData, error: userError } =
+      await supabaseAuth.auth.getUser(access_token);
+
+    if (userError || !userData.user) {
       return res.status(400).json({
         success: false,
-        message: "No active recovery request found for this Student ID",
+        message: "Invalid or expired access token",
+        error: userError?.message
       });
     }
 
-    if (record.expires < Date.now()) {
-      recoveryCodes.delete(String(student_id));
-      return res.status(400).json({
-        success: false,
-        message: "Recovery code has expired",
-      });
-    }
-
-    if (record.code !== String(code)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid recovery code",
-      });
-    }
-
-    // Hash the password with bcrypt
-    const hashedPassword = await bcrypt.hash(new_password, 10);
-
-    // Update the password in database
-    const { error: updateError } = await supabase
-      .from("student")
-      .update({ password: hashedPassword })
-      .eq("student_id", String(student_id));
+    const { error: updateError } = await supabaseAuth.auth.admin.updateUserById(
+      userData.user.id,
+      { password: new_password },
+    );
 
     if (updateError) {
       return res.status(500).json({
         success: false,
-        message: "Failed to update password",
+        message: "Failed to update password in Supabase Auth",
         error: updateError.message,
       });
     }
 
-    recoveryCodes.delete(String(student_id));
+    // Supabase Auth is now authoritative for this account. Clear any legacy
+    // bcrypt hash so a stale credential isn't left sitting in the table.
+    if (userData.user.email) {
+      const { error: markError } = await supabase
+        .from("student")
+        .update({ password: SUPABASE_AUTH_MARKER })
+        .eq("email", userData.user.email);
+
+      if (markError) {
+        console.warn(
+          "[auth] password reset succeeded but marking the row failed:",
+          markError.message,
+        );
+      }
+    }
 
     res.json({
       success: true,
@@ -1607,9 +1656,6 @@ const getEnrollments = async (req, res) => {
 
 const createEnrollment = async (req, res) => {
   try {
-    console.log("createEnrollment request body:", req.body);
-    console.log("createEnrollment request headers:", req.headers);
-    
     // Fallbacks for token and camelCase keys
     const student_id = req.body.student_id || req.user?.student_id;
     const course_id = req.body.course_id || req.body.courseId;
@@ -2123,22 +2169,38 @@ const reportPost = async (req, res) => {
   try {
     const { post_id } = req.params;
 
-    const { error } = await supabase
+    const { data: post, error: fetchError } = await supabase
       .from("post")
-      .update({ reported: true })
+      .select("post_id, reports_count")
+      .eq("post_id", post_id)
+      .single();
+
+    if (fetchError || !post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+        error: fetchError?.message,
+      });
+    }
+
+    const nextCount = Number(post.reports_count || 0) + 1;
+    const { error: updateError } = await supabase
+      .from("post")
+      .update({ reports_count: nextCount })
       .eq("post_id", post_id);
 
-    if (error) {
+    if (updateError) {
       return res.status(500).json({
         success: false,
         message: "Failed to report post",
-        error: error.message,
+        error: updateError.message,
       });
     }
 
     res.json({
       success: true,
       message: "Post successfully reported and hidden from student feeds.",
+      data: { reports_count: nextCount },
     });
   } catch (err) {
     res.status(500).json({
