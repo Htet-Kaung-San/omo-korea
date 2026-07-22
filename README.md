@@ -305,7 +305,7 @@ cd backend && npm test        # Jest integration suite (requires seed:test-fixtu
 | 팀원 · Member | Chyu Thant Thinzar (츄딴띤자) | 정보컴퓨터공학부 · Computer Science |
 | 팀원 · Member | Htet Kaung San (텟까웅산) | 인공지능 · Artificial Intelligence |
 | 팀원 · Member | Byambasuren Tuvshinjargal (비얌바수렝 투브신자르갈) | 정보컴퓨터공학부 · Computer Science |
-| 팀원 · Member | Erdene Ochir Nomin-Erdene (에르덴 오치르 노밍구) | 생명과학전공 · Life Sciences |
+| 팀원 · Member | Erdene Ochir Nomingoo (에르덴 오치르 노밍구) | 생명과학전공 · Life Sciences |
 
 > 역할 분담과 연락처(대표 이메일 / GitHub)는 팀에서 확정 후 채워 주세요. *Roles and preferred contacts to be filled in by the team.*
 
@@ -319,7 +319,7 @@ cd backend && npm test        # Jest integration suite (requires seed:test-fixtu
 > - **Chyu Thant Thinzar** — …
 > - **Htet Kaung San** — …
 > - **Byambasuren Tuvshinjargal** — …
-> - **Erdene Ochir Nomin-Erdene** — …
+> - **Erdene Ochir Nomingoo** — …
 
 ---
 
