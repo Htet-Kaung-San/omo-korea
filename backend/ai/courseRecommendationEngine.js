@@ -4,17 +4,6 @@ const TYPE_PRIORITY = {
   ELECTIVE: 2,
 };
 
-const MBTI_COURSE_HINTS = {
-  I: ['research', 'reading', 'writing', 'analysis', 'self-study', 'theory'],
-  E: ['presentation', 'discussion', 'team', 'communication', 'project'],
-  S: ['practice', 'lab', 'field', 'hands-on', 'basic', 'applied'],
-  N: ['ai', 'startup', 'design', 'innovation', 'strategy', 'creative'],
-  T: ['data', 'programming', 'engineering', 'logic', 'analysis', 'system'],
-  F: ['culture', 'counseling', 'communication', 'community', 'education'],
-  J: ['required', 'planning', 'management', 'structured', 'basic'],
-  P: ['elective', 'creative', 'project', 'startup', 'exploration'],
-};
-
 function normalizeValue(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -112,29 +101,7 @@ function getMatchingInterestTags(studentInterests = [], courseTags = []) {
   );
 }
 
-function getMbtiMatches(mbti = '', course = {}) {
-  const normalizedMbti = String(mbti || '').toUpperCase();
-  if (normalizedMbti.length !== 4) return [];
 
-  const text = normalizeValue([
-    course.title,
-    course.nameEn,
-    course.nameKo,
-    course.department,
-    course.description,
-    ...(course.tags || []),
-  ].filter(Boolean).join(' '));
-
-  const matches = [];
-
-  for (const letter of normalizedMbti) {
-    const hints = MBTI_COURSE_HINTS[letter] || [];
-    const matchedHint = hints.find((hint) => text.includes(hint));
-    if (matchedHint) matches.push(`${letter}:${matchedHint}`);
-  }
-
-  return matches;
-}
 
 function buildMatchHint({
   isMajorCourse,
@@ -143,7 +110,6 @@ function buildMatchHint({
   isElectiveInMajor,
   isGenEdCourse,
   yearMatch,
-  mbtiMatches,
 }) {
   const hints = [];
 
@@ -152,9 +118,7 @@ function buildMatchHint({
   if (interestMatches.length > 0) {
     hints.push(`Matches interest tags: ${interestMatches.slice(0, 2).join(', ')}`);
   }
-  if (mbtiMatches.length > 0) {
-    hints.push(`Matches MBTI learning style: ${mbtiMatches.slice(0, 2).join(', ')}`);
-  }
+  
   if (isRequiredInMajor) hints.push('Required course in your major');
   if (isElectiveInMajor) hints.push('Elective course in your major');
   if (isGenEdCourse) hints.push('General education course');
@@ -180,15 +144,14 @@ function scoreCourse(studentProfile = {}, course = {}) {
   const courseYear = getCourseYear(course);
   const yearMatch = Boolean(studentYear && courseYear && studentYear === courseYear);
 
-  const mbtiMatches = getMbtiMatches(studentProfile.mbti, course);
-  const cappedMbtiMatches = Math.min(mbtiMatches.length, 2);
+ 
 
   let score = 0;
 
   if (isMajorCourse) score += 40;
   if (yearMatch) score += 18;
   score += cappedInterestMatches * 10;
-  score += cappedMbtiMatches * 3;
+
   if (isRequiredInMajor) score += 20;
   if (isElectiveInMajor) score += 10;
   if (isGenEdCourse) score += 8;
@@ -202,7 +165,7 @@ function scoreCourse(studentProfile = {}, course = {}) {
       isElectiveInMajor,
       isGenEdCourse,
       yearMatch,
-      mbtiMatches,
+
     }),
   };
 }

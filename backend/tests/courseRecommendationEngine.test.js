@@ -197,34 +197,9 @@ describe('courseRecommendationEngine', () => {
     );
   });
 
-  test('handles missing MBTI without throwing an error', () => {
-    const student = {
-      majorId: 10,
-      mbti: null,
-    };
 
-    const course = createCourse();
 
-    expect(() => recommendCourses(student, [course])).not.toThrow();
-  });
 
-  test('adds only a limited MBTI bonus', () => {
-    const student = {
-      majorId: 10,
-      mbti: 'INTJ',
-    };
-
-    const course = createCourse({
-      description:
-        'AI programming, data analysis, research, theory and structured planning',
-      tags: ['ai', 'programming', 'analysis'],
-    });
-
-    const result = recommendCourses(student, [course]);
-
-    expect(result[0].score).toBeLessThanOrEqual(56);
-    expect(result[0].matchHint).toContain('Matches MBTI learning style');
-  });
 
   test('filters by requested course type', () => {
     const student = {

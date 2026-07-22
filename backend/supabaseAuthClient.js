@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { createClient } = require("@supabase/supabase-js");
+const WebSocket = require("ws");
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -23,6 +24,9 @@ const supabaseAuth = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
+  },
+  realtime: {
+    transport: WebSocket,
   },
 });
 

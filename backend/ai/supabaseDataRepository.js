@@ -49,6 +49,10 @@ return {
 
   semester: row.semester ?? null,
 
+  dayOfWeek: row.day_of_week ?? row.dayOfWeek ?? null,
+  startTime: row.start_time ?? row.startTime ?? null,
+  endTime: row.end_time ?? row.endTime ?? null,
+
   description:
     row.description ||
     row.course_description ||

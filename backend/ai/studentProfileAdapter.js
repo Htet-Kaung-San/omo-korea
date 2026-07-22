@@ -112,7 +112,7 @@ function adaptStudentProfile(rawInput = {}) {
   languages: normalizeReadableArray(profile.languages),
   gpa: normalizeNumber(profile.gpa),
   nationality: normalizeString(profile.nationality),
-  year: normalizeNumber(profile.year),
+  year: normalizeNumber(profile.year ?? profile.grade),
   mbti: normalizeString(profile.mbti)?.toUpperCase() ?? null,
       academicAreas: normalizeReadableArray(profile.academicAreas),
       activities: normalizeReadableArray(profile.activities),
