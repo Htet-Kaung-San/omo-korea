@@ -32,7 +32,7 @@ import type {
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken, getStoredToken } from '../client'
+import { apiFetch, clearStoredToken } from '../client'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,

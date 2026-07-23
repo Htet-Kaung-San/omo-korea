@@ -1217,10 +1217,13 @@ async function getStudentNotifications(req, res, next) {
       .select("*")
       .eq("student_id", studentId);
 
+    // Degrade gracefully: if the checklist lookup fails (e.g. table missing),
+    // still return the notice-based notifications rather than 500-ing the page.
     if (checklistError) {
-      checklistError.statusCode = 500;
-      checklistError.message = "Failed to fetch checklist notifications";
-      return next(checklistError);
+      console.error(
+        "Failed to fetch checklist notifications; continuing with notices only:",
+        checklistError.message,
+      );
     }
 
     const checklistNotifications = (checklistItems || [])

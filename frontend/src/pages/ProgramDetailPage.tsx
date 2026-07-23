@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createElement, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CalendarDays, ExternalLink, Sparkles } from 'lucide-react'
 import { api } from '@/api'
@@ -26,7 +26,7 @@ export function ProgramDetailPage() {
       .finally(() => setLoading(false))
   }, [language, programId, t])
 
-  const Icon = program ? getProgramIconForItem(program) : Sparkles
+  const iconComponent = program ? getProgramIconForItem(program) : Sparkles
 
   return (
     <div className="min-h-full bg-pnu-surface">
@@ -64,7 +64,7 @@ export function ProgramDetailPage() {
 
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center text-pnu-blue">
-                  <Icon className="h-6 w-6" strokeWidth={1.75} />
+                  {createElement(iconComponent, { className: 'h-6 w-6', strokeWidth: 1.75 })}
                 </span>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-[22px] font-bold leading-snug tracking-tight text-pnu-text">
