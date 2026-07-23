@@ -237,9 +237,6 @@ npm run dev
 | <img src="https://avatars.githubusercontent.com/u/167033161?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/142887402?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/163098030?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/120101937?v=4" width="100" height="100"/> | <img src="https://avatars.githubusercontent.com/u/291190850?v=4" width="100" height="100"/> |
 | **역할:** 팀장 · 백엔드 | **역할:** 풀스택 | **역할:** AI 엔지니어 | **역할:** 프론트엔드 | **역할:** 프론트엔드 보조 · 기획 |
 | **전공:** 정보컴퓨터공학과 (3학년) | **전공:** 인공지능전공 (2학년) | **전공:** 정보컴퓨터공학과 (3학년) | **전공:** 정보컴퓨터공학부 (2학년) | **전공:** 생명과학전공 (3학년) |
-| **학번:** 202455393 | **학번:** 202455474 | **학번:** 202355673 | **학번:** 202455471 | **학번:** 202313151 |
-| **연락처:** 010-8059-3833 | **연락처:** 010-2956-3055 | **연락처:** 010-5791-3318 | **연락처:** 010-7362-2166 | **연락처:** 010-2418-6633 |
-| **이메일:** pankhinkhinzaw12@gmail.com | **이메일:** htet_kaung_san@pusan.ac.kr | **이메일:** tuvshinjargal@pusan.ac.kr | **이메일:** cttz2310@pusan.ac.kr | **이메일:** nmngoo15@gmail.com |
 
 ---
 
