@@ -54,13 +54,23 @@ export function RecommendedCoursesPage() {
                 </div>
                 <p className="mt-1 text-sm text-pnu-muted">{course.nameKo}</p>
               </div>
-              <CourseTypeBadge type={course.type} />
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <CourseTypeBadge type={course.type} />
+                <span className="text-xs font-semibold text-pnu-blue-light">{course.score}% match</span>
+              </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-pnu-muted">
               <span>{t('course.credits', { count: course.credits })}</span>
-              <span>·</span>
-              <span>{course.department}</span>
+              {course.department ? (
+                <>
+                  <span aria-hidden="true">&middot;</span>
+                  <span>{course.department}</span>
+                </>
+              ) : null}
             </div>
+            {course.matchHint ? (
+              <p className="mt-3 text-sm text-pnu-muted">{course.matchHint}</p>
+            ) : null}
           </article>
         ))}
       </div>

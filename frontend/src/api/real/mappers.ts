@@ -73,8 +73,8 @@ interface BackendCourse {
   nameEn: string
   type: CourseType
   credits: number
-  department: string
-  tags: string[]
+  department?: string
+  tags?: string[]
   score: number
   matchHint?: string
 }
@@ -181,7 +181,7 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     nameEn: course.nameEn,
     type: course.type,
     credits: course.credits,
-    department: course.department,
+    department: course.department ?? '',
     tags: course.tags ?? [],
     score: course.score,
     matchHint: course.matchHint,

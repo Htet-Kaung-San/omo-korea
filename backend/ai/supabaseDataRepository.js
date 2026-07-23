@@ -20,18 +20,48 @@ function mapCourseRow(row, language = 'en') {
   const title = localized.course_name_en || localized.course_name || localized.title || '';
   const name = localized.course_name || localized.course_name_en || title || '';
 
-  return {
-    id: normalizeId(row.course_id ?? row.id),
-    title,
-    name,
-    nameKo: localized.course_name || name,
-    nameEn: localized.course_name_en || title,
-    type: (row.course_type || row.type || 'ELECTIVE').toUpperCase(),
-    credits: row.credits ?? row.credit ?? 3,
-    department: row.department || row.major_name || '',
-    tags: normalizeArray(row.tags || row.tag_list || []),
-    raw: row,
-  };
+  const type = String(
+  row.category ||
+  row.course_type ||
+  row.type ||
+  'ELECTIVE'
+).toUpperCase();
+
+return {
+  id: normalizeId(row.course_id ?? row.id),
+  title,
+  name,
+  nameKo: localized.course_name || name,
+  nameEn: localized.course_name_en || title,
+
+  majorId: normalizeId(row.major_id ?? row.majorId),
+  type,
+  category: type,
+
+  credits: row.credits ?? row.credit ?? 3,
+  department: row.department || row.major_name || '',
+
+  year:
+    row.recommended_year ??
+    row.course_year ??
+    row.year ??
+    null,
+
+  semester: row.semester ?? null,
+
+  dayOfWeek: row.day_of_week ?? row.dayOfWeek ?? null,
+  startTime: row.start_time ?? row.startTime ?? null,
+  endTime: row.end_time ?? row.endTime ?? null,
+
+  description:
+    row.description ||
+    row.course_description ||
+    '',
+
+  tags: normalizeArray(row.tags || row.tag_list || []),
+
+  raw: row,
+};
 }
 
 function mapScholarshipRow(row, language = 'en') {

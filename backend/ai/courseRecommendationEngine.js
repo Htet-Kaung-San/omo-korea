@@ -4,17 +4,6 @@ const TYPE_PRIORITY = {
   ELECTIVE: 2,
 };
 
-const MBTI_COURSE_HINTS = {
-  I: ['research', 'reading', 'writing', 'analysis', 'self-study', 'theory'],
-  E: ['presentation', 'discussion', 'team', 'communication', 'project'],
-  S: ['practice', 'lab', 'field', 'hands-on', 'basic', 'applied'],
-  N: ['ai', 'startup', 'design', 'innovation', 'strategy', 'creative'],
-  T: ['data', 'programming', 'engineering', 'logic', 'analysis', 'system'],
-  F: ['culture', 'counseling', 'communication', 'community', 'education'],
-  J: ['required', 'planning', 'management', 'structured', 'basic'],
-  P: ['elective', 'creative', 'project', 'startup', 'exploration'],
-};
-
 function normalizeValue(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -27,7 +16,27 @@ function normalizeId(value) {
   if (value === null || value === undefined || value === '') return '';
   return String(value).trim();
 }
+function getCourseIdentifiers(course = {}) {
+  return [
+    course.id,
+    course.course_id,
+    course.title,
+    course.name,
+    course.nameEn,
+    course.nameKo,
+    course.raw?.course_id,
+    course.raw?.course_name,
+    course.raw?.course_name_en,
+  ]
+    .filter((value) => value !== null && value !== undefined && value !== '')
+    .map(normalizeValue);
+}
 
+function isCompletedCourse(course = {}, completedCourses = new Set()) {
+  return getCourseIdentifiers(course).some((identifier) =>
+    completedCourses.has(identifier)
+  );
+}
 function getCourseType(course = {}) {
   return String(
     course.raw?.category ||
@@ -61,17 +70,10 @@ function getCourseYear(course = {}) {
 }
 
 function getStudentYear(studentProfile = {}) {
-  const explicitYear = Number(studentProfile.year || studentProfile.studentYear);
-  if (Number.isFinite(explicitYear) && explicitYear > 0) {
-    return Math.min(4, Math.max(1, explicitYear));
-  }
+  const explicitYear = Number(studentProfile.year ?? studentProfile.studentYear);
 
-  const studentId = normalizeId(studentProfile.studentId || studentProfile.student_id);
-  const admissionYear = Number(studentId.slice(0, 4));
-  const currentYear = new Date().getFullYear();
-
-  if (Number.isFinite(admissionYear) && admissionYear >= 2000 && admissionYear <= currentYear) {
-    return Math.min(4, Math.max(1, currentYear - admissionYear + 1));
+  if (Number.isInteger(explicitYear) && explicitYear >= 1 && explicitYear <= 8) {
+    return explicitYear;
   }
 
   return null;
@@ -99,29 +101,7 @@ function getMatchingInterestTags(studentInterests = [], courseTags = []) {
   );
 }
 
-function getMbtiMatches(mbti = '', course = {}) {
-  const normalizedMbti = String(mbti || '').toUpperCase();
-  if (normalizedMbti.length !== 4) return [];
 
-  const text = normalizeValue([
-    course.title,
-    course.nameEn,
-    course.nameKo,
-    course.department,
-    course.description,
-    ...(course.tags || []),
-  ].filter(Boolean).join(' '));
-
-  const matches = [];
-
-  for (const letter of normalizedMbti) {
-    const hints = MBTI_COURSE_HINTS[letter] || [];
-    const matchedHint = hints.find((hint) => text.includes(hint));
-    if (matchedHint) matches.push(`${letter}:${matchedHint}`);
-  }
-
-  return matches;
-}
 
 function buildMatchHint({
   isMajorCourse,
@@ -130,7 +110,6 @@ function buildMatchHint({
   isElectiveInMajor,
   isGenEdCourse,
   yearMatch,
-  mbtiMatches,
 }) {
   const hints = [];
 
@@ -139,9 +118,7 @@ function buildMatchHint({
   if (interestMatches.length > 0) {
     hints.push(`Matches interest tags: ${interestMatches.slice(0, 2).join(', ')}`);
   }
-  if (mbtiMatches.length > 0) {
-    hints.push(`Matches MBTI learning style: ${mbtiMatches.slice(0, 2).join(', ')}`);
-  }
+  
   if (isRequiredInMajor) hints.push('Required course in your major');
   if (isElectiveInMajor) hints.push('Elective course in your major');
   if (isGenEdCourse) hints.push('General education course');
@@ -167,15 +144,14 @@ function scoreCourse(studentProfile = {}, course = {}) {
   const courseYear = getCourseYear(course);
   const yearMatch = Boolean(studentYear && courseYear && studentYear === courseYear);
 
-  const mbtiMatches = getMbtiMatches(studentProfile.mbti, course);
-  const cappedMbtiMatches = Math.min(mbtiMatches.length, 2);
+ 
 
   let score = 0;
 
   if (isMajorCourse) score += 40;
   if (yearMatch) score += 18;
-  score += cappedInterestMatches * 15;
-  score += cappedMbtiMatches * 6;
+  score += cappedInterestMatches * 10;
+
   if (isRequiredInMajor) score += 20;
   if (isElectiveInMajor) score += 10;
   if (isGenEdCourse) score += 8;
@@ -189,7 +165,7 @@ function scoreCourse(studentProfile = {}, course = {}) {
       isElectiveInMajor,
       isGenEdCourse,
       yearMatch,
-      mbtiMatches,
+
     }),
   };
 }
@@ -218,9 +194,11 @@ function buildFallbackCourse(course, matchHint) {
 }
 
 function recommendCourses(studentProfile = {}, courses = [], options = {}) {
-  const completedCourseIds = new Set(
-    normalizeArray(options.completedCourseIds).map(String)
-  );
+  const completedCourses = new Set(
+  normalizeArray(options.completedCourseIds)
+    .map(normalizeValue)
+    .filter(Boolean)
+);
   const requestedType = options.type || 'ALL';
   const limit =
     Number.isInteger(options.limit) && options.limit > 0
@@ -228,7 +206,7 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
       : courses.length;
 
   const availableCourses = normalizeArray(courses)
-    .filter((course) => !completedCourseIds.has(String(course.id)))
+    .filter((course) => !isCompletedCourse(course, completedCourses))
     .filter((course) => {
       return (
         requestedType === 'ALL' ||
@@ -270,4 +248,3 @@ function recommendCourses(studentProfile = {}, courses = [], options = {}) {
 module.exports = {
   recommendCourses,
 };
-
