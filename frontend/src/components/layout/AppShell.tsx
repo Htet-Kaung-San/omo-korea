@@ -38,7 +38,7 @@ export function AppShell() {
 
   useEffect(() => {
     api
-      .getNotifications()
+      .getPersonalizedNotifications()
       .then((items) => {
         setHighPriorityCount(items.filter((n) => n.priority === 'HIGH').length)
       })

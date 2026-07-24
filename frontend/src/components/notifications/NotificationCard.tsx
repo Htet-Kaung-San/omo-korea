@@ -5,8 +5,11 @@ import { Bell, CalendarDays } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import { isExternalNotice, noticeHref } from '@/utils/notices'
 
-function formatDate(iso: string, locale: string) {
-  return new Date(iso).toLocaleDateString(locale, {
+function formatDate(iso: string | null | undefined, locale: string) {
+  if (!iso) return null
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return null
+  return parsed.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -18,6 +21,7 @@ export function NotificationCard({ notification }: { notification: Notification 
   const isHigh = notification.priority === 'HIGH'
   const href = noticeHref(notification)
   const external = isExternalNotice(notification)
+  const formattedDate = formatDate(notification.date, locale)
   const titleClass = 'text-sm font-semibold text-pnu-text hover:text-pnu-blue-light'
 
   return (
@@ -49,10 +53,12 @@ export function NotificationCard({ notification }: { notification: Notification 
             ) : null}
           </div>
           <p className="mt-1 text-sm leading-relaxed text-pnu-muted">{notification.body}</p>
-          <p className="mt-2 flex items-center gap-1 text-xs text-pnu-muted">
-            <CalendarDays className="h-3.5 w-3.5" />
-            {formatDate(notification.date, locale)}
-          </p>
+          {formattedDate ? (
+            <p className="mt-2 flex items-center gap-1 text-xs text-pnu-muted">
+              <CalendarDays className="h-3.5 w-3.5" />
+              {formattedDate}
+            </p>
+          ) : null}
         </div>
       </div>
     </Card>

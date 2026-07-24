@@ -9,6 +9,7 @@ import {
 } from 'react'
 import type { LoginRequest, User } from '@/types/api'
 import { api, clearAuthSession, getStoredToken, setStoredToken } from '@/api'
+import { AUTH_SESSION_CLEARED_EVENT } from '@/api/client'
 
 interface AuthContextValue {
   user: User | null
@@ -42,6 +43,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => clearAuthSession())
       .finally(() => setIsLoading(false))
   }, [refreshUser])
+
+  useEffect(() => {
+    const clearInMemorySession = () => setUser(null)
+    window.addEventListener(
+      AUTH_SESSION_CLEARED_EVENT,
+      clearInMemorySession,
+    )
+    return () =>
+      window.removeEventListener(
+        AUTH_SESSION_CLEARED_EVENT,
+        clearInMemorySession,
+      )
+  }, [])
 
   const login = useCallback(async (data: LoginRequest) => {
     const { token, user: loggedInUser } = await api.login(data)

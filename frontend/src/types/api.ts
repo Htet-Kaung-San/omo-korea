@@ -2,8 +2,9 @@
 
 export type CourseType = 'REQUIRED' | 'ELECTIVE' | 'GEN_ED'
 
-export type NotificationCategory = 'REGISTRATION' | 'DEADLINE' | 'GENERAL'
-export type NotificationPriority = 'HIGH' | 'NORMAL'
+export type NotificationCategory = string
+export type NotificationPriority = string
+export type NotificationKind = 'NOTICE' | 'CHECKLIST' | 'SCHOLARSHIP'
 export type NoticeChannel = 'department' | 'international' | 'general' | 'scholarship'
 
 export interface User {
@@ -333,15 +334,26 @@ export interface GraduationProgress {
 
 export interface Notification {
   id: string
+  /** Missing only on legacy local-storage snapshots created before Notice AI. */
+  kind?: NotificationKind
   title: string
   body: string
-  date: string
-  category: NotificationCategory
-  priority: NotificationPriority
+  /** Compatibility display date; real date semantics remain separate below. */
+  date?: string | null
+  postedDate?: string | null
+  deadline?: string | null
+  dueDate?: string | null
+  updatedAt?: string | null
+  languages?: string[]
+  category?: NotificationCategory | null
+  priority?: NotificationPriority | null
   source?: string | null
   channel?: NoticeChannel | null
   /** External original post URL when scraped from a PNU board */
   sourceUrl?: string | null
+  score?: number | null
+  matchHint?: string | null
+  status?: string | null
   read?: boolean
 }
 
@@ -436,7 +448,8 @@ export interface HeyPnuApi {
   resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
   getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
   getGraduationProgress(): Promise<GraduationProgress>
-  getNotifications(): Promise<Notification[]>
+  getPersonalizedNotifications(): Promise<Notification[]>
+  getPublicNotices(): Promise<Notification[]>
   getChecklist(): Promise<ChecklistPayload>
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem>
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>

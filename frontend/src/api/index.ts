@@ -4,7 +4,8 @@ import { realApi } from './real'
 import { clearStoredToken } from './client'
 import { clearSessionUser } from './real/session'
 
-const mode = import.meta.env.VITE_API_MODE ?? 'mock'
+const mode =
+  import.meta.env.VITE_API_MODE ?? (import.meta.env.PROD ? 'real' : 'mock')
 
 /** Single entry point — swap mock ↔ real via VITE_API_MODE in .env */
 export const api: HeyPnuApi = mode === 'real' ? realApi : mockApi

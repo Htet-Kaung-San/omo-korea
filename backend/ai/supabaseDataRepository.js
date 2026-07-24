@@ -109,23 +109,51 @@ function mapProgramRow(row, language = 'en') {
 }
 
 function mapNoticeRow(row, language = 'en') {
-  const localized = localizeRow(row, language, ['title', 'content', 'body']);
+  const localized = localizeRow(row, language, [
+    'title',
+    'content',
+    'body',
+    'description',
+  ]);
   const title = localized.title || row.title || '';
-  const body = localized.content || localized.body || row.content || row.body || '';
+  const body =
+    localized.content ||
+    localized.body ||
+    localized.description ||
+    row.content ||
+    row.body ||
+    row.description ||
+    '';
+  const languages = [
+    ...normalizeArray(row.languages),
+    ...(row.language ? [row.language] : []),
+  ].filter((value, index, values) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return (
+      normalized &&
+      values.findIndex(
+        (candidate) =>
+          String(candidate || '').trim().toLowerCase() === normalized
+      ) === index
+    );
+  });
 
   return {
     id: normalizeId(row.notice_id ?? row.id),
     title,
     body,
-    category: row.category || 'NOTICE',
-    priority: row.priority || 'NORMAL',
-    deadline: row.deadline || row.posted_date || '',
+    postedDate: row.posted_date ?? row.postedDate ?? null,
+    deadline: row.deadline ?? null,
+    category: row.category ?? null,
+    priority: row.priority ?? null,
     targetMajors: normalizeArray(row.target_majors || row.targetMajors || []),
     targetNationalities: normalizeArray(row.target_nationalities || row.targetNationalities || []),
     minYear: row.min_year ?? row.minYear ?? null,
     maxYear: row.max_year ?? row.maxYear ?? null,
     tags: normalizeArray(row.tags || []),
-    languages: normalizeArray(row.languages || []),
+    languages,
+    source: row.source ?? null,
+    sourceUrl: row.source_url ?? row.sourceUrl ?? null,
     raw: row,
   };
 }
@@ -141,21 +169,100 @@ function mapMajorRow(row) {
   };
 }
 
+async function fetchAllNotices(supabaseClient, options = {}) {
+  const language = options.language || 'en';
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const notices = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('notice')
+      .select('*')
+      .order('notice_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch notices from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_NOTICE_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    notices.push(...pageRows.map((row) => mapNoticeRow(row, language)));
+
+    if (pageRows.length < pageSize) {
+      break;
+    }
+
+    pageStart += pageSize;
+  }
+
+  return notices;
+}
+
+async function fetchAllCourses(supabaseClient, options = {}) {
+  const language = options.language || 'en';
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const courses = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('course')
+      .select('*')
+      .order('course_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch courses from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_COURSE_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    courses.push(...pageRows.map((row) => mapCourseRow(row, language)));
+
+    if (pageRows.length < pageSize) {
+      break;
+    }
+
+    pageStart += pageSize;
+  }
+
+  return courses;
+}
+
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
   const language = options.language || 'en';
 
-  const [coursesResult, scholarshipsResult, programsResult, noticesResult, majorsResult] = await Promise.all([
+  const [coursesResult, scholarshipsResult, programsResult, noticeRows, majorsResult] = await Promise.all([
     supabaseClient.from('course').select('*'),
     supabaseClient.from('scholarship').select('*'),
     supabaseClient.from('extracurricular_program').select('*'),
-    supabaseClient.from('notice').select('*'),
+    fetchAllNotices(supabaseClient, { language }),
     supabaseClient.from('major').select('*'),
   ]);
 
   const courseRows = (coursesResult.data || []).map((row) => mapCourseRow(row, language));
   const scholarshipRows = (scholarshipsResult.data || []).map((row) => mapScholarshipRow(row, language));
   const programRows = (programsResult.data || []).map((row) => mapProgramRow(row, language));
-  const noticeRows = (noticesResult.data || []).map((row) => mapNoticeRow(row, language));
   const majorRows = (majorsResult.data || []).map((row) => mapMajorRow(row));
 
   const metadata = {
@@ -178,6 +285,8 @@ async function fetchDashboardCatalogs(supabaseClient, options = {}) {
 }
 
 module.exports = {
+  fetchAllCourses,
+  fetchAllNotices,
   fetchDashboardCatalogs,
   mapCourseRow,
   mapScholarshipRow,

@@ -81,7 +81,6 @@ router.get("/facilities/:facility_id", getFacilityById);
 router.get("/pnu-contacts", getPnuContacts);
 router.get("/faq", getFaqItems);
 router.get("/notices", getNotices);
-router.post("/notices/sync", syncNotices);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/scholarships", getAllScholarships);
@@ -94,6 +93,12 @@ router.get("/courses", getCourses);
 
 // Protected / named routes (before /:student_id)
 router.get("/", authenticateToken, requireAdmin, getAllStudents);
+router.post(
+  "/notices/sync",
+  authenticateToken,
+  requireAdmin,
+  syncNotices,
+);
 router.get("/checklist/:student_id", authenticateToken, getStudentChecklist);
 router.put("/checklist/:checklist_id", authenticateToken, updateChecklistItem);
 router.get("/notifications/:student_id", authenticateToken, getNotifications);

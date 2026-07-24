@@ -11,7 +11,13 @@ const {
   resolveLanguagePref,
   SUPPORTED_LANGUAGE_PREFS,
 } = require("../middleware/supportedLanguages");
-const { mapNoticeRow, scrapeRecentNotices } = require("../services/pnuNoticeScraperService");
+const { scrapeRecentNotices } = require("../services/pnuNoticeScraperService");
+const {
+  synchronizeNotices,
+} = require("../services/noticeSyncService");
+const {
+  fetchAllNotices,
+} = require("../ai/supabaseDataRepository");
 const supabaseAuth = require("../supabaseAuthClient");
 const {
   verifyStudentPassword,
@@ -1419,92 +1425,51 @@ const getAcademicRecords = async (req, res) => {
   }
 };
 
-async function upsertScrapedNotices(rows) {
-  let inserted = 0;
-  let updated = 0;
+function publicNoticeSource(source) {
+  if (source === "international") return "PNU International";
+  if (source === "cse") return "CSE Department";
+  return source ?? null;
+}
 
-  for (const row of rows) {
-    const { data: existing, error: lookupError } = await supabase
-      .from("notice")
-      .select("notice_id")
-      .eq("source_url", row.source_url)
-      .maybeSingle();
+function publicNoticeChannel(source) {
+  if (source === "international") return "international";
+  if (source === "cse") return "department";
+  return "general";
+}
 
-    if (lookupError) throw lookupError;
-
-    if (existing?.notice_id) {
-      const { error } = await supabase
-        .from("notice")
-        .update({
-          title: row.title,
-          content: row.content,
-          language: row.language,
-          posted_date: row.posted_date,
-          source: row.source,
-          external_id: row.external_id,
-          scraped_at: row.scraped_at,
-        })
-        .eq("notice_id", existing.notice_id);
-      if (error) throw error;
-      updated += 1;
-    } else {
-      const { error } = await supabase.from("notice").insert({
-        title: row.title,
-        content: row.content,
-        language: row.language,
-        posted_date: row.posted_date,
-        source: row.source,
-        source_url: row.source_url,
-        external_id: row.external_id,
-        scraped_at: row.scraped_at,
-      });
-      if (error) throw error;
-      inserted += 1;
-    }
-  }
-
-  return { inserted, updated };
+function mapPublicNotice(notice) {
+  return {
+    id: notice.id,
+    kind: "NOTICE",
+    title: notice.title,
+    body: notice.body,
+    date: notice.deadline ?? notice.postedDate ?? null,
+    postedDate: notice.postedDate,
+    deadline: notice.deadline,
+    languages: notice.languages,
+    category: notice.category,
+    priority: notice.priority,
+    source: publicNoticeSource(notice.source),
+    channel: publicNoticeChannel(notice.source),
+    sourceUrl: notice.sourceUrl,
+    read: false,
+  };
 }
 
 const getNotices = async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
     const { q, limit = 20 } = req.query;
-    const { data, error } = await supabase
-      .from("notice")
-      .select("*")
-      .order("posted_date", { ascending: false })
-      .limit(100);
-
-    if (error)
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch notices",
-        error: error.message,
-      });
-
-    let rows = data || [];
-    const hasScraped = rows.some((row) => row.source_url);
-
-    // Auto-seed once when the source columns exist but no scraped rows yet.
-    if (!hasScraped) {
-      try {
-        const scraped = await scrapeRecentNotices();
-        if (scraped.length > 0) {
-          await upsertScrapedNotices(scraped);
-          const refreshed = await supabase
-            .from("notice")
-            .select("*")
-            .order("posted_date", { ascending: false })
-            .limit(100);
-          if (!refreshed.error) rows = refreshed.data || rows;
-        }
-      } catch (syncError) {
-        // Schema may not be migrated yet; keep returning whatever rows exist.
-        console.warn("[notices] auto-scrape skipped:", syncError.message);
-      }
-    }
-
-    const notices = rows.map(mapNoticeRow);
+    const notices = (await fetchAllNotices(supabase, {
+      language: req.language || "en",
+    }))
+      .sort((a, b) => {
+        const aTime = new Date(a.postedDate || 0).getTime();
+        const bTime = new Date(b.postedDate || 0).getTime();
+        if (aTime !== bTime) return bTime - aTime;
+        return String(a.id).localeCompare(String(b.id));
+      })
+      .map(mapPublicNotice);
     const query = String(q || "").trim();
     const filtered = !query
       ? notices
@@ -1517,11 +1482,12 @@ const getNotices = async (req, res) => {
           query,
         );
 
-    const limitValue = Number(limit);
-    const sliced = filtered.slice(
-      0,
-      Number.isFinite(limitValue) ? limitValue : 20,
-    );
+    const requestedLimit = Number(limit);
+    const limitValue =
+      Number.isInteger(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, 100)
+        : 20;
+    const sliced = filtered.slice(0, limitValue);
 
     res.json({
       success: true,
@@ -1529,9 +1495,9 @@ const getNotices = async (req, res) => {
       meta: { query, total: sliced.length },
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(err.statusCode || 500).json({
       success: false,
-      message: "Unexpected server error",
+      message: err.message || "Failed to fetch notices",
       error: err.message,
     });
   }
@@ -1539,13 +1505,17 @@ const getNotices = async (req, res) => {
 
 const syncNotices = async (req, res) => {
   try {
-    const scraped = await scrapeRecentNotices();
-    const result = await upsertScrapedNotices(scraped);
+    const result = await synchronizeNotices({
+      supabaseClient: supabase,
+      scrapeNotices: scrapeRecentNotices,
+    });
+    const scraped = result.scraped;
     res.json({
       success: true,
       data: {
         scraped: scraped.length,
-        ...result,
+        inserted: result.inserted,
+        updated: result.updated,
         bySource: scraped.reduce((acc, item) => {
           acc[item.source] = (acc[item.source] || 0) + 1;
           return acc;
@@ -1553,7 +1523,7 @@ const syncNotices = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(err.statusCode || 500).json({
       success: false,
       message:
         err.message?.includes("source_url")
@@ -1566,11 +1536,27 @@ const syncNotices = async (req, res) => {
 
 const getNotifications = async (req, res) => {
   try {
-    const { student_id } = req.params;
+    const authenticatedStudentId = req.user?.student_id;
+    const requestedStudentId = req.params.student_id;
+
+    if (!authenticatedStudentId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    if (requestedStudentId !== authenticatedStudentId) {
+      return res.status(403).json({
+        success: false,
+        message: "You may only access your own notifications",
+      });
+    }
+
     const { data, error } = await supabase
       .from("notification")
       .select("*")
-      .eq("student_id", student_id)
+      .eq("student_id", authenticatedStudentId)
       .order("scheduled_time", { ascending: false });
     if (error)
       return res.status(500).json({
@@ -1949,7 +1935,7 @@ const globalSearch = async (req, res) => {
 
     const [courses, notices, scholarships, programs, majors, documents, facilities, posts] = await Promise.all([
       fetchSearchTable("course"),
-      fetchSearchTable("notice"),
+      fetchAllNotices(supabase, { language: req.language || "en" }),
       fetchSearchTable("scholarship"),
       fetchSearchTable("extracurricular_program"),
       fetchSearchTable("major"),
@@ -1971,7 +1957,12 @@ const globalSearch = async (req, res) => {
       notices.map((notice) => ({
         ...notice,
         title: notice.title || notice.notice_title || notice.name || "",
-        content: notice.content || notice.description || notice.department || "",
+        content:
+          notice.body ||
+          notice.content ||
+          notice.description ||
+          notice.department ||
+          "",
       })),
       query,
     );

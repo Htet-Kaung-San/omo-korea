@@ -287,11 +287,20 @@ export const mockApi: HeyPnuApi = {
     return isFreshman ? mockFreshmanGraduation : mockGraduation
   },
 
-  async getNotifications(): Promise<Notification[]> {
+  async getPersonalizedNotifications(): Promise<Notification[]> {
     await delay()
-    return [...mockNotifications].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    )
+    return mockNotifications.map((notice) => ({
+      ...notice,
+      kind: notice.kind ?? 'NOTICE',
+    }))
+  },
+
+  async getPublicNotices(): Promise<Notification[]> {
+    await delay()
+    return mockNotifications.map((notice) => ({
+      ...notice,
+      kind: notice.kind ?? 'NOTICE',
+    }))
   },
 
   async getChecklist(): Promise<ChecklistPayload> {

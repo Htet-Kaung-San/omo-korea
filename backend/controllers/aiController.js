@@ -901,8 +901,13 @@ async function syncDocumentVector(req, res) {
 const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
+const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
-const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
+const {
+  fetchAllCourses,
+  fetchAllNotices,
+  fetchDashboardCatalogs,
+} = require('../ai/supabaseDataRepository');
 const {
   collectUserTags,
   fetchRecommendedPrograms,
@@ -914,6 +919,26 @@ const {
   pilotCareers,
   gapTargetMajors,
 } = require('../ai/pilotCatalog');
+
+function mergeReadableValues(...lists) {
+  const values = [];
+  const seen = new Set();
+
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+
+    for (const item of list) {
+      const value = String(item || '').trim();
+      const key = value.toLowerCase();
+      if (value && !seen.has(key)) {
+        seen.add(key);
+        values.push(value);
+      }
+    }
+  }
+
+  return values;
+}
 
 async function fetchStudentContext(studentId) {
   const { data, error } = await supabase
@@ -928,12 +953,34 @@ async function fetchStudentContext(studentId) {
     .eq('student_id', studentId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+
+    const databaseError = new Error(
+      `Failed to fetch student profile from Supabase: ${error.message}`
+    );
+    databaseError.statusCode = 502;
+    databaseError.code = 'SUPABASE_STUDENT_QUERY_FAILED';
+    databaseError.cause = error;
+    throw databaseError;
+  }
+
+  if (!data) {
     return null;
   }
 
   const questionnaire = data.questionnaire || {};
-  const interests = collectUserTags(data.interests, questionnaire.interests);
+  const interests = mergeReadableValues(
+    data.interests,
+    data.interest_tags,
+    questionnaire.interests
+  );
+  const languages = mergeReadableValues(
+    data.languages,
+    data.language_pref ? [data.language_pref] : []
+  );
 
   return {
     rawStudentInput: {
@@ -951,7 +998,7 @@ async function fetchStudentContext(studentId) {
   majorId: data.major_id ?? data.major?.major_id ?? data.major?.id ?? null,
   interests,
   interestTags: interests,
-  languages: data.languages || [],
+  languages,
   academicAreas: data.academic_areas || [],
   activities: data.activities || [],
   strengths: data.strengths || [],
@@ -959,7 +1006,7 @@ async function fetchStudentContext(studentId) {
   learningStyles: data.learning_styles || [],
   gpa: data.gpa ?? null,
   nationality: data.nationality ?? null,
-  year: data.year ?? null,
+  year: data.year ?? data.grade ?? null,
   mbti: data.mbti ?? null,
   topikLevel: data.topik_level ?? questionnaire.topikLevel ?? null,
 },
@@ -1078,8 +1125,9 @@ async function getCourseRecommendations(req, res, next) {
       return next(err);
     }
 
-    const catalogs = await fetchDashboardCatalogs(supabase, { language: req.language || 'en' });
-    const courseCatalog = catalogs.courses;
+    const courseCatalog = await fetchAllCourses(supabase, {
+      language: req.language || 'en',
+    });
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
@@ -1093,7 +1141,10 @@ async function getCourseRecommendations(req, res, next) {
     return res.status(200).json({
       success: true,
       data: recommendations,
-      metadata: catalogs.metadata,
+      metadata: {
+        source: 'supabase',
+        courses: courseCatalog.length > 0 ? 'loaded' : 'empty',
+      },
     });
   } catch (err) {
     next(err);
@@ -1206,6 +1257,8 @@ async function getAiDashboard(req, res, next) {
 
 async function getStudentNotifications(req, res, next) {
   try {
+    res.set("Cache-Control", "no-store");
+
     const language = req.language || "en";
     const studentId = req.user.student_id;
     const context = await fetchStudentContext(studentId);
@@ -1221,13 +1274,14 @@ async function getStudentNotifications(req, res, next) {
       .select("*")
       .eq("student_id", studentId);
 
-    // Degrade gracefully: if the checklist lookup fails (e.g. table missing),
-    // still return the notice-based notifications rather than 500-ing the page.
     if (checklistError) {
-      console.error(
-        "Failed to fetch checklist notifications; continuing with notices only:",
-        checklistError.message,
+      const databaseError = new Error(
+        `Failed to fetch checklist notifications from Supabase: ${checklistError.message}`,
       );
+      databaseError.statusCode = 502;
+      databaseError.code = "SUPABASE_CHECKLIST_QUERY_FAILED";
+      databaseError.cause = checklistError;
+      throw databaseError;
     }
 
     const checklistNotifications = (checklistItems || [])
@@ -1242,57 +1296,75 @@ async function getStudentNotifications(req, res, next) {
         ]);
         return {
           id: `checklist-${item.checklist_id}`,
+          kind: "CHECKLIST",
           title:
             localized.title ??
             localized.task_name ??
             item.title ??
             "Checklist item",
           body: localized.description ?? item.description ?? "",
-          date: item.due_date ?? item.updated_at ?? "",
-          category: "DEADLINE",
-          priority: "NORMAL",
+          date: item.due_date ?? item.updated_at ?? null,
+          dueDate: item.due_date ?? null,
+          updatedAt: item.updated_at ?? null,
+          status: item.status ?? null,
         };
       });
 
-    const catalogs = await fetchDashboardCatalogs(supabase, { language });
-    const dashboard = buildStudentDashboard({
-      rawStudentInput: context.rawStudentInput,
-      targetMajor: null,
-      majors: catalogs.majors,
-      courses: catalogs.courses,
-      programs: catalogs.programs,
-      scholarships: catalogs.scholarships,
-      careers: pilotCareers,
-      notices: catalogs.notices,
-      options: {
-        noticeLimit: 10,
-      },
-    });
+    const notices = await fetchAllNotices(supabase, { language });
+    const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const recommendedNotices = recommendNotices(
+      adaptedProfile.recommendationProfile,
+      notices,
+      { limit: 10 }
+    );
 
-    const noticeNotifications = (dashboard.recommendedNotices || []).map(
+    const noticeNotifications = recommendedNotices.map(
       (notice) => ({
         id: notice.id,
+        kind: "NOTICE",
         title: notice.title,
         body: notice.body,
-        date: notice.deadline ?? "",
+        date: notice.deadline ?? notice.postedDate ?? null,
+        postedDate: notice.postedDate,
+        deadline: notice.deadline,
+        languages: notice.languages,
         category: notice.category,
         priority: notice.priority,
+        source: notice.source,
+        sourceUrl: notice.sourceUrl,
+        score: notice.score,
+        matchHint: notice.matchHint,
       }),
     );
 
+    const orderedChecklistNotifications = checklistNotifications.sort(
+      (a, b) => {
+        const aTime = a.date ? new Date(a.date).getTime() : Number.NaN;
+        const bTime = b.date ? new Date(b.date).getTime() : Number.NaN;
+        const timeDifference =
+          (Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime) -
+          (Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime);
+
+        if (timeDifference !== 0) return timeDifference;
+        return String(a.id).localeCompare(String(b.id));
+      },
+    );
+
+    // Ordering contract: AI-ranked NOTICE items remain in recommendation
+    // order. CHECKLIST items follow, ordered by due date and then stable ID.
     const notifications = [
       ...noticeNotifications,
-      ...checklistNotifications,
-    ].sort((a, b) => {
-      const aTime = new Date(a.date).getTime();
-      const bTime = new Date(b.date).getTime();
-      return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime);
-    });
+      ...orderedChecklistNotifications,
+    ];
 
     return res.status(200).json({
       success: true,
       data: notifications,
-      metadata: catalogs.metadata,
+      metadata: {
+        source: "supabase",
+        notices: notices.length > 0 ? "loaded" : "empty",
+        ordering: "NOTICE_RECOMMENDATION_RANK_THEN_CHECKLIST_DUE_DATE",
+      },
     });
   } catch (err) {
     next(err);

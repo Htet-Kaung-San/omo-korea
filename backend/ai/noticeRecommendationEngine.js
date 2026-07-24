@@ -12,6 +12,26 @@ function normalizeValue(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+const LANGUAGE_ALIASES = {
+  en: 'en',
+  english: 'en',
+  ko: 'ko',
+  korean: 'ko',
+  kr: 'ko',
+  zh: 'zh',
+  chinese: 'zh',
+  vi: 'vi',
+  vietnamese: 'vi',
+  mn: 'mn',
+  mongolian: 'mn',
+};
+
+function normalizeLanguage(value) {
+  const normalized = normalizeValue(value).replace('_', '-');
+  const base = normalized.split('-')[0];
+  return LANGUAGE_ALIASES[normalized] || LANGUAGE_ALIASES[base] || normalized;
+}
+
 function getMatches(studentValues, noticeValues) {
   const studentSet = new Set(
     normalizeArray(studentValues).map(normalizeValue).filter(Boolean)
@@ -19,6 +39,16 @@ function getMatches(studentValues, noticeValues) {
 
   return normalizeArray(noticeValues).filter((value) =>
     studentSet.has(normalizeValue(value))
+  );
+}
+
+function getLanguageMatches(studentValues, noticeValues) {
+  const studentSet = new Set(
+    normalizeArray(studentValues).map(normalizeLanguage).filter(Boolean)
+  );
+
+  return normalizeArray(noticeValues).filter((value) =>
+    studentSet.has(normalizeLanguage(value))
   );
 }
 
@@ -66,7 +96,9 @@ function parseDate(value) {
     return null;
   }
 
-  const date = new Date(`${text}T00:00:00Z`);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(text)
+    ? new Date(`${text}T00:00:00Z`)
+    : new Date(text);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -118,6 +150,62 @@ function getDeadlineInfo(deadline, asOfDate) {
   };
 }
 
+function getRecencyInfo(postedDate, asOfDate) {
+  const posted = parseDate(postedDate);
+  const current = parseDate(asOfDate);
+
+  if (!posted || !current) {
+    return {
+      daysOld: null,
+      status: 'unknown',
+      recencyScore: 0,
+    };
+  }
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const daysOld = Math.floor(
+    (current.getTime() - posted.getTime()) / dayMs
+  );
+
+  if (daysOld < 0) {
+    return {
+      daysOld,
+      status: 'future',
+      recencyScore: 0,
+    };
+  }
+
+  if (daysOld <= 7) {
+    return {
+      daysOld,
+      status: 'recent',
+      recencyScore: 15,
+    };
+  }
+
+  if (daysOld <= 30) {
+    return {
+      daysOld,
+      status: 'current',
+      recencyScore: 10,
+    };
+  }
+
+  if (daysOld <= 90) {
+    return {
+      daysOld,
+      status: 'older',
+      recencyScore: 5,
+    };
+  }
+
+  return {
+    daysOld,
+    status: 'old',
+    recencyScore: 0,
+  };
+}
+
 function passesEligibility(studentProfile, notice) {
   const targetMajors = notice.targetMajors || notice.target_majors || [];
   const targetNationalities = notice.targetNationalities || notice.target_nationalities || [];
@@ -140,6 +228,7 @@ function buildMatchHint({
   interestMatches,
   languageMatches,
   deadlineInfo,
+  recencyInfo,
 }) {
   const hints = [];
 
@@ -158,6 +247,10 @@ function buildMatchHint({
     hints.push(`Deadline in ${deadlineInfo.daysRemaining} day(s)`);
   } else if (deadlineInfo.status === 'upcoming') {
     hints.push(`Deadline in ${deadlineInfo.daysRemaining} day(s)`);
+  }
+
+  if (recencyInfo.status === 'recent') {
+    hints.push('Recently posted');
   }
 
   return hints.join('; ');
@@ -180,28 +273,38 @@ function scoreNotice(studentProfile, notice, asOfDate) {
       .includes(normalizeValue(studentProfile.nationality));
 
   const interestMatches = getMatches(studentProfile.interests, notice.tags || []);
-  const languageMatches = getMatches(studentProfile.languages, notice.languages || []);
+  const languageMatches = getLanguageMatches(
+    studentProfile.languages,
+    notice.languages || []
+  );
   const deadlineInfo = getDeadlineInfo(notice.deadline, asOfDate);
+  const recencyInfo = getRecencyInfo(notice.postedDate, asOfDate);
+  const priority = String(notice.priority || '').trim().toUpperCase();
 
-  const priority = String(notice.priority || 'NORMAL').trim().toUpperCase();
+  let score = 1;
 
-  let score = PRIORITY_SCORES[priority] ?? PRIORITY_SCORES.NORMAL;
+  if (Object.prototype.hasOwnProperty.call(PRIORITY_SCORES, priority)) {
+    score += PRIORITY_SCORES[priority];
+  }
 
   if (majorMatch) score += 20;
   if (nationalityMatch) score += 15;
   score += Math.min(interestMatches.length, 2) * 10;
   if (languageMatches.length > 0) score += 10;
   score += deadlineInfo.urgencyScore;
+  score += recencyInfo.recencyScore;
 
   return {
     score: Math.min(score, 100),
     deadlineInfo,
+    recencyInfo,
     matchHint: buildMatchHint({
       majorMatch,
       nationalityMatch,
       interestMatches,
       languageMatches,
       deadlineInfo,
+      recencyInfo,
     }),
   };
 }
@@ -220,7 +323,22 @@ function compareNotices(a, b) {
     return deadlineDifference;
   }
 
-  return String(a.title || '').localeCompare(String(b.title || ''));
+  const aPosted = parseDate(a.postedDate)?.getTime() ?? 0;
+  const bPosted = parseDate(b.postedDate)?.getTime() ?? 0;
+
+  if (aPosted !== bPosted) {
+    return bPosted - aPosted;
+  }
+
+  const titleDifference = String(a.title || '').localeCompare(
+    String(b.title || '')
+  );
+
+  if (titleDifference !== 0) {
+    return titleDifference;
+  }
+
+  return String(a.id || '').localeCompare(String(b.id || ''));
 }
 
 function recommendNotices(studentProfile = {}, notices = [], options = {}) {

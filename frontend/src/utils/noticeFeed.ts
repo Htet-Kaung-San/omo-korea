@@ -12,6 +12,7 @@ export function scholarshipToNotification(item: ScholarshipItem): Notification {
 
   return {
     id: `${SCHOLARSHIP_ID_PREFIX}${item.id}`,
+    kind: 'SCHOLARSHIP',
     title: item.title,
     body: item.description,
     date,
@@ -27,14 +28,28 @@ export function mergeNoticeFeed(
   notifications: Notification[],
   scholarships: ScholarshipItem[],
 ): Notification[] {
-  const merged = [...notifications, ...scholarships.map(scholarshipToNotification)]
+  const rankedNotices = notifications.filter(
+    (item) => (item.kind ?? 'NOTICE') === 'NOTICE',
+  )
+  const checklistItems = notifications.filter(
+    (item) => item.kind === 'CHECKLIST',
+  )
+  const scholarshipItems = scholarships
+    .map(scholarshipToNotification)
+    .sort((a, b) => {
+      const aTime = a.date ? new Date(a.date).getTime() : Number.MAX_SAFE_INTEGER
+      const bTime = b.date ? new Date(b.date).getTime() : Number.MAX_SAFE_INTEGER
+      return aTime - bTime
+    })
+
+  // Personalized notice ranking is authoritative. Checklist reminders retain
+  // backend due-date order, and scholarship cards form the final group.
+  const merged = [...rankedNotices, ...checklistItems, ...scholarshipItems]
   const byId = new Map<string, Notification>()
   for (const notice of merged) {
     byId.set(notice.id, notice)
   }
-  return [...byId.values()].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  )
+  return [...byId.values()]
 }
 
 export function isScholarshipNotice(notice: Pick<Notification, 'id' | 'channel'>): boolean {
