@@ -167,11 +167,20 @@ export interface CreateCommunityPostRequest {
   groupSlug?: string | null
 }
 
+export interface CafeteriaMenuOption {
+  price?: string | null
+  items: string[]
+}
+
 export interface CafeteriaMenuColumn {
   day: string
   day_label: string
+  /** First option price — kept for backward compatibility with older payloads */
   price?: string | null
+  /** First option items — kept for backward compatibility with older payloads */
   items: string[]
+  /** All menu options in the cell (정식, 일품, …). Prefer this when present. */
+  options?: CafeteriaMenuOption[]
   note?: string | null
 }
 

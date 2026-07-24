@@ -1,6 +1,10 @@
 const supabase = require('../supabaseClient');
 const { localizeRows } = require('../middleware/languageMiddleware');
 const { getBusanCafeteriaMenus } = require('./pnuCafeteriaMenuScraperService');
+const {
+  isGeminiConfigured,
+  translateCafeteriaMenus,
+} = require('./geminiService');
 
 const FALLBACK_SHUTTLE_STOPS = [
   { id: 'main-gate', name: 'Main Gate', description: 'Central campus entrance' },
@@ -56,18 +60,35 @@ async function getShuttleStops(language = 'en') {
 
 async function getCampusFacilities(language = 'en', { menuDate = '' } = {}) {
   const shuttleStops = await getShuttleStops(language);
+  const lang = String(language || 'en').toLowerCase().split('-')[0];
+  // Cafeteria menus only: Korean for ko, English for every other UI language.
+  const cafeteriaLang = lang === 'ko' ? 'ko' : 'en';
 
   try {
-    const cafeteriaData = await getBusanCafeteriaMenus({ menuDate, language });
+    // Always scrape/map from Korean source first, then AI-translate when needed.
+    const cafeteriaData = await getBusanCafeteriaMenus({ menuDate, language: 'ko' });
+    let cafeterias = cafeteriaData.cafeterias;
+    let menuTranslated = false;
+
+    if (cafeteriaLang !== 'ko' && (isGeminiConfigured() || process.env.OPENROUTER_API_KEY)) {
+      const result = await translateCafeteriaMenus(
+        cafeterias,
+        cafeteriaLang,
+        `${cafeteriaData.scraped_at || ''}|${cafeteriaData.menu_date || menuDate || 'current'}`,
+      );
+      cafeterias = result.cafeterias;
+      menuTranslated = Boolean(result.translated);
+    }
 
     return {
       shuttle_bus_metadata: {
         key_stops: shuttleStops,
       },
-      cafeterias: cafeteriaData.cafeterias,
+      cafeterias,
       cafeteria_source: cafeteriaData.cafeteria_source,
       scraped_at: cafeteriaData.scraped_at,
       menu_date: cafeteriaData.menu_date,
+      menu_translated: menuTranslated,
     };
   } catch (error) {
     console.warn('[campusFacilitiesService] Cafeteria scrape unavailable:', error.message);
@@ -79,6 +100,7 @@ async function getCampusFacilities(language = 'en', { menuDate = '' } = {}) {
       cafeterias: FALLBACK_CAFETERIAS,
       cafeteria_source: 'fallback',
       scraped_at: null,
+      menu_translated: false,
     };
   }
 }

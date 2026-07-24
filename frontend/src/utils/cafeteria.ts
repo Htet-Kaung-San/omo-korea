@@ -1,12 +1,19 @@
-import type { CafeteriaMenuColumn, CafeteriaMenuRow, CampusFacility } from '@/types/api'
+import type {
+  CafeteriaMenuColumn,
+  CafeteriaMenuOption,
+  CafeteriaMenuRow,
+  CampusFacility,
+} from '@/types/api'
 
 export const GEUMJEONG_STUDENT_CAFETERIA_NAME = '금정회관 학생 식당'
+export const GEUMJEONG_STUDENT_CAFETERIA_ID_HINT = '금정회관-학생'
 
 export interface TodayMealSlide {
   mealType: string
   mealLabel: string
   price: string | null
   items: string[]
+  options: CafeteriaMenuOption[]
   note: string | null
   dayLabel: string
 }
@@ -28,6 +35,19 @@ function todayDateTokens(today: Date) {
     `${m}.${d}`,
     `${Number(m)}.${Number(d)}`,
   ]
+}
+
+/** Normalize a cell into one or more menu options (정식 / 일품, …). */
+export function getColumnMenuOptions(column: CafeteriaMenuColumn): CafeteriaMenuOption[] {
+  if (column.options && column.options.length > 0) {
+    return column.options.filter((option) => option.price || option.items.length > 0)
+  }
+
+  if (column.price || (column.items && column.items.length > 0)) {
+    return [{ price: column.price ?? null, items: column.items ?? [] }]
+  }
+
+  return []
 }
 
 /** Find the column index for today inside a weekly cafeteria menu. */
@@ -52,19 +72,49 @@ export function findTodayColumnIndex(
   return columns.findIndex((column) => column.day_label.trim().startsWith(ko))
 }
 
+function normalizeHallText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Prefer 금정회관 학생 식당 even after AI-translated hall names. */
 export function findGeumjeongStudentCafeteria(
   cafeterias: CampusFacility[],
 ): CampusFacility | null {
+  if (cafeterias.length === 0) return null
+
   const exact = cafeterias.find((hall) => hall.name.trim() === GEUMJEONG_STUDENT_CAFETERIA_NAME)
   if (exact) return exact
 
-  return (
-    cafeterias.find(
-      (hall) =>
-        hall.name.includes('금정회관') &&
-        (hall.name.includes('학생') || hall.name.toLowerCase().includes('student')),
-    ) ?? null
+  const byId = cafeterias.find((hall) =>
+    decodeURIComponent(hall.id).includes(GEUMJEONG_STUDENT_CAFETERIA_ID_HINT),
   )
+  if (byId) return byId
+
+  const matched = cafeterias.find((hall) => {
+    const name = normalizeHallText(hall.name)
+    const id = normalizeHallText(decodeURIComponent(hall.id))
+    const haystack = `${name} ${id}`
+
+    const isGeumjeong =
+      haystack.includes('금정') ||
+      haystack.includes('geumjeong') ||
+      haystack.includes('keumjeong')
+    const isStudent =
+      haystack.includes('학생') ||
+      haystack.includes('student')
+    const isStaff =
+      haystack.includes('교직원') ||
+      haystack.includes('faculty') ||
+      haystack.includes('staff') ||
+      haystack.includes('employee')
+
+    return isGeumjeong && isStudent && !isStaff
+  })
+
+  return matched ?? null
 }
 
 export function getTodayMealSlides(
@@ -82,11 +132,13 @@ export function getTodayMealSlides(
     .map((row: CafeteriaMenuRow) => {
       const column = row.columns[dayIndex]
       if (!column) return null
+      const options = getColumnMenuOptions(column)
       return {
         mealType: row.meal_type,
         mealLabel: row.meal_label.replace(/\n/g, ' · '),
-        price: column.price ?? null,
-        items: column.items ?? [],
+        price: options[0]?.price ?? column.price ?? null,
+        items: options.flatMap((option) => option.items),
+        options,
         note: column.note ?? null,
         dayLabel: column.day_label,
       }
