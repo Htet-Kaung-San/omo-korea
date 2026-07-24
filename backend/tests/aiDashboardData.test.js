@@ -1,4 +1,7 @@
-const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
+const {
+  fetchAllCourses,
+  fetchDashboardCatalogs,
+} = require('../ai/supabaseDataRepository');
 
 function createSupabaseStub(rows) {
   return {
@@ -142,5 +145,73 @@ describe('fetchDashboardCatalogs', () => {
         majors: 'empty',
       }),
     );
+  });
+});
+
+describe('fetchAllCourses', () => {
+  function createPagedCourseSupabase(pageResults) {
+    let pageIndex = 0;
+    const range = jest.fn(() => Promise.resolve(pageResults[pageIndex++]));
+    const order = jest.fn(() => ({ range }));
+    const select = jest.fn(() => ({ order }));
+    const from = jest.fn(() => ({ select }));
+
+    return {
+      supabase: { from },
+      spies: { from, select, order, range },
+    };
+  }
+
+  it('fetches and maps every deterministic page when the catalog exceeds 1,000 rows', async () => {
+    const firstPage = Array.from({ length: 1000 }, (_, index) => ({
+      course_id: index + 1,
+      course_name: `Course ${index + 1}`,
+    }));
+    const secondPage = Array.from({ length: 505 }, (_, index) => ({
+      course_id: index + 1001,
+      course_name: `Course ${index + 1001}`,
+    }));
+    const { supabase, spies } = createPagedCourseSupabase([
+      { data: firstPage, error: null },
+      { data: secondPage, error: null },
+    ]);
+
+    const courses = await fetchAllCourses(supabase);
+
+    expect(courses).toHaveLength(1505);
+    expect(courses[0].id).toBe('1');
+    expect(courses[1504].id).toBe('1505');
+    expect(spies.from).toHaveBeenCalledTimes(2);
+    expect(spies.from).toHaveBeenNthCalledWith(1, 'course');
+    expect(spies.order).toHaveBeenCalledTimes(2);
+    expect(spies.order).toHaveBeenNthCalledWith(
+      1,
+      'course_id',
+      { ascending: true },
+    );
+    expect(spies.range.mock.calls).toEqual([
+      [0, 999],
+      [1000, 1999],
+    ]);
+  });
+
+  it('throws when any Supabase course page returns an error', async () => {
+    const firstPage = Array.from({ length: 1000 }, (_, index) => ({
+      course_id: index + 1,
+      course_name: `Course ${index + 1}`,
+    }));
+    const { supabase } = createPagedCourseSupabase([
+      { data: firstPage, error: null },
+      {
+        data: null,
+        error: { message: 'database unavailable', code: '08006' },
+      },
+    ]);
+
+    await expect(fetchAllCourses(supabase)).rejects.toMatchObject({
+      message: 'Failed to fetch courses from Supabase: database unavailable',
+      statusCode: 502,
+      code: 'SUPABASE_COURSE_QUERY_FAILED',
+    });
   });
 });

@@ -141,6 +141,48 @@ function mapMajorRow(row) {
   };
 }
 
+async function fetchAllCourses(supabaseClient, options = {}) {
+  const language = options.language || 'en';
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const courseRows = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('course')
+      .select('*')
+      .order('course_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch courses from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_COURSE_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    courseRows.push(
+      ...pageRows.map((row) => mapCourseRow(row, language))
+    );
+
+    if (pageRows.length < pageSize) {
+      break;
+    }
+
+    pageStart += pageSize;
+  }
+
+  return courseRows;
+}
+
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
   const language = options.language || 'en';
 
@@ -178,6 +220,7 @@ async function fetchDashboardCatalogs(supabaseClient, options = {}) {
 }
 
 module.exports = {
+  fetchAllCourses,
   fetchDashboardCatalogs,
   mapCourseRow,
   mapScholarshipRow,

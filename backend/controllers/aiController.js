@@ -902,13 +902,15 @@ const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
-const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
+const {
+  fetchAllCourses,
+  fetchDashboardCatalogs,
+} = require('../ai/supabaseDataRepository');
 const {
   collectUserTags,
   fetchRecommendedPrograms,
 } = require('../services/extracurricularProgramService');
 const {
-  pilotCourses,
   pilotPrograms,
   pilotScholarships,
   pilotCareers,
@@ -928,7 +930,21 @@ async function fetchStudentContext(studentId) {
     .eq('student_id', studentId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+
+    const databaseError = new Error(
+      `Failed to fetch student profile from Supabase: ${error.message}`
+    );
+    databaseError.statusCode = 502;
+    databaseError.code = 'SUPABASE_STUDENT_QUERY_FAILED';
+    databaseError.cause = error;
+    throw databaseError;
+  }
+
+  if (!data) {
     return null;
   }
 
@@ -969,6 +985,28 @@ completedCourseIds:
   [],
     },
   };
+}
+
+async function fetchEnrolledCourseIds(studentId) {
+  const { data, error } = await supabase
+    .from('enrollment')
+    .select('course_id,status')
+    .eq('student_id', studentId)
+    .eq('status', 'Enrolled');
+
+  if (error) {
+    const databaseError = new Error(
+      `Failed to fetch student enrollments from Supabase: ${error.message}`
+    );
+    databaseError.statusCode = 502;
+    databaseError.code = 'SUPABASE_ENROLLMENT_QUERY_FAILED';
+    databaseError.cause = error;
+    throw databaseError;
+  }
+
+  return (data || [])
+    .map((enrollment) => enrollment.course_id)
+    .filter((courseId) => courseId !== null && courseId !== undefined);
 }
 
 function resolveTargetMajor(targetMajorId) {
@@ -1065,6 +1103,8 @@ async function runMajorGapAnalysis(req, res, next) {
 
 async function getCourseRecommendations(req, res, next) {
   try {
+    res.set('Cache-Control', 'no-store');
+
     const requestedLimit = Number(req.query.limit);
     const limit =
       Number.isInteger(requestedLimit) && requestedLimit > 0
@@ -1078,14 +1118,20 @@ async function getCourseRecommendations(req, res, next) {
       return next(err);
     }
 
-    const catalogs = await fetchDashboardCatalogs(supabase, { language: req.language || 'en' });
-    const courseCatalog = catalogs.courses;
+    const [courseCatalog, enrolledCourseIds] = await Promise.all([
+      fetchAllCourses(supabase, { language: req.language || 'en' }),
+      fetchEnrolledCourseIds(req.user.student_id),
+    ]);
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const excludedCourseIds = [
+      ...adaptedProfile.completedCourseIds,
+      ...enrolledCourseIds,
+    ];
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
       courseCatalog,
       {
-        completedCourseIds: adaptedProfile.completedCourseIds,
+        completedCourseIds: excludedCourseIds,
         limit,
       }
     );
@@ -1093,7 +1139,10 @@ async function getCourseRecommendations(req, res, next) {
     return res.status(200).json({
       success: true,
       data: recommendations,
-      metadata: catalogs.metadata,
+      metadata: {
+        source: 'supabase',
+        courses: courseCatalog.length > 0 ? 'loaded' : 'empty',
+      },
     });
   } catch (err) {
     next(err);
