@@ -901,8 +901,12 @@ async function syncDocumentVector(req, res) {
 const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
+const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
-const { fetchDashboardCatalogs } = require('../ai/supabaseDataRepository');
+const {
+  fetchAllNotices,
+  fetchDashboardCatalogs,
+} = require('../ai/supabaseDataRepository');
 const {
   collectUserTags,
   fetchRecommendedPrograms,
@@ -914,6 +918,26 @@ const {
   pilotCareers,
   gapTargetMajors,
 } = require('../ai/pilotCatalog');
+
+function mergeReadableValues(...lists) {
+  const values = [];
+  const seen = new Set();
+
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+
+    for (const item of list) {
+      const value = String(item || '').trim();
+      const key = value.toLowerCase();
+      if (value && !seen.has(key)) {
+        seen.add(key);
+        values.push(value);
+      }
+    }
+  }
+
+  return values;
+}
 
 async function fetchStudentContext(studentId) {
   const { data, error } = await supabase
@@ -928,12 +952,34 @@ async function fetchStudentContext(studentId) {
     .eq('student_id', studentId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null;
+    }
+
+    const databaseError = new Error(
+      `Failed to fetch student profile from Supabase: ${error.message}`
+    );
+    databaseError.statusCode = 502;
+    databaseError.code = 'SUPABASE_STUDENT_QUERY_FAILED';
+    databaseError.cause = error;
+    throw databaseError;
+  }
+
+  if (!data) {
     return null;
   }
 
   const questionnaire = data.questionnaire || {};
-  const interests = collectUserTags(data.interests, questionnaire.interests);
+  const interests = mergeReadableValues(
+    data.interests,
+    data.interest_tags,
+    questionnaire.interests
+  );
+  const languages = mergeReadableValues(
+    data.languages,
+    data.language_pref ? [data.language_pref] : []
+  );
 
   return {
     rawStudentInput: {
@@ -951,7 +997,7 @@ async function fetchStudentContext(studentId) {
   majorId: data.major_id ?? data.major?.major_id ?? data.major?.id ?? null,
   interests,
   interestTags: interests,
-  languages: data.languages || [],
+  languages,
   academicAreas: data.academic_areas || [],
   activities: data.activities || [],
   strengths: data.strengths || [],
@@ -959,7 +1005,7 @@ async function fetchStudentContext(studentId) {
   learningStyles: data.learning_styles || [],
   gpa: data.gpa ?? null,
   nationality: data.nationality ?? null,
-  year: data.year ?? null,
+  year: data.year ?? data.grade ?? null,
   mbti: data.mbti ?? null,
   topikLevel: data.topik_level ?? questionnaire.topikLevel ?? null,
 },
@@ -1206,6 +1252,8 @@ async function getAiDashboard(req, res, next) {
 
 async function getStudentNotifications(req, res, next) {
   try {
+    res.set("Cache-Control", "no-store");
+
     const language = req.language || "en";
     const studentId = req.user.student_id;
     const context = await fetchStudentContext(studentId);
@@ -1254,45 +1302,48 @@ async function getStudentNotifications(req, res, next) {
         };
       });
 
-    const catalogs = await fetchDashboardCatalogs(supabase, { language });
-    const dashboard = buildStudentDashboard({
-      rawStudentInput: context.rawStudentInput,
-      targetMajor: null,
-      majors: catalogs.majors,
-      courses: catalogs.courses,
-      programs: catalogs.programs,
-      scholarships: catalogs.scholarships,
-      careers: pilotCareers,
-      notices: catalogs.notices,
-      options: {
-        noticeLimit: 10,
-      },
-    });
+    const notices = await fetchAllNotices(supabase, { language });
+    const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const recommendedNotices = recommendNotices(
+      adaptedProfile.recommendationProfile,
+      notices,
+      { limit: 10 }
+    );
 
-    const noticeNotifications = (dashboard.recommendedNotices || []).map(
+    const noticeNotifications = recommendedNotices.map(
       (notice) => ({
         id: notice.id,
         title: notice.title,
         body: notice.body,
-        date: notice.deadline ?? "",
+        date: notice.deadline ?? notice.postedDate ?? "",
+        postedDate: notice.postedDate,
+        deadline: notice.deadline,
         category: notice.category,
         priority: notice.priority,
+        source: notice.source,
+        sourceUrl: notice.sourceUrl,
+        score: notice.score,
+        matchHint: notice.matchHint,
       }),
     );
 
     const notifications = [
       ...noticeNotifications,
-      ...checklistNotifications,
-    ].sort((a, b) => {
-      const aTime = new Date(a.date).getTime();
-      const bTime = new Date(b.date).getTime();
-      return (Number.isNaN(aTime) ? 0 : aTime) - (Number.isNaN(bTime) ? 0 : bTime);
-    });
+      ...checklistNotifications.sort((a, b) => {
+        const aTime = new Date(a.date).getTime();
+        const bTime = new Date(b.date).getTime();
+        return (Number.isNaN(aTime) ? 0 : aTime) -
+          (Number.isNaN(bTime) ? 0 : bTime);
+      }),
+    ];
 
     return res.status(200).json({
       success: true,
       data: notifications,
-      metadata: catalogs.metadata,
+      metadata: {
+        source: "supabase",
+        notices: notices.length > 0 ? "loaded" : "empty",
+      },
     });
   } catch (err) {
     next(err);
