@@ -47,7 +47,7 @@ export function HomePage() {
     Promise.all([
       api.getGraduationProgress(),
       api.getChecklist(),
-      api.getNotifications(),
+      api.getPersonalizedNotifications(),
       api.getScholarships().catch(() => []),
     ])
       .then(([grad, checklistPayload, notifications, scholarships]) => {

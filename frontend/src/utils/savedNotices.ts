@@ -11,7 +11,7 @@ function isSavedNotice(value: unknown): value is Notification {
     typeof item.id === 'string' &&
     typeof item.title === 'string' &&
     typeof item.body === 'string' &&
-    typeof item.date === 'string'
+    (item.date == null || typeof item.date === 'string')
   )
 }
 
@@ -40,14 +40,23 @@ export function toggleSavedNotice(notice: Notification): Notification[] {
     : [
         {
           id: notice.id,
+          kind: notice.kind,
           title: notice.title,
           body: notice.body,
           date: notice.date,
+          postedDate: notice.postedDate ?? null,
+          deadline: notice.deadline ?? null,
+          dueDate: notice.dueDate ?? null,
+          updatedAt: notice.updatedAt ?? null,
+          languages: notice.languages ?? [],
           category: notice.category,
           priority: notice.priority,
           source: notice.source ?? null,
           channel: notice.channel ?? null,
           sourceUrl: notice.sourceUrl ?? null,
+          score: notice.score ?? null,
+          matchHint: notice.matchHint ?? null,
+          status: notice.status ?? null,
           read: notice.read ?? false,
         },
         ...current,

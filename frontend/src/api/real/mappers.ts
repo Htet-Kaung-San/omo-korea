@@ -52,18 +52,27 @@ type BackendChecklistData =
 interface BackendNotice {
   id?: string | number
   notice_id?: string | number
+  kind?: 'NOTICE' | 'CHECKLIST'
   title?: string | null
   body?: string | null
   content?: string | null
   date?: string | null
+  postedDate?: string | null
   posted_date?: string | null
   deadline?: string | null
+  dueDate?: string | null
+  updatedAt?: string | null
+  languages?: string[] | null
+  language?: string | null
   category?: NotificationCategory | null
   priority?: NotificationPriority | null
   source?: string | null
   channel?: NoticeChannel | null
   sourceUrl?: string | null
   source_url?: string | null
+  score?: number | null
+  matchHint?: string | null
+  status?: string | null
   read?: boolean
 }
 
@@ -151,25 +160,41 @@ export function mapChecklistPayload(
 
 export function mapNotice(notice: BackendNotice): Notification {
   const source = notice.source ?? null
-  const rawCategory = String(notice.category ?? 'GENERAL').toUpperCase()
-  const rawPriority = String(notice.priority ?? 'NORMAL').toUpperCase()
-  const category: NotificationCategory =
-    rawCategory === 'REGISTRATION' || rawCategory === 'DEADLINE' || rawCategory === 'GENERAL'
-      ? rawCategory
-      : 'GENERAL'
-  const priority: NotificationPriority =
-    rawPriority === 'HIGH' || rawPriority === 'NORMAL' ? rawPriority : 'NORMAL'
+  const category =
+    typeof notice.category === 'string' && notice.category.trim()
+      ? notice.category
+      : null
+  const priority =
+    typeof notice.priority === 'string' && notice.priority.trim()
+      ? notice.priority.toUpperCase()
+      : null
+  const postedDate = notice.postedDate ?? notice.posted_date ?? null
+  const deadline = notice.deadline ?? null
+  const languages = Array.isArray(notice.languages)
+    ? notice.languages.filter((value): value is string => typeof value === 'string' && Boolean(value.trim()))
+    : notice.language
+      ? [notice.language]
+      : []
 
   return {
     id: String(notice.id ?? notice.notice_id ?? ''),
+    kind: notice.kind ?? 'NOTICE',
     title: notice.title ?? 'Untitled notice',
     body: notice.body ?? notice.content ?? '',
-    date: notice.date ?? notice.posted_date ?? notice.deadline ?? '',
+    date: notice.date ?? deadline ?? postedDate,
+    postedDate,
+    deadline,
+    dueDate: notice.dueDate ?? null,
+    updatedAt: notice.updatedAt ?? null,
+    languages,
     category,
     priority,
     source,
     channel: notice.channel ?? null,
     sourceUrl: notice.sourceUrl ?? notice.source_url ?? null,
+    score: typeof notice.score === 'number' ? notice.score : null,
+    matchHint: notice.matchHint ?? null,
+    status: notice.status ?? null,
     read: notice.read ?? false,
   }
 }

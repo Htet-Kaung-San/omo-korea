@@ -209,21 +209,60 @@ async function fetchAllNotices(supabaseClient, options = {}) {
   return notices;
 }
 
+async function fetchAllCourses(supabaseClient, options = {}) {
+  const language = options.language || 'en';
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const courses = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('course')
+      .select('*')
+      .order('course_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch courses from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_COURSE_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    courses.push(...pageRows.map((row) => mapCourseRow(row, language)));
+
+    if (pageRows.length < pageSize) {
+      break;
+    }
+
+    pageStart += pageSize;
+  }
+
+  return courses;
+}
+
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
   const language = options.language || 'en';
 
-  const [coursesResult, scholarshipsResult, programsResult, noticesResult, majorsResult] = await Promise.all([
+  const [coursesResult, scholarshipsResult, programsResult, noticeRows, majorsResult] = await Promise.all([
     supabaseClient.from('course').select('*'),
     supabaseClient.from('scholarship').select('*'),
     supabaseClient.from('extracurricular_program').select('*'),
-    supabaseClient.from('notice').select('*'),
+    fetchAllNotices(supabaseClient, { language }),
     supabaseClient.from('major').select('*'),
   ]);
 
   const courseRows = (coursesResult.data || []).map((row) => mapCourseRow(row, language));
   const scholarshipRows = (scholarshipsResult.data || []).map((row) => mapScholarshipRow(row, language));
   const programRows = (programsResult.data || []).map((row) => mapProgramRow(row, language));
-  const noticeRows = (noticesResult.data || []).map((row) => mapNoticeRow(row, language));
   const majorRows = (majorsResult.data || []).map((row) => mapMajorRow(row));
 
   const metadata = {
@@ -246,6 +285,7 @@ async function fetchDashboardCatalogs(supabaseClient, options = {}) {
 }
 
 module.exports = {
+  fetchAllCourses,
   fetchAllNotices,
   fetchDashboardCatalogs,
   mapCourseRow,

@@ -97,7 +97,7 @@ export function ProfilePage() {
 
   useEffect(() => {
     api
-      .getNotifications()
+      .getPersonalizedNotifications()
       .then((items) => setUnreadCount(items.length))
       .catch(() => setUnreadCount(0));
   }, []);

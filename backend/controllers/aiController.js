@@ -904,6 +904,7 @@ const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const {
+  fetchAllCourses,
   fetchAllNotices,
   fetchDashboardCatalogs,
 } = require('../ai/supabaseDataRepository');
@@ -1124,8 +1125,9 @@ async function getCourseRecommendations(req, res, next) {
       return next(err);
     }
 
-    const catalogs = await fetchDashboardCatalogs(supabase, { language: req.language || 'en' });
-    const courseCatalog = catalogs.courses;
+    const courseCatalog = await fetchAllCourses(supabase, {
+      language: req.language || 'en',
+    });
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
@@ -1139,7 +1141,10 @@ async function getCourseRecommendations(req, res, next) {
     return res.status(200).json({
       success: true,
       data: recommendations,
-      metadata: catalogs.metadata,
+      metadata: {
+        source: 'supabase',
+        courses: courseCatalog.length > 0 ? 'loaded' : 'empty',
+      },
     });
   } catch (err) {
     next(err);
@@ -1269,13 +1274,14 @@ async function getStudentNotifications(req, res, next) {
       .select("*")
       .eq("student_id", studentId);
 
-    // Degrade gracefully: if the checklist lookup fails (e.g. table missing),
-    // still return the notice-based notifications rather than 500-ing the page.
     if (checklistError) {
-      console.error(
-        "Failed to fetch checklist notifications; continuing with notices only:",
-        checklistError.message,
+      const databaseError = new Error(
+        `Failed to fetch checklist notifications from Supabase: ${checklistError.message}`,
       );
+      databaseError.statusCode = 502;
+      databaseError.code = "SUPABASE_CHECKLIST_QUERY_FAILED";
+      databaseError.cause = checklistError;
+      throw databaseError;
     }
 
     const checklistNotifications = (checklistItems || [])
@@ -1290,15 +1296,17 @@ async function getStudentNotifications(req, res, next) {
         ]);
         return {
           id: `checklist-${item.checklist_id}`,
+          kind: "CHECKLIST",
           title:
             localized.title ??
             localized.task_name ??
             item.title ??
             "Checklist item",
           body: localized.description ?? item.description ?? "",
-          date: item.due_date ?? item.updated_at ?? "",
-          category: "DEADLINE",
-          priority: "NORMAL",
+          date: item.due_date ?? item.updated_at ?? null,
+          dueDate: item.due_date ?? null,
+          updatedAt: item.updated_at ?? null,
+          status: item.status ?? null,
         };
       });
 
@@ -1313,11 +1321,13 @@ async function getStudentNotifications(req, res, next) {
     const noticeNotifications = recommendedNotices.map(
       (notice) => ({
         id: notice.id,
+        kind: "NOTICE",
         title: notice.title,
         body: notice.body,
-        date: notice.deadline ?? notice.postedDate ?? "",
+        date: notice.deadline ?? notice.postedDate ?? null,
         postedDate: notice.postedDate,
         deadline: notice.deadline,
+        languages: notice.languages,
         category: notice.category,
         priority: notice.priority,
         source: notice.source,
@@ -1327,14 +1337,24 @@ async function getStudentNotifications(req, res, next) {
       }),
     );
 
+    const orderedChecklistNotifications = checklistNotifications.sort(
+      (a, b) => {
+        const aTime = a.date ? new Date(a.date).getTime() : Number.NaN;
+        const bTime = b.date ? new Date(b.date).getTime() : Number.NaN;
+        const timeDifference =
+          (Number.isNaN(aTime) ? Number.MAX_SAFE_INTEGER : aTime) -
+          (Number.isNaN(bTime) ? Number.MAX_SAFE_INTEGER : bTime);
+
+        if (timeDifference !== 0) return timeDifference;
+        return String(a.id).localeCompare(String(b.id));
+      },
+    );
+
+    // Ordering contract: AI-ranked NOTICE items remain in recommendation
+    // order. CHECKLIST items follow, ordered by due date and then stable ID.
     const notifications = [
       ...noticeNotifications,
-      ...checklistNotifications.sort((a, b) => {
-        const aTime = new Date(a.date).getTime();
-        const bTime = new Date(b.date).getTime();
-        return (Number.isNaN(aTime) ? 0 : aTime) -
-          (Number.isNaN(bTime) ? 0 : bTime);
-      }),
+      ...orderedChecklistNotifications,
     ];
 
     return res.status(200).json({
@@ -1343,6 +1363,7 @@ async function getStudentNotifications(req, res, next) {
       metadata: {
         source: "supabase",
         notices: notices.length > 0 ? "loaded" : "empty",
+        ordering: "NOTICE_RECOMMENDATION_RANK_THEN_CHECKLIST_DUE_DATE",
       },
     });
   } catch (err) {

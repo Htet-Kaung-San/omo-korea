@@ -4,6 +4,7 @@ import { getAcceptLanguage } from './headers'
 import { clearSessionUser } from './real/session'
 
 const TOKEN_KEY = 'hey_pnu_token'
+export const AUTH_SESSION_CLEARED_EVENT = 'hey_pnu_auth_session_cleared'
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -84,6 +85,7 @@ export async function apiFetch<T>(
     if (response.status === 401) {
       clearStoredToken()
       clearSessionUser()
+      window.dispatchEvent(new Event(AUTH_SESSION_CLEARED_EVENT))
     }
 
     if (!suppressToast) emitToast(message, 'error')

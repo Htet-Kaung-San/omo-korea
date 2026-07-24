@@ -159,7 +159,15 @@ export const realApi: HeyPnuApi = {
     return emptyGraduationProgress()
   },
 
-  async getNotifications(): Promise<Notification[]> {
+  async getPersonalizedNotifications(): Promise<Notification[]> {
+    const notifications = await backendFetch<Parameters<typeof mapNotice>[0][]>(
+      '/students/notifications',
+    )
+
+    return notifications.map(mapNotice)
+  },
+
+  async getPublicNotices(): Promise<Notification[]> {
     const notifications = await backendFetch<Parameters<typeof mapNotice>[0][]>(
       '/students/notices',
     )

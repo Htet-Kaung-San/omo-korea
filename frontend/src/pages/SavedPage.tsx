@@ -7,9 +7,10 @@ import { isExternalNotice, noticeHref } from '@/utils/notices'
 import { useSavedJobs } from '@/utils/savedJobs'
 import { useSavedNotices } from '@/utils/savedNotices'
 
-function formatDate(iso: string, locale: string) {
+function formatDate(iso: string | null | undefined, locale: string) {
+  if (!iso) return null
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
+  if (Number.isNaN(d.getTime())) return null
   return d.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
@@ -77,6 +78,7 @@ export function SavedPage() {
                     const href = noticeHref(notice)
                     const external = isExternalNotice(notice)
                     const saved = isNoticeSaved(notice.id)
+                    const formattedDate = formatDate(notice.date, locale)
                     const content = (
                       <>
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-[#F3E8FF] text-[#7C3AED]">
@@ -113,9 +115,11 @@ export function SavedPage() {
                           </Link>
                         )}
                         <div className="flex shrink-0 flex-col items-end gap-2">
-                          <span className="text-[10px] font-medium text-pnu-muted">
-                            {formatDate(notice.date, locale)}
-                          </span>
+                          {formattedDate ? (
+                            <span className="text-[10px] font-medium text-pnu-muted">
+                              {formattedDate}
+                            </span>
+                          ) : null}
                           <button
                             type="button"
                             onClick={() => toggleNotice(notice)}

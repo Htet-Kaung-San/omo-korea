@@ -15,11 +15,12 @@ interface LatestNoticeCarouselProps {
 const CARD_SHADOW = '0 12px 32px rgba(15,23,42,0.08)'
 
 function formatRelativeTime(
-  dateStr: string,
+  dateStr: string | null | undefined,
   t: (key: string, vars?: Record<string, string | number>) => string,
-): string {
+): string | null {
+  if (!dateStr) return null
   const parsed = new Date(dateStr).getTime()
-  if (Number.isNaN(parsed)) return dateStr
+  if (Number.isNaN(parsed)) return null
 
   const diffMs = Date.now() - parsed
   const minutes = Math.max(0, Math.floor(diffMs / 60000))
@@ -35,7 +36,13 @@ export function LatestNoticeCarousel({
   showHeader = true,
 }: LatestNoticeCarouselProps) {
   const { t } = useLanguage()
-  const slides = useMemo(() => notices.slice(0, 5), [notices])
+  const slides = useMemo(
+    () =>
+      notices
+        .filter((notice) => notice.kind === 'NOTICE')
+        .slice(0, 5),
+    [notices],
+  )
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -75,6 +82,7 @@ export function LatestNoticeCarousel({
   const notice = slides[index] ?? slides[0]
   const href = noticeHref(notice)
   const external = isExternalNotice(notice)
+  const relativeTime = formatRelativeTime(notice.date, t)
 
   return (
     <section className="shrink-0">
@@ -109,9 +117,11 @@ export function LatestNoticeCarousel({
                 <Sparkles className="h-3 w-3" strokeWidth={2.2} />
                 {t('home.aiSummary')}
               </span>
-              <span className="text-[11px] font-medium text-pnu-muted">
-                {formatRelativeTime(notice.date, t)}
-              </span>
+              {relativeTime ? (
+                <span className="text-[11px] font-medium text-pnu-muted">
+                  {relativeTime}
+                </span>
+              ) : null}
             </div>
 
             <div className="flex items-start gap-3">
@@ -138,9 +148,11 @@ export function LatestNoticeCarousel({
                 <Sparkles className="h-3 w-3" strokeWidth={2.2} />
                 {t('home.aiSummary')}
               </span>
-              <span className="text-[11px] font-medium text-pnu-muted">
-                {formatRelativeTime(notice.date, t)}
-              </span>
+              {relativeTime ? (
+                <span className="text-[11px] font-medium text-pnu-muted">
+                  {relativeTime}
+                </span>
+              ) : null}
             </div>
 
             <div className="flex items-start gap-3">
