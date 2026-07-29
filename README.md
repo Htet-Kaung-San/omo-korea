@@ -126,7 +126,7 @@ flowchart TD
 
 **AI / Data**
 - OpenRouter (primary chat completion)
-- Google Gemini (chat fallback, embeddings for RAG, announcement translation)
+- Google Gemini (chat fallback, embeddings for RAG, cafeteria/notice translation)
 - Anthropic SDK (`@anthropic-ai/sdk`) integrated for major-recommendation analysis
 - Supabase `pgvector` retrieval-augmented generation
 
@@ -163,7 +163,8 @@ sequenceDiagram
 ### 3.2. 기능 설명 · Feature Walkthrough
 
 - **로그인 / 회원가입** — 학번과 비밀번호로 로그인. 입력값은 클라이언트에서 유효성 검사 후 서버가 Supabase Auth로 검증하며, 성공 시 7일 유효 JWT를 발급한다. 비밀번호 재설정은 이메일 링크 기반으로 동작한다.
-- **홈 대시보드** — 최신 공지 캐러셀, 학사 일정, 오늘의 학식(금정회관) 미리보기, 빠른 이동 그리드.
+- **홈 대시보드** — 최신 공지 캐러셀, 학사 일정, 오늘의 학식(금정회관 학생 식당) 미리보기, 빠른 이동 그리드.
+- **학식 · Cafeteria** — PNU 주간 메뉴 스크래핑, 셀별 복수 옵션(정식/일품), 기본 탭은 금정회관 학생 식당. 메뉴 번역은 UI가 `ko`일 때 한국어, 그 외 언어는 영어(Gemini + OpenRouter fallback).
 - **AI 어시스턴트 (산지니)** — 학생 프로필과 RAG 근거를 활용해 다국어로 응답하며, 답변이 공식 문서에 근거했는지 메타데이터를 함께 반환한다.
 - **학업 / 시간표** — 수강 등록·삭제, 요일·시간 충돌 감지, `.ics` 캘린더 내보내기.
 - **수강·비교과·장학 추천** — 규칙 기반 추천 엔진이 전공·이수 상황·관심 분야를 반영해 순위를 매긴다.
@@ -238,8 +239,8 @@ npm install
 | `SUPABASE_PUBLISHABLE_KEY` | Public anon key |
 | `JWT_SECRET` | **Required** — server refuses to start without it. Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
 | `APP_BASE_URL` | Frontend URL for password-reset links (`http://localhost:5173`) |
-| `GEMINI_API_KEY` | Gemini (chat fallback, embeddings, translation) |
-| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Primary chat provider |
+| `GEMINI_API_KEY` | Gemini (chat fallback, embeddings, cafeteria/notice translation) |
+| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Primary chat provider (+ cafeteria translation fallback) |
 
 ### 2) Frontend
 ```bash

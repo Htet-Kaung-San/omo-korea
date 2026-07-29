@@ -35,6 +35,7 @@ jest.mock("../services/geminiService", () => ({
   generateGeminiChatStream: jest.fn(),
   generateGeminiMajorAnalysis: jest.fn(),
   translateGeminiAnnouncement: jest.fn(),
+  translateCafeteriaMenus: jest.fn(async (menus) => ({ cafeterias: menus, translated: false })),
 }));
 
 const ragService = require("../services/ragService");

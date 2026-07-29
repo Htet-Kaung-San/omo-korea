@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '@/context/LanguageContext'
-import type { CampusFacility } from '@/types/api'
-import { findGeumjeongStudentCafeteria } from '@/utils/cafeteria'
+import type { CafeteriaMenuColumn, CampusFacility } from '@/types/api'
+import { findGeumjeongStudentCafeteria, getColumnMenuOptions } from '@/utils/cafeteria'
 
 interface CafeteriaMenuViewProps {
   cafeterias: CampusFacility[]
@@ -22,6 +22,37 @@ function defaultCafeteriaId(cafeterias: CampusFacility[], hallsWithMenus: Campus
   return preferred?.id ?? hallsWithMenus[0]?.id ?? cafeterias[0]?.id ?? ''
 }
 
+function MenuCellContent({ column }: { column: CafeteriaMenuColumn }) {
+  if (column.note) {
+    return <p className="text-center text-pnu-muted">{column.note}</p>
+  }
+
+  const options = getColumnMenuOptions(column)
+  if (options.length === 0) {
+    return <p className="text-center text-pnu-muted">-</p>
+  }
+
+  return (
+    <div className="space-y-3">
+      {options.map((option, index) => (
+        <div
+          key={`${option.price ?? 'option'}-${index}`}
+          className={index > 0 ? 'border-t border-pnu-border/70 pt-3' : undefined}
+        >
+          {option.price ? <p className="font-bold text-pnu-blue">{option.price}</p> : null}
+          <div className={option.price ? 'mt-1 space-y-0.5' : 'space-y-0.5'}>
+            {option.items.map((item, itemIndex) => (
+              <p key={`${item}-${itemIndex}`} className="leading-snug text-pnu-muted">
+                {item}
+              </p>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }: CafeteriaMenuViewProps) {
   const { t } = useLanguage()
   const hallsWithMenus = useMemo(
@@ -30,12 +61,23 @@ export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }:
   )
   const hallOptions = hallsWithMenus.length > 0 ? hallsWithMenus : cafeterias
   const [activeId, setActiveId] = useState(() => defaultCafeteriaId(cafeterias, hallsWithMenus))
+  const userSelectedRef = useRef(false)
 
   useEffect(() => {
     if (cafeterias.length === 0) return
+    const preferredId = defaultCafeteriaId(cafeterias, hallsWithMenus)
     const stillValid = hallOptions.some((hall) => hall.id === activeId)
+
+    // Until the user picks a tab, keep 금정회관 학생 식당 selected once data arrives.
+    if (!userSelectedRef.current) {
+      if (preferredId && preferredId !== activeId) {
+        setActiveId(preferredId)
+      }
+      return
+    }
+
     if (!activeId || !stillValid) {
-      setActiveId(defaultCafeteriaId(cafeterias, hallsWithMenus))
+      setActiveId(preferredId)
     }
   }, [activeId, cafeterias, hallOptions, hallsWithMenus])
 
@@ -64,7 +106,10 @@ export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }:
               <button
                 key={hall.id}
                 type="button"
-                onClick={() => setActiveId(hall.id)}
+                onClick={() => {
+                  userSelectedRef.current = true
+                  setActiveId(hall.id)
+                }}
                 className={`rounded-full border px-2 py-2.5 text-center text-[10px] font-bold leading-tight transition ${
                   isActive
                     ? 'border-pnu-blue bg-pnu-blue text-white'
@@ -147,22 +192,7 @@ export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }:
                         key={`${row.meal_type}-${column.day}`}
                         className="border-r border-pnu-border px-2 py-3 align-top text-pnu-text last:border-r-0"
                       >
-                        {column.note ? (
-                          <p className="text-center text-pnu-muted">{column.note}</p>
-                        ) : column.price || column.items.length > 0 ? (
-                          <div className="space-y-1">
-                            {column.price ? (
-                              <p className="font-bold text-pnu-blue">{column.price}</p>
-                            ) : null}
-                            {column.items.map((item) => (
-                              <p key={item} className="leading-snug text-pnu-muted">
-                                {item}
-                              </p>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-center text-pnu-muted">-</p>
-                        )}
+                        <MenuCellContent column={column} />
                       </td>
                     ))}
                   </tr>

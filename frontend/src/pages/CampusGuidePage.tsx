@@ -17,6 +17,9 @@ export function CampusGuidePage({ titleKey, bodyKey, facilitiesMode }: CampusGui
   const [loading, setLoading] = useState(Boolean(facilitiesMode))
   const [error, setError] = useState('')
   const [menuDate, setMenuDate] = useState<string | undefined>(undefined)
+  // Cafeteria menu content is ko/en only; other modes still follow the full UI language.
+  const facilitiesLanguageKey =
+    facilitiesMode === 'cafeteria' ? (language === 'ko' ? 'ko' : 'en') : language
 
   const loadFacilities = useCallback(
     (nextMenuDate?: string) => {
@@ -37,7 +40,7 @@ export function CampusGuidePage({ titleKey, bodyKey, facilitiesMode }: CampusGui
   useEffect(() => {
     if (!facilitiesMode) return
     loadFacilities(menuDate)
-  }, [facilitiesMode, language, loadFacilities, menuDate])
+  }, [facilitiesMode, facilitiesLanguageKey, loadFacilities, menuDate])
 
   const shuttleStops = facilities?.shuttle_bus_metadata.key_stops ?? []
 

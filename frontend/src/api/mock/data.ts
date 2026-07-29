@@ -1054,8 +1054,18 @@ export const mockCampusFacilities: CampusFacilities = {
               {
                 day: 'mon',
                 day_label: '월 2026.07.13',
-                price: '4,500원',
+                price: '정식-5,000원',
                 items: ['백미밥', '순두부찌개', '제육볶음', '배추김치'],
+                options: [
+                  {
+                    price: '정식-5,000원',
+                    items: ['백미밥', '순두부찌개', '제육볶음', '배추김치'],
+                  },
+                  {
+                    price: '일품-5,000원',
+                    items: ['치킨가스/스파게티', '미역맑은국', '단무지', '배추김치'],
+                  },
+                ],
                 note: null,
               },
               {

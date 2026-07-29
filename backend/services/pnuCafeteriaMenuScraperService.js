@@ -87,22 +87,66 @@ function parseWeekRange(text) {
   };
 }
 
-function parseMealItems(cellHtml, $, cell) {
-  const price = normalizeWhitespace($(cell).find('h3.menu-tit01').first().text());
-  const rawItems = $(cell)
-    .find('p')
-    .html()
-    ?.split(/<br\s*\/?>/i)
+function parseItemsFromParagraph($p) {
+  const html = $p.html();
+  if (!html) return [];
+  return html
+    .split(/<br\s*\/?>/i)
     .map((item) => normalizeWhitespace(item.replace(/<[^>]+>/g, '')))
     .filter(Boolean);
+}
 
-  if (!price && (!rawItems || rawItems.length === 0)) {
-    return { price: null, items: [], note: null };
-  }
-
+function parseMealOption($, block) {
+  const price = normalizeWhitespace($(block).find('h3.menu-tit01').first().text());
+  const items = parseItemsFromParagraph($(block).find('p').first());
+  if (!price && items.length === 0) return null;
   return {
     price: price || null,
-    items: rawItems ?? [],
+    items,
+  };
+}
+
+/**
+ * A single day cell often contains multiple menu options (e.g. 정식 + 일품),
+ * each as `ul > li` with its own h3 price title and p dish list.
+ */
+function parseMealItems(_cellHtml, $, cell) {
+  const optionBlocks = $(cell).find('ul > li');
+  let options = optionBlocks
+    .map((_, li) => parseMealOption($, li))
+    .get()
+    .filter(Boolean);
+
+  // Fallback when markup is not wrapped in ul/li
+  if (options.length === 0) {
+    const titles = $(cell).find('h3.menu-tit01');
+    if (titles.length > 0) {
+      options = titles
+        .map((_, h3) => {
+          const $h3 = $(h3);
+          const price = normalizeWhitespace($h3.text());
+          const $p = $h3.nextAll('p').first();
+          const items = parseItemsFromParagraph($p);
+          if (!price && items.length === 0) return null;
+          return { price: price || null, items };
+        })
+        .get()
+        .filter(Boolean);
+    } else {
+      const items = parseItemsFromParagraph($(cell).find('p').first());
+      if (items.length > 0) options = [{ price: null, items }];
+    }
+  }
+
+  if (options.length === 0) {
+    return { price: null, items: [], options: [], note: null };
+  }
+
+  // Keep top-level price/items as the first option for backward compatibility
+  return {
+    price: options[0].price,
+    items: options[0].items,
+    options,
     note: null,
   };
 }
@@ -147,6 +191,7 @@ function parseMealTable($) {
             ...column,
             price: null,
             items: [],
+            options: [],
             note: '미운영',
           })),
         };
@@ -336,21 +381,31 @@ async function getBusanCafeteriaMenus({ menuDate = '', forceRefresh = false, lan
   const cacheKey = menuDate || 'current';
   const now = Date.now();
   const cached = cache.get(cacheKey);
+
+  let scrapedPayload = null;
   if (!forceRefresh && cached && now - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.data;
+    scrapedPayload = cached.scraped;
   }
 
   try {
-    const scraped = await scrapeBusanCafeteriaMenus({ menuDate });
-    await syncCafeteriaMenusToSupabase(scraped.cafeterias);
-    const payload = {
-      cafeterias: scraped.cafeterias.map((item) => mapCafeteriaItem(item, language)),
-      cafeteria_source: scraped.source,
-      scraped_at: scraped.scrapedAt,
-      menu_date: scraped.menu_date,
+    if (!scrapedPayload) {
+      const scraped = await scrapeBusanCafeteriaMenus({ menuDate });
+      await syncCafeteriaMenusToSupabase(scraped.cafeterias);
+      scrapedPayload = {
+        cafeterias: scraped.cafeterias,
+        cafeteria_source: scraped.source,
+        scraped_at: scraped.scrapedAt,
+        menu_date: scraped.menu_date,
+      };
+      cache.set(cacheKey, { fetchedAt: now, scraped: scrapedPayload });
+    }
+
+    return {
+      cafeterias: scrapedPayload.cafeterias.map((item) => mapCafeteriaItem(item, language)),
+      cafeteria_source: scrapedPayload.cafeteria_source,
+      scraped_at: scrapedPayload.scraped_at,
+      menu_date: scrapedPayload.menu_date,
     };
-    cache.set(cacheKey, { fetchedAt: now, data: payload });
-    return payload;
   } catch (error) {
     console.warn('[pnuCafeteriaMenuScraperService] Scrape failed:', error.message);
     const stored = await readCafeteriaMenusFromSupabase();
