@@ -11,6 +11,7 @@
     "seed:community-posts": "node scripts/seed-community-posts.mjs",
     "seed:test-fixtures": "node scripts/seed-test-fixtures.mjs",
     "seed:courses": "node scripts/seed-courses-from-catalog.mjs",
+    "kb:ingest-guides": "node scripts/ingest-guide-docs.mjs",
     "test": "jest"
   },
   "keywords": [],
