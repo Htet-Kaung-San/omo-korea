@@ -218,6 +218,10 @@ function scoreCourses(user: User): RecommendedCourse[] {
         isEnglishTaught: null,
         theoryHours: null,
         practicalHours: null,
+        presentationRequirement: null,
+        groupProjectRequirement: null,
+        assignmentRequirement: null,
+        examInformation: null,
         ...mockCourseOfferingFixtures[course.id],
       }
     })

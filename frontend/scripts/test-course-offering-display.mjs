@@ -87,14 +87,14 @@ for (const field of [
   'isEnglishTaught',
   'theoryHours',
   'practicalHours',
+  'presentationRequirement',
+  'groupProjectRequirement',
+  'assignmentRequirement',
+  'examInformation',
 ]) {
   assert.equal(unknown[field], null, `${field} must preserve unknown as null`)
 }
 assert.equal(mapRecommendedCourse({ ...base, isEnglishTaught: false }).isEnglishTaught, false)
-assert.equal('presentationRequirement' in unknown, false)
-assert.equal('groupProjectRequirement' in unknown, false)
-assert.equal('assignmentRequirement' in unknown, false)
-assert.equal('examInformation' in unknown, false)
 
 const fixtureDisplays = [
   { ...base, id: 'english', isEnglishTaught: true, originalLanguageCode: 'E', teachingLanguage: 'ENGLISH' },
@@ -119,6 +119,70 @@ assert.deepEqual(fixtureDisplays[5], {
   section: null,
   professor: null,
   schedule: null,
+  presentationRequirementKey: null,
+  groupProjectRequirementKey: null,
+  assignmentRequirementKey: null,
+  examInformation: null,
+  hasAssessmentMetadata: false,
 })
 
-console.log('Course offering frontend tests passed: 30 assertions')
+const capstone = getVerifiedCourseOfferingDisplay(mapRecommendedCourse({
+  ...base,
+  id: 'capstone',
+  presentationRequirement: 'REQUIRED',
+  groupProjectRequirement: 'REQUIRED',
+  assignmentRequirement: 'REQUIRED',
+  examInformation: 'Presentation and final work evaluation',
+}))
+assert.equal(capstone.presentationRequirementKey, 'courseMetadata.presentation.required')
+assert.equal(capstone.groupProjectRequirementKey, 'courseMetadata.groupProject.required')
+assert.equal(capstone.assignmentRequirementKey, 'courseMetadata.assignment.required')
+assert.equal(capstone.hasAssessmentMetadata, true)
+
+const aiProgramming = getVerifiedCourseOfferingDisplay(mapRecommendedCourse({
+  ...base,
+  id: 'ai-programming',
+  presentationRequirement: 'REQUIRED',
+  assignmentRequirement: 'REQUIRED',
+}))
+assert.equal(aiProgramming.presentationRequirementKey, 'courseMetadata.presentation.required')
+assert.equal(aiProgramming.groupProjectRequirementKey, null)
+
+const databases = getVerifiedCourseOfferingDisplay(mapRecommendedCourse({
+  ...base,
+  id: 'databases',
+  presentationRequirement: null,
+  groupProjectRequirement: null,
+  assignmentRequirement: null,
+  examInformation: null,
+}))
+assert.equal(databases.presentationRequirementKey, null)
+assert.equal(databases.groupProjectRequirementKey, null)
+assert.equal(databases.assignmentRequirementKey, null)
+assert.equal(databases.examInformation, null)
+assert.equal(databases.hasAssessmentMetadata, false)
+
+for (const id of [
+  'computer-architecture',
+  'ai-programming',
+  'web-application-programming',
+  'platform-based-programming',
+  'software-engineering',
+  'deep-learning-programming',
+]) {
+  const display = getVerifiedCourseOfferingDisplay(mapRecommendedCourse({
+    ...base,
+    id,
+    assignmentRequirement: 'REQUIRED',
+  }))
+  assert.equal(display.assignmentRequirementKey, 'courseMetadata.assignment.required')
+}
+
+const explicitPresentationNone = getVerifiedCourseOfferingDisplay(mapRecommendedCourse({
+  ...base,
+  id: 'presentation-none',
+  presentationRequirement: 'NONE',
+}))
+assert.equal(explicitPresentationNone.presentationRequirementKey, null)
+
+console.log('Course offering and metadata frontend tests passed: 48 assertions')

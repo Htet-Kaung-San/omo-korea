@@ -18,6 +18,7 @@
     "review:pnu-course-production": "node scripts/review-pnu-course-production-readiness.mjs",
     "prepare:pnu-course-application": "node scripts/prepare-pnu-course-application-dataset.mjs",
     "apply:pnu-course-package": "node scripts/apply-pnu-course-package.mjs",
+    "dry-run:pnu-course-metadata": "node scripts/dry-run-pnu-course-metadata.mjs",
     "validate:engineering-courses": "node scripts/validate-engineering-courses.mjs",
     "test": "jest"
   },

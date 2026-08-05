@@ -133,10 +133,10 @@ describe('Phase 5 feature-flag and local end-to-end safety', () => {
     ).map((item) => item.id);
     expect(recommendCourses(profile, rows).map((item) => item.id)).toEqual(baseOrder);
     for (const row of rows) {
-      expect(row).not.toHaveProperty('presentationRequirement');
-      expect(row).not.toHaveProperty('groupProjectRequirement');
-      expect(row).not.toHaveProperty('assignmentRequirement');
-      expect(row).not.toHaveProperty('examInformation');
+      expect(row.presentationRequirement).toBeNull();
+      expect(row.groupProjectRequirement).toBeNull();
+      expect(row.assignmentRequirement).toBeNull();
+      expect(row.examInformation).toBeNull();
     }
   });
 
@@ -292,4 +292,3 @@ describe('Phase 5 reviewed proposal and migration safety', () => {
     expect(runbook).not.toMatch(/SUPABASE_(?:URL|KEY)\s*=\s*\S+/i);
   });
 });
-

@@ -279,6 +279,7 @@ export interface Course {
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
 export type TeachingLanguage = 'KOREAN' | 'ENGLISH' | 'MIXED' | 'OTHER'
 export type RemoteCourseStatus = 'REMOTE' | 'NOT_REMOTE' | 'MIXED' | 'OTHER'
+export type CourseMetadataRequirement = 'REQUIRED' | 'OPTIONAL' | 'NONE'
 
 export interface CourseOfferingInformation {
   officialCourseNumber: string | null
@@ -293,6 +294,10 @@ export interface CourseOfferingInformation {
   isEnglishTaught: boolean | null
   theoryHours: number | null
   practicalHours: number | null
+  presentationRequirement: CourseMetadataRequirement | null
+  groupProjectRequirement: CourseMetadataRequirement | null
+  assignmentRequirement: CourseMetadataRequirement | null
+  examInformation: string | null
 }
 
 export interface RecommendedCourse extends Course, CourseOfferingInformation {

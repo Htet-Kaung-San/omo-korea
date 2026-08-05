@@ -4,6 +4,7 @@ import type {
   ChecklistPayload,
   ChecklistVariant,
   CourseType,
+  CourseMetadataRequirement,
   OriginalLanguageCode,
   RemoteCourseStatus,
   FacilityRoom,
@@ -101,6 +102,10 @@ interface BackendCourse {
   isEnglishTaught?: boolean | null
   theoryHours?: number | null
   practicalHours?: number | null
+  presentationRequirement?: CourseMetadataRequirement | null
+  groupProjectRequirement?: CourseMetadataRequirement | null
+  assignmentRequirement?: CourseMetadataRequirement | null
+  examInformation?: string | null
 }
 
 function getAdmissionYear(studentId: string): number | null {
@@ -242,6 +247,10 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
           : null,
     theoryHours: course.theoryHours ?? null,
     practicalHours: course.practicalHours ?? null,
+    presentationRequirement: course.presentationRequirement ?? null,
+    groupProjectRequirement: course.groupProjectRequirement ?? null,
+    assignmentRequirement: course.assignmentRequirement ?? null,
+    examInformation: course.examInformation ?? null,
   }
 }
 

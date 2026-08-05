@@ -89,6 +89,30 @@ export function RecommendedCoursesPage() {
                 {offering.remoteStatusKey ? <p>{t(offering.remoteStatusKey)}</p> : null}
               </div>
             ) : null}
+            {offering.hasAssessmentMetadata ? (
+              <div className="mt-3 space-y-2 rounded-xl border border-pnu-border bg-white px-3 py-2 text-xs text-pnu-muted">
+                <div className="flex flex-wrap gap-1.5">
+                  {offering.presentationRequirementKey ? (
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-800">
+                      {t(offering.presentationRequirementKey)}
+                    </span>
+                  ) : null}
+                  {offering.groupProjectRequirementKey ? (
+                    <span className="rounded-full bg-violet-50 px-2.5 py-1 font-semibold text-violet-800">
+                      {t(offering.groupProjectRequirementKey)}
+                    </span>
+                  ) : null}
+                  {offering.assignmentRequirementKey ? (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800">
+                      {t(offering.assignmentRequirementKey)}
+                    </span>
+                  ) : null}
+                </div>
+                {offering.examInformation ? (
+                  <p>{t('courseMetadata.examInformation', { information: offering.examInformation })}</p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-pnu-muted">
               <span>{t('course.credits', { count: course.credits })}</span>
               {course.department ? (

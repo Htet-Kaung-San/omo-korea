@@ -48,7 +48,33 @@ function nullableDisplayText(value: string | null): string | null {
   return normalized || null
 }
 
+function requirementKey(
+  field: 'presentation' | 'groupProject' | 'assignment',
+  value: RecommendedCourse[
+    | 'presentationRequirement'
+    | 'groupProjectRequirement'
+    | 'assignmentRequirement'
+  ],
+): string | null {
+  if (value === null) return null
+  if (field === 'presentation' && value === 'NONE') return null
+  return `courseMetadata.${field}.${value.toLowerCase()}`
+}
+
 export function getVerifiedCourseOfferingDisplay(course: RecommendedCourse) {
+  const presentationRequirementKey = requirementKey(
+    'presentation',
+    course.presentationRequirement,
+  )
+  const groupProjectRequirementKey = requirementKey(
+    'groupProject',
+    course.groupProjectRequirement,
+  )
+  const assignmentRequirementKey = requirementKey(
+    'assignment',
+    course.assignmentRequirement,
+  )
+  const examInformation = nullableDisplayText(course.examInformation)
   return {
     languageBadgeKey: getCourseLanguageBadgeKey(course),
     remoteStatusKey: getRemoteCourseStatusKey(course.remoteCourseStatus),
@@ -60,5 +86,15 @@ export function getVerifiedCourseOfferingDisplay(course: RecommendedCourse) {
     section: nullableDisplayText(course.section),
     professor: nullableDisplayText(course.professor),
     schedule: nullableDisplayText(course.schedule),
+    presentationRequirementKey,
+    groupProjectRequirementKey,
+    assignmentRequirementKey,
+    examInformation,
+    hasAssessmentMetadata: Boolean(
+      presentationRequirementKey ||
+        groupProjectRequirementKey ||
+        assignmentRequirementKey ||
+        examInformation,
+    ),
   }
 }

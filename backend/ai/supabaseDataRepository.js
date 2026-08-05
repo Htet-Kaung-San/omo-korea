@@ -40,6 +40,10 @@ function emptyCourseOffering() {
     isEnglishTaught: null,
     theoryHours: null,
     practicalHours: null,
+    presentationRequirement: null,
+    groupProjectRequirement: null,
+    assignmentRequirement: null,
+    examInformation: null,
   };
 }
 
@@ -68,6 +72,15 @@ function mapCourseOfferingRow(row) {
     isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
     theoryHours: normalizeNullableNumber(row?.theory_hours),
     practicalHours: normalizeNullableNumber(row?.practical_hours),
+  };
+}
+
+function mapCourseMetadataRow(row) {
+  return {
+    presentationRequirement: normalizeNullableText(row?.presentation_requirement),
+    groupProjectRequirement: normalizeNullableText(row?.group_project_requirement),
+    assignmentRequirement: normalizeNullableText(row?.assignment_requirement),
+    examInformation: normalizeNullableText(row?.exam_information),
   };
 }
 
@@ -121,12 +134,13 @@ return {
 };
 }
 
-function attachCourseOffering(course, offeringRow) {
+function attachCourseOffering(course, offeringRow, metadataRow = null) {
   if (!offeringRow) return course;
   const offering = mapCourseOfferingRow(offeringRow);
   return {
     ...course,
     ...offering,
+    ...(metadataRow ? mapCourseMetadataRow(metadataRow) : {}),
     officialCourseNumber:
       offering.officialCourseNumber ?? course.officialCourseNumber ?? null,
   };
@@ -155,7 +169,7 @@ async function fetchCourseOfferings(supabaseClient, options) {
     const result = await supabaseClient
       .from('course_offering')
       .select(
-        'course_id,official_course_number,academic_year,semester,section,professor,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
       )
       .eq('academic_year', options.academicYear)
       .eq('semester', options.semester)
@@ -174,6 +188,23 @@ async function fetchCourseOfferings(supabaseClient, options) {
     pageStart += pageSize;
   }
   return rows;
+}
+
+async function fetchCourseMetadata(supabaseClient, offeringIds) {
+  if (!Array.isArray(offeringIds) || offeringIds.length === 0) return [];
+  const result = await supabaseClient
+    .from('course_metadata')
+    .select(
+      'course_offering_id,presentation_requirement,group_project_requirement,assignment_requirement,exam_information'
+    )
+    .in('course_offering_id', offeringIds);
+  if (result.error) {
+    const error = new Error(`Optional course_metadata query failed: ${result.error.message}`);
+    error.code = 'OPTIONAL_COURSE_METADATA_QUERY_FAILED';
+    error.cause = result.error;
+    throw error;
+  }
+  return Array.isArray(result.data) ? result.data : [];
 }
 
 function mapScholarshipRow(row, language = 'en') {
@@ -380,12 +411,30 @@ async function fetchAllCourses(supabaseClient, options = {}) {
     byCourseId.get(courseId).push(row);
   }
   const requestedSection = normalizeNullableText(options.offeringSection);
-  return courses.map((course) =>
-    attachCourseOffering(
-      course,
-      chooseUnambiguousOffering(byCourseId.get(course.id), requestedSection),
-    )
+  const selectedByCourseId = new Map();
+  for (const course of courses) {
+    const selected = chooseUnambiguousOffering(byCourseId.get(course.id), requestedSection);
+    if (selected) selectedByCourseId.set(course.id, selected);
+  }
+  let metadataRows = [];
+  try {
+    metadataRows = await fetchCourseMetadata(
+      supabaseClient,
+      [...selectedByCourseId.values()].map((row) => row.course_offering_id),
+    );
+  } catch (_error) {
+    metadataRows = [];
+  }
+  const metadataByOfferingId = new Map(
+    metadataRows.map((row) => [String(row.course_offering_id), row]),
   );
+  return courses.map((course) => {
+    const offering = selectedByCourseId.get(course.id);
+    const metadata = offering
+      ? metadataByOfferingId.get(String(offering.course_offering_id)) || null
+      : null;
+    return attachCourseOffering(course, offering, metadata);
+  });
 }
 
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
@@ -429,11 +478,13 @@ module.exports = {
   emptyCourseOffering,
   explicitEnglishStatus,
   fetchAllCourses,
+  fetchCourseMetadata,
   fetchCourseOfferings,
   fetchAllNotices,
   fetchDashboardCatalogs,
   mapCourseRow,
   mapCourseOfferingRow,
+  mapCourseMetadataRow,
   mapScholarshipRow,
   mapProgramRow,
   mapNoticeRow,

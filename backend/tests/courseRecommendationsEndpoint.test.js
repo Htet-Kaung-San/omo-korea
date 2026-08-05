@@ -73,6 +73,10 @@ function course(overrides = {}) {
     isEnglishTaught: null,
     theoryHours: null,
     practicalHours: null,
+    presentationRequirement: null,
+    groupProjectRequirement: null,
+    assignmentRequirement: null,
+    examInformation: null,
     raw: {},
     ...overrides,
   };
@@ -174,6 +178,10 @@ describe('GET /api/students/course-recommendations', () => {
         originalLanguageCode: 'E',
         teachingLanguage: 'ENGLISH',
         isEnglishTaught: true,
+        presentationRequirement: 'REQUIRED',
+        groupProjectRequirement: null,
+        assignmentRequirement: 'REQUIRED',
+        examInformation: 'Midterm 40%; Final exam 40%; Final project 15%',
       }),
     ]);
 
@@ -195,6 +203,10 @@ describe('GET /api/students/course-recommendations', () => {
       semester: '2',
       section: '001',
       isEnglishTaught: true,
+      presentationRequirement: 'REQUIRED',
+      groupProjectRequirement: null,
+      assignmentRequirement: 'REQUIRED',
+      examInformation: 'Midterm 40%; Final exam 40%; Final project 15%',
     });
   });
 });

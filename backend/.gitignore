@@ -26,6 +26,11 @@ data/local/pnu-course-production-review/
 data/local/pnu-course-application/
 data/local/pnu-course-application-results/
 data/local/pnu-course-production-backups/
+data/local/pnu-course-metadata-dry-run/
+
+# Official syllabus evidence remains local. Only the reviewed checksum manifest
+# is tracked.
+data/source/2026-2/syllabi/
 
 # =========================
 # OS / editor
