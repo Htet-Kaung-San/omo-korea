@@ -111,7 +111,7 @@ router.put(
   validateBody(updateProfileSchema),
   updateStudentProfile,
 );
-router.get("/enrollments/:student_id", getEnrollments);
+router.get("/enrollments/:student_id", authenticateToken, getEnrollments);
 router.post("/enrollments", authenticateToken, createEnrollment);
 router.delete("/enrollments/:enrollment_id", authenticateToken, deleteEnrollment);
 router.post("/scholarships/apply", authenticateToken, applyForScholarship);
@@ -143,7 +143,7 @@ router.post("/comments", authenticateToken, validateBody(createCommentSchema), c
 router.post("/posts/:post_id/comments", authenticateToken, validateBody(createCommentSchema), createComment);
 
 // Parametric student routes last
-router.get("/:student_id", getStudentProfile);
+router.get("/:student_id", authenticateToken, getStudentProfile);
 router.patch("/:student_id", authenticateToken, updateStudentProfile);
 router.patch("/:student_id/request-delete", authenticateToken, requestStudentDeletion);
 router.patch("/:student_id/language", authenticateToken, updateLanguagePreference);
