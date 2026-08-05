@@ -1,0 +1,1601 @@
+{
+  "meta": {
+    "startedAt": "2026-08-05T18:03:51.703Z",
+    "questionCount": 40,
+    "answerModel": "google/gemini-2.5-flash",
+    "judgeModel": "openai/gpt-4o-mini",
+    "questionSetVersion": "1.0"
+  },
+  "summaries": [
+    {
+      "condition": "okf",
+      "n": 36,
+      "accuracy": 91.4,
+      "specificity": 77.6,
+      "hallucinationRate": 2.8,
+      "gapHandling": 100,
+      "retrievalHitRate": 100,
+      "medianLatencyMs": 2208
+    },
+    {
+      "condition": "baseline",
+      "n": 38,
+      "accuracy": 32.8,
+      "specificity": 36.2,
+      "hallucinationRate": 26.3,
+      "gapHandling": 22.2,
+      "retrievalHitRate": null,
+      "medianLatencyMs": 1727
+    }
+  ],
+  "rows": [
+    {
+      "id": "work-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 2nd-year bachelor's student at PNU and I don't have TOPIK level 3 yet. How many hours per week am I allowed to work part-time?",
+      "condition": "okf",
+      "answer": "As a 2nd-year bachelor's student without TOPIK level 3, you are allowed to work up to 10 hours per week part-time.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Eligibility (대상자 요건) (Work & Visa)"
+      ],
+      "ms": 3957,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the allowed working hours for a 2nd-year student without TOPIK level 3."
+      }
+    },
+    {
+      "id": "work-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 2nd-year bachelor's student at PNU and I don't have TOPIK level 3 yet. How many hours per week am I allowed to work part-time?",
+      "condition": "baseline",
+      "answer": "Hello! As a 2nd-year bachelor's student at PNU without TOPIK level 3, you are allowed to work up to **10 hours per week** during the semester. During vacations, you can work unlimited hours.\n\nIf you achieve TOPIK level 3, your working hours during the semester will increase to 20 hours per week. Good luck with your studies!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1371,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the allowed working hours and conditions."
+      }
+    },
+    {
+      "id": "work-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 3rd-year bachelor's student with TOPIK level 4. How many hours can I work on weekdays, and what about during semester breaks?",
+      "condition": "okf",
+      "answer": "As a 3rd-year bachelor's student with TOPIK level 4, you can work up to 25 hours per week on weekdays. During semester breaks, you have no hour limit!\n\nRemember, these limits are not automatic; you still need to obtain an actual work permit.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 1952,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected facts with specific details."
+      }
+    },
+    {
+      "id": "work-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 3rd-year bachelor's student with TOPIK level 4. How many hours can I work on weekdays, and what about during semester breaks?",
+      "condition": "baseline",
+      "answer": "Hello! As a 3rd-year bachelor's student with TOPIK level 4, you can work up to **25 hours per week** during the semester. During semester breaks, you can work **unlimited hours**.\n\nPlease remember to always check the latest regulations from the Korean Ministry of Justice or the PNU International Office, as rules can sometimes change. If you have any more questions about working or student life at PNU, feel free to ask!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1425,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the working hour limits for the student."
+      }
+    },
+    {
+      "id": "work-03",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a master's student. Without meeting the Korean proficiency requirement, how many hours per week can I work?",
+      "condition": "okf",
+      "answer": "As a master's student, you can work 15 hours per week without meeting the Korean proficiency requirement.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 1555,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected fact regarding work hours."
+      }
+    },
+    {
+      "id": "work-03",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a master's student. Without meeting the Korean proficiency requirement, how many hours per week can I work?",
+      "condition": "baseline",
+      "answer": "As a master's student, you can work up to 20 hours per week without meeting the Korean proficiency requirement. During vacation periods, you can work unlimited hours.\n\nIf you have any other questions about working as an international student or anything else related to your studies at PNU, feel free to ask!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1226,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": true,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly states the allowed work hours."
+      }
+    },
+    {
+      "id": "work-04",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What documents do I need to apply for a part-time work permit at PNU?",
+      "condition": "okf",
+      "answer": "To apply for a part-time work permit, you'll need:\n\n*   Application form, passport, and Alien Registration Card (ARC)\n*   Your transcript (성적증명서)\n*   Proof of your Korean or English ability\n*   University confirmation: 외국인 유학생 시간제 취업 확인서 (issued by PNU International Affairs)\n*   Employer's business registration, employer ID, and a standard labor contract (including hourly wage, duties, and hours)\n\nIf your employer is in manufacturing or construction, you'll also need a \"외국인 유학생 시간제취업 요건 준수 확인서\" and an additional compliance form from the employer. Remember, your contract must be directly with the registered business, not through staffing agencies.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Required Documents (제출 서류) (Work & Visa)",
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)"
+      ],
+      "ms": 2821,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 2,
+        "hallucination": true,
+        "gap_handled_well": null,
+        "reasoning": "The answer is mostly correct but includes additional requirements not specified in the knowledge base."
+      }
+    },
+    {
+      "id": "work-04",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What documents do I need to apply for a part-time work permit at PNU?",
+      "condition": "baseline",
+      "answer": "To apply for a part-time work permit at PNU, you will generally need the following documents:\n\n1.  **Application Form:** This is usually available from the international student office or the immigration office.\n2.  **Passport:** Your valid passport.\n3.  **Alien Registration Card (ARC):** Your valid ARC.\n4.  **Certificate of Enrollment:** A document proving your current enrollment at PNU.\n5.  **Transcript:** Your academic transcript.\n6.  **Recommendation Letter from PNU:** A letter from PNU (often from your department or the international student office) recommending your part-time work. This letter usually confirms your academic standing and that the work will not interfere with your studies.\n7.  **Employment Contract or Offer Letter:** A document from your employer detailing the terms of your part-time work (e.g., work hours, duties, pay).\n8.  **Business Registration Certificate of the Employer:** A copy of your employer's business registration certificate.\n9.  **Proof of Korean Language Proficiency (if applicable):** Depending on the job and your visa type, you might need to show proof of Korean language ability.\n\nIt's always a good idea to double-check with the PNU International Office or the local immigration office for the most up-to-date and specific requirements, as they can sometimes change.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2647,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer includes some correct documents but lacks specific PNU terminology and details."
+      }
+    },
+    {
+      "id": "work-05",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Is there a fee for the part-time work permit application?",
+      "condition": "okf",
+      "answer": "No, there is no fee for the part-time work permit application itself.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Required Documents (제출 서류) (Work & Visa)",
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)"
+      ],
+      "ms": 1551,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states that there is no fee for the application."
+      }
+    },
+    {
+      "id": "work-05",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Is there a fee for the part-time work permit application?",
+      "condition": "baseline",
+      "answer": "No, there is no fee for the part-time work permit application itself. However, please remember that you will need to prepare all the required documents carefully.\n\nIf you have any questions about the application process or need help preparing your documents, feel free to ask! I'm here to help you with your studies and life at PNU.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1497,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states there is no fee and provides general advice."
+      }
+    },
+    {
+      "id": "work-06",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Where do I actually submit my part-time work permit application, and how many workplaces does one approval cover?",
+      "condition": "okf",
+      "answer": "You can submit your part-time work permit application at your local immigration office or online via Hi Korea (https://www.hikorea.go.kr) → 민원신청 → 전자민원. One approval covers up to two workplaces at once.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Required Documents (제출 서류) (Work & Visa)",
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)"
+      ],
+      "ms": 1539,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer is partially correct but omits the requirement for university sign-off."
+      }
+    },
+    {
+      "id": "work-06",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Where do I actually submit my part-time work permit application, and how many workplaces does one approval cover?",
+      "condition": "baseline",
+      "answer": "You'll submit your part-time work permit application to the immigration office that has jurisdiction over your place of stay.\n\nOne approval covers one workplace. If you plan to work at multiple places, you'll need to apply for a separate permit for each one.\n\nDo you have any other questions about working part-time or other aspects of student life at PNU? I'm here to help!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1347,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly states that one approval covers one workplace instead of up to two."
+      }
+    },
+    {
+      "id": "work-07",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Can I work as a delivery rider or do private one-on-one tutoring as an international student?",
+      "condition": "okf",
+      "answer": "No, you cannot work as a delivery rider or do private one-on-one tutoring as an international student. These are considered restricted jobs for international students in Korea.\n\nIf you have other questions about working part-time or anything else related to your student life at PNU, feel free to ask!",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Restricted Jobs (제한대상) (Work & Visa)",
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 2070,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states that both types of work are restricted for international students."
+      }
+    },
+    {
+      "id": "work-07",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "Can I work as a delivery rider or do private one-on-one tutoring as an international student?",
+      "condition": "baseline",
+      "answer": "Yes, as an international student in Korea, you can work part-time. However, there are regulations regarding the type of work and the number of hours you can work.\n\nFor **delivery rider jobs**, these are generally considered permissible part-time work, but you'll need to ensure you have the correct visa status and have applied for and received permission to work part-time from the immigration office. You also need to be aware of any specific requirements from the delivery platform (e.g., driver's license, vehicle).\n\nFor **private one-on-one tutoring**, this can be a bit more complex. While general tutoring is often allowed, private, unregistered tutoring (especially for profit) can sometimes fall into a grey area or be restricted depending on your visa type and the specific regulations. It's always best to check with the PNU International Office or the immigration office directly to confirm if your specific tutoring arrangement is permissible under your student visa.\n\nIn general, you'll need to apply for a \"Permission for Part-time Work\" (아르바이트 허가) at the immigration office. The PNU International Office can provide guidance and support with this process.\n\nIf you'd like, I can help you find information on how to apply for part-time work permission or connect you with the PNU International Office for more detailed advice!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2806,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly states that delivery rider jobs are permissible, contradicting the expected facts."
+      }
+    },
+    {
+      "id": "work-08",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What happens if I get caught working without a permit?",
+      "condition": "okf",
+      "answer": "Working without a permit is considered illegal employment and can lead to serious penalties. For example, if you're caught working in the construction sector without a permit, you could face an exit order from Korea. Even a first offense for unpermitted work can have significant consequences.\n\nIf you have any doubts about whether a job requires a permit, it's always best to call 1345 before you start working.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Penalties (위반 시 처리) (Work & Visa)",
+        "Part-Time Work Permit — Restricted Jobs (제한대상) (Work & Visa)",
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)"
+      ],
+      "ms": 1927,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly conveys the expected facts about illegal employment and penalties."
+      }
+    },
+    {
+      "id": "work-08",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What happens if I get caught working without a permit?",
+      "condition": "baseline",
+      "answer": "Working in Korea without the proper work visa or permit can lead to serious consequences, including fines, deportation, and a ban on re-entering the country. It's really important to make sure you have the correct authorization before starting any work.\n\nAs an international student, your primary visa (like a D-2 or D-4 visa) usually has restrictions on working. If you're looking to work part-time, you'll need to apply for a part-time work permit through the immigration office. PNU's International Affairs Office can provide guidance and support on this process.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1780,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially addresses the consequences but misses specific penalties mentioned in the knowledge base."
+      }
+    },
+    {
+      "id": "work-09",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "If I break the work permit rules three times, what happens to my student status?",
+      "condition": "okf",
+      "answer": "If you violate the part-time work permit rules three times, your student status (유학자격) may be revoked. It's really important to follow the rules carefully!",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Penalties (위반 시 처리) (Work & Visa)",
+        "Part-Time Work Permit — Eligibility (대상자 요건) (Work & Visa)",
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)"
+      ],
+      "ms": 2198,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states the consequence of violating work permit rules three times."
+      }
+    },
+    {
+      "id": "work-09",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "If I break the work permit rules three times, what happens to my student status?",
+      "condition": "baseline",
+      "answer": "Breaking work permit rules can have serious consequences for your student status, potentially leading to the cancellation of your visa and deportation. It's crucial to understand and follow all regulations to avoid these issues.\n\nIf you have any questions about work permit rules or need clarification, please let me know! I'm here to help you navigate your student life at PNU.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1243,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the consequences but does not mention the specific rule about revocation on the third violation."
+      }
+    },
+    {
+      "id": "work-10",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What GPA do I need to be eligible for a part-time work permit?",
+      "condition": "okf",
+      "answer": "You need a GPA of C (2.0) or above from your most recent semester to be eligible for a part-time work permit. If it's your first semester and you don't have a transcript yet, you are exempt from this requirement, but your working hours will be capped at half the usual limit.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Eligibility (대상자 요건) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 2053,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states the GPA requirement and provides additional context for first-semester students."
+      }
+    },
+    {
+      "id": "work-10",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "What GPA do I need to be eligible for a part-time work permit?",
+      "condition": "baseline",
+      "answer": "To be eligible for a part-time work permit as an international student in Korea, you generally need to maintain a GPA of 2.0 or higher out of a 4.5 scale. This is a common requirement across universities in Korea.\n\nIs there anything else I can help you with regarding part-time work or other aspects of student life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1322,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the required GPA but lacks specificity to PNU."
+      }
+    },
+    {
+      "id": "work-11",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm on a D-2 student visa. Am I allowed to just take a part-time job?",
+      "condition": "okf",
+      "answer": "No, you cannot work or earn income in Korea, including part-time jobs, without permission if you are on a D-2 student visa. You need approval from both Pusan National University and immigration to work part-time.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)",
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Eligibility (대상자 요건) (Work & Visa)"
+      ],
+      "ms": 1696,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states that D-2 holders need permission to work."
+      }
+    },
+    {
+      "id": "work-11",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm on a D-2 student visa. Am I allowed to just take a part-time job?",
+      "condition": "baseline",
+      "answer": "Yes, as a D-2 visa holder, you are generally allowed to work part-time in Korea. However, there are specific regulations and requirements you need to meet.\n\nHere's a general overview:\n\n*   **Permission is Required:** You cannot just start working. You need to obtain permission from the immigration office *before* you begin any part-time work.\n*   **Hours Limit:** There are limits on how many hours you can work per week, which can vary depending on your academic level (e.g., undergraduate, graduate) and your Korean language proficiency.\n*   **Job Type Restrictions:** Certain types of jobs are prohibited for international students.\n*   **Academic Performance:** Your academic performance might be considered when granting permission.\n\nI strongly recommend checking the official immigration website (Hi-Korea) or visiting the International Affairs Office at PNU for the most up-to-date and specific information regarding part-time work regulations for D-2 visa holders. They can provide you with the necessary forms and guide you through the application process.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2576,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly states that D-2 holders can work part-time without permission."
+      }
+    },
+    {
+      "id": "svc-01",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Which website do I use to actually submit my course registration at PNU?",
+      "condition": "okf",
+      "answer": "You'll use **sugang.pusan.ac.kr** to actually submit your course registration. This is a separate site from the One-Stop system, so don't be surprised if you're redirected there!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)"
+      ],
+      "ms": 1978,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly identifies the registration site and distinguishes it from the One-Stop system."
+      }
+    },
+    {
+      "id": "svc-01",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Which website do I use to actually submit my course registration at PNU?",
+      "condition": "baseline",
+      "answer": "You'll use the PNU student portal for course registration. You can access it through the official Pusan National University website. Look for a link related to \"Student Information System\" or \"Course Registration.\"\n\nIf you have any trouble finding it, please let me know! I'm here to help with your studies and life at PNU.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1221,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide the correct website for course registration."
+      }
+    },
+    {
+      "id": "svc-02",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Where can I browse the course catalog and check seat limits before registration opens?",
+      "condition": "okf",
+      "answer": "You can browse the course catalog and check seat limits on the One-Stop Service Centre website. Log in at onestop.pusan.ac.kr, then go to 수업 (Classes) → 수강편람 (Course Catalog). You can search by department there!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)"
+      ],
+      "ms": 1854,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected facts and provides specific details about accessing the course catalog."
+      }
+    },
+    {
+      "id": "svc-02",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Where can I browse the course catalog and check seat limits before registration opens?",
+      "condition": "baseline",
+      "answer": "You can browse the course catalog and check seat limits on the PNU website!\n\nFor undergraduate courses, you'll want to look at the \"Undergraduate Course Catalog\" (학부수강편람). For graduate courses, it's the \"Graduate Course Catalog\" (대학원수강편람). These are usually updated before the registration period.\n\nIf you have any trouble finding them or need help understanding the registration process, just let me know!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1532,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer provides some relevant information but does not mention the specific URL for the course catalog."
+      }
+    },
+    {
+      "id": "svc-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I apply for a leave of absence at PNU?",
+      "condition": "okf",
+      "answer": "To apply for a leave of absence at PNU, you'll need to log in to the One-Stop Service Centre at onestop.pusan.ac.kr. Once logged in, look for the \"Leave of Absence Application (휴학신청)\" section.\n\nRemember that there are specific application windows each semester, so make sure to check the academic calendar on the One-Stop homepage to apply at the right time!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Leave of Absence / Return to School (휴학 / 복학 신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)"
+      ],
+      "ms": 1871,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys all expected facts and provides specific details about the application process."
+      }
+    },
+    {
+      "id": "svc-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I apply for a leave of absence at PNU?",
+      "condition": "baseline",
+      "answer": "To apply for a leave of absence at PNU, you'll generally need to follow these steps:\n\n1.  **Check Eligibility and Deadlines:** Review the academic calendar and PNU's regulations for specific deadlines and conditions for taking a leave of absence. There might be different procedures for general leave, medical leave, or other specific reasons.\n2.  **Consult Your Department:** Speak with your academic department office (e.g., your major's administrative office). They can provide detailed information, required forms, and guidance specific to your program.\n3.  **Obtain Necessary Forms:** You will likely need to fill out a \"Leave of Absence Application Form\" (휴학원). This form can usually be found on the PNU website (often under the academic affairs section) or obtained from your department office.\n4.  **Gather Supporting Documents:** Depending on the reason for your leave, you might need to submit supporting documents. For example, for medical leave, a doctor's certificate might be required. For military service, proof of enlistment would be needed.\n5.  **Get Approvals:** The form will typically require signatures or approvals from your academic advisor, department head, and potentially other university officials.\n6.  **Submit the Application:** Submit the completed form and all supporting documents to the designated office, usually your department office or the main academic affairs office.\n7.  **Confirm Processing:** Make sure to confirm that your application has been successfully processed and that your leave of absence is officially recorded.\n\nIt's always best to start this process early and directly contact your department office for the most accurate and up-to-date information.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 3378,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not convey the expected facts from the knowledge base."
+      }
+    },
+    {
+      "id": "svc-04",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "I took a semester off. How do I come back to school?",
+      "condition": "okf",
+      "answer": "Welcome back! To return to Pusan National University after a leave of absence, you'll need to apply for \"Return to School\" (복학신청).\n\nHere's how you can do it:\n1.  Log in to the One-Stop Service Centre at [onestop.pusan.ac.kr](https://onestop.pusan.ac.kr/main).\n2.  Go to the \"Return to School Application\" page directly at [onestop.pusan.ac.kr/page?menuCD=000000000000323](https://onestop.pusan.ac.kr/page?menuCD=000000000000323).\n\nPlease remember that there are specific application windows each semester for returning to school. Make sure to check the academic calendar on the One-Stop homepage to find out the exact dates!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Leave of Absence / Return to School (휴학 / 복학 신청) (Campus Services)",
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)",
+        "PNU Scholarship for Enrolled Undergraduate International Students (Scholarship)"
+      ],
+      "ms": 2552,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the required steps and details for returning to school at PNU."
+      }
+    },
+    {
+      "id": "svc-04",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "I took a semester off. How do I come back to school?",
+      "condition": "baseline",
+      "answer": "Welcome back! To return to Pusan National University after a leave of absence, you'll need to apply for readmission.\n\nHere's a general overview of the process:\n\n1.  **Check the Readmission Period:** PNU usually announces specific application periods for readmission before each semester. You'll need to apply during this time.\n2.  **Required Documents:** Typically, you'll need to submit an application form for readmission and potentially other documents like a statement of purpose or academic plan.\n3.  **Review and Approval:** Your application will be reviewed by your department and the university.\n4.  **Tuition Payment:** Once approved, you'll need to pay the tuition fees for the upcoming semester.\n\n**Where to find detailed information:**\n\n*   **PNU Website:** The PNU academic affairs section (학사안내) on the official website is the best place to find the most up-to-date information, including specific dates, required documents, and procedures. Look for sections related to \"재입학\" (readmission).\n*   **Your Department Office:** Contacting your department's administrative office directly is highly recommended. They can provide precise instructions and help you with the application process.\n*   **Office of International Affairs (OIA):** As an international student, the OIA can also offer guidance and support throughout this process.\n\nPlease let me know if you have any other questions about returning to PNU or anything else related to your student life here!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2737,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer provides a general overview but lacks specific details from the knowledge base."
+      }
+    },
+    {
+      "id": "svc-05",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Where do I check my grades at PNU?",
+      "condition": "okf",
+      "answer": "You can check your grades on the One-Stop Service Centre portal!\n\n1.  Log in at [onestop.pusan.ac.kr](https://onestop.pusan.ac.kr/main).\n2.  Go to 수업 (Classes) → grades section.\n3.  For current semester grades, click on \"Current Semester Grades (금학기성적조회)\".\n4.  For your full academic record, click on \"All Semesters Grades (전체성적조회)\".\n\nKeep in mind that current semester grades are usually only visible after final grade postings close. If it looks empty, grades might not be released yet.",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Checking Grades (성적확인) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)"
+      ],
+      "ms": 2277,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected facts and provides specific instructions for checking grades at PNU."
+      }
+    },
+    {
+      "id": "svc-05",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "Where do I check my grades at PNU?",
+      "condition": "baseline",
+      "answer": "You can check your grades on the PNU student portal, which is called the \"PNU Integrated Information System.\" You'll need your student ID and password to log in.\n\nIs there anything else I can help you with regarding your academics or student life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1379,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but does not mention the One-Stop portal."
+      }
+    },
+    {
+      "id": "svc-06",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I get my tuition bill and confirm that my payment went through?",
+      "condition": "okf",
+      "answer": "You can get your tuition bill and confirm payment through the One-Stop Service Centre.\n\n1.  Log in at [onestop.pusan.ac.kr](https://onestop.pusan.ac.kr/main).\n2.  Go to the 등록 (Registration/Tuition) menu.\n3.  To view/print your bill, select 고지서출력 (Bill Print).\n4.  After paying, you can confirm your payment by selecting 납부확인 (Payment Confirmation / Receipt Print).\n\nRemember, you must access this yourself using your own login, as tuition bills cannot be requested via phone, email, or fax.",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)",
+        "One-Stop Service Centre — Checking Grades (성적확인) (Campus Services)",
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)"
+      ],
+      "ms": 2511,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected facts and provides specific instructions for accessing the tuition bill and payment confirmation."
+      }
+    },
+    {
+      "id": "svc-06",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I get my tuition bill and confirm that my payment went through?",
+      "condition": "baseline",
+      "answer": "To get your tuition bill, you'll typically find it on the PNU student portal during the tuition payment period. You can usually confirm your payment through the same portal or by checking your bank statement to see if the funds have been debited. If you have any trouble, the International Students and Scholars Services (ISSS) office can help you.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1343,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but does not mention the One-Stop portal specifically."
+      }
+    },
+    {
+      "id": "svc-07",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I drop a course after registering for it?",
+      "condition": "okf",
+      "answer": "There are two ways to drop a course, depending on when you do it:\n\n*   **During the add/drop period (수강정정):** This happens early in the semester. If you drop a course then, it's like you never registered for it, and no record appears on your transcript.\n*   **After the add/drop period (수강취소):** This window usually opens later in the semester, often after midterms. If you cancel a course during this time, a \"W\" (Withdrawal) mark will appear on your transcript.\n\nTo cancel a course (수강취소):\n\n1.  Log in to the One-Stop Service Centre at [onestop.pusan.ac.kr](https://onestop.pusan.ac.kr/main).\n2.  Go to 수업 (Classes) → 수강취소 (Course Cancellation).\n3.  Select the course(s) you want to cancel and confirm.\n4.  Afterward, check 수강확인 (Registration Check) to confirm the course is no longer on your schedule.\n\nYou can find the exact dates for both add/drop and course cancellation on the academic calendar each semester.",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)",
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)"
+      ],
+      "ms": 2709,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the process for dropping a course at PNU, including specific steps and terminology."
+      }
+    },
+    {
+      "id": "svc-07",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "How do I drop a course after registering for it?",
+      "condition": "baseline",
+      "answer": "To drop a course after registering, you'll need to do so during the designated course add/drop period. You can usually do this through the PNU academic system online. Look for a section related to course registration or \"My Courses\" where you can modify your selections.\n\nIf you miss the online add/drop period, or if you encounter any issues, you should contact your department office or the Office of Academic Affairs for assistance. They can guide you through the process and inform you of any specific forms or procedures required.\n\nIs there anything else I can help you with regarding your studies at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1680,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but lacks specific mention of the One-Stop system."
+      }
+    },
+    {
+      "id": "lib-01",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "How do I reserve a seat in the PNU library reading room?",
+      "condition": "okf",
+      "answer": "You can reserve a seat in the PNU library reading room using the PNU Library app!\n\n1.  **Install the app:** Search for \"PNUL\" or \"부산대 도서관\" on the Google Play Store or Apple App Store. Log in with your PNU student portal credentials.\n2.  **Start a reservation:** On the home screen, tap \"좌석예약\" (Seat Reservation), then \"배정신청\" (Request Assignment).\n3.  **Choose your location:** Select the building (나노생명, 의생명, 미리내, 새벽벌, or 중앙), then the floor and room type (e.g., [새벽벌]열람실 for a reading room).\n4.  **Pick a seat:** You'll see live occupancy. Tap into a zone to pick an individual seat and confirm.\n\nRemember to pass through the entry gate within 15 minutes of reserving, or your assignment will be canceled. You can extend your session up to 4 times, each adding 4 hours, either through the app or at a seat-assignment kiosk.",
+      "retrieved": true,
+      "sources": [
+        "Library — Install the app (Library)",
+        "Library — Reading Room Seat Reservation (열람실 좌석예약) (Library)",
+        "Library — Reading Room Seat Reservation (열람실 좌석예약) (Library)"
+      ],
+      "ms": 2712,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys all expected facts and provides specific details about the reservation process."
+      }
+    },
+    {
+      "id": "lib-01",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "How do I reserve a seat in the PNU library reading room?",
+      "condition": "baseline",
+      "answer": "You can reserve a seat in the PNU library reading room using the library's seat reservation system. You'll typically find terminals for this near the entrance of the reading rooms or you can often do it online through the library's website. You'll need your student ID to log in.\n\nIs there anything else I can help you with regarding the library or your studies at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1552,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not convey the specific steps required to reserve a seat."
+      }
+    },
+    {
+      "id": "lib-02",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "Which library buildings can I choose from when reserving a seat at PNU?",
+      "condition": "okf",
+      "answer": "When reserving a seat at PNU, you can choose from the following library buildings: 나노생명 (Nano-Bio), 의생명 (Medical-Bio), 미리내 (Mirinae), 새벽벌 (Saebyeokbeol), or 중앙 (Central).",
+      "retrieved": true,
+      "sources": [
+        "Library — Install the app (Library)",
+        "Library — Reading Room Seat Reservation (열람실 좌석예약) (Library)",
+        "Library — Reading Room Seat Reservation (열람실 좌석예약) (Library)"
+      ],
+      "ms": 1836,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately lists all the library buildings available for seat reservation at PNU."
+      }
+    },
+    {
+      "id": "lib-02",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "Which library buildings can I choose from when reserving a seat at PNU?",
+      "condition": "baseline",
+      "answer": "PNU has two main library buildings where you can reserve a seat:\n\n1.  **Dawn Hall (새벽벌도서관)**: This is the main library and has a wide variety of study spaces.\n2.  **Miryang Campus Library (밀양캠퍼스도서관)**: If you are on the Miryang campus, this is your dedicated library.\n\nYou can usually reserve seats through the PNU Library website or a dedicated app.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1661,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": true,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly identifies library buildings and includes a non-existent library."
+      }
+    },
+    {
+      "id": "lib-03",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "How do I show my library card at PNU?",
+      "condition": "okf",
+      "answer": "You can show your library card using the PNU Library app!\n\n1.  Open the PNU Library app and log in via **메뉴 (Menu) → LOGIN**.\n2.  Tap **이용증** in the bottom navigation bar.\n3.  The screen will display a QR code, which is your mobile library card. You can scan this at the library entry gate.",
+      "retrieved": true,
+      "sources": [
+        "Library — Install the app (Library)",
+        "Library — Library Card / 이용증 (Library)",
+        "Library — Reading Room Seat Reservation (열람실 좌석예약) (Library)"
+      ],
+      "ms": 1884,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the expected facts and provides specific instructions for using the library app."
+      }
+    },
+    {
+      "id": "lib-03",
+      "category": "Library",
+      "coverage": "covered",
+      "question": "How do I show my library card at PNU?",
+      "condition": "baseline",
+      "answer": "You can show your library card by using the PNU Library app on your phone! Just open the app, and your mobile library card will be displayed. You can also use your physical student ID card, as it doubles as your library card.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1218,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but does not mention the specific steps to access the library card in the app."
+      }
+    },
+    {
+      "id": "cur-01",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "What courses are recommended for a 1st-year, 1st-semester Artificial Intelligence student at PNU?",
+      "condition": "okf",
+      "answer": "For a",
+      "retrieved": true,
+      "sources": [
+        "Artificial Intelligence - 1st Year - 1st Semester Recommendations (Curriculum)",
+        "Artificial Intelligence - 2nd Year - 1st Semester Recommendations (Curriculum)",
+        "Artificial Intelligence - 4th Year - 1st Semester Recommendations (Curriculum)"
+      ],
+      "ms": 1872,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide any specific course names from the PNU AI curriculum."
+      }
+    },
+    {
+      "id": "cur-01",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "What courses are recommended for a 1st-year, 1st-semester Artificial Intelligence student at PNU?",
+      "condition": "baseline",
+      "answer": "Hello! As a 1st-year, 1st-semester Artificial Intelligence student, you'll want to build a strong foundation. While I don't have the exact course catalog for your specific semester, generally, students in AI at this stage focus on core computer science and mathematics.\n\nYou should look for courses like:\n*   **Introduction to Programming (often in Python or C++)**: Essential for any AI field.\n*   **Calculus I / Linear Algebra**: These mathematical foundations are crucial for understanding AI algorithms.\n*   **Discrete Mathematics**: Important for logic and algorithms.\n*   **Introduction to Computer Science / Logic and Algorithms**: To understand fundamental computing concepts.\n\nI recommend checking the official PNU course registration system or your department's academic guide for the most accurate and up-to-date list of recommended and required courses for your specific program and semester. Your academic advisor will also be an excellent resource for personalized course recommendations.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2416,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide specific PNU course names as required."
+      }
+    },
+    {
+      "id": "cur-02",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "Which courses should a 2nd-year Computer Engineering student at PNU take?",
+      "condition": "okf",
+      "answer": "For a 2nd-year Computer Engineering student, the recommended courses depend on the semester.\n\n**For the 1st Semester of 2nd year, you should consider:**\n*   C++ Programming and Practice (C++프로그래밍과실습)\n*   Engineering Linear Algebra (공학선형대수학)\n*   Logic Circuit Design (논리회로및설계)\n*   Introduction to Data Science (데이터과학입문)\n*   System Software (시스템소프트웨어)\n*   Introduction to Unix Programming (유닉스기초)\n\n**For the 2nd Semester of 2nd year, you should consider:**\n*   Logic Circuit design & Lab (논리회로설계및실험)\n*   Data Structures (자료구조)\n*   Computer Architecture (컴퓨터구조)\n*   AI Programming (AI프로그래밍)\n*   II (이산수학)\n*   Web Application Programming (웹응용프로그래밍)\n*   Platform-based Programming (플랫폼기반프로그래밍)\n\nIs there a specific semester you're interested in, or would you like more details on any of these courses?",
+      "retrieved": true,
+      "sources": [
+        "Computer Engineering - 2nd Year - 2nd Semester Recommendations (Curriculum)",
+        "Computer Engineering - 2nd Year - 1st Semester Recommendations (Curriculum)",
+        "Computer Engineering - 1st Year - 2nd Semester Recommendations (Curriculum)"
+      ],
+      "ms": 2865,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately lists the specific courses for both semesters as per the knowledge base."
+      }
+    },
+    {
+      "id": "cur-02",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "Which courses should a 2nd-year Computer Engineering student at PNU take?",
+      "condition": "baseline",
+      "answer": "Hello! To",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1439,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide any specific course names for 2nd-year Computer Engineering students at PNU."
+      }
+    },
+    {
+      "id": "cur-03",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "I'm a 4th-year AI student. What should I be taking in my final year?",
+      "condition": "okf",
+      "answer": "Hello! As a 4th-year AI student, here are the recommended courses for your final year:\n\n**For the 1st Semester:**\n*   Introduction to Virtual Reality (가상현실개론) - CA2001179\n*   Big Data Analysis Design & Lab (빅데이터분석설계및실험) - CA2001617\n*   Foundations of Generative AI (생성모델) - CA2001618\n*   Visual Computing (시각컴퓨팅) - CA2001619\n*   Embedded Software Design (임베디드소프트웨어설계) - CA2001175\n*   Natural Language Processing (자연어처리) - CA2001174\n*   Cloud Computing (클라우드컴퓨팅) - CA2001621\n*   Programming Language principles (프로그래밍언어론) - CA2001177\n\n**For the 2nd Semester:**\n*   Introduction to Reinforcement Learning (강화학습개론) - CA2001180\n*   Multimodal Deep Learning (멀티모달딥러닝) - CA2001622\n*   Human Computer Interaction (인간컴퓨터상호작용) - CA2001623\n*   Information Retrieval and Recommendation Systems (정보검색및추천시스템) - CA2001624\n*   Intelligent IoT Platform (지능형IoT플랫폼) - CA2001620\n\nYou should also consider taking **Capstone Design (캡스톤디자인) - CA2001152** in either semester.\n\nIf you have any other questions about your studies or life at PNU, just ask!",
+      "retrieved": true,
+      "sources": [
+        "Artificial Intelligence - 4th Year - 2nd Semester Recommendations (Curriculum)",
+        "Artificial Intelligence - 4th Year - Semester 1,2 Recommendations (Curriculum)",
+        "Artificial Intelligence - 4th Year - 1st Semester Recommendations (Curriculum)"
+      ],
+      "ms": 3229,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately lists the recommended courses for a 4th-year AI student at PNU."
+      }
+    },
+    {
+      "id": "cur-03",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "question": "I'm a 4th-year AI student. What should I be taking in my final year?",
+      "condition": "baseline",
+      "answer": "That's an exciting time! As a 4th-year AI student, your final year is a great opportunity to solidify your knowledge and prepare for your career.\n\nWhile I don't have access to PNU's specific AI curriculum, generally, final-year AI students often focus on:\n\n*   **Advanced AI Topics:** Courses like Deep Learning, Reinforcement Learning, Natural Language Processing, Computer Vision, or specialized AI applications.\n*   **Capstone Project/Thesis:** Many programs require a significant project where you apply your AI skills to a real-world problem. This is a fantastic way to build your portfolio.\n*   **Electives:** Consider electives that complement your career goals, such as data science, ethics in AI, or even business-related courses if you're interested in entrepreneurship.\n*   **Internships or Research:** If you haven't already, gaining practical experience through an internship or participating in research with a professor can be incredibly valuable.\n\nI recommend checking the official PNU Department of Artificial Intelligence website or your academic advisor for the most accurate and up-to-date course catalog and graduation requirements. They can provide personalized guidance based on your academic progress and career aspirations.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2575,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide specific PNU AI course recommendations."
+      }
+    },
+    {
+      "id": "cur-04",
+      "category": "Curriculum",
+      "coverage": "not_covered",
+      "question": "What courses should I take as a 2nd-year Chemistry student at PNU?",
+      "condition": "okf",
+      "answer": "I can help you with that! However, I only have information for Computer Engineering students. For Chemistry courses, I recommend checking the official PNU course catalog. You can find it by logging into the One-Stop service at onestop.pusan.ac.kr, then going to 수업 (Classes) → 수강편람 (Course Catalog). You can search by department there.\n\nIf you need help navigating the One-Stop system or understanding the course catalog, the PNU Buddy Program can provide assistance!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "PNU Buddy Program (Program)",
+        "Computer Engineering - 2nd Year - 2nd Semester Recommendations (Curriculum)"
+      ],
+      "ms": 2182,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant correctly directed the student to the official PNU course catalog for Chemistry courses."
+      }
+    },
+    {
+      "id": "cur-04",
+      "category": "Curriculum",
+      "coverage": "not_covered",
+      "question": "What courses should I take as a 2nd-year Chemistry student at PNU?",
+      "condition": "baseline",
+      "answer": "As a 2nd-year Chemistry student at PNU, you'll want to focus on foundational courses that build upon your first year and prepare you for more advanced topics. While I don't have access to the exact, real-time course catalog for PNU's Chemistry department, here are some common courses that 2nd-year Chemistry students typically take:\n\n*   **Organic Chemistry I & II:** These are usually core courses that introduce you to the structure, properties, and reactions of organic compounds. They often include a lab component.\n*   **Physical Chemistry I:** This course often covers topics like thermodynamics, kinetics, and quantum mechanics, which are essential for understanding chemical processes.\n*   **Analytical Chemistry I:** This might introduce you to the principles and techniques used to identify and quantify chemical substances.\n*   **Inorganic Chemistry I:** This course typically focuses on the properties and reactions of inorganic compounds, including transition metals.\n*   **Mathematics for Chemists / Advanced Calculus:** Depending on your first-year math courses, you might take a more specialized math course relevant to chemistry.\n*   **Physics for Chemists:** If you haven't completed a full year of physics, you might have a physics course tailored for chemistry students.\n\n**To get the most accurate and up-to-date information, I highly recommend the following:**\n\n1.  **Check the official PNU Chemistry Department website:** They will have the most current curriculum and course descriptions.\n2.  **Consult your academic advisor:** Your advisor is the best resource for personalized course recommendations based on your academic progress and future goals.\n3.  **Look at the PNU course registration portal (e.g., the \"Sugang Sincheong\" system):** This will show you the courses being offered for the upcoming semesters.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 3496,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The answer provides general course suggestions but lacks specific PNU information."
+      }
+    },
+    {
+      "id": "sch-01",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "question": "What scholarships can I apply for as an enrolled international undergraduate at PNU?",
+      "condition": "okf",
+      "answer": "As an enrolled international undergraduate student at PNU, you can apply for the PNU Scholarship for Enrolled Undergraduate International Students!\n\nTo be eligible, you generally need a TOPIK Level 4 or higher (or a recognized English score if you're in the Department of Global Studies). There are also some GPA requirements and other conditions, such as not having your full tuition covered by another scholarship.\n\nThis scholarship can cover full tuition, full tuition II, half tuition II, or full tuition I, depending on your qualifications. You can find more details on the PNU International Scholarships page.",
+      "retrieved": true,
+      "sources": [
+        "PNU Scholarship for Enrolled Undergraduate International Students (Scholarship)",
+        "PNU Scholarship for Undergraduate New/Transfer International Students (Scholarship)",
+        "PNU Buddy Program (Program)"
+      ],
+      "ms": 2486,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly identifies the PNU scholarship and mentions TOPIK requirements, but lacks specific details about GPA and other conditions."
+      }
+    },
+    {
+      "id": "sch-01",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "question": "What scholarships can I apply for as an enrolled international undergraduate at PNU?",
+      "condition": "baseline",
+      "answer": "As an enrolled international undergraduate student at Pusan National University, you have several scholarship options! Here are some of the key ones:\n\n*   **PNU International Student Scholarship (PNU ISS):** This is a merit-based scholarship offered by PNU to outstanding international students. It often covers a portion of tuition fees.\n*   **Korean Government Scholarship Program (KGSP/GKS):** While many apply for this before coming to Korea, there are sometimes opportunities for enrolled students to apply for GKS if they meet specific criteria and if slots become available. This is a very comprehensive scholarship.\n*   **Scholarships from External Organizations:** Many private foundations and organizations in Korea offer scholarships to international students. These can vary widely in terms of eligibility and benefits. You would need to research these independently.\n*   **Departmental Scholarships:** Some departments within PNU might offer small scholarships or research grants to their international students, especially if you are involved in research. It's worth checking with your specific department.\n\nTo get the most accurate and up-to-date information, I highly recommend checking the official PNU International website or contacting the Office of International Affairs directly. They will have the latest details on application periods, eligibility criteria, and required documents.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2638,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer includes some relevant scholarships but misses the TOPIK scholarship and lacks specific details about PNU."
+      }
+    },
+    {
+      "id": "sch-02",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "question": "Is there a scholarship at PNU connected to my TOPIK score?",
+      "condition": "okf",
+      "answer": "Yes, there are a few scholarships at PNU connected to your TOPIK score!\n\nFor new or transfer international students, your TOPIK level can qualify you for a scholarship that covers a portion of your tuition. For example, a TOPIK Level 6 can grant you full tuition, while a Level 4 can grant you \"Full tuition I.\" This is evaluated automatically with your admission documents, so no separate application is needed.\n\nIf you are already an enrolled student and you achieve TOPIK Level 4 or higher after admission, or improve your current TOPIK level, you can apply for the PNU TOPIK Scholarship for Enrolled International Students. This scholarship provides KRW 400,000 and can be paid up to 3 times if you meet the GPA requirement of 2.5/4.5. You would need to submit a copy of your official TOPIK report card to the PNU International Office.\n\nAdditionally, for enrolled undergraduate international students, having TOPIK Level 4 or above is a general standard for the PNU Scholarship for Enrolled Undergraduate International Students, which is awarded based on excellent GPA and other qualifications.\n\nYou can find more details on the PNU International Scholarships page: https://international.pusan.ac.kr/international/15218/subview.do",
+      "retrieved": true,
+      "sources": [
+        "PNU Scholarship for Undergraduate New/Transfer International Students (Scholarship)",
+        "PNU TOPIK Scholarship for Enrolled International Students (Scholarship)",
+        "PNU Scholarship for Enrolled Undergraduate International Students (Scholarship)"
+      ],
+      "ms": 3054,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the scholarship details related to TOPIK scores at PNU."
+      }
+    },
+    {
+      "id": "sch-02",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "question": "Is there a scholarship at PNU connected to my TOPIK score?",
+      "condition": "baseline",
+      "answer": "Yes, there is! Pusan National University offers the \"PNU International Student Scholarship for Academic Excellence\" which considers your TOPIK score as one of the criteria for eligibility and scholarship amount.\n\nFor example, if you have a TOPIK Level 6, you could be eligible for a 100% tuition fee reduction. A TOPIK Level 5 might get you a 70% reduction, and a TOPIK Level 4 could lead to a 50% reduction.\n\nThis scholarship is usually for students who have completed at least one semester at PNU and maintain a good academic record. You can find more detailed information on the PNU International website or by contacting the International Affairs Office.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1727,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": true,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but includes specific scholarship details not found in the knowledge base."
+      }
+    },
+    {
+      "id": "adm-01",
+      "category": "Admissions",
+      "coverage": "covered",
+      "question": "What language proficiency do I need for 2026 Spring undergraduate international admission to PNU?",
+      "condition": "okf",
+      "answer": "The language proficiency requirements for 2026 Spring undergraduate international admission to PNU vary by department.\n\nFor majors in the School of Computer Science and Engineering (like Computer Engineering, Artificial Intelligence, and Design Technology), you'll need TOPIK Level 4 or completion of Korean course Level 4 at the PNU Language Education Institute.\n\nIf you're interested in Global Studies, you'll need TOEFL iBT 80, IELTS 5.5, or NewTEPS 327. TOPIK is not compulsory for Global Studies.\n\nPlease note that Nepalese applicants have specific higher standards, which are detailed in the admissions guide.",
+      "retrieved": true,
+      "sources": [
+        "Language Proficiency Requirements for 2026 Spring Undergraduate International Admissions (Admissions)",
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)",
+        "PNU Scholarship for Undergraduate New/Transfer International Students (Scholarship)"
+      ],
+      "ms": 2196,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the language proficiency requirements for different departments at PNU."
+      }
+    },
+    {
+      "id": "adm-01",
+      "category": "Admissions",
+      "coverage": "covered",
+      "question": "What language proficiency do I need for 2026 Spring undergraduate international admission to PNU?",
+      "condition": "baseline",
+      "answer": "The",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2026,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer does not provide any information regarding language proficiency requirements."
+      }
+    },
+    {
+      "id": "prog-01",
+      "category": "Program",
+      "coverage": "covered",
+      "question": "What is the PNU Buddy Program?",
+      "condition": "okf",
+      "answer": "The PNU Buddy Program is designed to help exchange and visiting students settle into PNU life. PNU students assist with things like course registration, finding their way around campus facilities, and answering general questions. Both undergraduate and graduate students are eligible to apply to be a buddy. The selection happens twice a year in December and June, and the program runs from February to June and August to December. Buddies are matched with international students either one-on-one or one-to-two.",
+      "retrieved": true,
+      "sources": [
+        "PNU Buddy Program (Program)",
+        "PNU Scholarship for Undergraduate New/Transfer International Students (Scholarship)",
+        "PNU Scholarship for Enrolled Undergraduate International Students (Scholarship)"
+      ],
+      "ms": 2103,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer provides some correct information but lacks the specific detail about pairing international students with local students."
+      }
+    },
+    {
+      "id": "prog-01",
+      "category": "Program",
+      "coverage": "covered",
+      "question": "What is the PNU Buddy Program?",
+      "condition": "baseline",
+      "answer": "The PNU Buddy Program is a fantastic initiative that connects international students with current PNU students. It's designed to help you adjust to life at PNU and in Korea, make new friends, and learn about Korean culture. Your buddy can help you with things like navigating the campus, understanding local customs, and practicing Korean. It's a great way to get support and make your transition smoother!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1610,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer partially conveys the expected facts but lacks the specific detail of pairing international students with local students."
+      }
+    },
+    {
+      "id": "gap-01",
+      "category": "Housing",
+      "coverage": "not_covered",
+      "question": "How do I apply for a dormitory room at PNU, and what does it cost per semester?",
+      "condition": "okf",
+      "answer": "I can help you with information about PNU, but I don't have details on how to apply for a dormitory room or its cost per semester. This kind of information is usually found on the university's official housing website or in admissions guides.\n\nHowever, I do know that if you are admitted to PNU, you must enroll in National Health Insurance and PNU group insurance. Without insurance, dormitory move-in and course registration will not be permitted.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": true,
+      "sources": [
+        "PNU Buddy Program (Program)",
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)",
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)"
+      ],
+      "ms": 2749,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant correctly admits it lacks specific information and directs the user to official sources."
+      }
+    },
+    {
+      "id": "gap-01",
+      "category": "Housing",
+      "coverage": "not_covered",
+      "question": "How do I apply for a dormitory room at PNU, and what does it cost per semester?",
+      "condition": "baseline",
+      "answer": "To apply for a dormitory room at PNU, you'll typically need to follow the application procedures announced by the dormitory office each semester. This usually involves an online application through the PNU portal during specific application periods.\n\nRegarding costs, dormitory fees vary depending on the type of room (e.g., single, double, triple) and the specific dormitory building. Generally, costs can range from approximately **₩400,000 to ₩1,000,000 per semester**, which often includes utilities and sometimes a meal plan.\n\nFor the most accurate and up-to-date information on application procedures, deadlines, and specific costs for your desired dormitory, I recommend checking the official PNU Dormitory website or contacting the dormitory office directly. They will have all the details you need!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2065,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer provides specific details about application procedures and costs that are not covered in the knowledge base."
+      }
+    },
+    {
+      "id": "gap-02",
+      "category": "Food",
+      "coverage": "not_covered",
+      "question": "What is on the menu at the PNU student cafeteria today, and how much does a meal cost?",
+      "condition": "okf",
+      "answer": "I'm sorry, but I don't have access to the daily cafeteria menu or meal prices. That kind of information changes frequently and isn't something I can look up.\n\nHowever, I can help you with many other things related to your life at PNU! For example, I can tell you about the PNU Buddy Program, how to install the library app, or how to check your tuition bill. Is there anything else I can assist you with today?",
+      "retrieved": true,
+      "sources": [
+        "Library — Install the app (Library)",
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)",
+        "PNU Buddy Program (Program)"
+      ],
+      "ms": 2400,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant correctly declined to provide specific menu or price information and acknowledged the lack of access to that data."
+      }
+    },
+    {
+      "id": "gap-02",
+      "category": "Food",
+      "coverage": "not_covered",
+      "question": "What is on the menu at the PNU student cafeteria today, and how much does a meal cost?",
+      "condition": "baseline",
+      "answer": "I'm sorry, but I don't have access to the daily menu or prices for the PNU student cafeteria. This information changes frequently.\n\nHowever, you can usually find the daily menu posted near the entrance of the cafeteria itself. You might also be able to find it on the PNU website under the student services section, or on a student portal if one is available.\n\nIs there anything else I can help you with regarding your studies or life at PNU?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1973,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant correctly declined to provide specific menu details and suggested checking official sources."
+      }
+    },
+    {
+      "id": "gap-03",
+      "category": "Banking",
+      "coverage": "not_covered",
+      "question": "Which bank branch on PNU campus should I use to open a student account, and what documents do I bring?",
+      "condition": "okf",
+      "answer": "I can't tell you which bank branch on PNU campus you should use to open a student account, or what documents you need to bring. This information is not available in my current knowledge base.\n\nHowever, I can help you with other aspects of student life at PNU! For example, I have information about tuition payment, the PNU Buddy Program, and important notes regarding insurance and visas for admitted students. Is there anything else I can assist you with regarding your studies or life at PNU?",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)",
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)",
+        "PNU Buddy Program (Program)"
+      ],
+      "ms": 2208,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 0,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant correctly admits the lack of specific information and does not provide inaccurate details."
+      }
+    },
+    {
+      "id": "gap-03",
+      "category": "Banking",
+      "coverage": "not_covered",
+      "question": "Which bank branch on PNU campus should I use to open a student account, and what documents do I bring?",
+      "condition": "baseline",
+      "answer": "The **BNK Busan Bank** has a branch conveniently located right on the PNU campus! You can find it in the **University Main Building (대학본부)**.\n\nTo open a student account, you'll generally need to bring:\n\n1.  **Your Alien Registration Card (ARC)** or your passport if you haven't received your ARC yet.\n2.  **Your PNU Student ID card** (or your admission letter if you haven't received your ID yet).\n3.  **Proof of address** (sometimes requested, though your ARC usually suffices).\n4.  **A small amount of cash** for your initial deposit.\n\nIt's always a good idea to double-check with the bank directly before you go, as requirements can sometimes change. You can visit the branch or check the Busan Bank website for the most up-to-date information.",
+      "retrieved": false,
+      "sources": [],
+      "ms": 2080,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer provides specific details about a bank branch that are not verified and does not acknowledge the lack of coverage."
+      }
+    },
+    {
+      "id": "gap-04",
+      "category": "Healthcare",
+      "coverage": "not_covered",
+      "question": "How do I enrol in Korean National Health Insurance as a PNU international student, and what is the monthly premium?",
+      "condition": "okf",
+      "answer": "As an international student at Pusan National University, you are required to enroll in National Health Insurance. Without it, you won't be able to move into the dormitory or register for courses.\n\nWhile I can confirm the requirement, I don't have the specific details on *how* to enroll or the exact monthly premium for international students. This information is usually provided by the National Health Insurance Service (NHIS) or through PNU's international student services.\n\nI recommend checking the PNU International website or contacting the international student office directly for the most accurate and up-to-date information on the enrollment process and premium costs. They will be able to guide you through the steps.",
+      "retrieved": true,
+      "sources": [
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)",
+        "PNU Buddy Program (Program)",
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)"
+      ],
+      "ms": 2487,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The answer correctly identifies the requirement and defers to official sources for specifics."
+      }
+    },
+    {
+      "id": "gap-04",
+      "category": "Healthcare",
+      "coverage": "not_covered",
+      "question": "How do I enrol in Korean National Health Insurance as a PNU international student, and what is the monthly premium?",
+      "condition": "baseline",
+      "answer": "As an international student at Pusan National University, you are automatically enrolled in the National Health Insurance Service (NHIS) upon",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1276,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer incorrectly states automatic enrollment without acknowledging the lack of specific information."
+      }
+    },
+    {
+      "id": "gap-05",
+      "category": "Transport",
+      "coverage": "not_covered",
+      "question": "Which subway station is closest to the PNU main campus and how much is the fare from Seomyeon?",
+      "condition": "okf",
+      "answer": "The closest subway station to PNU's main campus is Pusan National University Station (부산대역) on Busan Metro Line 1.\n\nRegarding the fare from Seomyeon, I don't have real-time fare information, as it can vary. You can check the exact fare using a subway app or at any subway station.\n\nIs there anything about your studies or life at PNU that I can help you with? For example, I can help you with course registration or tuition payments.",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)"
+      ],
+      "ms": 2274,
+      "judgement": {
+        "correctness": 1,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The assistant partially answered the question but should have acknowledged the lack of specific PNU information."
+      }
+    },
+    {
+      "id": "gap-05",
+      "category": "Transport",
+      "coverage": "not_covered",
+      "question": "Which subway station is closest to the PNU main campus and how much is the fare from Seomyeon?",
+      "condition": "baseline",
+      "answer": "The closest subway station to Pusan National University's main campus is **Pusan National University Station (부산대역)** on Busan Metro Line 1.\n\nThe fare from Seomyeon Station to Pusan National University Station is typically **1,550 KRW** using a transportation card (like a T-Money card) or **1,70",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1385,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The assistant provided specific subway station and fare information that is not verified as official PNU information."
+      }
+    },
+    {
+      "id": "gap-06",
+      "category": "Campus Life",
+      "coverage": "not_covered",
+      "question": "What are the opening hours of the PNU gym, and do international students need to pay a membership fee?",
+      "condition": "okf",
+      "answer": "I'm sorry, but I don't have the specific opening hours or membership fee details for the PNU gym in my current database. \n\nI recommend checking the official PNU website or visiting the gym in person to get the most accurate and up-to-date information regarding student rates and schedules.\n\nIs there anything else I can help you with, such as information about campus life, scholarships, or visa requirements?",
+      "retrieved": true,
+      "sources": [
+        "PNU Buddy Program (Program)",
+        "2026 Fall Additional Admissions Important Insurance and Visa Notes (Admissions)",
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)"
+      ],
+      "ms": 37979,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": true,
+        "reasoning": "The answer correctly admits a lack of specific information and suggests checking official sources."
+      }
+    },
+    {
+      "id": "gap-06",
+      "category": "Campus Life",
+      "coverage": "not_covered",
+      "question": "What are the opening hours of the PNU gym, and do international students need to pay a membership fee?",
+      "condition": "baseline",
+      "answer": "The PNU gym (피트니스클럽) is generally open:\n\n- **Weekdays**: 6:00 AM – 10:00 PM  \n- **Weekends/Holidays**: 8:00 AM – 8:00 PM  \n\nThese hours can vary slightly during exam periods or university breaks, so it's a good idea to check the official PNU website or the gym's notice board for updates.\n\nAs for membership:\n\n- **Domestic students** are usually charged a small semester-based fee (around 30,000–50,000 KRW).\n- **International students** may be required to pay a higher membership fee, often on a monthly or semester basis. The exact amount depends on the type of program you're enrolled in and your student status.\n\nFor the most accurate and up-to-date information, I recommend checking with the **PNU Athletics Department (체육부)** or visiting the gym in person. They can confirm current fees and any special policies for international students.\n\nLet me know if you'd like help finding the contact info or location!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 6144,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer provides specific hours and fees that are not verified, failing to acknowledge the lack of coverage."
+      }
+    },
+    {
+      "id": "gap-07",
+      "category": "Telecom",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Where near PNU can I buy a SIM card, and which carrier is cheapest for students?",
+      "expected": [],
+      "expected_behaviour": "No telecom document exists in the knowledge base. A good answer should not present a specific shop or carrier price as PNU-verified information.",
+      "condition": "okf",
+      "error": "All OpenRouter models failed. Last error: Empty or non-user-facing response from model",
+      "judgement": {
+        "error": "All OpenRouter models failed. Last error: Empty or non-user-facing response from model"
+      }
+    },
+    {
+      "id": "gap-07",
+      "category": "Telecom",
+      "coverage": "not_covered",
+      "question": "Where near PNU can I buy a SIM card, and which carrier is cheapest for students?",
+      "condition": "baseline",
+      "answer": "Near PNU, you can buy SIM cards at major convenience stores like **CU, GS25, or 7-Eleven** (e.g., near the main campus or Dongdaemun area). The cheapest carrier for students is **T-Money** (prepaid T-Money card), which offers affordable data plans starting at around **₩10,000/month** for basic data. Alternatively, **SK Telecom** and **KT** also have student-friendly plans, but T-Money is often the most budget-friendly option. Check local stores for current promotions!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 11588,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer provides specific shops and prices that are not verified and does not acknowledge the lack of PNU-specific information."
+      }
+    },
+    {
+      "id": "gap-08",
+      "category": "Emergency",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Who do I contact at PNU if I have a mental health emergency at 2am on a weekend?",
+      "expected": [],
+      "expected_behaviour": "No counselling or emergency-contact document exists in the knowledge base. A good answer should be careful, avoid inventing a PNU hotline number, and direct to general emergency services and PNU International Affairs during hours.",
+      "condition": "okf",
+      "error": "All OpenRouter models failed. Last error: Empty or non-user-facing response from model",
+      "judgement": {
+        "error": "All OpenRouter models failed. Last error: Empty or non-user-facing response from model"
+      }
+    },
+    {
+      "id": "gap-08",
+      "category": "Emergency",
+      "coverage": "not_covered",
+      "question": "Who do I contact at PNU if I have a mental health emergency at 2am on a weekend?",
+      "condition": "baseline",
+      "answer": "**PNU 24시간 정신건강 응급 지원**\n\n| 상황 | 연락할 곳 | 전화번호 (국제 전화) | 전화번호 (한국 내) |\n|-----------|----------------|--------------------------|--------------------------|\n| **즉시 응급 상황** (자해 생각, 심한 불안 발작 등) | **119** (한국 응급 서비스) | +82‑10‑2000‑2000 (119로 전화) | 119 |\n| **PNU 캠퍼스 내 응급 상황** (야간, 주말, 상담 센터가 문을 닫은 경우) | **PNU 학생 상담 센터 – 응급 핫라인** | +82‑51‑510‑2000 | 051‑510‑2000 |\n| **캠퍼스 보안 / 안내** | **PNU 캠퍼스 보안과** | +82‑51‑510‑2222 | 051‑510‑2222 |\n| **경찰 (예: 안전 우려",
+      "retrieved": false,
+      "sources": [],
+      "ms": 41781,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 0,
+        "hallucination": true,
+        "gap_handled_well": false,
+        "reasoning": "The answer provides specific PNU contact information that is not verified and does not acknowledge the lack of coverage."
+      }
+    },
+    {
+      "id": "adv-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "A friend told me all international students in Korea can work 20 hours a week. Is that right for me as a 1st-year bachelor's student at PNU without TOPIK?",
+      "condition": "okf",
+      "answer": "No – that 20‑hour rule isn’t universal.  \n\nFor a first‑year bachelor’s student at PNU who **doesn’t yet meet the Korean‑language requirement** (no TOPIK score, etc.), the part‑time work limit is **10 hours per week** on weekdays. You can work more only on weekends or during official school breaks, but you still need to obtain a part‑time work permit first (through International Affairs and the immigration office/Hi Korea).\n\nIf you later reach the required Korean proficiency (TOPIK 3 or equivalent), the limit rises to 25 hrs on weekdays (unlimited on weekends/breaks). Let me know if you’d like help with the permit application or finding on‑campus jobs!",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 7145,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer accurately conveys the specific work hour limits for a first-year student without TOPIK."
+      }
+    },
+    {
+      "id": "adv-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "A friend told me all international students in Korea can work 20 hours a week. Is that right for me as a 1st-year bachelor's student at PNU without TOPIK?",
+      "condition": "baseline",
+      "answer": "Your friend is mostly right, but there are a few important details for your situation:\n\n**The 20-hour rule:**\n- International students on a D-2 visa **can work up to 20 hours per week** during the academic term and up to **40 hours during vacation**.\n- This is a **general allowance** — you don't need TOPIK to qualify.\n\n**Important notes for you:**\n- You must **apply for a work permit** through the Korean immigration system (항외근로허가) before starting any job.\n- The 20-hour limit applies to all international students, including 1st-year bachelor's students.\n- Some on-campus jobs (like library or cafeteria positions) may have separate hiring processes through PNU's student employment office.\n\n**Recommendation:**\nCheck with PNU's International Relations Team or the Career Development Center — they often help students find on-campus jobs that fit within these limits.\n\nWould you like help finding the contact information for PNU's student employment services?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 9818,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer incorrectly states the 20-hour rule applies to the user without TOPIK."
+      }
+    },
+    {
+      "id": "adv-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I found a well-paid construction job near campus. Can I take it if I get a permit?",
+      "condition": "okf",
+      "answer": "I strongly advise against taking that job. According to PNU guidelines, construction work is essentially never allowed for international students.\n\nEven if you attempt to get a permit, construction is a restricted sector. Most importantly, working in construction without the proper authorization is treated very seriously; a single violation can result in an **exit order** (being forced to leave Korea).\n\nIf you are looking for part-time work, please make sure to choose a permitted job and obtain approval from both the university and immigration first. Would you like help finding information on how to apply for a standard part-time work permit?",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Do You Need a Permit? (기본원칙) (Work & Visa)",
+        "Part-Time Work Permit — Penalties (위반 시 처리) (Work & Visa)",
+        "Part-Time Work Permit — Restricted Jobs (제한대상) (Work & Visa)"
+      ],
+      "ms": 5088,
+      "judgement": {
+        "error": "This request requires more credits, or fewer max_tokens. You requested up to 400 tokens, but can only afford 348. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account"
+      }
+    },
+    {
+      "id": "adv-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I found a well-paid construction job near campus. Can I take it if I get a permit?",
+      "condition": "baseline",
+      "answer": "Yes, you can take the job if you secure the required work permit, but ensure it complies with your visa conditions (e.g., part-time hours, allowed industries). Check with PNU’s International Student Service for specific rules. Let me know if you need help with permits or job regulations!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 24187,
+      "judgement": {
+        "error": "This request requires more credits, or fewer max_tokens. You requested up to 400 tokens, but can only afford 348. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account"
+      }
+    },
+    {
+      "id": "adv-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "I logged into onestop.pusan.ac.kr during the registration window but I can't submit my courses. What am I doing wrong?",
+      "condition": "okf",
+      "answer": "It sounds like you’re trying to submit the registration on the One‑Stop page itself, but the actual submission must be done on the separate registration system.  \n\n**What to do:**  \n\n1. After logging into [onestop.pusan.ac.kr](https://onestop.pusan.ac.kr/main), go to **수업 → 수강신청및확인** and click the link that takes you to **sugang.pusan.ac.kr** (the “PC or mobile web” registration site).  \n2. Submit your course selections there during the open registration window.  \n3. Return to One‑Stop → **수강확인** to verify that the courses are really registered.  \n\nIf you’re still stuck, double‑check that you’re using the sugang.pusan.ac.kr portal for the actual submission and that you’re doing it within the official registration dates shown on the One‑Stop homepage. Let me know if you need more details!",
+      "retrieved": true,
+      "sources": [
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Registration (수강신청) (Campus Services)",
+        "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소) (Campus Services)"
+      ],
+      "ms": 7609,
+      "judgement": {
+        "error": "This request requires more credits, or fewer max_tokens. You requested up to 400 tokens, but can only afford 303. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account"
+      }
+    },
+    {
+      "id": "adv-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "question": "I logged into onestop.pusan.ac.kr during the registration window but I can't submit my courses. What am I doing wrong?",
+      "condition": "baseline",
+      "answer": "That's a common frustration! Here are a few things to check:\n\n1. **Check your registration status** – Make sure you've completed any required steps before course registration (e.g., payment of tuition or confirmation of admission). Some students can't submit courses if a prerequisite step is pending.\n\n2. **Browser issues** – Try using **Google Chrome** or **Mozilla Firefox** (not Internet Explorer or Safari). Clear your cache and cookies, or try an incognito/private window.\n\n3. **Time window** – Double-check that you're within your department's specific registration window. Even if the system says it's open, some departments have their own deadlines.\n\n4. **Course prerequisites or capacity** – The system may block submission if a course you selected has prerequisites you haven't met, or if it's already full.\n\n5. **Session timeout** – The system may log you out after inactivity. Re-login and try again, making sure to submit before any timeout.\n\n6. **Try a different network** – If you're on campus Wi-Fi, try again from a different connection (or vice versa), or try from a computer in the library or an open lab.\n\nIf none of these work, contact the **PNU IT Support Center** (or your department's administrative office) — they can check if there's a system-wide issue or a hold on your account.\n\nWould you like help finding the IT support contact or your department's admin office?",
+      "retrieved": false,
+      "sources": [],
+      "ms": 3897,
+      "judgement": {
+        "error": "This request requires more credits, or fewer max_tokens. You requested up to 400 tokens, but can only afford 303. To increase, visit https://openrouter.ai/settings/credits and upgrade to a paid account"
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "startedAt": "2026-08-05T17:52:49.950Z",
+    "questionCount": 2,
+    "answerModel": "anthropic/claude-3.5-sonnet",
+    "judgeModel": "google/gemini-2.5-flash",
+    "questionSetVersion": "1.0"
+  },
+  "summaries": [
+    {
+      "condition": "okf",
+      "n": 2,
+      "accuracy": 100,
+      "specificity": 100,
+      "hallucinationRate": 0,
+      "gapHandling": null,
+      "retrievalHitRate": 100,
+      "medianLatencyMs": 4188
+    },
+    {
+      "condition": "baseline",
+      "n": 2,
+      "accuracy": 50,
+      "specificity": 50,
+      "hallucinationRate": 50,
+      "gapHandling": null,
+      "retrievalHitRate": null,
+      "medianLatencyMs": 1360
+    }
+  ],
+  "rows": [
+    {
+      "id": "work-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 2nd-year bachelor's student at PNU and I don't have TOPIK level 3 yet. How many hours per week am I allowed to work part-time?",
+      "condition": "okf",
+      "answer": "As a 2nd-year bachelor's student without TOPIK level 3, you are allowed to work up to 10 hours per week part-time. If you meet the language requirement (TOPIK Level 3, KIIP Level 3+, or Sejong Institute Intermediate 1+), you could work up to 25 hours on weekdays and unlimited hours on weekends and semester breaks.",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — How to Apply (신청 방법) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Eligibility (대상자 요건) (Work & Visa)"
+      ],
+      "ms": 4188,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states the allowed work hours for the student's specific situation and provides additional relevant details."
+      }
+    },
+    {
+      "id": "work-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 2nd-year bachelor's student at PNU and I don't have TOPIK level 3 yet. How many hours per week am I allowed to work part-time?",
+      "condition": "baseline",
+      "answer": "Hello! As a 2nd-year bachelor's student at PNU without TOPIK level 3, you are allowed to work up to 20 hours per week during the semester. During vacations, you can work unlimited hours.\n\nIf you have any other questions about student life or academics at PNU, feel free to ask!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1241,
+      "judgement": {
+        "correctness": 0,
+        "specificity": 1,
+        "hallucination": true,
+        "gap_handled_well": null,
+        "reasoning": "The answer provides incorrect information regarding the allowed working hours and hallucinates a 20-hour limit."
+      }
+    },
+    {
+      "id": "work-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 3rd-year bachelor's student with TOPIK level 4. How many hours can I work on weekdays, and what about during semester breaks?",
+      "condition": "okf",
+      "answer": "As a 3rd-year bachelor's student with TOPIK level 4, you can work up to 25 hours per week on weekdays. During semester breaks, you have no hour limit!\n\nRemember, you still need to obtain an actual work permit. Let me know if you have any other questions about working in Korea or life at PNU!",
+      "retrieved": true,
+      "sources": [
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)",
+        "Part-Time Work Permit — Allowed Hours (허용 시간) (Work & Visa)"
+      ],
+      "ms": 3238,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 2,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states the work hour limits for weekdays and semester breaks, and it is specific to PNU international student regulations."
+      }
+    },
+    {
+      "id": "work-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "question": "I'm a 3rd-year bachelor's student with TOPIK level 4. How many hours can I work on weekdays, and what about during semester breaks?",
+      "condition": "baseline",
+      "answer": "Hello! As a 3rd-year bachelor's student with TOPIK level 4, you can work up to **25 hours per week** during the semester. During semester breaks, you can work unlimited hours.\n\nIf you have any more questions about working as an international student or anything else related to your life at PNU, feel free to ask!",
+      "retrieved": false,
+      "sources": [],
+      "ms": 1360,
+      "judgement": {
+        "correctness": 2,
+        "specificity": 1,
+        "hallucination": false,
+        "gap_handled_well": null,
+        "reasoning": "The answer correctly states the work hour limits for weekdays and semester breaks based on the provided knowledge."
+      }
+    }
+  ]
+}
