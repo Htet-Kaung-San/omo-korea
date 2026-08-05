@@ -15,6 +15,62 @@ function normalizeText(value) {
   return value == null ? '' : String(value);
 }
 
+function normalizeNullableText(value) {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
+function normalizeNullableNumber(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function emptyCourseOffering() {
+  return {
+    academicYear: null,
+    semester: null,
+    section: null,
+    professor: null,
+    schedule: null,
+    remoteCourseStatus: null,
+    originalLanguageCode: null,
+    teachingLanguage: null,
+    isEnglishTaught: null,
+    theoryHours: null,
+    practicalHours: null,
+  };
+}
+
+function explicitEnglishStatus(originalLanguageCode, teachingLanguage) {
+  const code = normalizeNullableText(originalLanguageCode)?.toUpperCase() || null;
+  const language = normalizeNullableText(teachingLanguage)?.toUpperCase() || null;
+  if (code === 'E' || language === 'ENGLISH') return true;
+  if (['C', 'J', 'F', 'G', 'R'].includes(code)) return false;
+  if (['KOREAN', 'OTHER'].includes(language)) return false;
+  return null;
+}
+
+function mapCourseOfferingRow(row) {
+  const originalLanguageCode = normalizeNullableText(row?.original_language_code);
+  const teachingLanguage = normalizeNullableText(row?.teaching_language);
+  return {
+    officialCourseNumber: normalizeNullableText(row?.official_course_number),
+    academicYear: normalizeNullableNumber(row?.academic_year),
+    semester: normalizeNullableText(row?.semester),
+    section: normalizeNullableText(row?.section),
+    professor: normalizeNullableText(row?.professor),
+    schedule: normalizeNullableText(row?.schedule),
+    remoteCourseStatus: normalizeNullableText(row?.remote_course_status),
+    originalLanguageCode,
+    teachingLanguage,
+    isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
+    theoryHours: normalizeNullableNumber(row?.theory_hours),
+    practicalHours: normalizeNullableNumber(row?.practical_hours),
+  };
+}
+
 function mapCourseRow(row, language = 'en') {
   const localized = localizeRow(row, language, ['course_name', 'course_name_en']);
   const title = localized.course_name_en || localized.course_name || localized.title || '';
@@ -34,6 +90,9 @@ return {
   nameKo: localized.course_name || name,
   nameEn: localized.course_name_en || title,
 
+  officialCourseNumber: normalizeNullableText(row.official_course_number),
+  ...emptyCourseOffering(),
+
   majorId: normalizeId(row.major_id ?? row.majorId),
   type,
   category: type,
@@ -46,8 +105,6 @@ return {
     row.course_year ??
     row.year ??
     null,
-
-  semester: row.semester ?? null,
 
   dayOfWeek: row.day_of_week ?? row.dayOfWeek ?? null,
   startTime: row.start_time ?? row.startTime ?? null,
@@ -62,6 +119,61 @@ return {
 
   raw: row,
 };
+}
+
+function attachCourseOffering(course, offeringRow) {
+  if (!offeringRow) return course;
+  const offering = mapCourseOfferingRow(offeringRow);
+  return {
+    ...course,
+    ...offering,
+    officialCourseNumber:
+      offering.officialCourseNumber ?? course.officialCourseNumber ?? null,
+  };
+}
+
+function chooseUnambiguousOffering(rows, requestedSection) {
+  const candidates = Array.isArray(rows) ? rows : [];
+  if (requestedSection) {
+    const sectionMatches = candidates.filter(
+      (row) => normalizeNullableText(row.section) === requestedSection,
+    );
+    return sectionMatches.length === 1 ? sectionMatches[0] : null;
+  }
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+async function fetchCourseOfferings(supabaseClient, options) {
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const rows = [];
+  let pageStart = 0;
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('course_offering')
+      .select(
+        'course_id,official_course_number,academic_year,semester,section,professor,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+      )
+      .eq('academic_year', options.academicYear)
+      .eq('semester', options.semester)
+      .order('course_id', { ascending: true })
+      .order('section', { ascending: true })
+      .range(pageStart, pageEnd);
+    if (result.error) {
+      const error = new Error(`Optional course_offering query failed: ${result.error.message}`);
+      error.code = 'OPTIONAL_COURSE_OFFERING_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    rows.push(...pageRows);
+    if (pageRows.length < pageSize) break;
+    pageStart += pageSize;
+  }
+  return rows;
 }
 
 function mapScholarshipRow(row, language = 'en') {
@@ -246,7 +358,34 @@ async function fetchAllCourses(supabaseClient, options = {}) {
     pageStart += pageSize;
   }
 
-  return courses;
+  if (options.includeOfferings !== true) return courses;
+  const academicYear = Number(options.offeringAcademicYear);
+  const semester = normalizeNullableText(options.offeringSemester);
+  if (!Number.isInteger(academicYear) || !semester) return courses;
+
+  let offeringRows;
+  try {
+    offeringRows = await fetchCourseOfferings(supabaseClient, {
+      academicYear,
+      semester,
+      pageSize,
+    });
+  } catch (_error) {
+    return courses;
+  }
+  const byCourseId = new Map();
+  for (const row of offeringRows) {
+    const courseId = normalizeId(row.course_id);
+    if (!byCourseId.has(courseId)) byCourseId.set(courseId, []);
+    byCourseId.get(courseId).push(row);
+  }
+  const requestedSection = normalizeNullableText(options.offeringSection);
+  return courses.map((course) =>
+    attachCourseOffering(
+      course,
+      chooseUnambiguousOffering(byCourseId.get(course.id), requestedSection),
+    )
+  );
 }
 
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
@@ -285,10 +424,16 @@ async function fetchDashboardCatalogs(supabaseClient, options = {}) {
 }
 
 module.exports = {
+  attachCourseOffering,
+  chooseUnambiguousOffering,
+  emptyCourseOffering,
+  explicitEnglishStatus,
   fetchAllCourses,
+  fetchCourseOfferings,
   fetchAllNotices,
   fetchDashboardCatalogs,
   mapCourseRow,
+  mapCourseOfferingRow,
   mapScholarshipRow,
   mapProgramRow,
   mapNoticeRow,

@@ -6,6 +6,9 @@ import type { RecommendedCourse } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
 import { CourseTypeBadge } from '@/components/ui/Badge'
+import {
+  getVerifiedCourseOfferingDisplay,
+} from '@/utils/courseOfferingDisplay'
 
 export function RecommendedCoursesPage() {
   const { language, t } = useLanguage()
@@ -39,7 +42,9 @@ export function RecommendedCoursesPage() {
           <p className="text-sm text-pnu-muted">{t('academic.noCourses')}</p>
         ) : null}
 
-        {recommendedCourses.map((course) => (
+        {recommendedCourses.map((course) => {
+          const offering = getVerifiedCourseOfferingDisplay(course)
+          return (
           <article key={course.id} className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -55,10 +60,35 @@ export function RecommendedCoursesPage() {
                 <p className="mt-1 text-sm text-pnu-muted">{course.nameKo}</p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
-                <CourseTypeBadge type={course.type} />
+                <div className="flex flex-wrap justify-end gap-1">
+                  <CourseTypeBadge type={course.type} />
+                  {offering.languageBadgeKey ? (
+                    <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+                      {t(offering.languageBadgeKey)}
+                    </span>
+                  ) : null}
+                </div>
                 <span className="text-xs font-semibold text-pnu-blue-light">{course.score}% match</span>
               </div>
             </div>
+            {offering.officialCourseNumber || offering.section ? (
+              <div className="mt-2 flex flex-wrap gap-2 text-xs text-pnu-muted">
+                {offering.officialCourseNumber ? <span>{offering.officialCourseNumber}</span> : null}
+                {offering.term ? <span>{offering.term}</span> : null}
+                {offering.section ? <span>{t('courseOffering.section', { section: offering.section })}</span> : null}
+              </div>
+            ) : null}
+            {offering.professor || offering.schedule || offering.remoteStatusKey ? (
+              <div className="mt-3 space-y-1 rounded-xl bg-pnu-surface px-3 py-2 text-xs text-pnu-muted">
+                {offering.professor ? (
+                  <p>{t('courseOffering.professor', { professor: offering.professor })}</p>
+                ) : null}
+                {offering.schedule ? (
+                  <p>{t('courseOffering.schedule', { schedule: offering.schedule })}</p>
+                ) : null}
+                {offering.remoteStatusKey ? <p>{t(offering.remoteStatusKey)}</p> : null}
+              </div>
+            ) : null}
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-pnu-muted">
               <span>{t('course.credits', { count: course.credits })}</span>
               {course.department ? (
@@ -72,7 +102,8 @@ export function RecommendedCoursesPage() {
               <p className="mt-3 text-sm text-pnu-muted">{course.matchHint}</p>
             ) : null}
           </article>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

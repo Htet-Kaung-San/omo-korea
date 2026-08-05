@@ -1125,9 +1125,15 @@ async function getCourseRecommendations(req, res, next) {
       return next(err);
     }
 
-    const courseCatalog = await fetchAllCourses(supabase, {
-      language: req.language || 'en',
-    });
+    const courseOptions = { language: req.language || 'en' };
+    if (String(process.env.ENABLE_COURSE_OFFERINGS).toLowerCase() === 'true') {
+      courseOptions.includeOfferings = true;
+      courseOptions.offeringAcademicYear =
+        process.env.COURSE_OFFERING_ACADEMIC_YEAR ?? null;
+      courseOptions.offeringSemester = process.env.COURSE_OFFERING_SEMESTER ?? null;
+      courseOptions.offeringSection = process.env.COURSE_OFFERING_SECTION ?? null;
+    }
+    const courseCatalog = await fetchAllCourses(supabase, courseOptions);
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,

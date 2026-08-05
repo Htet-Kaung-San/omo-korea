@@ -152,6 +152,39 @@ function saveChecklistState(studentId: string, state: ChecklistItem[]): void {
   localStorage.setItem(storageKey, JSON.stringify(state))
 }
 
+// Local browser-smoke fixtures only. These values exercise offering display
+// states without creating a production course, changing recommendation scores,
+// or implying that the mock course IDs are official PNU identifiers.
+const mockCourseOfferingFixtures: Record<string, Partial<RecommendedCourse>> = {
+  c1: {
+    academicYear: 2026,
+    semester: '2',
+    section: '001',
+    professor: 'Professor Kim',
+    schedule: 'Mon 09:00',
+    originalLanguageCode: 'E',
+    teachingLanguage: 'ENGLISH',
+    isEnglishTaught: true,
+  },
+  c2: {
+    originalLanguageCode: 'C',
+    teachingLanguage: 'OTHER',
+    isEnglishTaught: false,
+  },
+  c3: {
+    academicYear: 2026,
+    semester: '2',
+    section: '003',
+  },
+  c5: {
+    professor: 'Professor Lee',
+    schedule: 'Wed 13:00',
+  },
+  c8: {
+    remoteCourseStatus: 'REMOTE',
+  },
+}
+
 function scoreCourses(user: User): RecommendedCourse[] {
   return mockCourses
     .map((course) => {
@@ -173,6 +206,19 @@ function scoreCourses(user: User): RecommendedCourse[] {
         ...course,
         score,
         matchHint: hints[0],
+        officialCourseNumber: null,
+        academicYear: null,
+        semester: null,
+        section: null,
+        professor: null,
+        schedule: null,
+        remoteCourseStatus: null,
+        originalLanguageCode: null,
+        teachingLanguage: null,
+        isEnglishTaught: null,
+        theoryHours: null,
+        practicalHours: null,
+        ...mockCourseOfferingFixtures[course.id],
       }
     })
     .sort((a, b) => {
@@ -489,7 +535,7 @@ export const mockApi: HeyPnuApi = {
         enrollment_id: 1,
         student_id: studentId,
         course_id: 2,
-        semester: '2026-1',
+        semester: '2026-2',
         status: 'Enrolled',
         course_name: 'Data Structures',
         credit: 3,
@@ -499,7 +545,7 @@ export const mockApi: HeyPnuApi = {
         enrollment_id: 2,
         student_id: studentId,
         course_id: 1,
-        semester: '2026-1',
+        semester: '2026-2',
         status: 'Enrolled',
         course_name: 'Introduction to Computer Science',
         credit: 3,
@@ -518,7 +564,7 @@ export const mockApi: HeyPnuApi = {
       enrollment_id: Date.now(),
       student_id: studentId,
       course_id: courseId,
-      semester: '2026-1',
+      semester: '2026-2',
       status: 'Enrolled',
     }
     localStorage.setItem(key, JSON.stringify([...existing, created]))

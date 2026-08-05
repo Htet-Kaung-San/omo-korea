@@ -17,6 +17,16 @@ logs/
 *.log
 npm-debug.log*
 
+# Read-only PNU course-source prototype output
+data/local/pnu-course-offerings/
+data/local/pnu-course-restrictions/
+data/local/pnu-course-matches/
+data/local/pnu-course-backfill-dry-run/
+data/local/pnu-course-production-review/
+data/local/pnu-course-application/
+data/local/pnu-course-application-results/
+data/local/pnu-course-production-backups/
+
 # =========================
 # OS / editor
 # =========================
