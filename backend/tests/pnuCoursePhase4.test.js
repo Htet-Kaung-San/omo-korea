@@ -5,6 +5,7 @@ const { join } = require('node:path');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const {
   fetchAllCourses,
+  fetchStudentCourseHistory,
   mapCourseOfferingRow,
 } = require('../ai/supabaseDataRepository');
 const {
@@ -245,6 +246,13 @@ describe('backward-compatible course offering API support', () => {
     ).toMatchObject({ teachingLanguage: 'MIXED', isEnglishTaught: null });
   });
 
+  test('maps Korean, numeric, and all-years offering levels deterministically', () => {
+    expect(mapCourseOfferingRow({ year_level: '2학년' }).year).toBe(2);
+    expect(mapCourseOfferingRow({ year_level: '3' }).year).toBe(3);
+    expect(mapCourseOfferingRow({ year_level: '전학년' }).year).toBe('ALL');
+    expect(mapCourseOfferingRow({ year_level: null }).year).toBeNull();
+  });
+
   test('does not choose arbitrarily among multiple sections', async () => {
     const courseQuery = coursePage([productionCourse()]);
     const offeringQuery = offeringPage({
@@ -288,6 +296,36 @@ describe('backward-compatible course offering API support', () => {
       expect(item).not.toHaveProperty('assignmentRequirement');
       expect(item).not.toHaveProperty('examInformation');
     }
+  });
+});
+
+describe('fetchStudentCourseHistory', () => {
+  test('paginates deterministically and preserves status and semester', async () => {
+    const pages = [
+      [
+        { course_id: 10, status: 'Completed', semester: '2025-Fall' },
+        { course_id: 11, status: 'Enrolled', semester: '2026-Fall' },
+      ],
+      [{ course_id: 12, status: null, semester: null }],
+    ];
+    let page = 0;
+    const query = {};
+    query.select = jest.fn(() => query);
+    query.eq = jest.fn(() => query);
+    query.order = jest.fn(() => query);
+    query.range = jest.fn(async () => ({ data: pages[page++], error: null }));
+    const supabase = { from: jest.fn(() => query) };
+
+    const result = await fetchStudentCourseHistory(supabase, 'student-1', { pageSize: 2 });
+
+    expect(query.eq).toHaveBeenCalledWith('student_id', 'student-1');
+    expect(query.order).toHaveBeenCalledWith('enrollment_id', { ascending: true });
+    expect(query.range.mock.calls).toEqual([[0, 1], [2, 3]]);
+    expect(result).toEqual([
+      { courseId: '10', status: 'Completed', semester: '2025-Fall' },
+      { courseId: '11', status: 'Enrolled', semester: '2026-Fall' },
+      { courseId: '12', status: null, semester: null },
+    ]);
   });
 });
 

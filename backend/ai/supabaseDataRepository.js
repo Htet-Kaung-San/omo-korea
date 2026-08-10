@@ -27,6 +27,15 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+function normalizeCourseYearLevel(value) {
+  const text = normalizeNullableText(value);
+  if (!text) return null;
+  const normalized = text.normalize('NFKC').toLowerCase();
+  if (normalized.includes('전학년') || normalized.includes('all')) return 'ALL';
+  const match = normalized.match(/[1-8]/);
+  return match ? Number(match[0]) : null;
+}
+
 function emptyCourseOffering() {
   return {
     academicYear: null,
@@ -72,6 +81,7 @@ function mapCourseOfferingRow(row) {
     isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
     theoryHours: normalizeNullableNumber(row?.theory_hours),
     practicalHours: normalizeNullableNumber(row?.practical_hours),
+    year: normalizeCourseYearLevel(row?.year_level),
   };
 }
 
@@ -169,7 +179,7 @@ async function fetchCourseOfferings(supabaseClient, options) {
     const result = await supabaseClient
       .from('course_offering')
       .select(
-        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
       )
       .eq('academic_year', options.academicYear)
       .eq('semester', options.semester)
@@ -437,6 +447,45 @@ async function fetchAllCourses(supabaseClient, options = {}) {
   });
 }
 
+async function fetchStudentCourseHistory(supabaseClient, studentId, options = {}) {
+  const pageSize = Number.isInteger(options.pageSize) && options.pageSize > 0
+    ? options.pageSize
+    : 1000;
+  const rows = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('enrollment')
+      .select('course_id,status,semester')
+      .eq('student_id', studentId)
+      .order('enrollment_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch student course history from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_ENROLLMENT_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    rows.push(...pageRows.map((row) => ({
+      courseId: normalizeId(row.course_id),
+      status: normalizeNullableText(row.status),
+      semester: normalizeNullableText(row.semester),
+    })));
+    if (pageRows.length < pageSize) break;
+    pageStart += pageSize;
+  }
+
+  return rows;
+}
+
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
   const language = options.language || 'en';
 
@@ -478,6 +527,7 @@ module.exports = {
   emptyCourseOffering,
   explicitEnglishStatus,
   fetchAllCourses,
+  fetchStudentCourseHistory,
   fetchCourseMetadata,
   fetchCourseOfferings,
   fetchAllNotices,

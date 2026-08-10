@@ -4,12 +4,14 @@ const jwt = require('jsonwebtoken');
 
 const mockSupabase = { from: jest.fn() };
 const mockFetchAllCourses = jest.fn();
+const mockFetchStudentCourseHistory = jest.fn();
 const mockFetchAllNotices = jest.fn();
 const mockFetchDashboardCatalogs = jest.fn();
 
 jest.mock('../supabaseClient', () => mockSupabase);
 jest.mock('../ai/supabaseDataRepository', () => ({
   fetchAllCourses: mockFetchAllCourses,
+  fetchStudentCourseHistory: mockFetchStudentCourseHistory,
   fetchAllNotices: mockFetchAllNotices,
   fetchDashboardCatalogs: mockFetchDashboardCatalogs,
 }));
@@ -85,6 +87,7 @@ function course(overrides = {}) {
 describe('GET /api/students/course-recommendations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetchStudentCourseHistory.mockResolvedValue([]);
     process.env.ENABLE_COURSE_OFFERINGS = 'false';
     delete process.env.COURSE_OFFERING_ACADEMIC_YEAR;
     delete process.env.COURSE_OFFERING_SEMESTER;
@@ -138,6 +141,10 @@ describe('GET /api/students/course-recommendations', () => {
     expect(mockFetchAllCourses).toHaveBeenCalledWith(mockSupabase, {
       language: 'en',
     });
+    expect(mockFetchStudentCourseHistory).toHaveBeenCalledWith(
+      mockSupabase,
+      'student-1',
+    );
     expect(mockFetchAllNotices).not.toHaveBeenCalled();
     expect(mockFetchDashboardCatalogs).not.toHaveBeenCalled();
     expect(response.body.data.map((item) => item.id)).toEqual(['CS102']);
@@ -152,6 +159,44 @@ describe('GET /api/students/course-recommendations', () => {
       source: 'supabase',
       courses: 'loaded',
     });
+  });
+
+  test('excludes current enrollment while preserving recommendation count and shape', async () => {
+    const studentQuery = createStudentQuery({
+      student_id: 'student-1',
+      major_id: 10,
+      grade: 2,
+      major: { major_name: 'Computer Science' },
+      completed_courses: [],
+    });
+    mockSupabase.from.mockImplementation((tableName) => {
+      if (tableName === 'student') return studentQuery;
+      throw new Error(`Unexpected table: ${tableName}`);
+    });
+    mockFetchStudentCourseHistory.mockResolvedValue([
+      { courseId: 'CS101', status: 'Enrolled', semester: '2026-Fall' },
+    ]);
+    mockFetchAllCourses.mockResolvedValue([
+      course({ id: 'CS101', year: 2 }),
+      course({ id: 'CS102', name: 'Machine Learning', nameEn: 'Machine Learning', nameKo: '머신러닝', title: 'Machine Learning', year: 2 }),
+      course({ id: 'CS103', name: 'Databases', nameEn: 'Databases', nameKo: '데이터베이스', title: 'Databases', year: 2 }),
+    ]);
+
+    const response = await request(createApp())
+      .get('/api/students/course-recommendations?limit=2')
+      .set('Authorization', `Bearer ${tokenFor('student-1')}`)
+      .expect(200);
+
+    expect(response.body.data).toHaveLength(2);
+    expect(response.body.data.map((item) => item.id)).not.toContain('CS101');
+    for (const item of response.body.data) {
+      expect(item).toEqual(expect.objectContaining({
+        id: expect.any(String),
+        type: expect.any(String),
+        score: expect.any(Number),
+        matchHint: expect.any(String),
+      }));
+    }
   });
 
   test('authenticated recommendations request the reviewed 2026-2 offerings when enabled', async () => {

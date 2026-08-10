@@ -905,6 +905,7 @@ const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const {
   fetchAllCourses,
+  fetchStudentCourseHistory,
   fetchAllNotices,
   fetchDashboardCatalogs,
 } = require('../ai/supabaseDataRepository');
@@ -1133,13 +1134,17 @@ async function getCourseRecommendations(req, res, next) {
       courseOptions.offeringSemester = process.env.COURSE_OFFERING_SEMESTER ?? null;
       courseOptions.offeringSection = process.env.COURSE_OFFERING_SECTION ?? null;
     }
-    const courseCatalog = await fetchAllCourses(supabase, courseOptions);
+    const [courseCatalog, enrollmentHistory] = await Promise.all([
+      fetchAllCourses(supabase, courseOptions),
+      fetchStudentCourseHistory(supabase, req.user.student_id),
+    ]);
     const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
       courseCatalog,
       {
         completedCourseIds: adaptedProfile.completedCourseIds,
+        enrollmentHistory,
         limit,
       }
     );
