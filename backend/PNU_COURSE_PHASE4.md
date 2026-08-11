@@ -1,7 +1,12 @@
 # Phase 4 Course-Offering Application Foundation
 
-Phase 4 remains local and read-only. It does not apply either SQL draft,
-change production data, or add an executable apply mode.
+> Historical pre-application record for the 2026-1 candidate set. The reviewed
+> 2026-2 packages were applied later; do not use the counts below as current
+> production instructions.
+
+The Phase 4 tooling remains local and read-only. It did not apply either SQL
+definition, change production data, or add an executable apply mode; later
+reviewed application tooling performed the recorded 2026-2 production work.
 
 ## Strict candidate review
 

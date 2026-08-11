@@ -1,4 +1,5 @@
--- DRAFT MIGRATION SEQUENCE 1 OF 2. Do not apply automatically.
+-- RETAINED MIGRATION DEFINITION 1 OF 2. Already applied for the reviewed course
+-- work; do not rerun blindly. Retained for audit and controlled recovery.
 -- This migration stores official PNU subject identity separately from the
 -- existing production course_id and creates term/section offering identity.
 -- It contains no data backfill and no client policies.

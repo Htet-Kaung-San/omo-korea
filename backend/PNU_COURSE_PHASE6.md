@@ -1,54 +1,48 @@
-# Phase 6 Auditable Application Package
+# Phase 6 Auditable 2026-2 Application Package
 
-Phase 6 prepares a staging-first application package. Nothing in this phase
-has been applied to Supabase. The local dataset and result reports are ignored
-by Git; the reviewed checksum and counts are retained in
-`config/pnu-course-application-manifest.json`.
+This document records the reviewed package and its application history. The
+pre-application procedure was staging-first and dry-run by default. The package
+was subsequently applied manually to production by Tuvshinjargal03 before
+2026-08-11 KST. The feature flag remains disabled.
 
-## Reviewed identity boundary
+## Reviewed 2026-2 boundary
 
-The application dataset selects records only from the Phase 5 reviewed
-proposal. A fresh SELECT-only course read contributes the expected current
-course name, credit, category, and major used by the future drift gate; it does
-not add candidates. Workbook row identifiers are prohibited.
+Dataset SHA-256:
+`6a363904829faa41c2e32c331f0967ffd4481cfefbb1422aa0eaab94a6d4a650`
 
-Reviewed dataset SHA-256:
-`93ae0386cef12717461c2ef24920a4a51b7dc1a867331b41f6dbb900adda35eb`
+- 1,875 production course rows checked;
+- 57 official-number assignments;
+- 82 base offering rows;
+- 13 explicitly English linked offerings;
+- 18 restriction rows plus 2 exception rows;
+- 94 ambiguous subjects excluded;
+- 2,448 unmatched subjects excluded;
+- 3 cross-department official-number conflicts excluded.
 
-- 1,590 course official-number assignments
-- 1,909 course offering rows
-- 161 explicitly English offering rows
-- 270 ambiguous subjects excluded
-- 831 unmatched subjects excluded
-- 4 cross-department official-number conflicts excluded
+The former 1,590 / 1,909 / 161 values described an earlier 2026-1 candidate
+package and are not valid 2026-2 operational counts.
 
-## Safeguards
+## Safeguards and retained definitions
 
-`scripts/apply-pnu-course-package.mjs` defaults to dry-run. Every invocation
-requires the independently reviewed dataset checksum. A write additionally
-requires both `--apply` and `COURSE_BACKFILL_APPROVED=true`. Loading the
-Supabase client is delayed until local argument, approval, and checksum checks
-pass.
+`scripts/apply-pnu-course-package.mjs` defaults to dry-run and requires the
+reviewed checksum. A write additionally requires `--apply` and
+`COURSE_BACKFILL_APPROVED=true`. The retained SQL definitions verify schema,
+constraints, RLS, policy exposure, immutable course fields, identities, and
+counts. RPC execution is revoked from public, anonymous, and authenticated
+roles and granted only to `service_role`.
 
-The future apply path rereads all production courses, rejects immutable-field
-drift and official-number conflicts, runs a read-only database preflight, and
-then invokes one server-side RPC. The RPC validates schema, constraints, RLS,
-policies, counts, identities, language evidence, and existing rows before
-updating only nullable `course.official_course_number` values and inserting
-only reviewed offerings. Any exception rolls back the RPC transaction.
+These controls describe recovery/reapplication behavior; they do not authorize
+another production invocation.
 
-## Security boundary
+## Production result and rollback
 
-The CLI is not imported by a controller or route and no frontend module can
-invoke it. Credentials are provided only through the existing protected
-backend environment. The SQL explicitly revokes RPC execution from `PUBLIC`,
-`anon`, and `authenticated`, grants it only to `service_role`, and creates no
-client policies.
+The later reviewed CSE metadata application added 7 offerings and 9 metadata
+rows, producing 89 offerings and 9 metadata rows in production while leaving
+1,875 course rows unchanged and bringing populated official numbers to 64.
 
-## Rollback boundary
-
-Rollback uses the same dataset and checksum gates. It requires all 1,909
-reviewed offering identities to be present, deletes only those identities, and
-restores only the 1,590 packaged previous official-number values. It verifies
-the resulting counts in the same PostgreSQL transaction and never drops a
-table or column. The feature flag must be disabled before rollback.
+The proposed corrected rollback is intentionally split: metadata first
+(9 metadata, 7 offerings, 7 assignments), then base (20 restrictions/exceptions,
+82 offerings, 57 assignments). These corrected definitions are not confirmed
+installed in production and must be tested and deployed only through a separate
+approved schema change. Do not invoke the older installed production rollback.
+See `PNU_COURSE_PRODUCTION_RUNBOOK.md` for the required order.

@@ -1,5 +1,5 @@
--- DRAFT MIGRATION SEQUENCE 2 OF 2. Review and apply manually only after
--- backend/supabase/course_identity_and_offerings.sql.
+-- RETAINED MIGRATION DEFINITION 2 OF 2. Already applied for the reviewed course
+-- work; do not rerun blindly. It follows course_identity_and_offerings.sql.
 -- This file is not executed by any npm script and must not be used to import
 -- backend/data/engineering_courses.xlsx.
 --

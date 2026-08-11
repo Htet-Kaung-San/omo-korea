@@ -356,4 +356,15 @@ describe('protected metadata application RPC', () => {
     expect(sql).toMatch(/reviewed_count <> 9/i);
     expect(sql).toMatch(/resolution_count <> 7/i);
   });
+
+  test('defines an ordered, checksum-protected rollback for exactly 9 metadata rows and 7 added offerings', () => {
+    expect(sql).toMatch(/function public\.rollback_reviewed_pnu_course_metadata_2026_2/i);
+    expect(sql).toMatch(/exact_metadata_count\s*<>\s*9/i);
+    expect(sql).toMatch(/exact_resolution_count\s*<>\s*7/i);
+    expect(sql).toMatch(/dependent_restriction_count\s*<>\s*0/i);
+    expect(sql).toMatch(/deleted_metadata_count\s*<>\s*9/i);
+    expect(sql).toMatch(/deleted_offering_count\s*<>\s*7/i);
+    expect(sql.indexOf('delete from public.course_metadata metadata')).toBeLessThan(sql.indexOf('delete from public.course_offering offering'));
+    expect(sql).not.toMatch(/select\s+public\.rollback_reviewed_pnu_course_metadata_2026_2/i);
+  });
 });

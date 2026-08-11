@@ -1,6 +1,7 @@
--- DRAFT CONTROLLED APPLICATION RPC. Do not apply automatically.
--- Apply only after all three course schema migrations pass in staging. This file
--- creates no HTTP route and grants execution only to the Supabase service_role.
+-- RETAINED APPLICATION RPC PLUS PROPOSED CORRECTED ROLLBACK DEFINITION. The
+-- reviewed base package was already applied, but this corrected rollback is not
+-- confirmed installed in production. Do not invoke the installed production
+-- rollback. Installing this definition requires separate schema-change approval.
 
 begin;
 
@@ -637,6 +638,9 @@ as $function$
 declare
   v_dataset jsonb := p_package -> 'dataset';
   v_present_offerings integer;
+  v_present_restrictions integer;
+  v_dependent_metadata integer;
+  v_deleted_restrictions integer;
   v_deleted_offerings integer;
   v_restored_courses integer;
   v_remaining_offerings integer;
@@ -654,6 +658,39 @@ begin
     raise exception 'rollback requires all 82 reviewed offering rows; found %',
       v_present_offerings;
   end if;
+
+  select count(*) into v_dependent_metadata
+  from jsonb_to_recordset(v_dataset -> 'courseOfferings') as o(
+    academic_year smallint, semester text, official_course_number text, section text
+  )
+  join public.course_offering offering
+    using (academic_year, semester, official_course_number, section)
+  join public.course_metadata metadata
+    on metadata.course_offering_id = offering.course_offering_id;
+  if v_dependent_metadata <> 0 then
+    raise exception 'base rollback is blocked by % reviewed metadata rows; run rollback_reviewed_pnu_course_metadata_2026_2 first',
+      v_dependent_metadata;
+  end if;
+
+  select count(*) into v_present_restrictions
+  from public.course_offering_restriction existing
+  where existing.restriction_key in (
+    select item ->> 'restriction_key' from jsonb_array_elements(v_dataset -> 'courseRestrictions') item
+    union all
+    select item ->> 'restriction_key' from jsonb_array_elements(v_dataset -> 'courseRestrictionExceptions') item
+  );
+  if v_present_restrictions <> 20 then
+    raise exception 'rollback requires all 20 reviewed restriction/exception rows; found %',
+      v_present_restrictions;
+  end if;
+
+  delete from public.course_offering_restriction existing
+  where existing.restriction_key in (
+    select item ->> 'restriction_key' from jsonb_array_elements(v_dataset -> 'courseRestrictions') item
+    union all
+    select item ->> 'restriction_key' from jsonb_array_elements(v_dataset -> 'courseRestrictionExceptions') item
+  );
+  get diagnostics v_deleted_restrictions = row_count;
 
   delete from public.course_offering existing
   using jsonb_to_recordset(v_dataset -> 'courseOfferings') as o(
@@ -695,6 +732,7 @@ begin
   where c.official_course_number is distinct from a.previous_official_course_number;
 
   if v_deleted_offerings <> 82
+     or v_deleted_restrictions <> 20
      or v_restored_courses <> 57
      or v_remaining_offerings <> 0
      or v_unrestored_courses <> 0 then
@@ -703,6 +741,7 @@ begin
 
   return jsonb_build_object(
     'rolledBack', true,
+    'deletedReviewedRestrictions', v_deleted_restrictions,
     'deletedReviewedOfferings', v_deleted_offerings,
     'restoredCourseOfficialNumbers', v_restored_courses,
     'remainingReviewedOfferings', v_remaining_offerings,

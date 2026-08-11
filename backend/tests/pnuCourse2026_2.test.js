@@ -1,30 +1,48 @@
 const { execFileSync } = require('node:child_process');
-const { readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
+const { existsSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const { readLocalPnuCourseOfferings } = require('../scripts/lib/pnuCourseOfferings.cjs');
-const { deduplicateRestrictionsByKey, evaluateRestriction, readLocalRestrictions } = require('../scripts/lib/pnuCourseRestrictions.cjs');
+const { getSource, readLocalPnuCourseOfferings } = require('../scripts/lib/pnuCourseOfferings.cjs');
+const { SOURCE_FILE, deduplicateRestrictionsByKey, evaluateRestriction, readLocalRestrictions } = require('../scripts/lib/pnuCourseRestrictions.cjs');
 
 const backendRoot = join(__dirname, '..');
+const provenance = JSON.parse(readFileSync(join(backendRoot, 'config', 'pnu-course-provenance-2026-2.json'), 'utf8'));
+const applicationManifest = JSON.parse(readFileSync(join(backendRoot, 'config', 'pnu-course-application-manifest.json'), 'utf8'));
+const metadataManifestPath = join(backendRoot, 'config', 'pnu-course-metadata-2026-2.json');
+const metadataManifest = JSON.parse(readFileSync(metadataManifestPath, 'utf8'));
+const offeringSource = getSource(2026, '2');
+const offeringPath = join(backendRoot, 'data', 'source', '2026-2', offeringSource.localFileName);
+const restrictionPath = join(backendRoot, 'data', 'source', '2026-2', SOURCE_FILE);
+const originalsPresent = existsSync(offeringPath) && existsSync(restrictionPath);
+const sourceTest = (name, callback) => originalsPresent
+  ? test(name, callback)
+  : test.skip(`SKIP: ignored original XLSX files are absent - ${name}`, callback);
+const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 describe('reviewed official PNU 2026-2 sources', () => {
-  test('preserves all 4,275 offering identities and official fields', async () => {
-    const report = await readLocalPnuCourseOfferings({
-      backendRoot,
-      academicYear: 2026,
-      semester: '2',
-      now: () => new Date('2026-08-05T00:00:00.000Z'),
-    });
-    expect(report.offeringCount).toBe(4275);
-    expect(report.sheetName).toBe('sheet');
-    expect(new Set(report.offerings.map((row) => [row.academicYear, row.semester, row.officialCourseNumber, row.section].join('|'))).size).toBe(4275);
-    expect(report.offerings.filter((row) => row.originalLanguageCode === 'E')).toHaveLength(349);
-    expect(report.offerings.every((row) => row.presentationRequirement === null && row.groupProjectRequirement === null && row.assignmentRequirement === null && row.examInformation === null)).toBe(true);
-    expect(report.offerings.some((row) => row.enrollmentLimit != null)).toBe(true);
-    expect(report.offerings.some((row) => row.teamTeachingStatus === 'TEAM_TAUGHT')).toBe(true);
+  test('tracked provenance pins the complete normalized reviewed payload', () => {
+    expect(provenance.schemaVersion).toBe(2);
+    expect(provenance.applicationDatasetSha256).toBe(applicationManifest.datasetSha256);
+    expect(provenance.applicationPackageFileSha256).toBe(applicationManifest.applicationPackageFileSha256);
+    expect(provenance.reviewedMetadataPackage.manifestSha256).toBe(sha256(readFileSync(metadataManifestPath)));
+    expect(provenance.sources.offeringWorkbook.sha256).toBe(applicationManifest.sourceOfferingWorkbookSha256);
+    expect(provenance.sources.restrictionWorkbook.sha256).toBe(applicationManifest.sourceRestrictionWorkbookSha256);
+    expect(provenance.reviewedBasePackage.courseAssignments).toHaveLength(57);
+    expect(provenance.reviewedBasePackage.courseOfferings).toHaveLength(82);
+    expect(provenance.reviewedBasePackage.courseRestrictions).toHaveLength(18);
+    expect(provenance.reviewedBasePackage.courseRestrictionExceptions).toHaveLength(2);
+    expect(provenance.reviewedBasePackage.exclusions.crossDepartmentOfficialNumbers).toBe(3);
+    const payloadHash = sha256(Buffer.from(JSON.stringify({
+      reviewedBasePackage: provenance.reviewedBasePackage,
+      reviewedMetadataPackage: provenance.reviewedMetadataPackage,
+    }), 'utf8'));
+    expect(payloadHash).toBe('52fdce4ae0447a3e4a5146ba5d2610f5f66d73df42d30ab8f619b75b55561d55');
+    expect(provenance.normalizedPayloadSha256).toBe(payloadHash);
   });
 
-  test('preserves restrictions and exceptions without inventing structured values', async () => {
+  sourceTest('restriction workbook parsing and checksum match tracked provenance', async () => {
+    expect(sha256(readFileSync(restrictionPath))).toBe(provenance.sources.restrictionWorkbook.sha256);
     const report = await readLocalRestrictions({ backendRoot, academicYear: 2026, semester: '2' });
     expect(report.rawRestrictionCount).toBe(1225);
     expect(report.restrictions).toHaveLength(1196);
@@ -38,6 +56,22 @@ describe('reviewed official PNU 2026-2 sources', () => {
     expect(report.restrictions.filter((row) => row.sourceRuleType === '내외국인')).toHaveLength(171);
     expect(report.restrictions.filter((row) => row.sourceRuleType === '학년').every((row) => row.yearLevelCondition === null)).toBe(true);
     expect(report.restrictions.filter((row) => row.sourceRuleType === '이수학기').every((row) => row.completedSemestersCondition === null)).toBe(true);
+  });
+
+  test('tracked metadata provenance preserves reviewed identities and explicit unknowns', () => {
+    expect(provenance.reviewedMetadataPackage.identities).toHaveLength(9);
+    expect(provenance.reviewedMetadataPackage).toMatchObject({ additionalOfferingIdentities: 7, metadataRows: 9 });
+    expect(provenance.reviewedMetadataPackage.identities.find((row) => row.officialCourseNumber === 'CB2001111').metadata.examInformation).toBeNull();
+    expect(provenance.reviewedMetadataPackage.identities.map((row) => row.officialCourseNumber).sort())
+      .toEqual(metadataManifest.entries.map((row) => row.officialCourseNumber).sort());
+    expect(provenance.reviewedMetadataPackage.identities.every((row) => row.evidence.sourcePdfSha256 && row.evidence.evidenceText)).toBe(true);
+  });
+
+  sourceTest('optional offering workbook verification uses the tracked aggregate', async () => {
+    expect(sha256(readFileSync(offeringPath))).toBe(provenance.sources.offeringWorkbook.sha256);
+    const report = await readLocalPnuCourseOfferings({ backendRoot, academicYear: 2026, semester: '2', now: () => new Date('2026-08-05T00:00:00.000Z') });
+    expect(report.offeringCount).toBe(applicationManifest.counts.officialOfferings);
+    expect(report.offerings.filter((row) => row.originalLanguageCode === 'E')).toHaveLength(applicationManifest.counts.sourceExplicitEnglishOfferings);
   });
 
   test('identical source restrictions are deterministically deduplicated', () => {

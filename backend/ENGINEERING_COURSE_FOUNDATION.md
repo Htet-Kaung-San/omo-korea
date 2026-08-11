@@ -1,5 +1,9 @@
 # Engineering Course Foundation
 
+> Historical pre-application design record. The reviewed schema and 2026-2
+> packages were later applied; see `PNU_COURSE_PRODUCTION_RUNBOOK.md`. References
+> to drafts below describe that historical review stage, not current status.
+
 Phase 1 is a local validation and schema-design foundation. It does not import
 `data/engineering_courses.xlsx`, connect to Supabase, or change recommendation
 scoring.
@@ -80,13 +84,13 @@ Course names must never be used to infer these values. `NULL` means the source
 does not provide reliable evidence. `NONE` is allowed only when the official
 source explicitly states that the requirement is absent.
 
-## Draft migration
+## Historical migration design
 
 `supabase/course_identity_and_offerings.sql` and
-`supabase/course_metadata.sql` are review-only and are not referenced by any
-npm script. The identity/offering draft must precede the metadata draft because
+`supabase/course_metadata.sql` are retained definitions and are not referenced
+by any npm script. The identity/offering migration precedes metadata because
 metadata now references `course_offering_id`. Teaching language belongs to the
 offering; syllabus-only assessment fields remain in metadata. Applying either
-file requires a separate approved database migration phase. Both drafts enable
+Neither file should be rerun blindly. Both definitions enable
 row-level security and define no anonymous or authenticated client policies,
 so the tables remain backend-only by default.

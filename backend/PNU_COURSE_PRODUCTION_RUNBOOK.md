@@ -1,174 +1,133 @@
-# Controlled PNU Course Application Runbook
+# Controlled PNU Course Production Runbook
 
-This is a staging-first operator procedure. It does not authorize a database
-change and contains no credentials. No staging or production execution has
-been performed. Keep `ENABLE_COURSE_OFFERINGS` disabled until Step 10.
+## Current production status
 
-## Reviewed package
+The reviewed 2026-2 base and CSE metadata packages were applied manually by
+Tuvshinjargal03 before 2026-08-11 KST. Evidence supports no more precise
+timestamp. Verified production state after application is:
 
-- Term: `2026-2`
-- Application dataset SHA-256:
-  `93ae0386cef12717461c2ef24920a4a51b7dc1a867331b41f6dbb900adda35eb`
-- Course official-number assignments: 57
-- Course offering rows: 82
-- Explicitly English linked offerings: 13
-- Linked unique restriction rows: 18 plus 2 exception rows
-- Excluded ambiguous subjects: 94
-- Excluded unmatched subjects: 2,448
-- Excluded cross-department official-number conflicts: 4
+- 1,875 `course` rows; 64 have `official_course_number` populated;
+- 89 `course_offering` rows (82 base plus 7 metadata-package additions);
+- 9 `course_metadata` rows;
+- 20 restriction/exception rows;
+- immutable course fields unchanged.
 
-The dataset is local and gitignored. Archive it with the reviewed code and
-checksum using the organization's approved artifact store before any staging
-operation. Never substitute a regenerated dataset without a new review.
+`ENABLE_COURSE_OFFERINGS` remains false or missing in deployed production.
+Application RPCs must not be invoked again casually. The application migrations
+and package writes are complete. The corrected rollback definitions in this
+branch are proposed recovery code and are not confirmed installed in production.
+Do not invoke the currently installed production rollback functions: their
+semantics predate the complete ordered rollback described below.
 
-## Step 1: Archive the reviewed code and checksums
+## Reviewed artifacts
 
-1. Commit, tag, or otherwise immutably archive the exact reviewed code without
-   changing the dataset.
-2. Archive the ignored application dataset separately.
-3. Recalculate its checksum and require the exact value above.
-4. Record the Phase 5 source, match, dry-run, and proposal checksums.
-5. Assign an operator, independent reviewer, rollback owner, and maintenance
-   window.
+- base application dataset SHA-256: `6a363904829faa41c2e32c331f0967ffd4481cfefbb1422aa0eaab94a6d4a650`;
+- metadata manifest SHA-256: `288ff7569cff5494e029b12f14aeddd174bbb7083926984b70a3c159bfaaf051`;
+- metadata resolution SHA-256: `977bcca97a1f885c35faa9bf63c9102a707f10877fcc8faf5c0d0b7e2ec6aab2`;
+- base package: 57 assignments, 82 offerings, 13 explicit-English offerings,
+  18 restrictions plus 2 exceptions;
+- exclusions: 94 ambiguous, 2,448 unmatched, 3 cross-department conflicts;
+- metadata extension: major 8, section 059, 7 additional offering identities,
+  and 9 syllabus metadata identities.
 
-Stop if the code or any checksum differs from the reviewed package.
+The ignored XLSX/PDF originals and generated reports remain local. The tracked
+`config/pnu-course-provenance-2026-2.json` records the normalized review facts
+and source hashes used by hermetic tests.
 
-## Step 2: Back up production data
+## Controlled operation checklist
 
-1. Keep `ENABLE_COURSE_OFFERINGS` disabled.
-2. Export the schema and data for `public.course` and every table referencing
-   it.
-3. If the offering tables already exist, export `course_offering` and
-   `course_metadata` as well.
-4. Record row counts and a checksum for the course export.
-5. Confirm the restore destination and procedure with the rollback owner.
+These steps are for a separately approved recovery or re-application; they do
+not authorize another production write.
 
-Do not continue without a restorable backup.
+## Step 1: Confirm state and exact checksums
 
-## Step 3: Apply migrations in staging
+Compare current read-only counts and all three checksums with the reviewed
+artifacts above. Stop on any difference.
 
-Apply, in order, through the approved staging migration process:
+## Step 2: Take and verify a restorable backup
 
-1. `supabase/course_identity_and_offerings.sql`
-2. `supabase/course_metadata.sql`
-3. `supabase/course_offering_2026_2_extensions.sql`
+Back up `course` and every dependent offering, metadata, and restriction table.
+Record counts and prove the restore destination before proceeding.
 
-If the first two migrations are already installed and their drift guards pass,
-do not rerun them. Apply only the additive third migration. No migration contains
-course data or a backfill.
-3. `supabase/course_application_rpc.sql`
+## Step 3: Inspect retained definitions
 
-Verify every transaction committed. Confirm the nullable course column,
-tables, columns, named constraints, cascading foreign keys, indexes, and RLS.
-Confirm there are no policies on the offering tables and that application RPC
-execution is revoked from `PUBLIC`, `anon`, and `authenticated` and granted
-only to `service_role`.
+Confirm schema, constraints, RLS, policies, and service-role-only grants. Do not
+blindly rerun an already-installed migration. Installing the corrected rollback
+definitions is a separate production schema change requiring explicit approval;
+this runbook does not authorize it.
 
-## Step 4: Run the package in staging
+## Step 4: Run checksum-bound preflight only
 
-1. Configure service-role credentials only in the protected backend operator
-   environment.
-2. Run `apply:pnu-course-package` without `--apply` first, supplying the exact
-   reviewed checksum. It must report `DRY_RUN` and all preflight gates passing.
-3. Obtain explicit staging approval.
-4. Set `COURSE_BACKFILL_APPROVED=true` only for the controlled operator
-   process.
-5. Run the same command with `--apply` and the reviewed checksum.
+Use dry-run mode first. Require immutable course fields, reviewed identities,
+uniqueness, and expected counts to pass without mutation.
 
-`--apply` without the approval variable must fail. The approval variable
-without `--apply` remains a dry-run. Do not expose the operator environment to
-the frontend or an HTTP handler.
+## Step 5: Verify reviewed invariants
 
-## Step 5: Verify staging counts and invariants
+Require the exact package counts, preserve unknown values as null, and confirm
+that no unrelated course or offering identity changed.
 
-Require all of the following:
+## Step 6: Run backend and frontend smoke tests
 
-- production-equivalent course count is 1,875;
-- exactly 57 reviewed courses have their expected official number;
-- exactly 82 reviewed offering identities exist;
-- exactly 13 linked offerings have code `E` and language `ENGLISH`;
-- exactly 20 reviewed restriction/exception rows exist;
-- null original-language values remain null;
-- no name, credit, category, major, or `course_id` changed;
-- ambiguous, unmatched, and cross-department exclusions remain untouched;
-- both offering uniqueness constraints have zero violations;
-- RLS remains enabled and no public policies exist.
+Verify recommendation ordering, completed/enrolled exclusion, deterministic
+ties, language badges, section selection, and nullable metadata display.
 
-Preserve the generated local result report with the staging evidence.
+## Step 7: Roll back metadata package first if approved
 
-## Step 6: Run staging smoke tests
+Use both metadata checksums and require exactly 9 metadata rows, 7 offerings,
+and 7 assignments to be handled atomically.
 
-Run the complete backend and frontend test matrix, then verify with approved
-staging accounts:
+## Step 8: Roll back base package second if approved
 
-- recommendation ordering is unchanged;
-- explicit English and non-English badges use only official evidence;
-- null-language and missing-offering courses show no language badge;
-- professor, schedule, and remote status appear only when populated;
-- multiple sections do not select an arbitrary offering;
-- presentation, project, assignment, and exam indicators remain absent.
+Use the base dataset checksum and require exactly 20 restriction/exception
+rows, 82 offerings, and 57 assignments to be handled atomically.
 
-Do not describe staging as verified until these tests have actually run.
+## Step 9: Decide exposure or recovery
 
-## Step 7: Test rollback in staging
+Keep the feature flag disabled unless a separate deployment review approves
+exposure. On drift, stop writes and recover from the verified backup.
 
-1. Keep the feature flag disabled.
-2. Run the package with `--rollback` but without `--apply`; require a dry-run.
-3. Obtain explicit rollback-test approval.
-4. With `COURSE_BACKFILL_APPROVED=true`, run `--rollback --apply` using the
-   exact reviewed checksum.
-5. Require exactly 82 reviewed offerings removed and exactly 57 reviewed
-   course official-number values restored to their packaged previous values.
-6. Verify unrelated rows and all other course fields are unchanged.
+## Re-application safety
 
-The rollback RPC does not drop tables or columns. Any count mismatch raises an
-exception and rolls back the entire RPC transaction.
+Before any approved recovery or re-application, take a restorable backup and
+run the checksum, schema, RLS, immutable-course, identity, and count preflights.
+Stop on any drift. Never substitute a regenerated package under the reviewed
+checksum. Do not expose service-role RPCs through routes or frontend code.
 
-## Step 8: Repeat production preflight and checksums
+The legacy `npm run seed:courses` command deletes and rebuilds course rows by
+major. It now fails before its first delete when any offering row or reviewed
+official-course-number assignment exists. There is deliberately no force flag;
+use an identity-preserving reviewed migration instead.
 
-Immediately before production:
+## Ordered complete rollback
 
-1. Recalculate every archived checksum.
-2. Re-run the application CLI in default dry-run mode against production.
-3. Require all schema, RLS, policy, course-count, uniqueness, checksum, and
-   drift gates to pass.
-4. Confirm all 57 current production rows still match their expected name,
-   credit, category, and major.
-5. Stop for any changed, missing, conflicting, duplicated, or ambiguous row.
+A complete rollback is split into two atomic, checksum-protected operations.
+The definitions must first be reviewed, tested in a disposable database, and
+installed through a separately approved schema change. Only then may a rollback
+be separately approved and executed in this order:
 
-## Step 9: Apply to production after explicit approval
+1. Invoke `rollback_reviewed_pnu_course_metadata_2026_2` with both exact
+   metadata checksums. It verifies and deletes exactly 9 metadata rows, then
+   exactly 7 metadata-added offerings, then restores exactly 7 course official
+   numbers. It refuses unexpected restriction dependencies or identity drift.
+2. Invoke `rollback_reviewed_pnu_course_package` with the exact base dataset and
+   checksum. It refuses to proceed while reviewed metadata remains, explicitly
+   deletes exactly 20 reviewed restriction/exception rows, deletes exactly 82
+   base offerings, and restores exactly 57 packaged course values.
 
-After the named approver signs the exact checksum and preflight report:
+Both functions fail atomically on count or identity drift. They target reviewed
+keys only and do not drop schema. Never reverse the order: base offering
+deletion has cascading foreign keys, and the guard exists to prevent a cascade
+from hiding metadata removal.
 
-1. Restrict `COURSE_BACKFILL_APPROVED=true` to the operator process.
-2. Run the application command with `--apply` and the reviewed checksum.
-3. Preserve its result report and database logs.
-4. Repeat all Step 5 invariants before proceeding.
+## Deployment exposure
 
-The CLI invokes one server-side PostgreSQL function. PostgreSQL executes that
-function atomically; any raised validation exception rolls back its course and
-offering changes together.
+Production data application does not enable product exposure. Keep
+`ENABLE_COURSE_OFFERINGS=false` or missing until a separate deployment review
+approves read-only API/UI smoke tests. If later enabled, pin academic year 2026
+and semester 2 and repeat recommendation, language-badge, section-selection,
+and metadata display checks.
 
-## Step 10: Enable the feature only after verification
-
-Only after successful production postflight and smoke tests, set:
-
-```text
-ENABLE_COURSE_OFFERINGS=true
-COURSE_OFFERING_ACADEMIC_YEAR=2026
-COURSE_OFFERING_SEMESTER=2
-```
-
-Set `COURSE_OFFERING_SECTION` only when intentionally displaying one reviewed
-section. Redeploy through the normal controlled process and repeat the read-only
-API/UI smoke tests.
-
-## Production rollback decision
-
-On any failure, first disable `ENABLE_COURSE_OFFERINGS` and redeploy. Preserve
-logs and stop further writes. If the package fully applied and rollback is
-approved, use the checksum-bound rollback operation described in Step 7. It
-deletes only the 82 reviewed offering identities and restores only the 57
-packaged course values. It never drops tables. If rollback preflight or counts
-fail, stop and restore from the Step 2 backup through the approved recovery
-process.
+Recommended PR title:
+`feat(courses): add 2026-2 offering metadata and personalized recommendations`.
+The recommendation engine is general; verified syllabus metadata currently
+covers only the reviewed CSE subset described above.

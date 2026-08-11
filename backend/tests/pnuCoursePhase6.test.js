@@ -259,6 +259,10 @@ describe('Phase 6 transaction, rollback, and exposure safety', () => {
     expect(sql).toMatch(/v_present_offerings\s*<>\s*82/i);
     expect(sql).toMatch(/v_deleted_offerings\s*<>\s*82/i);
     expect(sql).toMatch(/v_restored_courses\s*<>\s*57/i);
+    expect(sql).toMatch(/v_present_restrictions\s*<>\s*20/i);
+    expect(sql).toMatch(/v_deleted_restrictions\s*<>\s*20/i);
+    expect(sql).toMatch(/run rollback_reviewed_pnu_course_metadata_2026_2 first/i);
+    expect(sql.indexOf('delete from public.course_offering_restriction')).toBeLessThan(sql.indexOf('delete from public.course_offering existing'));
     expect(sql).toMatch(/previous_official_course_number/i);
     expect(sql).not.toMatch(/drop\s+(table|column)/i);
   });

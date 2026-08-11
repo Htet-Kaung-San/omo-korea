@@ -1,8 +1,12 @@
-# PNU Course and Offering Identity Draft
+# PNU Course and Offering Identity - Historical Phase 3
 
-Phase 3 remains a local, read-only design and matching exercise. Neither SQL
-draft is applied, the workbook is not imported, and the matching script never
-writes to Supabase.
+> This preserves the pre-application 2026-1 design and candidate counts. The
+> reviewed schema and 2026-2 packages were applied later; current production
+> facts are in `PNU_COURSE_PRODUCTION_RUNBOOK.md`.
+
+During Phase 3 this was a local, read-only design and matching exercise. At that
+historical point neither SQL definition had been applied. The workbook is still
+untracked and the matching script still never writes to Supabase.
 
 ## Smallest safe structure
 
