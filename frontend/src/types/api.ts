@@ -276,7 +276,31 @@ export interface Course {
   tags: string[]
 }
 
-export interface RecommendedCourse extends Course {
+export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
+export type TeachingLanguage = 'KOREAN' | 'ENGLISH' | 'MIXED' | 'OTHER'
+export type RemoteCourseStatus = 'REMOTE' | 'NOT_REMOTE' | 'MIXED' | 'OTHER'
+export type CourseMetadataRequirement = 'REQUIRED' | 'OPTIONAL' | 'NONE'
+
+export interface CourseOfferingInformation {
+  officialCourseNumber: string | null
+  academicYear: number | null
+  semester: string | null
+  section: string | null
+  professor: string | null
+  schedule: string | null
+  remoteCourseStatus: RemoteCourseStatus | null
+  originalLanguageCode: OriginalLanguageCode | null
+  teachingLanguage: TeachingLanguage | null
+  isEnglishTaught: boolean | null
+  theoryHours: number | null
+  practicalHours: number | null
+  presentationRequirement: CourseMetadataRequirement | null
+  groupProjectRequirement: CourseMetadataRequirement | null
+  assignmentRequirement: CourseMetadataRequirement | null
+  examInformation: string | null
+}
+
+export interface RecommendedCourse extends Course, CourseOfferingInformation {
   score: number
   matchHint?: string
 }
