@@ -1,0 +1,379 @@
+{
+  "version": "1.0",
+  "description": "Benchmark question set for the Hey! PNU assistant. Expected facts are taken verbatim from the knowledge-base documents named in `source`, so they are checkable rather than opinions. `coverage` records whether the knowledge base contains the answer at all: 'covered' questions measure whether the OKF retrieves and uses it, 'not_covered' questions measure whether the assistant admits the gap instead of inventing PNU-specific detail.",
+  "questions": [
+    {
+      "id": "work-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Allowed Hours (허용 시간)",
+      "question": "I'm a 2nd-year bachelor's student at PNU and I don't have TOPIK level 3 yet. How many hours per week am I allowed to work part-time?",
+      "expected": ["10 hours per week"]
+    },
+    {
+      "id": "work-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Allowed Hours (허용 시간)",
+      "question": "I'm a 3rd-year bachelor's student with TOPIK level 4. How many hours can I work on weekdays, and what about during semester breaks?",
+      "expected": ["25 hours on weekdays", "unlimited during weekends and semester breaks"]
+    },
+    {
+      "id": "work-03",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Allowed Hours (허용 시간)",
+      "question": "I'm a master's student. Without meeting the Korean proficiency requirement, how many hours per week can I work?",
+      "expected": ["15 hours per week"]
+    },
+    {
+      "id": "work-04",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Required Documents (제출 서류)",
+      "question": "What documents do I need to apply for a part-time work permit at PNU?",
+      "expected": [
+        "application form, passport and Alien Registration Card (ARC)",
+        "transcript (성적증명서)",
+        "proof of Korean or English ability",
+        "university confirmation 외국인 유학생 시간제 취업 확인서 from PNU International Affairs",
+        "employer's business registration and a standard labor contract"
+      ]
+    },
+    {
+      "id": "work-05",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Required Documents (제출 서류)",
+      "question": "Is there a fee for the part-time work permit application?",
+      "expected": ["no fee"]
+    },
+    {
+      "id": "work-06",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — How to Apply (신청 방법)",
+      "question": "Where do I actually submit my part-time work permit application, and how many workplaces does one approval cover?",
+      "expected": [
+        "local immigration office or online via Hi Korea (hikorea.go.kr)",
+        "up to 2 workplaces at once",
+        "university sign-off from PNU International Affairs (국제처) must come first"
+      ]
+    },
+    {
+      "id": "work-07",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Restricted Jobs (제한대상)",
+      "question": "Can I work as a delivery rider or do private one-on-one tutoring as an international student?",
+      "expected": [
+        "no — gig-platform delivery work is restricted",
+        "no — private one-on-one tutoring (개인과외) is restricted"
+      ]
+    },
+    {
+      "id": "work-08",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Penalties (위반 시 처리)",
+      "question": "What happens if I get caught working without a permit?",
+      "expected": [
+        "treated as illegal employment with a penalty",
+        "in the construction sector it results in an exit order"
+      ]
+    },
+    {
+      "id": "work-09",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Penalties (위반 시 처리)",
+      "question": "If I break the work permit rules three times, what happens to my student status?",
+      "expected": ["student status (유학자격) may be revoked on the third violation"]
+    },
+    {
+      "id": "work-10",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Eligibility (대상자 요건)",
+      "question": "What GPA do I need to be eligible for a part-time work permit?",
+      "expected": ["C (2.0) or above in your most recent semester"]
+    },
+    {
+      "id": "work-11",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Do You Need a Permit? (기본원칙)",
+      "question": "I'm on a D-2 student visa. Am I allowed to just take a part-time job?",
+      "expected": [
+        "no — D-2 holders cannot work without permission",
+        "requires approval from both the university and immigration"
+      ]
+    },
+    {
+      "id": "svc-01",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Course Registration (수강신청)",
+      "question": "Which website do I use to actually submit my course registration at PNU?",
+      "expected": [
+        "sugang.pusan.ac.kr for the actual registration submission",
+        "this is a different site from One-Stop (onestop.pusan.ac.kr)"
+      ]
+    },
+    {
+      "id": "svc-02",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Course Registration (수강신청)",
+      "question": "Where can I browse the course catalog and check seat limits before registration opens?",
+      "expected": ["수강편람 (Course Catalog) on onestop.pusan.ac.kr"]
+    },
+    {
+      "id": "svc-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Leave of Absence / Return to School (휴학 / 복학 신청)",
+      "question": "How do I apply for a leave of absence at PNU?",
+      "expected": [
+        "log in at onestop.pusan.ac.kr",
+        "use the Leave of Absence Application (휴학신청)",
+        "there are specific application windows each semester"
+      ]
+    },
+    {
+      "id": "svc-04",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Leave of Absence / Return to School (휴학 / 복학 신청)",
+      "question": "I took a semester off. How do I come back to school?",
+      "expected": [
+        "Return to School Application (복학신청) on onestop.pusan.ac.kr",
+        "must be within the application window"
+      ]
+    },
+    {
+      "id": "svc-05",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Checking Grades (성적확인)",
+      "question": "Where do I check my grades at PNU?",
+      "expected": ["through One-Stop (onestop.pusan.ac.kr)"]
+    },
+    {
+      "id": "svc-06",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Tuition — Bill & Payment Confirmation (등록금 고지서 / 납부확인)",
+      "question": "How do I get my tuition bill and confirm that my payment went through?",
+      "expected": ["through One-Stop (onestop.pusan.ac.kr) tuition bill / payment confirmation"]
+    },
+    {
+      "id": "svc-07",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Course Cancellation / Withdrawal (수강취소)",
+      "question": "How do I drop a course after registering for it?",
+      "expected": ["course cancellation (수강취소) via One-Stop, within the designated period"]
+    },
+    {
+      "id": "lib-01",
+      "category": "Library",
+      "coverage": "covered",
+      "source": "Library — Reading Room Seat Reservation (열람실 좌석예약)",
+      "question": "How do I reserve a seat in the PNU library reading room?",
+      "expected": [
+        "use the 좌석예약 (Seat Reservation) panel in the library app",
+        "tap 배정신청 (Request Assignment)",
+        "pick a building, then floor, then room type"
+      ]
+    },
+    {
+      "id": "lib-02",
+      "category": "Library",
+      "coverage": "covered",
+      "source": "Library — Reading Room Seat Reservation (열람실 좌석예약)",
+      "question": "Which library buildings can I choose from when reserving a seat at PNU?",
+      "expected": ["나노생명, 의생명, 미리내, 새벽벌, 중앙"]
+    },
+    {
+      "id": "lib-03",
+      "category": "Library",
+      "coverage": "covered",
+      "source": "Library — Library Card / 이용증",
+      "question": "How do I show my library card at PNU?",
+      "expected": ["open the library app, log in, and tap 이용증 in the bottom navigation"]
+    },
+    {
+      "id": "cur-01",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "source": "Artificial Intelligence curriculum documents",
+      "question": "What courses are recommended for a 1st-year, 1st-semester Artificial Intelligence student at PNU?",
+      "expected": ["specific PNU AI first-semester course names from the curriculum recommendations"]
+    },
+    {
+      "id": "cur-02",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "source": "Computer Engineering curriculum documents",
+      "question": "Which courses should a 2nd-year Computer Engineering student at PNU take?",
+      "expected": ["specific PNU Computer Engineering 2nd-year course names"]
+    },
+    {
+      "id": "cur-03",
+      "category": "Curriculum",
+      "coverage": "covered",
+      "source": "Artificial Intelligence curriculum documents",
+      "question": "I'm a 4th-year AI student. What should I be taking in my final year?",
+      "expected": ["specific PNU AI 4th-year course recommendations"]
+    },
+    {
+      "id": "cur-04",
+      "category": "Curriculum",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "What courses should I take as a 2nd-year Chemistry student at PNU?",
+      "expected": [],
+      "expected_behaviour": "The knowledge base only contains curriculum documents for Artificial Intelligence and Computer Engineering. A good answer admits it has no PNU Chemistry curriculum and points the student to their department, rather than inventing a Chemistry course list."
+    },
+    {
+      "id": "sch-01",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "source": "PNU Scholarship for Enrolled Undergraduate International Students",
+      "question": "What scholarships can I apply for as an enrolled international undergraduate at PNU?",
+      "expected": ["PNU scholarship for enrolled undergraduate international students", "TOPIK scholarship"]
+    },
+    {
+      "id": "sch-02",
+      "category": "Scholarship",
+      "coverage": "covered",
+      "source": "PNU TOPIK Scholarship for Enrolled International Students",
+      "question": "Is there a scholarship at PNU connected to my TOPIK score?",
+      "expected": ["yes — the PNU TOPIK scholarship for enrolled international students"]
+    },
+    {
+      "id": "adm-01",
+      "category": "Admissions",
+      "coverage": "covered",
+      "source": "Language Proficiency Requirements for 2026 Spring Undergraduate International Admissions",
+      "question": "What language proficiency do I need for 2026 Spring undergraduate international admission to PNU?",
+      "expected": ["the documented TOPIK / language proficiency requirement for 2026 Spring undergraduate international admission"]
+    },
+    {
+      "id": "prog-01",
+      "category": "Program",
+      "coverage": "covered",
+      "source": "PNU Buddy Program",
+      "question": "What is the PNU Buddy Program?",
+      "expected": ["a PNU programme pairing international students with local students"]
+    },
+    {
+      "id": "gap-01",
+      "category": "Housing",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "How do I apply for a dormitory room at PNU, and what does it cost per semester?",
+      "expected": [],
+      "expected_behaviour": "The knowledge base contains no housing or dormitory document. A good answer says it does not have PNU dormitory details and directs the student to the PNU dormitory office or website, rather than stating specific application steps or prices."
+    },
+    {
+      "id": "gap-02",
+      "category": "Food",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "What is on the menu at the PNU student cafeteria today, and how much does a meal cost?",
+      "expected": [],
+      "expected_behaviour": "No cafeteria document exists in the knowledge base. A good answer declines to state today's menu or prices and points to the cafeteria page, rather than inventing dishes or won amounts."
+    },
+    {
+      "id": "gap-03",
+      "category": "Banking",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Which bank branch on PNU campus should I use to open a student account, and what documents do I bring?",
+      "expected": [],
+      "expected_behaviour": "No banking document exists in the knowledge base. A good answer avoids naming a specific on-campus branch as fact and suggests confirming with International Affairs."
+    },
+    {
+      "id": "gap-04",
+      "category": "Healthcare",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "How do I enrol in Korean National Health Insurance as a PNU international student, and what is the monthly premium?",
+      "expected": [],
+      "expected_behaviour": "No health-insurance document exists in the knowledge base. A good answer avoids quoting a specific premium as PNU-verified fact."
+    },
+    {
+      "id": "gap-05",
+      "category": "Transport",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Which subway station is closest to the PNU main campus and how much is the fare from Seomyeon?",
+      "expected": [],
+      "expected_behaviour": "No transport document exists in the knowledge base. Answering from general knowledge is acceptable only if the answer does not present itself as official PNU information."
+    },
+    {
+      "id": "gap-06",
+      "category": "Campus Life",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "What are the opening hours of the PNU gym, and do international students need to pay a membership fee?",
+      "expected": [],
+      "expected_behaviour": "No gym or sports facility document exists in the knowledge base. A good answer declines to state hours or fees as fact."
+    },
+    {
+      "id": "gap-07",
+      "category": "Telecom",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Where near PNU can I buy a SIM card, and which carrier is cheapest for students?",
+      "expected": [],
+      "expected_behaviour": "No telecom document exists in the knowledge base. A good answer should not present a specific shop or carrier price as PNU-verified information."
+    },
+    {
+      "id": "gap-08",
+      "category": "Emergency",
+      "coverage": "not_covered",
+      "source": null,
+      "question": "Who do I contact at PNU if I have a mental health emergency at 2am on a weekend?",
+      "expected": [],
+      "expected_behaviour": "No counselling or emergency-contact document exists in the knowledge base. A good answer should be careful, avoid inventing a PNU hotline number, and direct to general emergency services and PNU International Affairs during hours."
+    },
+    {
+      "id": "adv-01",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Allowed Hours (허용 시간)",
+      "question": "A friend told me all international students in Korea can work 20 hours a week. Is that right for me as a 1st-year bachelor's student at PNU without TOPIK?",
+      "expected": [
+        "no — 20 hours is not the applicable figure",
+        "without meeting the Korean proficiency requirement a 1st-year bachelor's student is limited to 10 hours per week"
+      ],
+      "expected_behaviour": "The commonly repeated '20 hours' figure is wrong here. A good answer corrects it using the PNU/MOJ table rather than agreeing with the premise."
+    },
+    {
+      "id": "adv-02",
+      "category": "Work & Visa",
+      "coverage": "covered",
+      "source": "Part-Time Work Permit — Restricted Jobs (제한대상)",
+      "question": "I found a well-paid construction job near campus. Can I take it if I get a permit?",
+      "expected": [
+        "construction is essentially never allowed",
+        "one violation can result in an exit order"
+      ],
+      "expected_behaviour": "A generic assistant is likely to say 'yes, with a permit'. The correct answer is that construction is effectively barred."
+    },
+    {
+      "id": "adv-03",
+      "category": "Campus Services",
+      "coverage": "covered",
+      "source": "One-Stop Service Centre — Course Registration (수강신청)",
+      "question": "I logged into onestop.pusan.ac.kr during the registration window but I can't submit my courses. What am I doing wrong?",
+      "expected": [
+        "actual registration submission happens on sugang.pusan.ac.kr, a different site from One-Stop"
+      ],
+      "expected_behaviour": "This is the specific confusion the guide calls out. A good answer names the correct site rather than giving generic troubleshooting."
+    }
+  ]
+}
