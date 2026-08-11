@@ -775,6 +775,15 @@ const getStudentProfile = async (req, res) => {
   try {
     const { student_id } = req.params;
 
+    // A student may only read their own profile. Admins list students via GET /.
+    if (String(req.user?.student_id) !== String(student_id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only view your own profile.",
+        error: { status: 403, code: "FORBIDDEN" },
+      });
+    }
+
     const { data, error } = await supabase
       .from("student")
       .select(
@@ -804,7 +813,9 @@ const getStudentProfile = async (req, res) => {
       });
     }
 
-    const { major, ...studentProfile } = data;
+    // `password` holds a bcrypt hash or the [SUPABASE_AUTH] marker and must
+    // never leave the server, even on an authorised self-read.
+    const { major, password, ...studentProfile } = data;
 
     res.json({
       success: true,
@@ -984,7 +995,9 @@ const updateStudentProfile = async (req, res) => {
       });
     }
 
-    const { major, ...studentProfile } = data;
+    // `password` holds a bcrypt hash or the [SUPABASE_AUTH] marker and must
+    // never leave the server, even on an authorised self-read.
+    const { major, password, ...studentProfile } = data;
 
     res.json({
       success: true,
@@ -1599,6 +1612,16 @@ const getCourses = async (req, res) => {
 const getEnrollments = async (req, res) => {
   try {
     const { student_id } = req.params;
+
+    // A student may only read their own enrollments.
+    if (String(req.user?.student_id) !== String(student_id)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only view your own enrollments.",
+        error: { status: 403, code: "FORBIDDEN" },
+      });
+    }
+
     const { data, error } = await supabase
       .from("enrollment")
       .select(
