@@ -29,7 +29,8 @@ export interface AuthResponse {
 }
 
 export interface LoginRequest {
-  studentId: string
+  /** School email (preferred) or student ID. The backend detects which by '@'. */
+  identifier: string
   password: string
 }
 

@@ -10,20 +10,30 @@ import pnuSeal from '@/assets/pnu-seal.svg'
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`. Deliberately
 // not a real student's account and deliberately not an admin, because this repo
 // is public. Filled in only when the reviewer clicks the demo button.
-const DEMO_STUDENT_ID = "202612345"
+const DEMO_EMAIL = "202612345@pusan.ac.kr"
 const DEMO_PASSWORD = "password"
+
+// Renamed from hey_pnu_remembered_student_id: the field now holds an email for
+// most people. Reading the old key once keeps anyone who ticked "remember me"
+// before this change from finding an empty box.
+const REMEMBER_KEY = "hey_pnu_remembered_login"
+const LEGACY_REMEMBER_KEY = "hey_pnu_remembered_student_id"
+
+function readRememberedLogin() {
+  return (
+    localStorage.getItem(REMEMBER_KEY) ||
+    localStorage.getItem(LEGACY_REMEMBER_KEY) ||
+    ""
+  )
+}
 
 export function LoginPage() {
   const { login, isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
 
-  const [studentId, setStudentId] = useState(
-    () => localStorage.getItem("hey_pnu_remembered_student_id") || ""
-  )
+  const [identifier, setIdentifier] = useState(readRememberedLogin)
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(() =>
-    Boolean(localStorage.getItem("hey_pnu_remembered_student_id"))
-  )
+  const [rememberMe, setRememberMe] = useState(() => Boolean(readRememberedLogin()))
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -43,18 +53,19 @@ export function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!studentId.trim() || !password) {
+    if (!identifier.trim() || !password) {
       setError(t('auth.loginRequired'))
       return
     }
     setSubmitting(true)
     try {
-      await login({ studentId: studentId.trim(), password })
+      await login({ identifier: identifier.trim(), password })
       if (rememberMe) {
-        localStorage.setItem("hey_pnu_remembered_student_id", studentId.trim());
+        localStorage.setItem(REMEMBER_KEY, identifier.trim());
       } else {
-        localStorage.removeItem("hey_pnu_remembered_student_id");
+        localStorage.removeItem(REMEMBER_KEY);
       }
+      localStorage.removeItem(LEGACY_REMEMBER_KEY);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginError'))
     } finally {
@@ -98,17 +109,19 @@ export function LoginPage() {
             onSubmit={handleSubmit}
             className="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(0,61,130,0.08)] p-6 space-y-4"
           >
-            {/* Student ID */}
+            {/* School email, with student ID still accepted */}
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-semibold text-pnu-blue">{t('auth.studentIdLabel')}</label>
+              <label className="block text-[13px] font-semibold text-pnu-blue">{t('auth.loginIdentifierLabel')}</label>
               <input
                 type="text"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder={t('auth.studentIdPlaceholder')}
+                inputMode="email"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={t('auth.loginIdentifierPlaceholder')}
                 className={inputCls}
                 autoComplete="username"
               />
+              <p className="text-[12px] text-pnu-muted">{t('auth.loginIdentifierHint')}</p>
             </div>
 
             {/* Password */}
@@ -173,7 +186,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={() => {
-                setStudentId(DEMO_STUDENT_ID)
+                setIdentifier(DEMO_EMAIL)
                 setPassword(DEMO_PASSWORD)
                 setError('')
               }}

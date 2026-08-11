@@ -95,7 +95,7 @@ export const realApi: HeyPnuApi = {
     const response = await apiFetch<BackendLoginResponse>('/students/login', {
       method: 'POST',
       body: JSON.stringify({
-        student_id: data.studentId,
+        identifier: data.identifier,
         password: data.password,
       }),
       suppressToast: true,
