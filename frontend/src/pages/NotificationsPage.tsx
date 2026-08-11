@@ -22,7 +22,8 @@ import {
 import { api } from '@/api'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { useLanguage } from '@/context/LanguageContext'
-import type { NoticeChannel, Notification } from '@/types/api'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
+import type { NoticeChannel, Notification, ScholarshipItem } from '@/types/api'
 import { isExternalNotice, noticeHref } from '@/utils/notices'
 import { mergeNoticeFeed } from '@/utils/noticeFeed'
 import { useSavedNotices } from '@/utils/savedNotices'
@@ -171,29 +172,36 @@ function formatDate(iso: string | null | undefined, locale: string) {
 
 export function NotificationsPage() {
   const { language, locale, t } = useLanguage()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const {
+    notifications: personalizedNotices,
+    loading,
+    error,
+  } = useNoticeRefresh()
+  const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
   const navigate = useNavigate()
 
   useEffect(() => {
-    setLoading(true)
-    setError('')
-    Promise.all([
-      api.getPersonalizedNotifications(),
-      api.getScholarships().catch(() => []),
-    ])
-      .then(([items, scholarships]) => {
-        setNotifications(mergeNoticeFeed(items, scholarships))
+    let active = true
+    api
+      .getScholarships()
+      .then((items) => {
+        if (active) setScholarships(items)
       })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : t('notifications.loadError')),
-      )
-      .finally(() => setLoading(false))
-  }, [language, t])
+      .catch(() => {
+        if (active) setScholarships([])
+      })
+    return () => {
+      active = false
+    }
+  }, [language])
+
+  const notifications = useMemo(
+    () => mergeNoticeFeed(personalizedNotices, scholarships),
+    [personalizedNotices, scholarships],
+  )
 
   const catalog = useMemo(() => notifications.map(toDisplay), [notifications])
 

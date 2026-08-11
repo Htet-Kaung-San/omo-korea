@@ -37,7 +37,7 @@ function createMemorySupabase(initialRows = [], options = {}) {
             }
             return {
               data: rows.has(sourceUrl)
-                ? { notice_id: rows.get(sourceUrl).notice_id }
+                ? { ...rows.get(sourceUrl) }
                 : null,
               error: null,
             };
@@ -93,16 +93,20 @@ function createMemorySupabase(initialRows = [], options = {}) {
 }
 
 describe('notice synchronization persistence', () => {
-  test('repeated synchronization inserts once and then updates by source URL', async () => {
+  test('inserts once, skips an unchanged repeat, then applies a real metadata update', async () => {
     const { client, rows } = createMemorySupabase();
     const first = scrapedNotice();
 
     await expect(
       persistScrapedNotices(client, [first]),
-    ).resolves.toEqual({ inserted: 1, updated: 0 });
+    ).resolves.toEqual({ inserted: 1, updated: 0, unchanged: 0 });
     expect(rows.get(first.source_url)).toMatchObject({
       external_id: '1',
     });
+
+    await expect(
+      persistScrapedNotices(client, [scrapedNotice()]),
+    ).resolves.toEqual({ inserted: 0, updated: 0, unchanged: 1 });
 
     await expect(
       persistScrapedNotices(client, [
@@ -111,12 +115,92 @@ describe('notice synchronization persistence', () => {
           external_id: 'updated-1',
         }),
       ]),
-    ).resolves.toEqual({ inserted: 0, updated: 1 });
+    ).resolves.toEqual({ inserted: 0, updated: 1, unchanged: 0 });
 
     expect(rows.size).toBe(1);
     expect(rows.get(first.source_url)).toMatchObject({
       title: 'Updated production notice',
       external_id: 'updated-1',
+    });
+  });
+
+  test('preserves a richer existing title and body instead of replacing them with a list summary', async () => {
+    const existing = scrapedNotice({
+      title: 'Complete official notice title',
+      content: 'Complete official notice body with eligibility, dates, application steps, and contact details.',
+      scraped_at: '2026-07-24T00:00:00.000Z',
+    });
+    const { client, rows } = createMemorySupabase([existing]);
+
+    await expect(
+      persistScrapedNotices(client, [
+        scrapedNotice({
+          title: 'Short title',
+          content: 'Short title\nSource: PNU International',
+          scraped_at: '2026-08-12T00:00:00.000Z',
+        }),
+      ]),
+    ).resolves.toEqual({ inserted: 0, updated: 0, unchanged: 1 });
+
+    expect(rows.get(existing.source_url)).toMatchObject({
+      title: existing.title,
+      content: existing.content,
+      scraped_at: existing.scraped_at,
+    });
+  });
+
+  test('preserves richer text while applying a genuine metadata correction', async () => {
+    const existing = scrapedNotice({
+      content: 'Full official body with considerably more useful detail than the list summary.',
+      external_id: 'old-id',
+    });
+    const { client, rows } = createMemorySupabase([existing]);
+
+    await expect(
+      persistScrapedNotices(client, [
+        scrapedNotice({
+          content: 'Production notice\nSource: PNU International',
+          external_id: 'corrected-id',
+        }),
+      ]),
+    ).resolves.toEqual({ inserted: 0, updated: 1, unchanged: 0 });
+
+    expect(rows.get(existing.source_url)).toMatchObject({
+      content: existing.content,
+      external_id: 'corrected-id',
+    });
+  });
+
+  test('accepts incoming text when it is demonstrably richer', async () => {
+    const existing = scrapedNotice({ content: 'Brief summary' });
+    const richer = 'Brief summary with complete eligibility, schedule, application, and contact information.';
+    const { client, rows } = createMemorySupabase([existing]);
+
+    await expect(
+      persistScrapedNotices(client, [scrapedNotice({ content: richer })]),
+    ).resolves.toEqual({ inserted: 0, updated: 1, unchanged: 0 });
+    expect(rows.get(existing.source_url).content).toBe(richer);
+  });
+
+  test('treats time-of-day differences on the same posted calendar date as unchanged', async () => {
+    const existing = scrapedNotice({
+      posted_date: '2026-07-24T00:00:00.000Z',
+      scraped_at: '2026-07-24T01:00:00.000Z',
+    });
+    const { client, rows } = createMemorySupabase([existing]);
+
+    await expect(
+      persistScrapedNotices(client, [
+        scrapedNotice({
+          posted_date: '2026-07-24T03:00:00.000Z',
+          scraped_at: '2026-08-12T00:00:00.000Z',
+        }),
+      ]),
+    ).resolves.toEqual({ inserted: 0, updated: 0, unchanged: 1 });
+
+    expect(rows.get(existing.source_url)).toMatchObject({
+      posted_date: existing.posted_date,
+      scraped_at: existing.scraped_at,
     });
   });
 
@@ -126,7 +210,7 @@ describe('notice synchronization persistence', () => {
 
     await expect(
       persistScrapedNotices(client, [scrapedNotice()]),
-    ).resolves.toEqual({ inserted: 0, updated: 1 });
+    ).resolves.toEqual({ inserted: 0, updated: 0, unchanged: 1 });
 
     expect(rows.size).toBe(1);
   });

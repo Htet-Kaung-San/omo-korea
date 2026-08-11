@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { isMockApi } from '@/api'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
 // ?? LoginPage ?????????????????????????????????????????????????????????????????
@@ -170,6 +171,7 @@ export function LoginPage() {
             </button>
 
             {/* Demo account ??? one-click access for reviewers */}
+            {isMockApi ? (
             <button
               type="button"
               onClick={() => {
@@ -181,6 +183,7 @@ export function LoginPage() {
             >
               Use demo account
             </button>
+            ) : null}
           </form>
         </div>
       </div>

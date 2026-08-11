@@ -1,5 +1,17 @@
 let activeSynchronization = null;
 
+const NOTICE_SELECT_FIELDS = [
+  'notice_id',
+  'title',
+  'content',
+  'language',
+  'posted_date',
+  'source',
+  'source_url',
+  'external_id',
+  'scraped_at',
+].join(',');
+
 function noticeWriteValues(row) {
   return {
     title: row.title,
@@ -11,6 +23,71 @@ function noticeWriteValues(row) {
     external_id: row.external_id,
     scraped_at: row.scraped_at,
   };
+}
+
+function normalizedText(value) {
+  return String(value || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function preferredText(existingValue, incomingValue) {
+  const existing = normalizedText(existingValue);
+  const incoming = normalizedText(incomingValue);
+
+  if (!existing) return incomingValue;
+  if (!incoming || existing === incoming) return existingValue;
+  if (incoming.includes(existing)) return incomingValue;
+  if (existing.includes(incoming)) return existingValue;
+
+  return incoming.length >= existing.length * 1.25
+    ? incomingValue
+    : existingValue;
+}
+
+function preferredValue(existingValue, incomingValue) {
+  return incomingValue === null || incomingValue === undefined || incomingValue === ''
+    ? existingValue
+    : incomingValue;
+}
+
+function preferredPostedDate(existingValue, incomingValue) {
+  if (!incomingValue) return existingValue;
+  if (existingValue && String(existingValue).slice(0, 10) === String(incomingValue).slice(0, 10)) {
+    return existingValue;
+  }
+  return incomingValue;
+}
+
+function mergeNoticeValues(existing, incoming) {
+  const values = noticeWriteValues(incoming);
+  return {
+    ...values,
+    title: preferredText(existing.title, values.title),
+    content: preferredText(existing.content, values.content),
+    language: preferredValue(existing.language, values.language),
+    posted_date: preferredPostedDate(existing.posted_date, values.posted_date),
+    source: preferredValue(existing.source, values.source),
+    source_url: existing.source_url || values.source_url,
+    external_id: preferredValue(existing.external_id, values.external_id),
+  };
+}
+
+function comparableValue(field, value) {
+  if (field === 'title' || field === 'content') return normalizedText(value);
+  if (field === 'posted_date' && value) {
+    return String(value).slice(0, 10);
+  }
+  return value === undefined ? null : value;
+}
+
+function hasMaterialChanges(existing, values) {
+  return Object.entries(values).some(([field, value]) => {
+    if (field === 'source_url' || field === 'scraped_at') return false;
+    return comparableValue(field, existing[field]) !== comparableValue(field, value);
+  });
 }
 
 async function updateNoticeById(supabaseClient, noticeId, row) {
@@ -25,11 +102,11 @@ async function updateNoticeById(supabaseClient, noticeId, row) {
   if (error) throw error;
 }
 
-async function findNoticeBySourceUrl(supabaseClient, sourceUrl) {
+async function findFullNoticeBySourceUrl(supabaseClient, sourceUrl) {
   const { data, error } = await supabaseClient
-    .from("notice")
-    .select("notice_id")
-    .eq("source_url", sourceUrl)
+    .from('notice')
+    .select(NOTICE_SELECT_FIELDS)
+    .eq('source_url', sourceUrl)
     .maybeSingle();
 
   if (error) throw error;
@@ -39,6 +116,7 @@ async function findNoticeBySourceUrl(supabaseClient, sourceUrl) {
 async function persistScrapedNotices(supabaseClient, rows) {
   let inserted = 0;
   let updated = 0;
+  let unchanged = 0;
 
   for (const row of rows) {
     if (!row?.source_url) {
@@ -48,13 +126,18 @@ async function persistScrapedNotices(supabaseClient, rows) {
       throw error;
     }
 
-    const existing = await findNoticeBySourceUrl(
+    const existing = await findFullNoticeBySourceUrl(
       supabaseClient,
       row.source_url,
     );
 
     if (existing?.notice_id) {
-      await updateNoticeById(supabaseClient, existing.notice_id, row);
+      const merged = mergeNoticeValues(existing, row);
+      if (!hasMaterialChanges(existing, merged)) {
+        unchanged += 1;
+        continue;
+      }
+      await updateNoticeById(supabaseClient, existing.notice_id, merged);
       updated += 1;
       continue;
     }
@@ -71,18 +154,23 @@ async function persistScrapedNotices(supabaseClient, rows) {
     // Another synchronization may have inserted the same source URL after
     // our lookup. Respect the unique index and converge by updating that row.
     if (insertError.code === "23505") {
-      const concurrentRow = await findNoticeBySourceUrl(
+      const concurrentRow = await findFullNoticeBySourceUrl(
         supabaseClient,
         row.source_url,
       );
 
       if (concurrentRow?.notice_id) {
-        await updateNoticeById(
-          supabaseClient,
-          concurrentRow.notice_id,
-          row,
-        );
-        updated += 1;
+        const merged = mergeNoticeValues(concurrentRow, row);
+        if (hasMaterialChanges(concurrentRow, merged)) {
+          await updateNoticeById(
+            supabaseClient,
+            concurrentRow.notice_id,
+            merged,
+          );
+          updated += 1;
+        } else {
+          unchanged += 1;
+        }
         continue;
       }
     }
@@ -90,7 +178,7 @@ async function persistScrapedNotices(supabaseClient, rows) {
     throw insertError;
   }
 
-  return { inserted, updated };
+  return { inserted, updated, unchanged };
 }
 
 function createSyncInProgressError() {
@@ -131,6 +219,8 @@ async function synchronizeNotices({
 }
 
 module.exports = {
+  hasMaterialChanges,
+  mergeNoticeValues,
   persistScrapedNotices,
   synchronizeNotices,
 };

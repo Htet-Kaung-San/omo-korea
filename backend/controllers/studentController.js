@@ -11,7 +11,10 @@ const {
   resolveLanguagePref,
   SUPPORTED_LANGUAGE_PREFS,
 } = require("../middleware/supportedLanguages");
-const { scrapeRecentNotices } = require("../services/pnuNoticeScraperService");
+const {
+  noticeSourceLabel,
+  scrapeRecentNotices,
+} = require("../services/pnuNoticeScraperService");
 const {
   synchronizeNotices,
 } = require("../services/noticeSyncService");
@@ -1439,9 +1442,7 @@ const getAcademicRecords = async (req, res) => {
 };
 
 function publicNoticeSource(source) {
-  if (source === "international") return "PNU International";
-  if (source === "cse") return "CSE Department";
-  return source ?? null;
+  return noticeSourceLabel(source);
 }
 
 function publicNoticeChannel(source) {
@@ -1529,6 +1530,7 @@ const syncNotices = async (req, res) => {
         scraped: scraped.length,
         inserted: result.inserted,
         updated: result.updated,
+        unchanged: result.unchanged,
         bySource: scraped.reduce((acc, item) => {
           acc[item.source] = (acc[item.source] || 0) + 1;
           return acc;
