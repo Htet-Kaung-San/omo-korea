@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "review_basis": "Production major table read-only audit on 2026-08-03. Only exact major-name matches are mapped.",
+  "mappings": [
+    {
+      "workbook_major_id": 8,
+      "workbook_major_name": "Architecture",
+      "production_major_id": null,
+      "production_major_name": null,
+      "status": "UNRESOLVED",
+      "explanation": "No exact Architecture major exists in the reviewed production major table."
+    },
+    {
+      "workbook_major_id": 9,
+      "workbook_major_name": "Aerospace Engineering",
+      "production_major_id": 46,
+      "production_major_name": "Aerospace Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 10,
+      "workbook_major_name": "Chemical and Biomolecular Engineering",
+      "production_major_id": 48,
+      "production_major_name": "Chemical and Biomolecular Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 11,
+      "workbook_major_name": "Environmental Engineering",
+      "production_major_id": 49,
+      "production_major_name": "Environmental Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 12,
+      "workbook_major_name": "Electronics Engineering",
+      "production_major_id": null,
+      "production_major_name": null,
+      "status": "UNRESOLVED",
+      "explanation": "No exact Electronics Engineering major exists in the reviewed production major table."
+    },
+    {
+      "workbook_major_id": 13,
+      "workbook_major_name": "Electrical Engineering",
+      "production_major_id": 2,
+      "production_major_name": "Electrical Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 14,
+      "workbook_major_name": "Industrial Engineering",
+      "production_major_id": 52,
+      "production_major_name": "Industrial Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 15,
+      "workbook_major_name": "Materials Science and Engineering",
+      "production_major_id": 51,
+      "production_major_name": "Materials Science and Engineering",
+      "status": "CONFIRMED",
+      "explanation": "Exact production major-name match."
+    },
+    {
+      "workbook_major_id": 16,
+      "workbook_major_name": "Polymer Engineering",
+      "production_major_id": null,
+      "production_major_name": null,
+      "status": "UNRESOLVED",
+      "explanation": "Production has Polymer Science and Engineering, but the names are not exact and no official identifier links them."
+    },
+    {
+      "workbook_major_id": 17,
+      "workbook_major_name": "Ship and Ocean Engineering",
+      "production_major_id": null,
+      "production_major_name": null,
+      "status": "UNRESOLVED",
+      "explanation": "Production has Naval Architecture and Ocean Engineering, but the names are not exact and no official identifier links them."
+    },
+    {
+      "workbook_major_id": 18,
+      "workbook_major_name": "Urban Planning and Engineering",
+      "production_major_id": null,
+      "production_major_name": null,
+      "status": "UNRESOLVED",
+      "explanation": "No exact Urban Planning and Engineering major exists in the reviewed production major table."
+    }
+  ]
+}

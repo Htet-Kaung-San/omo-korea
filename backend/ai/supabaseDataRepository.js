@@ -15,6 +15,85 @@ function normalizeText(value) {
   return value == null ? '' : String(value);
 }
 
+function normalizeNullableText(value) {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
+function normalizeNullableNumber(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizeCourseYearLevel(value) {
+  const text = normalizeNullableText(value);
+  if (!text) return null;
+  const normalized = text.normalize('NFKC').toLowerCase();
+  if (normalized.includes('전학년') || normalized.includes('all')) return 'ALL';
+  const match = normalized.match(/[1-8]/);
+  return match ? Number(match[0]) : null;
+}
+
+function emptyCourseOffering() {
+  return {
+    academicYear: null,
+    semester: null,
+    section: null,
+    professor: null,
+    schedule: null,
+    remoteCourseStatus: null,
+    originalLanguageCode: null,
+    teachingLanguage: null,
+    isEnglishTaught: null,
+    theoryHours: null,
+    practicalHours: null,
+    presentationRequirement: null,
+    groupProjectRequirement: null,
+    assignmentRequirement: null,
+    examInformation: null,
+  };
+}
+
+function explicitEnglishStatus(originalLanguageCode, teachingLanguage) {
+  const code = normalizeNullableText(originalLanguageCode)?.toUpperCase() || null;
+  const language = normalizeNullableText(teachingLanguage)?.toUpperCase() || null;
+  if (code === 'E' || language === 'ENGLISH') return true;
+  if (['C', 'J', 'F', 'G', 'R'].includes(code)) return false;
+  if (['KOREAN', 'OTHER'].includes(language)) return false;
+  return null;
+}
+
+function mapCourseOfferingRow(row) {
+  const originalLanguageCode = normalizeNullableText(row?.original_language_code);
+  const teachingLanguage = normalizeNullableText(row?.teaching_language);
+  return {
+    officialCourseNumber: normalizeNullableText(row?.official_course_number),
+    academicYear: normalizeNullableNumber(row?.academic_year),
+    semester: normalizeNullableText(row?.semester),
+    section: normalizeNullableText(row?.section),
+    professor: normalizeNullableText(row?.professor),
+    schedule: normalizeNullableText(row?.schedule),
+    remoteCourseStatus: normalizeNullableText(row?.remote_course_status),
+    originalLanguageCode,
+    teachingLanguage,
+    isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
+    theoryHours: normalizeNullableNumber(row?.theory_hours),
+    practicalHours: normalizeNullableNumber(row?.practical_hours),
+    year: normalizeCourseYearLevel(row?.year_level),
+  };
+}
+
+function mapCourseMetadataRow(row) {
+  return {
+    presentationRequirement: normalizeNullableText(row?.presentation_requirement),
+    groupProjectRequirement: normalizeNullableText(row?.group_project_requirement),
+    assignmentRequirement: normalizeNullableText(row?.assignment_requirement),
+    examInformation: normalizeNullableText(row?.exam_information),
+  };
+}
+
 function mapCourseRow(row, language = 'en') {
   const localized = localizeRow(row, language, ['course_name', 'course_name_en']);
   const title = localized.course_name_en || localized.course_name || localized.title || '';
@@ -34,6 +113,9 @@ return {
   nameKo: localized.course_name || name,
   nameEn: localized.course_name_en || title,
 
+  officialCourseNumber: normalizeNullableText(row.official_course_number),
+  ...emptyCourseOffering(),
+
   majorId: normalizeId(row.major_id ?? row.majorId),
   type,
   category: type,
@@ -46,8 +128,6 @@ return {
     row.course_year ??
     row.year ??
     null,
-
-  semester: row.semester ?? null,
 
   dayOfWeek: row.day_of_week ?? row.dayOfWeek ?? null,
   startTime: row.start_time ?? row.startTime ?? null,
@@ -62,6 +142,79 @@ return {
 
   raw: row,
 };
+}
+
+function attachCourseOffering(course, offeringRow, metadataRow = null) {
+  if (!offeringRow) return course;
+  const offering = mapCourseOfferingRow(offeringRow);
+  return {
+    ...course,
+    ...offering,
+    ...(metadataRow ? mapCourseMetadataRow(metadataRow) : {}),
+    officialCourseNumber:
+      offering.officialCourseNumber ?? course.officialCourseNumber ?? null,
+  };
+}
+
+function chooseUnambiguousOffering(rows, requestedSection) {
+  const candidates = Array.isArray(rows) ? rows : [];
+  if (requestedSection) {
+    const sectionMatches = candidates.filter(
+      (row) => normalizeNullableText(row.section) === requestedSection,
+    );
+    return sectionMatches.length === 1 ? sectionMatches[0] : null;
+  }
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+async function fetchCourseOfferings(supabaseClient, options) {
+  const pageSize =
+    Number.isInteger(options.pageSize) && options.pageSize > 0
+      ? options.pageSize
+      : 1000;
+  const rows = [];
+  let pageStart = 0;
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('course_offering')
+      .select(
+        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+      )
+      .eq('academic_year', options.academicYear)
+      .eq('semester', options.semester)
+      .order('course_id', { ascending: true })
+      .order('section', { ascending: true })
+      .range(pageStart, pageEnd);
+    if (result.error) {
+      const error = new Error(`Optional course_offering query failed: ${result.error.message}`);
+      error.code = 'OPTIONAL_COURSE_OFFERING_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    rows.push(...pageRows);
+    if (pageRows.length < pageSize) break;
+    pageStart += pageSize;
+  }
+  return rows;
+}
+
+async function fetchCourseMetadata(supabaseClient, offeringIds) {
+  if (!Array.isArray(offeringIds) || offeringIds.length === 0) return [];
+  const result = await supabaseClient
+    .from('course_metadata')
+    .select(
+      'course_offering_id,presentation_requirement,group_project_requirement,assignment_requirement,exam_information'
+    )
+    .in('course_offering_id', offeringIds);
+  if (result.error) {
+    const error = new Error(`Optional course_metadata query failed: ${result.error.message}`);
+    error.code = 'OPTIONAL_COURSE_METADATA_QUERY_FAILED';
+    error.cause = result.error;
+    throw error;
+  }
+  return Array.isArray(result.data) ? result.data : [];
 }
 
 function mapScholarshipRow(row, language = 'en') {
@@ -246,7 +399,91 @@ async function fetchAllCourses(supabaseClient, options = {}) {
     pageStart += pageSize;
   }
 
-  return courses;
+  if (options.includeOfferings !== true) return courses;
+  const academicYear = Number(options.offeringAcademicYear);
+  const semester = normalizeNullableText(options.offeringSemester);
+  if (!Number.isInteger(academicYear) || !semester) return courses;
+
+  let offeringRows;
+  try {
+    offeringRows = await fetchCourseOfferings(supabaseClient, {
+      academicYear,
+      semester,
+      pageSize,
+    });
+  } catch (_error) {
+    return courses;
+  }
+  const byCourseId = new Map();
+  for (const row of offeringRows) {
+    const courseId = normalizeId(row.course_id);
+    if (!byCourseId.has(courseId)) byCourseId.set(courseId, []);
+    byCourseId.get(courseId).push(row);
+  }
+  const requestedSection = normalizeNullableText(options.offeringSection);
+  const selectedByCourseId = new Map();
+  for (const course of courses) {
+    const selected = chooseUnambiguousOffering(byCourseId.get(course.id), requestedSection);
+    if (selected) selectedByCourseId.set(course.id, selected);
+  }
+  let metadataRows = [];
+  try {
+    metadataRows = await fetchCourseMetadata(
+      supabaseClient,
+      [...selectedByCourseId.values()].map((row) => row.course_offering_id),
+    );
+  } catch (_error) {
+    metadataRows = [];
+  }
+  const metadataByOfferingId = new Map(
+    metadataRows.map((row) => [String(row.course_offering_id), row]),
+  );
+  return courses.map((course) => {
+    const offering = selectedByCourseId.get(course.id);
+    const metadata = offering
+      ? metadataByOfferingId.get(String(offering.course_offering_id)) || null
+      : null;
+    return attachCourseOffering(course, offering, metadata);
+  });
+}
+
+async function fetchStudentCourseHistory(supabaseClient, studentId, options = {}) {
+  const pageSize = Number.isInteger(options.pageSize) && options.pageSize > 0
+    ? options.pageSize
+    : 1000;
+  const rows = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    const result = await supabaseClient
+      .from('enrollment')
+      .select('course_id,status,semester')
+      .eq('student_id', studentId)
+      .order('enrollment_id', { ascending: true })
+      .range(pageStart, pageEnd);
+
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch student course history from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_ENROLLMENT_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    rows.push(...pageRows.map((row) => ({
+      courseId: normalizeId(row.course_id),
+      status: normalizeNullableText(row.status),
+      semester: normalizeNullableText(row.semester),
+    })));
+    if (pageRows.length < pageSize) break;
+    pageStart += pageSize;
+  }
+
+  return rows;
 }
 
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
@@ -285,10 +522,19 @@ async function fetchDashboardCatalogs(supabaseClient, options = {}) {
 }
 
 module.exports = {
+  attachCourseOffering,
+  chooseUnambiguousOffering,
+  emptyCourseOffering,
+  explicitEnglishStatus,
   fetchAllCourses,
+  fetchStudentCourseHistory,
+  fetchCourseMetadata,
+  fetchCourseOfferings,
   fetchAllNotices,
   fetchDashboardCatalogs,
   mapCourseRow,
+  mapCourseOfferingRow,
+  mapCourseMetadataRow,
   mapScholarshipRow,
   mapProgramRow,
   mapNoticeRow,

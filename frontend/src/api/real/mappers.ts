@@ -4,6 +4,9 @@ import type {
   ChecklistPayload,
   ChecklistVariant,
   CourseType,
+  CourseMetadataRequirement,
+  OriginalLanguageCode,
+  RemoteCourseStatus,
   FacilityRoom,
   FaqItem,
   MapFacility,
@@ -15,6 +18,7 @@ import type {
   PnuContact,
   RecommendedCourse,
   ScholarshipItem,
+  TeachingLanguage,
   User,
 } from '@/types/api'
 
@@ -86,6 +90,22 @@ interface BackendCourse {
   tags?: string[]
   score: number
   matchHint?: string
+  officialCourseNumber?: string | null
+  academicYear?: number | null
+  semester?: string | null
+  section?: string | null
+  professor?: string | null
+  schedule?: string | null
+  remoteCourseStatus?: RemoteCourseStatus | null
+  originalLanguageCode?: OriginalLanguageCode | null
+  teachingLanguage?: TeachingLanguage | null
+  isEnglishTaught?: boolean | null
+  theoryHours?: number | null
+  practicalHours?: number | null
+  presentationRequirement?: CourseMetadataRequirement | null
+  groupProjectRequirement?: CourseMetadataRequirement | null
+  assignmentRequirement?: CourseMetadataRequirement | null
+  examInformation?: string | null
 }
 
 function getAdmissionYear(studentId: string): number | null {
@@ -210,6 +230,27 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     tags: course.tags ?? [],
     score: course.score,
     matchHint: course.matchHint,
+    officialCourseNumber: course.officialCourseNumber ?? null,
+    academicYear: course.academicYear ?? null,
+    semester: course.semester ?? null,
+    section: course.section ?? null,
+    professor: course.professor ?? null,
+    schedule: course.schedule ?? null,
+    remoteCourseStatus: course.remoteCourseStatus ?? null,
+    originalLanguageCode: course.originalLanguageCode ?? null,
+    teachingLanguage: course.teachingLanguage ?? null,
+    isEnglishTaught:
+      course.isEnglishTaught === true
+        ? true
+        : course.isEnglishTaught === false
+          ? false
+          : null,
+    theoryHours: course.theoryHours ?? null,
+    practicalHours: course.practicalHours ?? null,
+    presentationRequirement: course.presentationRequirement ?? null,
+    groupProjectRequirement: course.groupProjectRequirement ?? null,
+    assignmentRequirement: course.assignmentRequirement ?? null,
+    examInformation: course.examInformation ?? null,
   }
 }
 

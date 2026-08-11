@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:course-offerings": "node scripts/test-course-offering-display.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
