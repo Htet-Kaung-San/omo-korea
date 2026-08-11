@@ -23,8 +23,9 @@
     "dry-run:pnu-course-metadata": "node scripts/dry-run-pnu-course-metadata.mjs",
     "generate:pnu-course-provenance": "node scripts/generate-pnu-course-provenance.mjs",
     "test:pnu-course-rollback:integration": "node scripts/test-pnu-course-rollback-integration.mjs",
+    "test:live-api": "node scripts/run-live-api-tests.mjs",
     "validate:engineering-courses": "node scripts/validate-engineering-courses.mjs",
-    "test": "jest"
+    "test": "jest --testPathIgnorePatterns=tests/api.test.js"
   },
   "keywords": [],
   "author": "",
