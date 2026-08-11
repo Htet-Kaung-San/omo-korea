@@ -24,16 +24,59 @@ function normalizeValue(value) {
   return String(value ?? '').normalize('NFKC').trim().toLowerCase();
 }
 
+const ROMAN_NUMERALS = { i: '1', ii: '2', iii: '3', iv: '4', v: '5' };
+
+function singularize(word) {
+  if (word.length > 3 && word.endsWith('ies')) return `${word.slice(0, -3)}y`;
+  if (word.length > 2 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+  return word;
+}
+
+/**
+ * Canonical key for comparing a course by name across the two places names are
+ * written differently.
+ *
+ * The catalog stores bilingual names — 'Computer Architecture (컴퓨터구조)' —
+ * while student.completed_courses holds free text a human typed, usually the
+ * English name alone. A raw comparison therefore never matches, so courses a
+ * student has already passed were recommended straight back to them.
+ *
+ * Only Hangul-bearing parentheticals are dropped. '(I)' and '(II)' distinguish
+ * genuinely different courses and must survive, so they are kept and folded to
+ * digits instead, alongside light singularisation so 'Probabilities and
+ * Statistics' and 'Probability and Statistics' agree.
+ */
+function canonicalCourseName(value) {
+  const text = normalizeValue(value)
+    .replace(/\([^)]*[가-힣][^)]*\)/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+  if (!text) return '';
+  return text
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => ROMAN_NUMERALS[word] ?? word)
+    .map(singularize)
+    .join(' ');
+}
+
 function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
 function getCourseIdentifiers(course = {}) {
-  return [course.id, course.courseId, course.course_id, course.title, course.name,
+  const raw = [course.id, course.courseId, course.course_id, course.title, course.name,
     course.nameEn, course.nameKo, course.raw?.course_id, course.raw?.course_name,
     course.raw?.course_name_en]
-    .filter((value) => value !== null && value !== undefined && value !== '')
-    .map(normalizeValue);
+    .filter((value) => value !== null && value !== undefined && value !== '');
+  // Both the literal value and its canonical form, so a bilingual catalog name
+  // and a plain English one resolve to a shared key.
+  const identifiers = raw.map(normalizeValue);
+  for (const value of raw) {
+    const canonical = canonicalCourseName(value);
+    if (canonical) identifiers.push(canonical);
+  }
+  return [...new Set(identifiers)].filter(Boolean);
 }
 
 function getCourseText(course = {}) {
@@ -174,6 +217,8 @@ function buildHistory(courses = [], options = {}) {
     const normalized = normalizeValue(value);
     if (!normalized) continue;
     excluded.add(normalized);
+    const canonical = canonicalCourseName(value);
+    if (canonical) excluded.add(canonical);
     completed.push({ ...resolveCourse({ name: String(value), courseId: value }, courses), semester: null });
   }
   for (const enrollment of normalizeArray(options.enrollmentHistory)) {
