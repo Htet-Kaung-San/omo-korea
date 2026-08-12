@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { CalendarDays, ExternalLink, Sparkles } from 'lucide-react'
+import { CalendarDays, ExternalLink, Sparkles, Trophy, Users } from 'lucide-react'
 import { api } from '@/api'
 import type { ProgramItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
-import { getProgramIconForItem } from '@/utils/programIcons'
 
 function looksLikeHtml(value: string): boolean {
   return /<\s*(p|div|table|br|ul|ol|h[1-6]|span|a|strong|em|tbody|tr|td|th)\b/i.test(value)
@@ -20,13 +19,14 @@ export function ProgramDetailPage() {
 
   useEffect(() => {
     api
-      .getPrograms()
-      .then((programs) => setProgram(programs.find((item) => item.id === programId) ?? null))
+      .getProgramDetail(programId ?? '')
+      .then((item) => setProgram(item))
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
   }, [language, programId, t])
 
-  const Icon = program ? getProgramIconForItem(program) : Sparkles
+  const isClub = program?.category?.toLowerCase().includes('club')
+  const IconComponent = program ? (isClub ? Users : Trophy) : Sparkles
 
   return (
     <div className="min-h-full bg-pnu-surface">
@@ -64,7 +64,7 @@ export function ProgramDetailPage() {
 
               <div className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center text-pnu-blue">
-                  <Icon className="h-6 w-6" strokeWidth={1.75} />
+                  <IconComponent className="h-6 w-6" strokeWidth={1.75} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-[22px] font-bold leading-snug tracking-tight text-pnu-text">

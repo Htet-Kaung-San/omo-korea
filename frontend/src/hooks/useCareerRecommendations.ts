@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api'
-import type { CareerOpportunity } from '@/types/api'
+import type { CareerJobType, CareerOpportunity } from '@/types/api'
 
 /**
  * AI recommendation hook-point for Internships & Jobs.
@@ -9,7 +9,7 @@ import type { CareerOpportunity } from '@/types/api'
  * (real backend: GET /students/career-recommendations). This hook only loads
  * and exposes that list — keep UI wiring here, keep ranking logic in the API.
  */
-export function useCareerRecommendations() {
+export function useCareerRecommendations(jobType?: CareerJobType) {
   const [items, setItems] = useState<CareerOpportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,7 +20,7 @@ export function useCareerRecommendations() {
     setError(null)
 
     api
-      .getRecommendedCareerOpportunities()
+      .getRecommendedCareerOpportunities(jobType)
       .then((data) => {
         if (!cancelled) setItems(data)
       })
@@ -37,7 +37,7 @@ export function useCareerRecommendations() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [jobType])
 
   return { items, loading, error }
 }

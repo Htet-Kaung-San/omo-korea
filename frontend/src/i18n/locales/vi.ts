@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Tuần sau",
   'campusLife.noMenuData': "Không có dữ liệu thực đơn căng tin.",
   'campusLife.noMenuDetails': "Chưa có chi tiết thực đơn cho căng tin này.",
-  'emergency.title': "Khẩn cấp",
-  'emergency.embassyTitle': "Đại sứ quán nước tôi",
+  'emergency.title': "Hỗ trợ khẩn cấp",
+  'emergency.embassyTitle': "Đại sứ quán nước tôi tại Hàn Quốc",
   'emergency.call': "Gọi",
   'emergency.map': "Bản đồ",
-  'emergency.nearestHelp': "Trợ giúp gần nhất",
+  'emergency.nearestHelp': "Liên hệ trợ giúp gần nhất",
   'emergency.navigate': "Chỉ đường",
+  'emergency.police': "Cảnh sát",
+  'emergency.fireMedical': "Cứu hỏa & Y tế",
+  'emergency.immigration': "Xuất nhập cảnh & Hỗ trợ chung",
+  'emergency.guidePhraseTitle': "Hướng dẫn cụm từ khẩn cấp",
+  'emergency.copyPhrase': "Sao chép cụm từ tiếng Hàn",
+  'emergency.copied': "Đã sao chép!",
+  'emergency.housingSafetyTitle': "An toàn tiền đặt cọc thuê nhà",
+  'emergency.visaOfficesTitle': "Cục Quản lý Xuất nhập cảnh",
 }
 
 export default messages

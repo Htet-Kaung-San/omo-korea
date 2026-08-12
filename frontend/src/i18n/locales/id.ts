@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Minggu berikutnya",
   'campusLife.noMenuData': "Tidak ada data menu kantin.",
   'campusLife.noMenuDetails': "Detail menu belum tersedia untuk kantin ini.",
-  'emergency.title': "Darurat",
-  'emergency.embassyTitle': "Kedutaan negara saya",
+  'emergency.title': "Bantuan Darurat",
+  'emergency.embassyTitle': "Kedutaan Besar Negara Saya di Korea",
   'emergency.call': "Telepon",
   'emergency.map': "Peta",
-  'emergency.nearestHelp': "Bantuan terdekat",
+  'emergency.nearestHelp': "Kontak Bantuan Terdekat",
   'emergency.navigate': "Navigasi",
+  'emergency.police': "Polisi",
+  'emergency.fireMedical': "Pemadam & Medis",
+  'emergency.immigration': "Imigrasi & Bantuan Umum",
+  'emergency.guidePhraseTitle': "Panduan Frasa Darurat",
+  'emergency.copyPhrase': "Salin frasa bahasa Korea",
+  'emergency.copied': "Tersalin!",
+  'emergency.housingSafetyTitle': "Keamanan Deposit Sewa Rumah",
+  'emergency.visaOfficesTitle': "Kantor Imigrasi & Visa",
 }
 
 export default messages

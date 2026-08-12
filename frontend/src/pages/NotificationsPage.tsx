@@ -20,7 +20,6 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { api } from '@/api'
-import { mockNotifications } from '@/api/mock/data'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { useLanguage } from '@/context/LanguageContext'
 import type { NoticeChannel, Notification } from '@/types/api'
@@ -192,10 +191,7 @@ export function NotificationsPage() {
       api.getScholarships().catch(() => []),
     ])
       .then(([items, scholarships]) => {
-        const feed =
-          items.length > 0
-            ? mergeNoticeFeed(items, scholarships)
-            : mergeNoticeFeed(mockNotifications, scholarships)
+        const feed = mergeNoticeFeed(items, scholarships)
         setNotifications(feed)
       })
       .catch((err) =>

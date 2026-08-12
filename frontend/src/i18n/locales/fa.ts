@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "هفته بعد",
   'campusLife.noMenuData': "داده منوی سلف موجود نیست.",
   'campusLife.noMenuDetails': "جزئیات منو برای این سلف هنوز موجود نیست.",
-  'emergency.title': "اورژانس",
-  'emergency.embassyTitle': "سفارت کشور من",
+  'emergency.title': "پشتیبانی اورژانس",
+  'emergency.embassyTitle': "سفارت کشور من در کره",
   'emergency.call': "تماس",
   'emergency.map': "نقشه",
-  'emergency.nearestHelp': "نزدیک‌ترین کمک",
+  'emergency.nearestHelp': "نزدیک‌ترین مخاطبین کمک",
   'emergency.navigate': "مسیریابی",
+  'emergency.police': "پلیس",
+  'emergency.fireMedical': "آتش‌نشانی و پزشکی",
+  'emergency.immigration': "مهاجرت و پشتیبانی عمومی",
+  'emergency.guidePhraseTitle': "راهنمای عبارات اورژانسی",
+  'emergency.copyPhrase': "کپی عبارت کره‌ای",
+  'emergency.copied': "کپی شد!",
+  'emergency.housingSafetyTitle': "امنیت ودیعه مسکن و اجاره",
+  'emergency.visaOfficesTitle': "اداره مهاجرت و ویزا",
 }
 
 export default messages

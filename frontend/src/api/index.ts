@@ -1,13 +1,10 @@
 import type { HeyPnuApi } from '@/types/api'
-import { mockApi } from './mock'
 import { realApi } from './real'
 import { clearStoredToken } from './client'
 import { clearSessionUser } from './real/session'
 
-const mode = import.meta.env.VITE_API_MODE ?? 'mock'
-
-/** Single entry point — swap mock ↔ real via VITE_API_MODE in .env */
-export const api: HeyPnuApi = mode === 'real' ? realApi : mockApi
+/** Primary API instance wired directly to the real backend */
+export const api: HeyPnuApi = realApi
 
 export function clearAuthSession(): void {
   clearStoredToken()
@@ -15,4 +12,3 @@ export function clearAuthSession(): void {
 }
 
 export { clearStoredToken, getStoredToken, setStoredToken, HttpError } from './client'
-export { DEMO_STUDENT_ID, DEMO_PASSWORD } from './mock'

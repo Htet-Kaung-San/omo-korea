@@ -100,6 +100,13 @@ export interface EmergencyContact {
   map_query?: string | null
 }
 
+export interface VisaOfficeContact {
+  name: string
+  unit?: string | null
+  phone?: string | null
+  address?: string | null
+}
+
 export interface EmergencyGuide {
   quick_access: {
     police: EmergencyQuickAccess
@@ -108,6 +115,10 @@ export interface EmergencyGuide {
   }
   database_contacts: EmergencyContact[]
   guide_text: string
+  visa_offices?: VisaOfficeContact[]
+  jeonse_fraud_prevention?: {
+    notice?: string | null
+  }
 }
 
 export interface PnuContact {
@@ -225,16 +236,14 @@ export interface CampusFacilities {
 export interface MapFacility {
   id: string
   name: string
+  nameKo?: string | null
+  buildingNumber?: string | null
   type: string
   latitude: number
   longitude: number
-  hours?: string | null
-  description?: string | null
-  floors?: string | null
-  subtitle?: string | null
   phone?: string | null
   website?: string | null
-  imageUrl?: string | null
+  image?: string | null
   departments?: FacilityRoom[]
   amenities?: FacilityRoom[]
 }
@@ -433,6 +442,7 @@ export interface CareerOpportunitiesResponse {
 export interface GetCareerOpportunitiesParams {
   page?: number
   limit?: number
+  jobType?: CareerJobType
 }
 
 /** Backend team: implement these endpoints — see BACKEND.md */
@@ -455,7 +465,7 @@ export interface HeyPnuApi {
    * AI hook-point: personalized internship/job recommendations.
    * Backend: GET /students/career-recommendations
    */
-  getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]>
+  getRecommendedCareerOpportunities(jobType?: CareerJobType): Promise<CareerOpportunity[]>
   getEmergencyGuide(): Promise<EmergencyGuide>
   getPnuContacts(): Promise<PnuContact[]>
   getFaqItems(): Promise<FaqItem[]>
@@ -475,6 +485,7 @@ export interface HeyPnuApi {
   getAiDashboard(): Promise<AiDashboard>
   getScholarships(): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>
+  getProgramDetail(programId: string): Promise<ProgramItem | null>
   getMemory(): Promise<string>
   updateMemory(memory: string): Promise<void>
   recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>

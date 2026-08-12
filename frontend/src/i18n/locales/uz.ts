@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Keyingi hafta",
   'campusLife.noMenuData': "Oshxona menyu ma'lumoti yo'q.",
   'campusLife.noMenuDetails': "Bu oshxona uchun menyu tafsilotlari hali mavjud emas.",
-  'emergency.title': "Favqulodda",
-  'emergency.embassyTitle': "Mening mamlakatim elchixonasi",
+  'emergency.title': "Favqulodda Yordam",
+  'emergency.embassyTitle': "Mamlakatimning Koreyadagi Elchixonasi",
   'emergency.call': "Qo'ng'iroq",
   'emergency.map': "Xarita",
-  'emergency.nearestHelp': "Eng yaqin yordam",
+  'emergency.nearestHelp': "Eng Yaqin Yordam Aloqalari",
   'emergency.navigate': "Yo'nalish",
+  'emergency.police': "Politsiya",
+  'emergency.fireMedical': "O't o'chirish va Tibbiy",
+  'emergency.immigration': "Immigratsiya va Umumiy Yordam",
+  'emergency.guidePhraseTitle': "Favqulodda Vaziyat Ibora Qo'llanmasi",
+  'emergency.copyPhrase': "Koreyscha iborani nusxalash",
+  'emergency.copied': "Nusxalandi!",
+  'emergency.housingSafetyTitle': "Uy Garov Depoziti Xavfsizligi",
+  'emergency.visaOfficesTitle': "Immigratsiya va Viza Idorasi",
 }
 
 export default messages

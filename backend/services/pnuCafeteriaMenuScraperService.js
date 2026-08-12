@@ -5,11 +5,12 @@ const { localizeRow } = require('../middleware/languageMiddleware');
 const PNU_BASE_URL = 'https://www.pusan.ac.kr';
 const PNU_MENU_URL = `${PNU_BASE_URL}/kor/CMS/MenuMgr/menuListOnBuilding.do?mCode=MN202`;
 const BUSAN_CAMPUS = 'PUSAN';
-const CACHE_TTL_MS = 1000 * 60 * 5;
+const CACHE_TTL_MS = 1000 * 60 * 60 * 3;
 
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 const cache = new Map();
+let scrapeInFlight = null;
 
 function normalizeWhitespace(value) {
   return String(value || '')
@@ -187,25 +188,29 @@ function parseMealTable($) {
         return {
           meal_type,
           meal_label,
-          columns: columnHeaders.map((column) => ({
-            ...column,
-            price: null,
-            items: [],
-            options: [],
-            note: '미운영',
-          })),
+          columns: columnHeaders
+            .filter((column) => column.day !== 'sat')
+            .map((column) => ({
+              ...column,
+              price: null,
+              items: [],
+              options: [],
+              note: '미운영',
+            })),
         };
       }
 
       const cells = $(tr).find('td');
-      const columns = columnHeaders.map((column, index) => {
-        const cell = cells.eq(index);
-        const parsed = parseMealItems(cell.html(), $, cell);
-        return {
-          ...column,
-          ...parsed,
-        };
-      });
+      const columns = columnHeaders
+        .filter((column) => column.day !== 'sat')
+        .map((column, index) => {
+          const cell = cells.eq(index);
+          const parsed = parseMealItems(cell.html(), $, cell);
+          return {
+            ...column,
+            ...parsed,
+          };
+        });
 
       return {
         meal_type,
@@ -377,55 +382,139 @@ function mapStoredRow(row, language = 'en') {
   };
 }
 
-async function getBusanCafeteriaMenus({ menuDate = '', forceRefresh = false, language = 'en' } = {}) {
+async function scrapeAndCacheCafeteriaMenus({ menuDate = '', forceRefresh = false } = {}) {
   const cacheKey = menuDate || 'current';
   const now = Date.now();
   const cached = cache.get(cacheKey);
 
-  let scrapedPayload = null;
   if (!forceRefresh && cached && now - cached.fetchedAt < CACHE_TTL_MS) {
-    scrapedPayload = cached.scraped;
+    return cached.scraped;
   }
 
-  try {
-    if (!scrapedPayload) {
-      const scraped = await scrapeBusanCafeteriaMenus({ menuDate });
-      await syncCafeteriaMenusToSupabase(scraped.cafeterias);
-      scrapedPayload = {
-        cafeterias: scraped.cafeterias,
-        cafeteria_source: scraped.source,
-        scraped_at: scraped.scrapedAt,
-        menu_date: scraped.menu_date,
-      };
-      cache.set(cacheKey, { fetchedAt: now, scraped: scrapedPayload });
+  // Dedupe concurrent live scrapes (pre-scrape scheduler + request-path warm).
+  if (scrapeInFlight) {
+    try {
+      return await scrapeInFlight;
+    } catch {
+      // Fall through and start a fresh scrape if the in-flight one failed.
     }
+  }
 
-    return {
-      cafeterias: scrapedPayload.cafeterias.map((item) => mapCafeteriaItem(item, language)),
-      cafeteria_source: scrapedPayload.cafeteria_source,
-      scraped_at: scrapedPayload.scraped_at,
-      menu_date: scrapedPayload.menu_date,
+  const job = (async () => {
+    const scraped = await scrapeBusanCafeteriaMenus({ menuDate });
+    await syncCafeteriaMenusToSupabase(scraped.cafeterias);
+    const payload = {
+      cafeterias: scraped.cafeterias,
+      cafeteria_source: scraped.source,
+      scraped_at: scraped.scrapedAt,
+      menu_date: scraped.menu_date,
     };
-  } catch (error) {
-    console.warn('[pnuCafeteriaMenuScraperService] Scrape failed:', error.message);
+    cache.set(cacheKey, { fetchedAt: Date.now(), scraped: payload });
+    return payload;
+  })();
+
+  scrapeInFlight = job;
+  try {
+    return await job;
+  } finally {
+    scrapeInFlight = null;
+  }
+}
+
+async function getBusanCafeteriaMenus({ menuDate = '', forceRefresh = false, language = 'en', nonBlocking = false } = {}) {
+  const cacheKey = menuDate || 'current';
+  const now = Date.now();
+  const cached = cache.get(cacheKey);
+
+  // 1. Memory cache hit (<1ms)
+  if (!forceRefresh && cached && now - cached.fetchedAt < CACHE_TTL_MS) {
+    return {
+      cafeterias: cached.scraped.cafeterias.map((item) => mapCafeteriaItem(item, language)),
+      cafeteria_source: cached.scraped.cafeteria_source,
+      scraped_at: cached.scraped.scraped_at,
+      menu_date: cached.scraped.menu_date,
+    };
+  }
+
+  // 2. Query Supabase DB (<20ms) before attempting slow live scrape
+  if (!forceRefresh) {
     const stored = await readCafeteriaMenusFromSupabase();
     if (stored.length > 0) {
       const latestScrapedAt = stored.reduce((latest, row) => {
         const ts = row.scraped_at ? new Date(row.scraped_at).getTime() : 0;
         return ts > latest ? ts : latest;
       }, 0);
-      return {
-        cafeterias: stored.map((row) => mapStoredRow(row, language)),
+
+      const cafeteriasFromDb = stored.map((row) => ({
+        facility_key: row.facility_key,
+        campus: row.campus,
+        dining_hall: row.dining_hall,
+        week_start: row.week_start,
+        week_end: row.week_end,
+        meals: row.meals ?? [],
+        source_url: row.source_url,
+        scraped_at: row.scraped_at,
+      }));
+
+      const payload = {
+        cafeterias: cafeteriasFromDb,
         cafeteria_source: 'supabase',
         scraped_at: latestScrapedAt ? new Date(latestScrapedAt).toISOString() : null,
+        menu_date: menuDate || null,
+      };
+
+      // Populate memory cache for subsequent instant hits
+      cache.set(cacheKey, { fetchedAt: now, scraped: payload });
+
+      // Trigger background non-blocking refresh if DB data is older than TTL
+      const ageMs = now - latestScrapedAt;
+      if (latestScrapedAt === 0 || ageMs > CACHE_TTL_MS) {
+        scrapeAndCacheCafeteriaMenus({ menuDate, forceRefresh: true }).catch((err) =>
+          console.warn('[pnuCafeteriaMenuScraperService] Background refresh failed:', err.message),
+        );
+      }
+
+      return {
+        cafeterias: payload.cafeterias.map((item) => mapCafeteriaItem(item, language)),
+        cafeteria_source: payload.cafeteria_source,
+        scraped_at: payload.scraped_at,
+        menu_date: payload.menu_date,
       };
     }
+  }
+
+  // 3. Fallback synchronous scrape if Supabase is completely empty.
+  //    When nonBlocking is requested (request path), kick off the scrape in the
+  //    background and return empty now — the caller serves fallback data.
+  if (nonBlocking) {
+    scrapeAndCacheCafeteriaMenus({ menuDate, forceRefresh: true }).catch((err) =>
+      console.warn('[pnuCafeteriaMenuScraperService] Background cold scrape failed:', err.message),
+    );
+    return {
+      cafeterias: [],
+      cafeteria_source: 'pending',
+      scraped_at: null,
+      menu_date: menuDate || null,
+    };
+  }
+
+  try {
+    const payload = await scrapeAndCacheCafeteriaMenus({ menuDate, forceRefresh: true });
+    return {
+      cafeterias: payload.cafeterias.map((item) => mapCafeteriaItem(item, language)),
+      cafeteria_source: payload.cafeteria_source,
+      scraped_at: payload.scraped_at,
+      menu_date: payload.menu_date,
+    };
+  } catch (error) {
+    console.warn('[pnuCafeteriaMenuScraperService] Live scrape fallback failed:', error.message);
     throw error;
   }
 }
 
 module.exports = {
   scrapeBusanCafeteriaMenus,
+  scrapeAndCacheCafeteriaMenus,
   getBusanCafeteriaMenus,
   syncCafeteriaMenusToSupabase,
 };

@@ -62,6 +62,7 @@ const {
   getCourseRecommendations,
   getAiDashboard,
   getPrograms,
+  getProgramDetail,
   getStudentNotifications,
 } = require("../controllers/aiController");
 
@@ -100,6 +101,7 @@ router.get("/notifications/:student_id", authenticateToken, getNotifications);
 router.get("/notifications", authenticateToken, getStudentNotifications);
 router.get("/ai-dashboard", authenticateToken, getAiDashboard);
 router.get("/programs", authenticateToken, getPrograms);
+router.get("/programs/:programId", authenticateToken, getProgramDetail);
 router.put(
   "/profile",
   authenticateToken,

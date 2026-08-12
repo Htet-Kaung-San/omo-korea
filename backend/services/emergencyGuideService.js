@@ -5,7 +5,7 @@ const { countryMatches } = require('../utils/countryMatch');
 const FALLBACK_QUICK_ACCESS = {
   police: { number: '112', label: 'Police' },
   fire_medical: { number: '119', label: 'Fire / Medical' },
-  disease_control: { number: '1339', label: 'Disease control' },
+  disease_control: { number: '1345', label: 'Immigration & Support' },
 };
 
 const FALLBACK_DATABASE_CONTACTS = [

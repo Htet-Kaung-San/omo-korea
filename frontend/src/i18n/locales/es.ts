@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Semana siguiente",
   'campusLife.noMenuData': "No hay datos del menú de cafetería.",
   'campusLife.noMenuDetails': "Los detalles del menú aún no están disponibles para esta cafetería.",
-  'emergency.title': "Emergencia",
-  'emergency.embassyTitle': "Embajada de mi país",
+  'emergency.title': "Soporte de Emergencia",
+  'emergency.embassyTitle': "Embajada de mi país en Corea",
   'emergency.call': "Llamar",
   'emergency.map': "Mapa",
-  'emergency.nearestHelp': "Ayuda más cercana",
+  'emergency.nearestHelp': "Contactos de Asistencia Más Cercanos",
   'emergency.navigate': "Navegar",
+  'emergency.police': "Policía",
+  'emergency.fireMedical': "Bomberos y Emergencias Médicas",
+  'emergency.immigration': "Inmigración y Asistencia General",
+  'emergency.guidePhraseTitle': "Guía de Frases de Emergencia",
+  'emergency.copyPhrase': "Copiar frase en coreano",
+  'emergency.copied': "¡Copiado!",
+  'emergency.housingSafetyTitle': "Seguridad de Depósitos de Vivienda y Alquiler",
+  'emergency.visaOfficesTitle': "Oficina de Inmigración y Visados",
 }
 
 export default messages

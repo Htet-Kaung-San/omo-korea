@@ -204,18 +204,17 @@ export function mapScholarshipItem(scholarship: ScholarshipItem): ScholarshipIte
 }
 
 interface BackendMapFacility {
-  facility_id: number
+  facility_id?: number | string
+  id?: number | string
   name: string
+  name_ko?: string | null
+  building_number?: string | null
   type: string
   latitude: number | string
   longitude: number | string
-  hours?: string | null
-  details?: string | null
-  floors?: string | null
-  subtitle?: string | null
   phone?: string | null
   website?: string | null
-  image_url?: string | null
+  image?: string | null
   departments?: Array<{ name: string; floor: string }> | string | null
   amenities?: Array<{ name: string; floor: string }> | string | null
 }
@@ -239,18 +238,16 @@ function parseFacilityRooms(
 
 export function mapMapFacility(row: BackendMapFacility): MapFacility {
   return {
-    id: String(row.facility_id),
+    id: String(row.facility_id ?? row.id ?? ''),
     name: row.name,
+    nameKo: row.name_ko ?? null,
+    buildingNumber: row.building_number ?? null,
     type: row.type,
     latitude: Number(row.latitude),
     longitude: Number(row.longitude),
-    hours: row.hours ?? null,
-    description: row.details ?? null,
-    floors: row.floors ?? null,
-    subtitle: row.subtitle ?? null,
     phone: row.phone ?? null,
     website: row.website ?? null,
-    imageUrl: row.image_url ?? null,
+    image: row.image ?? null,
     departments: parseFacilityRooms(row.departments),
     amenities: parseFacilityRooms(row.amenities),
   }

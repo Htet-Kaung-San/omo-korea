@@ -319,7 +319,7 @@ async function generateOpenRouterChatStream(message, history = [], modelOverride
     });
   }
 
-  const preferredModel = modelOverride || process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+  const preferredModel = modelOverride || process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4";
   
   // A robust list of fallback models in case the preferred model (like Claude) returns 404/No endpoints
   const fallbackModels = [

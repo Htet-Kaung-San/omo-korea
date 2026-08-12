@@ -4,6 +4,7 @@
  */
 const supabase = require('../supabaseClient');
 const { recommendPrograms } = require('../ai/programRecommendationEngine');
+const { translatePrograms } = require('./geminiService');
 
 function normalizeTag(value) {
   return String(value || '')
@@ -108,7 +109,45 @@ async function fetchRecommendedPrograms({
   studentProfile = {},
   userTags = [],
   limit = 20,
+  language = 'en',
+  includeDescriptions = false,
 } = {}) {
+  const mapped = await rankPrograms({ studentProfile, userTags, limit });
+
+  if (language && language !== 'ko' && mapped.length) {
+    return translatePrograms(mapped, language, { includeDescriptions });
+  }
+
+  return mapped;
+}
+
+/**
+ * Single-program lookup used by the detail page. Translates the full body
+ * (including description) on demand, but only for the one requested program,
+ * so the detail navigation stays cheap even on a cold cache.
+ */
+async function fetchProgramDetail({
+  programId,
+  studentProfile = {},
+  userTags = [],
+  limit = 50,
+  language = 'en',
+} = {}) {
+  const mapped = await rankPrograms({ studentProfile, userTags, limit });
+  const program = mapped.find((p) => String(p.id) === String(programId)) || null;
+  if (!program) return null;
+
+  if (language && language !== 'ko') {
+    const [translated] = await translatePrograms([program], language, {
+      includeDescriptions: true,
+    });
+    return translated || program;
+  }
+
+  return program;
+}
+
+async function rankPrograms({ studentProfile = {}, userTags = [], limit = 20 } = {}) {
   const tags = collectUserTags(userTags, studentProfile.interests, studentProfile.interestTags);
   const profile = {
     ...studentProfile,
@@ -162,7 +201,50 @@ async function fetchRecommendedPrograms({
   });
 }
 
+/**
+ * Pre-translates the open program catalog in the background so the first
+ * Programs / dashboard request is served from the cache (memory + Supabase)
+ * instead of blocking on the AI provider. Off the request path — never throws.
+ */
+async function warmProgramTranslations({ languages = ['en'] } = {}) {
+  try {
+    const openRows = await fetchOpenCatalogPrograms();
+    if (!openRows.length) return;
+
+    const mapped = openRows.map((row) => mapProgramRow(row));
+    for (const language of languages) {
+      try {
+        await translatePrograms(mapped, language, { includeDescriptions: true });
+      } catch (err) {
+        console.warn(
+          `[extracurricular] Pre-translation for ${language} failed:`,
+          err.message,
+        );
+      }
+    }
+  } catch (err) {
+    console.warn('[extracurricular] Failed to warm program translations:', err.message);
+  }
+}
+
+/**
+ * Schedules recurring background pre-translation of programs.
+ * Triggers once shortly after boot (matching the cafeteria pre-scrape pattern).
+ */
+function startProgramTranslationWarmSchedule(delayMs = 2000) {
+  const timer = setTimeout(() => {
+    warmProgramTranslations().catch(() => {});
+  }, delayMs);
+  if (timer.unref) {
+    timer.unref();
+  }
+}
+
 module.exports = {
   collectUserTags,
   fetchRecommendedPrograms,
+  fetchProgramDetail,
+  warmProgramTranslations,
+  startProgramTranslationWarmSchedule,
 };
+

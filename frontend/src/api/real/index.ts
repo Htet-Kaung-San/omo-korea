@@ -4,6 +4,7 @@ import type {
   CampusFacilities,
   CareerOpportunitiesResponse,
   CareerOpportunity,
+  CareerJobType,
   ChatMessageRequest,
   ChatMessageResponse,
   ChecklistItem,
@@ -32,7 +33,7 @@ import type {
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken, getStoredToken } from '../client'
+import { apiFetch, clearStoredToken } from '../client'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,
@@ -225,6 +226,7 @@ export const realApi: HeyPnuApi = {
 
     query.set('page', String(page))
     query.set('limit', String(limit))
+    if (params.jobType) query.set('jobType', params.jobType)
 
     return backendFetch<CareerOpportunitiesResponse>(
       `/students/career-opportunities?${query.toString()}`,
@@ -235,8 +237,11 @@ export const realApi: HeyPnuApi = {
    * AI engineers: point this at your ranking service.
    * Contract: CareerOpportunity[] (optional location, jobType, matchReason, logoUrl).
    */
-  async getRecommendedCareerOpportunities(): Promise<CareerOpportunity[]> {
-    return backendFetch<CareerOpportunity[]>('/students/career-recommendations')
+  async getRecommendedCareerOpportunities(jobType?: CareerJobType): Promise<CareerOpportunity[]> {
+    const query = new URLSearchParams()
+    if (jobType) query.set('jobType', jobType)
+    const suffix = query.toString() ? `?${query.toString()}` : ''
+    return backendFetch<CareerOpportunity[]>(`/students/career-recommendations${suffix}`)
   },
 
   async getEmergencyGuide(): Promise<EmergencyGuide> {
@@ -363,6 +368,14 @@ export const realApi: HeyPnuApi = {
   async getPrograms(): Promise<ProgramItem[]> {
     const programs = await backendFetch<ProgramItem[]>('/students/programs')
     return programs.map(mapProgramItem)
+  },
+
+  async getProgramDetail(programId: string): Promise<ProgramItem | null> {
+    const program = await backendFetch<ProgramItem>(
+      `/students/programs/${encodeURIComponent(programId)}`,
+    )
+    if (!program) return null
+    return mapProgramItem(program)
   },
 
   async getMemory(): Promise<string> {

@@ -16,6 +16,15 @@ function normalizeWhitespace(value) {
     .trim();
 }
 
+function inferJobType(value) {
+  const text = normalizeWhitespace(value).toLowerCase();
+  if (/volunteer|봉사|봉사활동/.test(text)) return 'volunteer';
+  if (/part[- ]?time|아르바이트|시간제|파트/.test(text)) return 'part-time';
+  if (/full[- ]?time|정규직|신입사원|채용/.test(text)) return 'full-time';
+  if (/intern|인턴|internship|실습/.test(text)) return 'internship';
+  return 'internship';
+}
+
 function decodeHtmlEntities(value) {
   return String(value || '')
     .replace(/&nbsp;/gi, ' ')
@@ -104,6 +113,7 @@ function parseOpportunityItem(itemHtml, index) {
     role: role || null,
     applicationType,
     sourceUrl: toAbsoluteUrl(detailPath),
+    jobType: inferJobType(`${title} ${role || ''} ${applicationType || ''}`),
   };
 }
 
@@ -184,9 +194,10 @@ function summarizeCareers(opportunities = []) {
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ko'));
 }
 
-async function getCareerOpportunitiesPage({ page = 1, limit = 10 }) {
+async function getCareerOpportunitiesPage({ page = 1, limit = 10, jobType = null }) {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 10;
+  const requestedJobType = jobType || null;
 
   const globalStart = (safePage - 1) * safeLimit;
   const firstJobKoreaPage = Math.floor(globalStart / JOB_KOREA_PAGE_SIZE) + 1;
@@ -195,7 +206,9 @@ async function getCareerOpportunitiesPage({ page = 1, limit = 10 }) {
   const firstPayload = await fetchJobKoreaListPage(firstJobKoreaPage);
   const totalItems = firstPayload.totalItems;
 
-  let opportunities = firstPayload.opportunities.slice(
+  let opportunities = firstPayload.opportunities.filter(
+    (item) => !requestedJobType || inferJobType(`${item.title} ${item.role || ''} ${item.applicationType || ''}`) === requestedJobType,
+  ).slice(
     offsetInFirstPage,
     offsetInFirstPage + safeLimit,
   );
@@ -203,7 +216,13 @@ async function getCareerOpportunitiesPage({ page = 1, limit = 10 }) {
   if (opportunities.length < safeLimit) {
     const secondPayload = await fetchJobKoreaListPage(firstJobKoreaPage + 1);
     const remaining = safeLimit - opportunities.length;
-    opportunities = opportunities.concat(secondPayload.opportunities.slice(0, remaining));
+    opportunities = opportunities.concat(
+      secondPayload.opportunities
+        .filter(
+          (item) => !requestedJobType || inferJobType(`${item.title} ${item.role || ''} ${item.applicationType || ''}`) === requestedJobType,
+        )
+        .slice(0, remaining),
+    );
   }
 
   const totalPages = Math.max(1, Math.ceil(totalItems / safeLimit));

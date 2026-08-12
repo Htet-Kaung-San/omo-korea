@@ -6,6 +6,9 @@ const errorHandler = require("./middleware/errorHandler");
 const { languageMiddleware } = require("./middleware/languageMiddleware");
 const { languageInterceptor } = require("./middleware/translationMiddleware");
 
+const { startCafeteriaPreScrapeSchedule } = require("./services/preScrapeCafeteriaService");
+const { startProgramTranslationWarmSchedule } = require("./services/extracurricularProgramService");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -63,6 +66,8 @@ app.use(errorHandler);
 if (require.main === module) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Hey! PNU backend running on http://0.0.0.0:${PORT}`);
+    startCafeteriaPreScrapeSchedule();
+    startProgramTranslationWarmSchedule();
   });
 }
 

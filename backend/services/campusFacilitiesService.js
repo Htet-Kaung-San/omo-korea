@@ -65,10 +65,30 @@ async function getCampusFacilities(language = 'en', { menuDate = '' } = {}) {
   const cafeteriaLang = lang === 'ko' ? 'ko' : 'en';
 
   try {
-    // Always scrape/map from Korean source first, then AI-translate when needed.
-    const cafeteriaData = await getBusanCafeteriaMenus({ menuDate, language: 'ko' });
+    // Always read Korean source first (cached / Supabase / background scrape),
+    // never blocking the request on a live scrape. The menu is then translated
+    // to English; the background pre-scrape warms the translation cache at boot,
+    // so this is normally a cache hit and stays fast. On a cold cache we block
+    // and translate so the page always shows English.
+    const cafeteriaData = await getBusanCafeteriaMenus({
+      menuDate,
+      language: 'ko',
+      nonBlocking: true,
+    });
     let cafeterias = cafeteriaData.cafeterias;
     let menuTranslated = false;
+
+    if (cafeterias.length === 0) {
+      return {
+        shuttle_bus_metadata: {
+          key_stops: shuttleStops,
+        },
+        cafeterias: FALLBACK_CAFETERIAS,
+        cafeteria_source: 'fallback',
+        scraped_at: null,
+        menu_translated: false,
+      };
+    }
 
     if (cafeteriaLang !== 'ko' && (isGeminiConfigured() || process.env.OPENROUTER_API_KEY)) {
       const result = await translateCafeteriaMenus(

@@ -9,7 +9,7 @@ async function generateGeminiChat(message, languagePref, context) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const langName =
     languagePref === "KO"
@@ -61,7 +61,7 @@ async function generateGeminiMajorAnalysis(userProfile, recommendations) {
     };
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const prompt = `
 You are the major recommendation assistant for Hey! PNU, a support platform for international students at Pusan National University.
@@ -138,7 +138,7 @@ async function translateGeminiAnnouncement(imageBase64, mimeType, textContent) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const systemPrompt = `
 You are the Hey! PNU Academic and Settlement Notice Translator.
@@ -236,7 +236,10 @@ const CAFETERIA_LANGUAGE_NAMES = {
 };
 
 const cafeteriaTranslationCache = new Map();
-const CAFETERIA_TRANSLATION_TTL_MS = 1000 * 60 * 60; // 1 hour
+// Longer than the 3h menu cache so a warm translation survives the full menu
+// lifespan and never forces a synchronous AI call mid-cycle.
+const CAFETERIA_TRANSLATION_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
+const cafeteriaTranslationInflight = new Map(); // cacheKey -> Promise
 
 function collectCafeteriaStrings(cafeterias = []) {
   const strings = new Set();
@@ -249,13 +252,10 @@ function collectCafeteriaStrings(cafeterias = []) {
     strings.add(text);
   };
 
-  for (const hall of cafeterias) {
-    add(hall?.name);
-    const menu = hall?.menu;
-    if (!menu) continue;
-    add(menu.week_label);
+  const collectMenu = (menu) => {
+    add(menu?.week_label);
 
-    for (const row of menu.rows || []) {
+    for (const row of menu?.rows || []) {
       add(row.meal_type);
       for (const line of String(row.meal_label || "").split("\n")) {
         add(line);
@@ -272,6 +272,17 @@ function collectCafeteriaStrings(cafeterias = []) {
           for (const item of option.items || []) add(item);
         }
       }
+    }
+  };
+
+  for (const hall of cafeterias) {
+    // Mapped shape: { name, menu: { week_label, rows } }.
+    // Raw scraped shape: { dining_hall, week_label, meals: rows } at top level.
+    add(hall?.name ?? hall?.dining_hall);
+    if (hall?.menu) {
+      collectMenu(hall.menu);
+    } else {
+      collectMenu({ week_label: hall?.week_label, rows: hall?.meals });
     }
   }
 
@@ -429,8 +440,8 @@ ${JSON.stringify(strings, null, 2)}
   throw lastError || new Error("OpenRouter cafeteria translation failed");
 }
 
-async function requestCafeteriaTranslations(strings, langName, { retries = 1 } = {}) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+async function requestCafeteriaTranslations(strings, langName, { retries = 3 } = {}) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const prompt = `
 You are translating a Pusan National University (PNU) cafeteria weekly menu for international students.
@@ -465,6 +476,12 @@ ${JSON.stringify(strings, null, 2)}
 
       if (response.status === 429) {
         lastError = new Error("Gemini API error: Too Many Requests");
+        if (attempt < retries) {
+          // Free-tier keys rate-limit easily under burst concurrency; back off
+          // before giving up so the OpenRouter fallback is the exception.
+          await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+          continue;
+        }
         break;
       }
 
@@ -517,8 +534,11 @@ ${JSON.stringify(strings, null, 2)}
  * @param {Array} cafeterias
  * @param {string} targetLanguage ISO language code (e.g. en, vi, my)
  * @param {string} [cacheSalt] stable key fragment (e.g. scraped_at / menu_date)
+ * @param {{ nonBlocking?: boolean }} [options] when `nonBlocking` is true and the
+ *   translation is not cached, this returns the Korean menu immediately and warms
+ *   the cache in the background so HTTP requests never wait on the AI provider.
  */
-async function translateCafeteriaMenus(cafeterias, targetLanguage = "en", cacheSalt = "") {
+async function translateCafeteriaMenus(cafeterias, targetLanguage = "en", cacheSalt = "", { nonBlocking = false } = {}) {
   const lang = String(targetLanguage || "en").toLowerCase().split("-")[0];
   if (!Array.isArray(cafeterias) || cafeterias.length === 0) {
     return { cafeterias, translated: false };
@@ -546,29 +566,51 @@ async function translateCafeteriaMenus(cafeterias, targetLanguage = "en", cacheS
 
   const langName = CAFETERIA_LANGUAGE_NAMES[lang] || "English";
 
-  try {
+  const warm = async () => {
     const dictionary = {};
     const batches = chunkArray(strings, 40);
-    for (let i = 0; i < batches.length; i += 1) {
-      const partial = await requestCafeteriaTranslations(batches[i], langName);
+    const partials = await Promise.all(
+      batches.map((batch) =>
+        requestCafeteriaTranslations(batch, langName).catch((err) => {
+          console.warn(`[geminiService] Batch translation failed for ${langName}:`, err.message);
+          return {};
+        })
+      )
+    );
+    for (const partial of partials) {
       Object.assign(dictionary, partial);
-      if (i < batches.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 250));
-      }
     }
 
     if (Object.keys(dictionary).length === 0) {
-      return { cafeterias, translated: false };
+      return false;
     }
 
     cafeteriaTranslationCache.set(cacheKey, {
       fetchedAt: Date.now(),
       dictionary,
     });
+    return true;
+  };
 
+  if (nonBlocking) {
+    // Never block the request on AI: kick off a single shared warm job and
+    // return the Korean menu now so latency stays sub-second.
+    if (!cafeteriaTranslationInflight.has(cacheKey)) {
+      const job = warm()
+        .catch(() => false)
+        .finally(() => cafeteriaTranslationInflight.delete(cacheKey));
+      cafeteriaTranslationInflight.set(cacheKey, job);
+    }
+    return { cafeterias, translated: false };
+  }
+
+  try {
+    const translated = await warm();
+    const warmed = cafeteriaTranslationCache.get(cacheKey);
     return {
-      cafeterias: applyCafeteriaTranslations(cafeterias, dictionary),
-      translated: true,
+      cafeterias:
+        translated && warmed ? applyCafeteriaTranslations(cafeterias, warmed.dictionary) : cafeterias,
+      translated,
     };
   } catch (error) {
     console.warn(
@@ -579,12 +621,28 @@ async function translateCafeteriaMenus(cafeterias, targetLanguage = "en", cacheS
   }
 }
 
+/**
+ * Pre-translates cafeteria menus for common target languages to warm cache.
+ * Languages are processed sequentially (not Promise.all) so a burst of
+ * concurrent calls doesn't trip the provider rate limit at boot.
+ */
+async function preTranslateCafeteriaMenus(cafeterias, targetLanguages = ["en", "zh", "vi", "ja"], cacheSalt = "") {
+  if (!Array.isArray(cafeterias) || cafeterias.length === 0) return;
+  for (const lang of targetLanguages) {
+    try {
+      await translateCafeteriaMenus(cafeterias, lang, cacheSalt);
+    } catch (err) {
+      console.warn(`[geminiService] Pre-translation for ${lang} failed:`, err.message);
+    }
+  }
+}
+
 async function generateGeminiChatStream(message, languagePref, context) {
   if (!isGeminiConfigured()) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const langName =
     languagePref === "KO"
@@ -620,6 +678,332 @@ async function generateGeminiChatStream(message, languagePref, context) {
   return response.body;
 }
 
+const programTranslationCache = new Map(); // lang -> Map<programId, { fetchedAt, data, fields }>
+const programTranslationInflight = new Map(); // chunkKey -> Promise (dedupes overlapping AI work)
+const PROGRAM_TRANSLATION_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
+const PROGRAM_TRANSLATION_BATCH_SIZE = 25;
+
+function getProgramCache(lang) {
+  let cache = programTranslationCache.get(lang);
+  if (!cache) {
+    cache = new Map();
+    programTranslationCache.set(lang, cache);
+  }
+  return cache;
+}
+
+function toProgramCacheEntry(translation, includeDescriptions) {
+  const data = {
+    title: translation?.title || "",
+    category: translation?.category || "",
+    description: translation?.description || null,
+    matchHint: translation?.matchHint || "",
+  };
+  const fields = {
+    title: Boolean(data.title),
+    category: Boolean(data.category),
+    description: includeDescriptions ? Boolean(data.description) : false,
+    matchHint: Boolean(data.matchHint),
+  };
+  return { fetchedAt: Date.now(), data, fields };
+}
+
+async function hydrateProgramTranslationsFromDb(ids, cache) {
+  const numericIds = [...new Set(ids.map((id) => Number(id)).filter((n) => Number.isInteger(n)))];
+  if (!numericIds.length) return;
+
+  let supabase;
+  try {
+    supabase = require("../supabaseClient");
+  } catch {
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("program_translation")
+    .select("program_id, title_en, category_en, description_en, match_hint_en")
+    .in("program_id", numericIds);
+
+  if (error) {
+    console.warn("[geminiService] Failed to read program translations from DB:", error.message);
+    return;
+  }
+
+  for (const row of data || []) {
+    cache.set(String(row.program_id), toProgramCacheEntry({
+      title: row.title_en,
+      category: row.category_en,
+      description: row.description_en,
+      matchHint: row.match_hint_en,
+    }, true));
+  }
+}
+
+async function upsertProgramTranslations(translations) {
+  const rows = (translations || [])
+    .filter((t) => t && Number.isInteger(Number(t.id)))
+    .map((t) => ({
+      program_id: Number(t.id),
+      title_en: t.title || null,
+      category_en: t.category || null,
+      description_en: t.description || null,
+      match_hint_en: t.matchHint || null,
+      updated_at: new Date().toISOString(),
+    }));
+
+  if (!rows.length) return;
+
+  let supabase;
+  try {
+    supabase = require("../supabaseClient");
+  } catch {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("program_translation")
+    .upsert(rows, { onConflict: "program_id" });
+
+  if (error) {
+    console.warn("[geminiService] Failed to persist program translations:", error.message);
+  }
+}
+
+/**
+ * Single AI call to translate a batch of program items into English.
+ * Returns an array of `{ id, title, category, description?, matchHint }`.
+ * When `includeDescriptions` is false, descriptions are omitted from the
+ * request so the list endpoint stays fast (title/category/matchHint only).
+ */
+async function requestProgramTranslations(itemsToTranslate, langName, includeDescriptions = true) {
+  const prompt = `
+You are an expert academic translator for Pusan National University (PNU) extracurricular programs, student activities, and competitions.
+Translate each program item from Korean into clear, high-quality English.
+
+Rules:
+- Return JSON ONLY matching this format:
+{
+  "translations": [
+    {
+      "id": "<matching exact string id>",
+      "title": "<translated title in English>",
+      "category": "<translated category in English>",
+      ${includeDescriptions ? '"description": "<translated description in English - keep HTML tags if the original contains HTML>",' : ""}
+      "matchHint": "<translated matchHint in English if present>"
+    }
+  ]
+}
+${includeDescriptions ? "- Preserve all HTML tags (like <p>, <br>, <strong>, <ul>, <li>, <table>, <a>) inside \"description\".\n" : ""}- Do not alter IDs.
+- Omit any field that is empty in the source item.
+
+Programs to translate:
+${JSON.stringify(itemsToTranslate, null, 2)}
+`.trim();
+
+  let jsonText = "";
+
+  if (isGeminiConfigured()) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    } else {
+      console.warn(
+        `[geminiService] Gemini program translation failed: ${response.status} ${response.statusText}`,
+      );
+    }
+  }
+
+  if (!jsonText && process.env.OPENROUTER_API_KEY) {
+    const orUrl = "https://openrouter.ai/api/v1/chat/completions";
+    const preferredModel = process.env.OPENROUTER_MODEL;
+    const models = [
+      ...(preferredModel ? [preferredModel] : []),
+      "google/gemini-2.5-flash",
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "openrouter/free",
+    ];
+
+    for (const model of models) {
+      try {
+        const response = await fetch(orUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://localhost:3000",
+            "X-Title": "Hey! PNU Program Translation",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.2,
+            max_tokens: 4000,
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn(
+            `[geminiService] OpenRouter ${model}: ${response.status} ${response.statusText}`,
+          );
+          continue;
+        }
+
+        const data = await response.json();
+        if (data.error) {
+          console.warn(
+            `[geminiService] OpenRouter ${model} error: ${data.error.message}`,
+          );
+          continue;
+        }
+
+        jsonText = data.choices?.[0]?.message?.content || "";
+        if (jsonText) break;
+      } catch (orErr) {
+        console.warn(
+          `[geminiService] OpenRouter ${model} exception: ${orErr.message}`,
+        );
+      }
+    }
+  }
+
+  if (!jsonText) {
+    return [];
+  }
+
+  const parsed = parseGeminiJson(jsonText);
+  const translationList = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(parsed?.translations)
+    ? parsed.translations
+    : [];
+  return Array.isArray(translationList) ? translationList : [];
+}
+
+/**
+ * Real-time AI translation for Extracurricular Programs (Korean -> English for all non-Korean options).
+ * Translates program title, category, matchHint, and detailed description body.
+ *
+ * Results are cached per program id (not per request-list). A Supabase-backed
+ * cache makes translations durable across restarts, and overlapping work is
+ * deduped per chunk (not per whole job), so a request never waits for a
+ * background warm to finish — it only translates its own missing items.
+ *
+ * @param {Array} programs Array of program objects
+ * @param {string} targetLanguage ISO language code
+ * @param {{ includeDescriptions?: boolean }} [options] When false (default for
+ *   list views), descriptions are not sent to the AI provider, keeping the
+ *   request fast; they are filled in by the background warm or the detail
+ *   endpoint.
+ */
+async function translatePrograms(programs = [], targetLanguage = "en", options = {}) {
+  const lang = String(targetLanguage || "en").toLowerCase().split("-")[0];
+  if (!Array.isArray(programs) || programs.length === 0) {
+    return programs;
+  }
+  // If target language is Korean, display original Korean
+  if (lang === "ko") {
+    return programs;
+  }
+
+  // Non-Korean option -> display in English using Gemini API
+  if (!isGeminiConfigured() && !process.env.OPENROUTER_API_KEY) {
+    return programs;
+  }
+
+  const includeDescriptions = options.includeDescriptions === true;
+
+  // The prompt always produces English, so share one cache across every
+  // non-Korean UI language for the highest hit rate.
+  const cacheLang = "en";
+  const cache = getProgramCache(cacheLang);
+  const now = Date.now();
+
+  const isFresh = (entry) =>
+    entry && now - entry.fetchedAt < PROGRAM_TRANSLATION_TTL_MS;
+
+  const isReady = (entry) => {
+    if (!isFresh(entry)) return false;
+    const fields = entry.fields || {};
+    if (includeDescriptions) return Boolean(fields.title) && Boolean(fields.description);
+    return Boolean(fields.title || fields.category || fields.matchHint || fields.description);
+  };
+
+  const resolveMissing = () => programs.filter((p) => !isReady(cache.get(String(p.id))));
+
+  let missing = resolveMissing();
+
+  if (missing.length > 0) {
+    await hydrateProgramTranslationsFromDb(missing.map((p) => p.id), cache);
+    missing = resolveMissing();
+  }
+
+  if (missing.length > 0) {
+    const chunks = chunkArray(
+      missing.map((p) => ({
+        id: String(p.id),
+        title: p.title || "",
+        category: p.category || "",
+        description: includeDescriptions ? p.description || "" : undefined,
+        matchHint: p.matchHint || "",
+      })),
+      PROGRAM_TRANSLATION_BATCH_SIZE,
+    );
+
+    for (const chunk of chunks) {
+      const chunkKey = `en:${includeDescriptions ? "full" : "list"}:${chunk
+        .map((i) => i.id)
+        .sort()
+        .join(",")}`;
+
+      let inflight = programTranslationInflight.get(chunkKey);
+      if (!inflight) {
+        inflight = (async () => {
+          const translations = await requestProgramTranslations(chunk, cacheLang, includeDescriptions);
+          for (const t of translations) {
+            if (!t || !t.id) continue;
+            cache.set(String(t.id), toProgramCacheEntry(t, includeDescriptions));
+          }
+          if (includeDescriptions) {
+            await upsertProgramTranslations(translations);
+          }
+        })().catch((error) => {
+          console.warn("[geminiService] Program translation error:", error.message);
+        }).finally(() => {
+          programTranslationInflight.delete(chunkKey);
+        });
+        programTranslationInflight.set(chunkKey, inflight);
+      }
+      await inflight;
+    }
+  }
+
+  return programs.map((p) => {
+    const entry = cache.get(String(p.id));
+    if (!isFresh(entry)) return p;
+    const t = entry.data;
+    return {
+      ...p,
+      title: t.title || p.title,
+      category: t.category || p.category,
+      description: t.description || p.description,
+      matchHint: t.matchHint || p.matchHint,
+    };
+  });
+}
+
 module.exports = {
   isGeminiConfigured,
   generateGeminiChat,
@@ -627,4 +1011,7 @@ module.exports = {
   generateGeminiMajorAnalysis,
   translateGeminiAnnouncement,
   translateCafeteriaMenus,
+  preTranslateCafeteriaMenus,
+  translatePrograms,
 };
+

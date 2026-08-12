@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "สัปดาห์ถัดไป",
   'campusLife.noMenuData': "ไม่มีข้อมูลเมนูโรงอาหาร",
   'campusLife.noMenuDetails': "ยังไม่มีรายละเอียดเมนูสำหรับโรงอาหารนี้",
-  'emergency.title': "ฉุกเฉิน",
-  'emergency.embassyTitle': "สถานทูตประเทศของฉัน",
+  'emergency.title': "ความช่วยเหลือฉุกเฉิน",
+  'emergency.embassyTitle': "สถานทูตประเทศของฉันในเกาหลี",
   'emergency.call': "โทร",
   'emergency.map': "แผนที่",
-  'emergency.nearestHelp': "ความช่วยเหลือที่ใกล้ที่สุด",
+  'emergency.nearestHelp': "ผู้ติดต่อขอความช่วยเหลือที่ใกล้ที่สุด",
   'emergency.navigate': "นำทาง",
+  'emergency.police': "แจ้งตำรวจ",
+  'emergency.fireMedical': "ดับเพลิงและการแพทย์",
+  'emergency.immigration': "ตรวจคนเข้าเมืองและการสนับสนุนทั่วไป",
+  'emergency.guidePhraseTitle': "คู่มือวลีฉุกเฉิน",
+  'emergency.copyPhrase': "คัดลอกข้อความภาษาเกาหลี",
+  'emergency.copied': "คัดลอกแล้ว!",
+  'emergency.housingSafetyTitle': "ความปลอดภัยเงินมัดจำค่าเช่าบ้าน",
+  'emergency.visaOfficesTitle': "สำนักงานตรวจคนเข้าเมืองและวีซ่า",
 }
 
 export default messages

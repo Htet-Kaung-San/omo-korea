@@ -57,33 +57,65 @@ function facilityIcon(type: string) {
   }
 }
 
-function pinColor(type: string): string {
+function getBuildingColor(buildingNumber?: string | null, type?: string): string {
+  const bNo = buildingNumber ? buildingNumber.trim() : ''
+  if (bNo) {
+    const series = bNo.charAt(0)
+    switch (series) {
+      case '1':
+      case '2':
+        return '#dc2626' // Red (100 / 200 series)
+      case '3':
+        return '#d97706' // Amber / Gold (300 series)
+      case '4':
+      case '5':
+        return '#16a34a' // Green (400 / 500 series)
+      case '6':
+        return '#0284c7' // Blue (600 series)
+      case '7':
+        return '#7e22ce' // Purple (700 series)
+    }
+  }
+
   switch (type) {
     case 'Library':
-      return '#7c3aed'
+      return '#16a34a'
     case 'Cafeteria':
-      return '#ea580c'
+      return '#d97706'
     case 'Academic':
-      return '#005bac'
-    case 'Student Life':
-      return '#ea580c'
+      return '#0284c7'
     case 'Administrative':
-      return '#0d9488'
+      return '#dc2626'
     case 'Dormitory':
-      return '#7c3aed'
+      return '#7e22ce'
     default:
       return '#005bac'
   }
 }
 
 function buildMarkerHtml(facility: MapFacility): string {
-  const color = pinColor(facility.type)
-  const shortName = facility.name.replace(/\s*\([^)]*\)\s*/g, '').trim()
-  const label = shortName.length > 22 ? `${shortName.slice(0, 20)}…` : shortName
-  return `<div style="display:flex;flex-direction:column;align-items:center;transform:translateY(-4px);">
-    <div style="background:${color};color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;">${label}</div>
-    <div style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid ${color};"></div>
-  </div>`
+  const color = getBuildingColor(facility.buildingNumber, facility.type)
+  const label = facility.buildingNumber ? facility.buildingNumber.trim() : facility.name.slice(0, 3)
+
+  return `<div style="
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: ${color};
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 2px 7px;
+    min-width: 26px;
+    height: 22px;
+    border-radius: 9999px;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: 1;
+  ">${label}</div>`
 }
 
 export function CampusMapPage() {
@@ -121,8 +153,9 @@ export function CampusMapPage() {
       if (!q) return true
       return (
         f.name.toLowerCase().includes(q) ||
-        f.type.toLowerCase().includes(q) ||
-        (f.subtitle ?? '').toLowerCase().includes(q)
+        (f.nameKo ?? '').toLowerCase().includes(q) ||
+        (f.buildingNumber ?? '').toLowerCase().includes(q) ||
+        f.type.toLowerCase().includes(q)
       )
     })
   }, [facilities, query, typeFilter])
@@ -232,16 +265,18 @@ export function CampusMapPage() {
       const marker = new naver.maps.Marker({
         position,
         map,
-        title: facility.name,
+        title: facility.buildingNumber ? `[${facility.buildingNumber}] ${facility.name}` : facility.name,
         icon: {
           content: buildMarkerHtml(facility),
-          anchor: new naver.maps.Point(70, 40),
+          anchor: new naver.maps.Point(16, 11),
         },
       })
+
       const infoWindow = new naver.maps.InfoWindow({
         content: `<div style="padding:10px 12px;min-width:160px;">
-          <strong style="display:block;font-size:13px;">${facility.name}</strong>
-          <span style="font-size:12px;color:#64748b;">${facility.subtitle || facility.type}</span>
+          <strong style="display:block;font-size:13px;">${facility.buildingNumber ? `[${facility.buildingNumber}] ` : ''}${facility.name}</strong>
+          ${facility.nameKo ? `<span style="display:block;font-size:12px;color:#475569;">${facility.nameKo}</span>` : ''}
+          <span style="font-size:11px;color:#64748b;">${facility.type}</span>
           <button type="button" data-facility-id="${facility.id}" style="display:block;margin-top:8px;color:#005bac;font-size:12px;font-weight:600;background:none;border:none;padding:0;cursor:pointer;">View details →</button>
         </div>`,
       })
@@ -257,6 +292,13 @@ export function CampusMapPage() {
       markersRef.current.push({ facility, marker, infoWindow })
     })
   }, [facilities, focusFacility, mapReady, navigate])
+
+  useEffect(() => {
+    const filteredIds = new Set(filtered.map((f) => f.id))
+    markersRef.current.forEach(({ facility, marker }) => {
+      marker.setVisible(filteredIds.has(facility.id))
+    })
+  }, [filtered])
 
   const error = mapError || facilitiesError
 
@@ -351,6 +393,7 @@ export function CampusMapPage() {
             {nearbyVisible.map(({ facility, distance }) => {
               const Icon = facilityIcon(facility.type)
               const isSelected = selectedId === facility.id
+              const color = getBuildingColor(facility.buildingNumber, facility.type)
               return (
                 <button
                   key={facility.id}
@@ -365,14 +408,16 @@ export function CampusMapPage() {
                 >
                   <div
                     className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
-                    style={{ backgroundColor: `${pinColor(facility.type)}18`, color: pinColor(facility.type) }}
+                    style={{ backgroundColor: `${color}18`, color }}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-semibold text-pnu-text">{facility.name}</p>
+                    <p className="truncate text-[15px] font-semibold text-pnu-text">
+                      {facility.buildingNumber ? `[${facility.buildingNumber}] ` : ''}{facility.name}
+                    </p>
                     <p className="truncate text-[12px] text-pnu-muted">
-                      {facility.subtitle || facility.type}
+                      {facility.nameKo ? `${facility.nameKo} • ` : ''}{facility.type}
                     </p>
                   </div>
                   <span className="shrink-0 text-[12px] font-semibold text-pnu-muted">
