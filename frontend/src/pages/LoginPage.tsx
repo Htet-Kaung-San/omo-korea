@@ -3,10 +3,14 @@ import { Navigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import { isMockApi } from '@/api'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
-// ?? LoginPage ?????????????????????????????????????????????????????????????????
+// PR #23 hid the demo button outside mock mode so a working credential is not
+// shown on a public deployment. PR #24 removed the mock API entirely, which
+// left that import dangling and crashed the page. The intent still holds, so
+// gate on the dev build instead — reviewers running locally keep the shortcut,
+// production never renders it.
+const SHOW_DEMO_ACCOUNT = import.meta.env.DEV
 
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`. Deliberately
 // not a real student's account and deliberately not an admin, because this repo
@@ -183,8 +187,8 @@ export function LoginPage() {
               {submitting ? t('auth.loggingIn') : t('auth.login')}
             </button>
 
-            {/* Demo account ??? one-click access for reviewers */}
-            {isMockApi ? (
+            {/* Demo account - one-click access for reviewers */}
+            {SHOW_DEMO_ACCOUNT ? (
             <button
               type="button"
               onClick={() => {

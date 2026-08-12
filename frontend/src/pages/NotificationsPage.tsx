@@ -22,7 +22,8 @@ import {
 import { api } from '@/api'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { useLanguage } from '@/context/LanguageContext'
-import type { NoticeChannel, Notification } from '@/types/api'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
+import type { NoticeChannel, Notification, ScholarshipItem } from '@/types/api'
 import { isExternalNotice, noticeHref } from '@/utils/notices'
 import { mergeNoticeFeed } from '@/utils/noticeFeed'
 import { useSavedNotices } from '@/utils/savedNotices'
@@ -33,7 +34,7 @@ type FeedTab = 'latest' | 'important'
 
 type DisplayNotice = Notification & {
   channel: NoticeChannel
-  source: string
+  source: string | null
   daysLeft: number | null
   Icon: LucideIcon
   iconTone: string
@@ -42,7 +43,8 @@ type DisplayNotice = Notification & {
   channelTextTone: string
 }
 
-function daysUntil(dateIso: string): number | null {
+function daysUntil(dateIso: string | null | undefined): number | null {
+  if (!dateIso) return null
   const target = new Date(dateIso)
   if (Number.isNaN(target.getTime())) return null
   const today = new Date()
@@ -60,14 +62,7 @@ function inferChannel(n: Notification): NoticeChannel {
     return 'department'
   }
   if (n.category === 'GENERAL') return 'general'
-  return 'department'
-}
-
-function inferSource(n: Notification, channel: NoticeChannel): string {
-  if (n.source) return n.source
-  if (channel === 'international') return 'International Office'
-  if (channel === 'department') return 'Department Office'
-  return 'PNU Administration'
+  return 'general'
 }
 
 function pickVisual(n: Notification, channel: NoticeChannel): {
@@ -157,16 +152,17 @@ function toDisplay(n: Notification): DisplayNotice {
   return {
     ...n,
     channel,
-    source: inferSource(n, channel),
+    source: n.source ?? null,
     daysLeft: daysUntil(n.date),
     read: n.read ?? false,
     ...visual,
   }
 }
 
-function formatDate(iso: string, locale: string) {
+function formatDate(iso: string | null | undefined, locale: string) {
+  if (!iso) return null
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
+  if (Number.isNaN(d.getTime())) return null
   return d.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
@@ -176,37 +172,43 @@ function formatDate(iso: string, locale: string) {
 
 export function NotificationsPage() {
   const { language, locale, t } = useLanguage()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const {
+    notifications: personalizedNotices,
+    loading,
+    error,
+  } = useNoticeRefresh()
+  const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
   const navigate = useNavigate()
 
   useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      api.getNotifications().catch(() => []),
-      api.getScholarships().catch(() => []),
-    ])
-      .then(([items, scholarships]) => {
-        const feed = mergeNoticeFeed(items, scholarships)
-        setNotifications(feed)
+    let active = true
+    api
+      .getScholarships()
+      .then((items) => {
+        if (active) setScholarships(items)
       })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : t('notifications.loadError')),
-      )
-      .finally(() => setLoading(false))
-  }, [language, t])
+      .catch(() => {
+        if (active) setScholarships([])
+      })
+    return () => {
+      active = false
+    }
+  }, [language])
+
+  const notifications = useMemo(
+    () => mergeNoticeFeed(personalizedNotices, scholarships),
+    [personalizedNotices, scholarships],
+  )
 
   const catalog = useMemo(() => notifications.map(toDisplay), [notifications])
 
   const summaryItems = useMemo(
     () =>
-      [...catalog]
-        .filter((n) => n.priority === 'HIGH' || (n.daysLeft != null && n.daysLeft >= 0 && n.daysLeft <= 14))
-        .sort((a, b) => (a.daysLeft ?? 999) - (b.daysLeft ?? 999))
+      catalog
+        .filter((notice) => (notice.kind ?? 'NOTICE') === 'NOTICE')
         .slice(0, 4),
     [catalog],
   )
@@ -214,7 +216,7 @@ export function NotificationsPage() {
   const feedItems = useMemo(() => {
     let list = [...catalog]
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
-    return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return list
   }, [catalog, feedTab])
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
@@ -352,9 +354,11 @@ export function NotificationsPage() {
                               <p className="mt-0.5 line-clamp-2 text-[13px] font-bold leading-snug text-pnu-text">
                                 {item.title}
                               </p>
-                              <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
-                                {item.source}
-                              </p>
+                              {item.source ? (
+                                <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
+                                  {item.source}
+                                </p>
+                              ) : null}
                             </div>
                           </a>
                         ) : (
@@ -374,16 +378,20 @@ export function NotificationsPage() {
                               <p className="mt-0.5 line-clamp-2 text-[13px] font-bold leading-snug text-pnu-text">
                                 {item.title}
                               </p>
-                              <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
-                                {item.source}
-                              </p>
+                              {item.source ? (
+                                <p className="mt-0.5 truncate text-[11px] font-medium text-pnu-muted">
+                                  {item.source}
+                                </p>
+                              ) : null}
                             </div>
                           </Link>
                         )}
                         <div className="flex shrink-0 flex-col items-end gap-2">
-                          <span className="text-[10px] font-medium text-pnu-muted">
-                            {formatDate(item.date, locale)}
-                          </span>
+                          {formatDate(item.date, locale) ? (
+                            <span className="text-[10px] font-medium text-pnu-muted">
+                              {formatDate(item.date, locale)}
+                            </span>
+                          ) : null}
                           <div className="flex items-center gap-1">
                             <ChevronRight
                               className="h-3.5 w-3.5 text-pnu-muted opacity-40"
