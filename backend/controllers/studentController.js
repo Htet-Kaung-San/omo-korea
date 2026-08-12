@@ -165,12 +165,17 @@ const testConnection = async (req, res) => {
 
 const loginStudent = async (req, res) => {
   try {
-    const { student_id, password } = req.body;
+    const { student_id, email, identifier, password } = req.body;
 
-    if (!student_id) {
+    // Primary identifier is the school email; student_id stays supported so
+    // existing accounts and saved credentials keep working. The client may also
+    // send a single `identifier` field and let the server decide which it is.
+    const supplied = String(identifier ?? email ?? student_id ?? "").trim();
+
+    if (!supplied) {
       return res.status(400).json({
         success: false,
-        message: "Missing student_id",
+        message: "Missing email or student ID",
       });
     }
 
@@ -184,32 +189,33 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    const { data, error } = await supabase
-      .from("student")
-      .select(
-        `
+    const isEmail = supplied.includes("@");
+    const selection = `
         *,
         major:major_id (
           major_name,
           department
         )
-      `,
-      )
-      .eq("student_id", student_id)
-      .single();
+      `;
 
-    if (error || !data) {
-      if (error?.code === "PGRST116" || !data) {
-        return res.status(404).json({
-          success: false,
-          message: "Student ID not registered",
-        });
-      }
+    // Emails are matched case-insensitively; student ids are exact.
+    const query = supabase.from("student").select(selection);
+    const { data, error } = isEmail
+      ? await query.ilike("email", supplied).maybeSingle()
+      : await query.eq("student_id", supplied).maybeSingle();
 
+    if (error) {
       return res.status(500).json({
         success: false,
         message: "Failed to fetch student profile",
         error: error.message,
+      });
+    }
+
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        message: isEmail ? "Email not registered" : "Student ID not registered",
       });
     }
 

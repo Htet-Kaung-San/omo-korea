@@ -272,14 +272,23 @@ function paginateMockCareerOpportunities({
 }
 
 export const mockApi: HeyPnuApi = {
-  async login({ studentId, password }: LoginRequest): Promise<AuthResponse> {
+  async login({ identifier, password }: LoginRequest): Promise<AuthResponse> {
     await delay()
     if (password !== DEMO_PASSWORD) {
-      throw new Error('Invalid student ID or password.')
+      throw new Error('Invalid email or password.')
     }
 
+    // Mirrors the backend: '@' means treat it as an email, otherwise a student ID.
+    const studentId = identifier.includes('@')
+      ? identifier.split('@')[0]
+      : identifier
+
     if (!/^\d{9}$/.test(studentId)) {
-      throw new Error('Invalid student ID format. Must be a 9-digit number.')
+      throw new Error(
+        identifier.includes('@')
+          ? 'Unrecognised school email.'
+          : 'Invalid student ID format. Must be a 9-digit number.',
+      )
     }
 
     const token = `mock-jwt-token-${studentId}`
