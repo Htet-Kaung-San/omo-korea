@@ -30,8 +30,65 @@ const {
   setStudentPassword,
   SUPABASE_AUTH_MARKER,
 } = require("../services/studentAuthService");
+const {
+  normalizeEmail,
+  createLoginChallenge,
+  consumeLoginChallenge,
+} = require("../services/loginChallengeService");
+const {
+  buildGraduationProgress,
+  toApiPayload: toGraduationApiPayload,
+} = require("../services/graduationProgressService");
+const {
+  isCsGraduationTaskName,
+  ensureGraduationRequirements,
+  updateStudentGraduationRequirement,
+} = require("../services/graduationRequirementService");
+const {
+  getChecklistForStudent,
+  shouldShowChecklist,
+  gradeFromYearChoice,
+  studentTypeFromGrade,
+  normalizeGrade,
+  updateStudentChecklistStatus,
+} = require("../services/semesterChecklistService");
 
 const { JWT_SECRET } = require("../jwtConfig");
+
+function buildAuthResponse(data) {
+  const { major, password: _storedPassword, ...studentProfile } = data;
+  const token = jwt.sign({ student_id: data.student_id }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  return {
+    success: true,
+    token,
+    data: {
+      ...studentProfile,
+      major_name: major?.major_name ?? null,
+      department: major?.department ?? null,
+      token,
+    },
+  };
+}
+
+async function fetchStudentAuthRow({ email, studentId }) {
+  const selection = `
+        *,
+        major:major_id (
+          major_name,
+          department
+        )
+      `;
+  const query = supabase.from("student").select(selection);
+
+  if (email) {
+    return query.ilike("email", email).maybeSingle();
+  }
+
+  return query.eq("student_id", studentId).maybeSingle();
+}
 
 function formatScholarshipDeadline(deadline) {
   if (!deadline) {
@@ -172,10 +229,6 @@ const testConnection = async (req, res) => {
 const loginStudent = async (req, res) => {
   try {
     const { student_id, email, identifier, password } = req.body;
-
-    // Primary identifier is the school email; student_id stays supported so
-    // existing accounts and saved credentials keep working. The client may also
-    // send a single `identifier` field and let the server decide which it is.
     const supplied = String(identifier ?? email ?? student_id ?? "").trim();
 
     if (!supplied) {
@@ -185,9 +238,6 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // A password is mandatory. This previously fell through to an
-    // unauthenticated token when the field was absent, which let anyone who
-    // knew a student ID sign in as that student.
     if (!password) {
       return res.status(400).json({
         success: false,
@@ -196,19 +246,10 @@ const loginStudent = async (req, res) => {
     }
 
     const isEmail = supplied.includes("@");
-    const selection = `
-        *,
-        major:major_id (
-          major_name,
-          department
-        )
-      `;
-
-    // Emails are matched case-insensitively; student ids are exact.
-    const query = supabase.from("student").select(selection);
-    const { data, error } = isEmail
-      ? await query.ilike("email", supplied).maybeSingle()
-      : await query.eq("student_id", supplied).maybeSingle();
+    const { data, error } = await fetchStudentAuthRow({
+      email: isEmail ? normalizeEmail(supplied) : null,
+      studentId: isEmail ? null : supplied,
+    });
 
     if (error) {
       return res.status(500).json({
@@ -225,9 +266,6 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Authenticate against the student's stored email, not a constructed one.
-    // Addresses are inconsistent across the table (@pusan.ac.kr, @pnu.edu and
-    // personal ones), so deriving the address locks most students out.
     const { ok } = await verifyStudentPassword({
       studentId: data.student_id,
       email: data.email,
@@ -242,22 +280,84 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    const { major, password: _storedPassword, ...studentProfile } = data;
+    if (!data.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Student has no email on file; cannot send verification code",
+      });
+    }
 
-    const token = jwt.sign({ student_id: data.student_id }, JWT_SECRET, {
-      expiresIn: "7d",
+    const challenge = createLoginChallenge({
+      studentId: data.student_id,
+      email: data.email,
     });
 
-    res.json({
+    const payload = {
       success: true,
-      token,
-      data: {
-        ...studentProfile,
-        major_name: major?.major_name ?? null,
-        department: major?.department ?? null,
-        token,
-      },
+      requiresVerification: true,
+      challengeId: challenge.challengeId,
+      maskedEmail: challenge.maskedEmail,
+      message: "Verification code sent",
+    };
+
+    if (process.env.NODE_ENV === "test" || process.env.LOGIN_OTP_IN_RESPONSE === "1") {
+      payload.debugCode = challenge.debugCode;
+    }
+
+    return res.json(payload);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
     });
+  }
+};
+
+const verifyLoginStudent = async (req, res) => {
+  try {
+    const { challengeId, code } = req.body;
+
+    if (!challengeId || !code) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing challengeId or code",
+      });
+    }
+
+    const result = consumeLoginChallenge({ challengeId, code });
+    if (!result.ok) {
+      const status =
+        result.reason === "too_many_attempts"
+          ? 429
+          : result.reason === "invalid_code"
+            ? 401
+            : 400;
+      const message =
+        result.reason === "too_many_attempts"
+          ? "Too many verification attempts"
+          : result.reason === "invalid_code"
+            ? "Invalid verification code"
+            : "Verification challenge invalid or expired";
+
+      return res.status(status).json({
+        success: false,
+        message,
+      });
+    }
+
+    const { data, error } = await fetchStudentAuthRow({
+      studentId: result.studentId,
+    });
+
+    if (error || !data) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    return res.json(buildAuthResponse(data));
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -269,36 +369,13 @@ const loginStudent = async (req, res) => {
 
 const CURRENT_TERM = "2026-Fall";
 
-const ESSENTIAL_SETTLEMENT_TASKS = [
-  { task_name: "Apply for Alien Registration Card (ARC)" },
-  { task_name: "Open Local Korean Bank Account" },
-  { task_name: "Register and Open Mobile SIM Card" },
-  { task_name: "Submit Health Clearance Certificate to Dormitory" },
-];
-
 const getStudentChecklist = async (req, res) => {
   try {
     const { student_id } = req.params;
 
-    const { data: priorEnrollments, error: enrollmentError } = await supabase
-      .from("enrollment")
-      .select("semester")
-      .eq("student_id", student_id)
-      .neq("semester", CURRENT_TERM);
-
-    if (enrollmentError) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch enrollment history",
-        error: enrollmentError.message,
-      });
-    }
-
-    const isNewlyEnrolled = !priorEnrollments || priorEnrollments.length === 0;
-
     const { data: student, error: studentError } = await supabase
       .from("student")
-      .select("student_type")
+      .select("grade, student_type, major_id, major:major_id(major_name)")
       .eq("student_id", student_id)
       .single();
 
@@ -310,115 +387,61 @@ const getStudentChecklist = async (req, res) => {
       });
     }
 
-    const studentType = student.student_type || "Current";
+    const grade = normalizeGrade(student.grade);
+    const majorId = student.major_id;
 
-    const { data: templates } = await supabase
-      .from("checklist_template")
-      .select("*")
-      .eq("student_type", studentType);
+    // Keep CS graduation milestones out of checklist_item.
+    try {
+      await ensureGraduationRequirements(supabase, student_id, majorId);
+    } catch (ensureErr) {
+      console.warn(
+        "graduation_requirement ensure (from checklist) failed:",
+        ensureErr.message || ensureErr,
+      );
+    }
 
-    let { data: existingItems, error: fetchError } = await supabase
-      .from("checklist_item")
-      .select("*")
-      .eq("student_id", student_id);
-
-    if (fetchError) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch checklist",
-        error: fetchError.message,
+    if (!shouldShowChecklist(grade)) {
+      return res.json({
+        success: true,
+        is_new_fresher: false,
+        checklist_eligible: false,
+        grade,
+        data: {},
       });
     }
 
-    existingItems = existingItems || [];
-
-    if (templates && templates.length > 0) {
-      const existingTaskNames = new Set(existingItems.map((item) => item.task_name));
-      const missingTemplates = templates.filter((t) => !existingTaskNames.has(t.title));
-
-      if (missingTemplates.length > 0) {
-        const itemsToInsert = missingTemplates.map((t) => ({
-          student_id,
-          task_name: t.title,
-          description: t.description,
-          status: "Not Started",
-          target_semester: CURRENT_TERM,
-        }));
-
-        const { data: insertedItems, error: insertError } = await supabase
-          .from("checklist_item")
-          .insert(itemsToInsert)
-          .select();
-
-        if (insertError) {
-          return res.status(500).json({
-            success: false,
-            message: "Failed to seed checklist template items",
-            error: insertError.message,
-          });
-        }
-
-        existingItems = [...existingItems, ...(insertedItems || [])];
-      }
-    }
-
-    if (isNewlyEnrolled) {
-      const existingTaskNames = new Set(
-        existingItems
-          .filter((item) => item.target_semester === CURRENT_TERM)
-          .map((item) => item.task_name),
-      );
-
-      const missingTasks = ESSENTIAL_SETTLEMENT_TASKS.filter(
-        (task) => !existingTaskNames.has(task.task_name),
-      );
-
-      if (missingTasks.length > 0) {
-        const seedPayload = missingTasks.map((task) => ({
-          student_id,
-          task_name: task.task_name,
-          status: "Not Started",
-          target_semester: CURRENT_TERM,
-        }));
-
-        const { data: seededItems, error: seedError } = await supabase
-          .from("checklist_item")
-          .insert(seedPayload)
-          .select();
-
-        if (seedError) {
-          return res.status(500).json({
-            success: false,
-            message: "Failed to seed settlement checklist tasks",
-            error: seedError.message,
-          });
-        }
-
-        existingItems = [...existingItems, ...(seededItems || [])];
-      }
-    }
+    const { items, semester } = await getChecklistForStudent(
+      supabase,
+      student_id,
+      grade,
+    );
 
     const language = req.language || "en";
-    const localizedItems = existingItems.map((row) => {
-      const localized = localizeRow(row, language, ["title", "description", "task_name"]);
-      return {
-        ...row,
-        title: localized.title ?? localized.task_name ?? row.title,
-        description: localized.description ?? row.description,
-        task_name: localized.task_name ?? row.task_name,
-      };
-    });
+    const localizedItems = items
+      .filter((item) => !isCsGraduationTaskName(item.task_name))
+      .map((row) => {
+        const localized = localizeRow(row, language, [
+          "title",
+          "description",
+          "task_name",
+        ]);
+        return {
+          ...row,
+          title: localized.title ?? localized.task_name ?? row.title,
+          description: localized.description ?? row.description,
+          task_name: localized.task_name ?? row.task_name,
+        };
+      });
 
-    const groupedChecklist = localizedItems.reduce((groups, item) => {
-      const semester = item.target_semester || "General";
-      if (!groups[semester]) groups[semester] = [];
-      groups[semester].push(item);
-      return groups;
-    }, {});
+    const groupedChecklist = {
+      [semester || CURRENT_TERM]: localizedItems,
+    };
 
     return res.json({
       success: true,
-      is_new_fresher: isNewlyEnrolled,
+      is_new_fresher: true,
+      checklist_eligible: true,
+      grade,
       data: groupedChecklist,
     });
   } catch (err) {
@@ -434,32 +457,34 @@ const getStudentChecklist = async (req, res) => {
 const updateChecklistItem = async (req, res) => {
   try {
     const { checklist_id } = req.params;
+    const student_id = req.user?.student_id;
     let { status } = req.body;
+
+    if (!student_id) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
 
     // Live DB constraint: Not Started | In Progress | Completed
     if (status === "Pending" || status === "pending") {
       status = "Not Started";
     }
 
-    const { data, error } = await supabase
-      .from("checklist_item")
-      .update({ status })
-      .eq("checklist_id", checklist_id)
-      .select()
-      .single();
-
-    if (error || !data) {
-      if (error?.code === "PGRST116" || !data) {
-        return res.status(404).json({
-          success: false,
-          message: "Checklist item not found",
-        });
-      }
-
-      return res.status(500).json({
+    let data;
+    try {
+      data = await updateStudentChecklistStatus(
+        supabase,
+        student_id,
+        checklist_id,
+        status,
+      );
+    } catch (updateErr) {
+      return res.status(404).json({
         success: false,
-        message: "Failed to update checklist item",
-        error: error.message,
+        message: "Checklist item not found",
+        error: updateErr.message,
       });
     }
 
@@ -709,65 +734,9 @@ const signupStudent = async (req, res) => {
       });
     }
 
-    // Fetch default checklist templates from Supabase
-    let listToInsert = [];
-    const { data: templates, error: templateError } = await supabase
-      .from("checklist_template")
-      .select("*")
-      .eq("student_type", student_type === "Freshman" ? "Freshman" : "Current");
-
-    if (!templateError && templates && templates.length > 0) {
-      listToInsert = templates.map((t) => ({
-        title: t.title,
-        description: t.description,
-      }));
-    } else {
-      // Safe fallback if table is not created yet
-      const defaultChecklists = {
-        Freshman: [
-          {
-            title: "Apply for Alien Registration Card (ARC)",
-            description: "Visit immigration office within 90 days of arrival",
-          },
-          {
-            title: "Open local bank account",
-            description: "Open account at PNU campus bank",
-          },
-          {
-            title: "Buy PNU SIM card",
-            description: "Get a local prepaid or contract SIM card",
-          },
-        ],
-        Current: [
-          {
-            title: "Submit graduation thesis outline",
-            description: "Submit thesis outline to department office",
-          },
-          {
-            title: "TOPIK Level 4 certificate",
-            description: "Submit language proficiency certificate",
-          },
-          {
-            title: "Completed credit audit",
-            description:
-              "Verify graduation credit breakdown with academic advisor",
-          },
-        ],
-      };
-      const studentTypeKey =
-        student_type === "Freshman" ? "Freshman" : "Current";
-      listToInsert = defaultChecklists[studentTypeKey];
-    }
-
-    for (let i = 0; i < listToInsert.length; i++) {
-      const item = listToInsert[i];
-      await supabase.from("checklist_item").insert({
-        student_id: String(student_id),
-        task_name: item.title,
-        description: item.description,
-        status: "Not Started",
-      });
-    }
+    // Checklist definitions are shared (checklist_item catalog).
+    // Per-student status is created lazily in student_checklist_status
+    // when a year-1 / exchange student opens the checklist.
 
     res.status(201).json({
       success: true,
@@ -886,6 +855,9 @@ const updateStudentProfile = async (req, res) => {
       d2_semester,
       completed_courses,
       intake_term,
+      grade,
+      year,
+      academic_year,
     } = req.body;
 
     const resolvedMajorName = major_name || majorFromBody;
@@ -901,6 +873,12 @@ const updateStudentProfile = async (req, res) => {
         major_id = matchedMajor.major_id;
       }
     }
+
+    const yearChoice = year ?? academic_year ?? grade;
+    const resolvedGrade =
+      yearChoice === undefined || yearChoice === null || yearChoice === ""
+        ? undefined
+        : gradeFromYearChoice(yearChoice) ?? normalizeGrade(yearChoice);
 
     const updateData = {};
     if (name !== undefined) updateData.name = name;
@@ -933,6 +911,17 @@ const updateStudentProfile = async (req, res) => {
     if (d2_semester !== undefined) updateData.d2_semester = d2_semester;
     if (completed_courses !== undefined) updateData.completed_courses = completed_courses;
     if (intake_term !== undefined) updateData.intake_term = intake_term;
+    if (resolvedGrade !== undefined) {
+      if (resolvedGrade === null) {
+        return res.status(400).json({
+          success: false,
+          message: "year must be 1, 2, 3, 4, or exchange",
+          error: { status: 400, code: "VALIDATION_ERROR" },
+        });
+      }
+      updateData.grade = resolvedGrade;
+      updateData.student_type = studentTypeFromGrade(resolvedGrade);
+    }
 
     if (new_password) {
       const { current_password } = req.body;
@@ -1443,6 +1432,230 @@ const getAcademicRecords = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const getGraduationProgress = async (req, res) => {
+  try {
+    const student_id = req.params.student_id || req.user?.student_id;
+    if (!student_id) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    if (
+      req.user?.student_id &&
+      String(req.user.student_id) !== String(student_id) &&
+      !req.user?.is_admin
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+    }
+
+    const [
+      { data: recordRows, error: recordError },
+      { data: enrollmentRows, error: enrollmentError },
+      { data: studentRow, error: studentError },
+    ] = await Promise.all([
+      supabase
+        .from("academic_record")
+        .select("*")
+        .eq("student_id", student_id)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("enrollment")
+        .select(
+          `
+            *,
+            course:course_id (
+              credit,
+              category
+            )
+          `,
+        )
+        .eq("student_id", student_id),
+      supabase
+        .from("student")
+        .select("major_id, major:major_id(major_name)")
+        .eq("student_id", student_id)
+        .single(),
+    ]);
+
+    if (recordError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch academic records",
+        error: recordError.message,
+      });
+    }
+
+    if (enrollmentError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch enrollments",
+        error: enrollmentError.message,
+      });
+    }
+
+    const summary =
+      (recordRows || []).find((row) => row.record_type === "summary") || null;
+    const semesters = (recordRows || []).filter(
+      (row) => row.record_type === "semester",
+    );
+
+    const enrollments = (enrollmentRows || []).map((item) => {
+      const { course, ...rest } = item;
+      return {
+        ...rest,
+        credit: course?.credit ?? rest.credit ?? 0,
+        category: course?.category ?? rest.category ?? "GEN_ED",
+      };
+    });
+
+    const progress = buildGraduationProgress({
+      enrollments,
+      academicSummary: summary,
+      semesters,
+    });
+
+    const majorId = studentError ? null : studentRow?.major_id;
+    let requirements = [];
+    try {
+      requirements = await ensureGraduationRequirements(
+        supabase,
+        student_id,
+        majorId,
+      );
+    } catch (ensureErr) {
+      console.warn(
+        "graduation_requirement ensure failed:",
+        ensureErr.message || ensureErr,
+      );
+    }
+
+    const language = req.language || "en";
+    const localizedRequirements = requirements.map((row) => {
+      const localized = localizeRow(row, language, [
+        "title",
+        "description",
+        "task_name",
+      ]);
+      return {
+        ...row,
+        title: localized.title ?? localized.task_name ?? row.task_name,
+        description: localized.description ?? row.description,
+        task_name: localized.task_name ?? row.task_name,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        ...toGraduationApiPayload(progress),
+        requirements: localizedRequirements,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const updateGraduationRequirement = async (req, res) => {
+  try {
+    const { requirement_id } = req.params;
+    const student_id = req.user?.student_id;
+    let { status } = req.body;
+
+    if (!student_id) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    if (status === "Pending" || status === "pending") {
+      status = "Not Started";
+    }
+
+    const { data: catalog, error: catalogError } = await supabase
+      .from("graduation_requirement")
+      .select("req_id, major_id")
+      .eq("req_id", requirement_id)
+      .single();
+
+    if (catalogError || !catalog) {
+      return res.status(404).json({
+        success: false,
+        message: "Graduation requirement not found",
+      });
+    }
+
+    const { data: student, error: studentError } = await supabase
+      .from("student")
+      .select("major_id")
+      .eq("student_id", student_id)
+      .single();
+
+    if (studentError || !student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    if (Number(student.major_id) !== Number(catalog.major_id) && !req.user?.is_admin) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+    }
+
+    let data;
+    try {
+      data = await updateStudentGraduationRequirement(
+        supabase,
+        student_id,
+        requirement_id,
+        status,
+      );
+    } catch (updateErr) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update graduation requirement",
+        error: updateErr.message,
+      });
+    }
+
+    const language = req.language || "en";
+    const localized = localizeRow(data, language, [
+      "title",
+      "description",
+      "task_name",
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        ...data,
+        title: localized.title ?? localized.task_name ?? data.task_name,
+        description: localized.description ?? data.description,
+        task_name: localized.task_name ?? data.task_name,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
       success: false,
       message: "Unexpected server error",
       error: err.message,
@@ -2576,6 +2789,9 @@ module.exports = {
   hardDeleteStudent,
   testConnection,
   loginStudent,
+  verifyLoginStudent,
+  getGraduationProgress,
+  updateGraduationRequirement,
   getStudentChecklist,
   updateChecklistItem,
   getAllScholarships,
