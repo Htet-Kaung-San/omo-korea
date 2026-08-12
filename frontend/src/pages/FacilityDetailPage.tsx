@@ -66,7 +66,8 @@ export function FacilityDetailPage() {
 
   function openDirections() {
     if (!facility) return
-    const url = `https://map.naver.com/v5/search/${encodeURIComponent(facility.name)}?c=${facility.longitude},${facility.latitude},16,0,0,0,dh`
+    const searchQuery = facility.nameKo || facility.name
+    const url = `https://map.naver.com/v5/search/${encodeURIComponent(searchQuery)}?c=${facility.longitude},${facility.latitude},16,0,0,0,dh`
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
@@ -84,7 +85,7 @@ export function FacilityDetailPage() {
     if (!facility) return
     const shareData = {
       title: facility.name,
-      text: `${facility.name} — ${facility.subtitle || facility.type}`,
+      text: `${facility.name} — ${facility.type}`,
       url: window.location.href,
     }
     try {
@@ -151,9 +152,9 @@ export function FacilityDetailPage() {
 
       <div className="px-4">
         <div className="overflow-hidden rounded-[22px] bg-slate-100 shadow-sm ring-1 ring-black/5">
-          {facility.imageUrl ? (
+          {facility.image ? (
             <img
-              src={facility.imageUrl}
+              src={facility.image}
               alt={facility.name}
               className="h-48 w-full object-cover"
             />
@@ -165,14 +166,17 @@ export function FacilityDetailPage() {
         </div>
 
         <div className="mt-4">
-          <h2 className="text-[20px] font-bold text-pnu-text">{facility.name}</h2>
-          <p className="mt-1 text-[14px] text-pnu-muted">
-            {facility.subtitle || facility.type}
-          </p>
-          {facility.hours ? (
-            <p className="mt-2 text-[13px] font-semibold text-emerald-600">
-              {t('campusMap.open')} {facility.hours}
-            </p>
+          <div className="flex items-center gap-2">
+            {facility.buildingNumber ? (
+              <span className="rounded-md bg-pnu-blue/10 px-2 py-0.5 text-[12px] font-bold text-pnu-blue">
+                Building #{facility.buildingNumber}
+              </span>
+            ) : null}
+            <span className="text-[12px] font-medium text-pnu-muted">{facility.type}</span>
+          </div>
+          <h2 className="mt-1 text-[20px] font-bold text-pnu-text">{facility.name}</h2>
+          {facility.nameKo ? (
+            <p className="mt-0.5 text-[14px] font-medium text-pnu-muted">{facility.nameKo}</p>
           ) : null}
         </div>
 
@@ -264,12 +268,6 @@ export function FacilityDetailPage() {
             ))
           )}
         </div>
-
-        {facility.description ? (
-          <p className="mt-4 text-[13px] leading-relaxed text-pnu-muted">
-            {facility.description}
-          </p>
-        ) : null}
 
         <Link
           to="/map"

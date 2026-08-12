@@ -696,12 +696,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Next week",
   'campusLife.noMenuData': "No cafeteria menu data available.",
   'campusLife.noMenuDetails': "Menu details are not available for this dining hall yet.",
-  'emergency.title': "Emergency",
-  'emergency.embassyTitle': "My country's embassy",
+  'emergency.title': "Emergency Support",
+  'emergency.embassyTitle': "My Country's Embassy",
   'emergency.call': "Call",
   'emergency.map': "Map",
-  'emergency.nearestHelp': "Nearest help",
+  'emergency.nearestHelp': "Nearest Assistance Contacts",
   'emergency.navigate': "Navigate",
+  'emergency.police': "Police",
+  'emergency.fireMedical': "Fire & Medical",
+  'emergency.immigration': "Immigration & General Support",
+  'emergency.guidePhraseTitle': "Emergency Phrase Guide",
+  'emergency.copyPhrase': "Copy Korean phrase",
+  'emergency.copied': "Copied!",
+  'emergency.housingSafetyTitle': "Housing & Lease Deposit Safety",
+  'emergency.visaOfficesTitle': "Immigration & Visa Office",
 }
 
 export default messages

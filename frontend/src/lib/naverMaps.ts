@@ -10,11 +10,27 @@ export interface NaverMap {
 
 export interface NaverMarker {
   setMap(map: NaverMap | null): void
+  setVisible(visible: boolean): void
+  setPosition?(latlng: any): void
 }
 
 export interface NaverInfoWindow {
   open(map: NaverMap, marker: NaverMarker): void
   close(): void
+}
+
+export interface NaverGeocodeAddress {
+  roadAddress: string
+  jibunAddress: string
+  englishAddress: string
+  x: string // longitude
+  y: string // latitude
+}
+
+export interface NaverGeocodeResponse {
+  v2: {
+    addresses: NaverGeocodeAddress[]
+  }
 }
 
 export interface NaverMapsApi {
@@ -41,6 +57,16 @@ export interface NaverMapsApi {
     }
     MapTypeId: {
       NORMAL: any
+    }
+    Service?: {
+      geocode: (
+        options: { query: string },
+        callback: (status: number, response: NaverGeocodeResponse) => void
+      ) => void
+      Status: {
+        OK: number
+        ERROR: number
+      }
     }
   }
 }
@@ -79,8 +105,8 @@ export function loadNaverMaps(appKey: string): Promise<NaverMapsApi> {
 
     const script = document.createElement('script')
     script.id = NAVER_MAP_SCRIPT_ID
-    // Current Maps API uses ncpKeyId (not ncpClientId) on oapi.map.naver.com
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(appKey)}`
+    // Naver Maps API v3 submodule system: include submodules=geocoder
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(appKey)}&submodules=geocoder`
     script.async = true
 
     script.onload = () => {
@@ -95,5 +121,42 @@ export function loadNaverMaps(appKey: string): Promise<NaverMapsApi> {
       reject(new Error('Failed to load Naver Maps SDK — check Client ID / network'))
 
     document.head.appendChild(script)
+  })
+}
+
+/**
+ * Use Naver Maps Geocoder submodule (naver.maps.Service.geocode) to perform address/keyword geocoding.
+ */
+export function geocodeAddress(query: string): Promise<{ lat: number; lng: number; roadAddress?: string } | null> {
+  return new Promise((resolve) => {
+    const naver = window.naver
+    const service = naver?.maps?.Service
+    if (!service?.geocode) {
+      resolve(null)
+      return
+    }
+
+    service.geocode({ query }, (status, response) => {
+      if (
+        status === service.Status.OK &&
+        response?.v2?.addresses &&
+        response.v2.addresses.length > 0
+      ) {
+        const item = response.v2.addresses[0]
+        const lng = parseFloat(item.x)
+        const lat = parseFloat(item.y)
+        if (!isNaN(lat) && !isNaN(lng)) {
+          resolve({
+            lat,
+            lng,
+            roadAddress: item.roadAddress || item.jibunAddress,
+          })
+        } else {
+          resolve(null)
+        }
+      } else {
+        resolve(null)
+      }
+    })
   })
 }

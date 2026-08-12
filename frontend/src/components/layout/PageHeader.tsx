@@ -23,7 +23,7 @@ export function PageHeader({
   const { t } = useLanguage()
 
   return (
-    <header className="border-b border-pnu-border/70 bg-transparent px-5 py-4">
+    <header className="sticky top-0 z-20 border-b border-pnu-border/70 bg-[#F5F7FB]/95 px-5 py-4 backdrop-blur-xl">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-2">
           {back ? (

@@ -19,7 +19,6 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { api } from '@/api'
-import { mockScholarships } from '@/api/mock/data'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import type { ScholarshipCategory, ScholarshipItem } from '@/types/api'
@@ -349,16 +348,7 @@ export function ScholarshipsPage() {
           deadline: item.deadline || t('scholarships.open'),
         }))
 
-        if (realItems.length >= 5) {
-          setScholarships(realItems)
-          return
-        }
-
-        const titles = new Set(realItems.map((item) => item.title.toLowerCase()))
-        const extras = mockScholarships.filter(
-          (item) => !titles.has(item.title.toLowerCase()),
-        )
-        setScholarships([...realItems, ...extras])
+        setScholarships(realItems)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))

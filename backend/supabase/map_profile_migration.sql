@@ -1,202 +1,120 @@
--- Hey! PNU — Map + Academic Records migration (run in Supabase SQL Editor)
--- Safe to re-run (IF NOT EXISTS / ON CONFLICT).
+-- ============================================================================
+-- Hey! PNU — Reset & Recreate Facility Table with Exact 12 Columns
+-- Run this script in Supabase SQL Editor (https://supabase.com -> SQL Editor)
+-- ============================================================================
 
--- 1) Enrich facility table
-ALTER TABLE facility
-  ADD COLUMN IF NOT EXISTS hours VARCHAR(150),
-  ADD COLUMN IF NOT EXISTS details TEXT,
-  ADD COLUMN IF NOT EXISTS floors TEXT,
-  ADD COLUMN IF NOT EXISTS subtitle VARCHAR(150),
-  ADD COLUMN IF NOT EXISTS phone VARCHAR(50),
-  ADD COLUMN IF NOT EXISTS website VARCHAR(255),
-  ADD COLUMN IF NOT EXISTS image_url TEXT,
-  ADD COLUMN IF NOT EXISTS departments JSONB DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS amenities JSONB DEFAULT '[]'::jsonb;
+-- 1. Drop existing facility table to reset IDs from 1
+DROP TABLE IF EXISTS facility CASCADE;
 
--- Ensure unique name for upserts
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'facility_name_key'
-  ) THEN
-    ALTER TABLE facility ADD CONSTRAINT facility_name_key UNIQUE (name);
-  END IF;
-END $$;
-
--- 2) Academic records (student_id is INTEGER in live Supabase)
-CREATE TABLE IF NOT EXISTS academic_record (
-    record_id SERIAL PRIMARY KEY,
-    student_id INTEGER NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
-    record_type VARCHAR(20) NOT NULL CHECK (record_type IN ('summary', 'semester')),
-    overall_gpa NUMERIC(3, 2),
-    gpa_scale NUMERIC(2, 1) DEFAULT 4.5,
-    standing VARCHAR(50) DEFAULT 'Good',
-    completed_credits INTEGER DEFAULT 0,
-    required_credits INTEGER DEFAULT 100,
-    semester_label VARCHAR(50),
-    gpa NUMERIC(3, 2),
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    CONSTRAINT academic_record_type_fields CHECK (
-        (record_type = 'summary' AND overall_gpa IS NOT NULL AND semester_label IS NULL)
-        OR
-        (record_type = 'semester' AND semester_label IS NOT NULL AND gpa IS NOT NULL)
-    )
+-- 2. Create facility table with ONLY the 12 specified columns
+CREATE TABLE facility (
+    facility_id SERIAL PRIMARY KEY,
+    name VARCHAR(150) UNIQUE NOT NULL,
+    name_ko VARCHAR(150),
+    building_number VARCHAR(50),
+    type VARCHAR(50) NOT NULL,
+    latitude NUMERIC(10, 6) DEFAULT 0 NOT NULL,
+    longitude NUMERIC(10, 6) DEFAULT 0 NOT NULL,
+    phone VARCHAR(50),
+    website VARCHAR(255),
+    image TEXT,
+    departments JSONB DEFAULT '[]'::jsonb,
+    amenities JSONB DEFAULT '[]'::jsonb
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_record_summary
-    ON academic_record(student_id) WHERE record_type = 'summary';
+-- 3. Seed all 91 official PNU campus buildings starting from ID 1
+INSERT INTO facility (facility_id, building_number, name, name_ko, type, latitude, longitude) VALUES
+(1, '101', 'MEMS / NANO Cleanroom', 'MEMS / NANO 클린룸동', 'Research', 35.227592, 129.086740),
+(2, '102', 'IT Building', 'IT관', 'Academic', 35.230649, 129.083360),
+(3, '103', 'Engineering Building 12', '제12공학관', 'Academic', 35.230829, 129.083408),
+(4, '105', 'Engineering Building 3 (Convergence Mechanical)', '제3공학관(융합기계관)', 'Academic', 35.231135, 129.083471),
+(5, '106', 'Hyowon Culture Hall', '효원문화회관', 'Student Life', 35.232211, 129.083754),
+(6, '107', 'Engineering Building 8 (Aeronautical)', '제8공학관(항공관)', 'Academic', 35.233132, 129.083833),
+(7, '108', 'Engineering Building 9 (Mechatronics)', '제9공학관(기전관)', 'Academic', 35.233142, 129.084267),
+(8, '109', 'College of Engineering Joint Lab', '공과대학 공동실험관', 'Academic', 35.220726, 129.094575),
+(9, '110', 'Energy Research Laboratory', '에너지분야 실험실', 'Research', 35.233328, 129.084307),
+(10, '201', 'Engineering Building 6 (Computer Engineering)', '제6공학관(컴퓨터공학관)', 'Academic', 35.230936, 129.082481),
+(11, '202', 'Unjukjeong Pavilion', '운죽정', 'Student Life', 35.231299, 129.081750),
+(12, '203', 'Neokneokhan-teo Plaza', '넉넉한터', 'Student Life', 35.231934, 129.082619),
+(13, '205', 'University Headquarters', '대학본부동', 'Administrative', 35.232618, 129.082915),
+(14, '206', 'Engineering Building 11 (Naval Architecture)', '제11공학관(조선해양공학관)', 'Academic', 35.232632, 129.082351),
+(15, '207', 'Engineering Building 10 (Specialized Engineering)', '제10공학관(특성화공학관)', 'Academic', 35.233235, 129.082900),
+(16, '208', 'Mechanical Technology Research Building', '기계기술연구동', 'Research', 35.233732, 129.083024),
+(17, '209', 'Sangnam International House', '상남국제관', 'Administrative', 35.236058, 129.084135),
+(18, '210', 'Language Education Institute', '언어교육원', 'Administrative', 35.235949, 129.083486),
+(19, '211', 'Comprehensive Childcare Center', '보육종합센터', 'Administrative', 35.236650, 129.083377),
+(20, '301', 'Structural Engineering Lab', '구조실험동', 'Research', 35.230176, 129.081112),
+(21, '302', 'Geotechnical Engineering Lab', '토조실험동', 'Research', 35.229506, 129.087480),
+(22, '303', 'Mechanical Engineering Building', '기계관', 'Academic', 35.230619, 129.080781),
+(23, '306', 'College of Humanities', '인문관', 'Academic', 35.232260, 129.081288),
+(24, '307', 'Humanities Faculty Research Building', '인문대교수연구동', 'Academic', 35.232851, 129.081075),
+(25, '308', 'Physics Building 1', '제1물리관', 'Academic', 35.225651, 129.092725),
+(26, '309', 'Physics Building 2', '제2물리관', 'Academic', 35.232276, 129.080193),
+(27, '310', 'Moonchang Hall Cafeteria', '문창회관', 'Cafeteria', 35.234011, 129.082007),
+(28, '311', 'Joint Research Equipment Building', '공동연구기기동', 'Research', 35.234531, 129.082731),
+(29, '312', 'Joint Research & Experiment Building', '공동실험실습관', 'Research', 35.234351, 129.082237),
+(30, '313', 'Natural Sciences Research Building', '자연대 연구실험동', 'Research', 35.235126, 129.082725),
+(31, '314', 'Informatics Education Building', '정보화교육관', 'Academic', 35.235368, 129.082170),
+(32, '315', 'Jayu Hall Dormitory Building A', '자유관 A동', 'Dormitory', 35.235799, 129.082362),
+(33, '316', 'Jayu Hall Dormitory Building B', '자유관 B동', 'Dormitory', 35.235799, 129.082362),
+(34, '317', 'Daycare Center', '직장어린이집', 'Administrative', 35.236836, 129.082712),
+(35, '401', 'Construction & Architecture Building', '건설관', 'Academic', 35.231147, 129.079876),
+(36, '402', 'Jeonghak Hall', '정학관', 'Academic', 35.231493, 129.078850),
+(37, '403', '10.16 Memorial Hall', '10.16 기념관', 'Student Life', 35.231701, 129.079813),
+(38, '405', 'Engineering Building 2 (Materials Science)', '제2공학관(재료관)', 'Academic', 35.232276, 129.080193),
+(39, '406', 'Engineering Building 7 (Chemical Engineering)', '제7공학관(화공관)', 'Academic', 35.232393, 129.079688),
+(40, '407', 'Towing Tank Research Building', '선박예인수조연구동', 'Research', 35.232757, 129.079603),
+(41, '408', 'Engineering Building 5 (Organic Materials)', '제5공학관(유기소재관)', 'Academic', 35.232526, 129.079213),
+(42, '409', 'Faculty Hall', '교수회관', 'Administrative', 35.232968, 129.080175),
+(43, '410', 'Ship Impact & Fatigue Test Lab', '선박충격ㆍ피로ㆍ도장시험연구동', 'Research', 35.227874, 129.081605),
+(44, '412', 'Museum Building A', '박물관 A', 'Student Life', 35.221909, 129.075689),
+(45, '413', 'Museum Building B', '박물관 B', 'Student Life', 35.221909, 129.075689),
+(46, '414', 'Earth Sciences Building', '지구관', 'Academic', 35.233901, 129.079663),
+(47, '415', 'Saetbeol Hall', '샛벌회관', 'Student Life', 35.234136, 129.079701),
+(48, '416', 'Biological Sciences Building', '생물관', 'Academic', 35.234876, 129.081075),
+(49, '417', 'College of Education Building 1', '제1사범관', 'Academic', 35.234646, 129.080186),
+(50, '418', 'Faculty Research Building 2', '제2교수연구동', 'Academic', 35.235034, 129.080311),
+(51, '419', 'Geumjeong Hall Cafeteria', '금정회관', 'Cafeteria', 35.235364, 129.080257),
+(52, '420', 'Saebyeokbeol Library', '새벽벌도서관', 'Library', 35.235726, 129.081313),
+(53, '421', 'College of Social Sciences', '사회관', 'Academic', 35.236348, 129.080561),
+(54, '422', 'Seonghak Hall', '성학관', 'Academic', 35.236698, 129.081519),
+(55, '501', 'Advanced Science Building', '첨단과학관', 'Research', 35.231940, 129.078406),
+(56, '503', 'College of Pharmacy', '약학관', 'Academic', 35.232226, 129.077865),
+(57, '506', 'Hyowon Industry-Academia Cooperation Hall', '효원산학협동관', 'Research', 35.232696, 129.078634),
+(58, '507', 'Indeok Hall', '인덕관', 'Academic', 35.232993, 129.078688),
+(59, '508', 'Industry-Academia Cooperation Hall', '산학협동관', 'Research', 35.232696, 129.078634),
+(60, '509', 'Museum Annex', '박물관 별관', 'Student Life', 35.233443, 129.079013),
+(61, '510', 'Central Library', '중앙도서관', 'Library', 35.234079, 129.078654),
+(62, '511', 'Gymnasium Annex', '간이체육관', 'Sports', 35.234100, 129.077900),
+(63, '512', 'Tennis Courts', '테니스장', 'Sports', 35.235295, 129.079019),
+(64, '514', 'College of Business Administration', '경영관', 'Academic', 35.236599, 129.079579),
+(65, '515', 'Central Library Annex & AX Innovation Center', '중앙도서관 및 AX·정보화혁신본부', 'Library', 35.234079, 129.078654),
+(66, '516', 'College of Economics & International Trade', '경제통상관', 'Academic', 35.235687, 129.079453),
+(67, '601', 'College of Arts', '예술관', 'Academic', 35.232626, 129.076988),
+(68, '602', 'College of Human Ecology (Lecture Hall)', '생활과학관 강의동', 'Academic', 35.233743, 129.077243),
+(69, '603', 'College of Human Ecology (Research Hall)', '생활과학관 연구동', 'Academic', 35.233962, 129.077497),
+(70, '605', 'ROTC Building', '학군단', 'Administrative', 35.234756, 129.078049),
+(71, '606', 'Chemistry Building', '화학관', 'Academic', 35.235054, 129.077673),
+(72, '607', 'Mathematics & Joint Institute Building', '수학관·공동연구소동', 'Academic', 35.235819, 129.078140),
+(73, '608', 'Law School Building 2', '제2법학관', 'Academic', 35.236356, 129.078379),
+(74, '609', 'Law School Building 1', '법학관', 'Academic', 35.236856, 129.078537),
+(75, '701', 'College of Education Building 2', '제2사범관', 'Academic', 35.232035, 129.075025),
+(76, '702', 'Sculpture Studio', '조소실', 'Academic', 35.244990, 129.089191),
+(77, '703', 'Fine Arts Building', '미술관', 'Academic', 35.233215, 129.075666),
+(78, '704', 'Design Building', '조형관', 'Academic', 35.232622, 129.075972),
+(79, '705', 'Gyeongam Gymnasium (Faculty Research)', '경암체육관 교수연구동', 'Sports', 35.232795, 129.074858),
+(80, '706', 'Gyeongam Gymnasium', '경암체육관', 'Sports', 35.233281, 129.074707),
+(81, '707', 'Music Building', '음악관', 'Academic', 35.234276, 129.076188),
+(82, '708', 'Student Union Building', '학생회관', 'Student Life', 35.235310, 129.076375),
+(83, '709', 'Science & Technology Research Building', '과학기술연구동', 'Research', 35.235816, 129.076990),
+(84, '710', 'Main Athletics Field', '대운동장', 'Sports', 35.234868, 129.075034),
+(85, '711', 'Hyowonjae Study Hall', '효원재', 'Academic', 35.236368, 129.076300),
+(86, '712', 'Ungbi Hall Dormitory Building A', '웅비관 A동', 'Dormitory', 35.236419, 129.077208),
+(87, '713', 'Ungbi Hall Dormitory Building B', '웅비관 B동', 'Dormitory', 35.227067, 129.080210),
+(88, '714', 'Jinri Hall Administration', '진리관 관리동', 'Dormitory', 35.237483, 129.077720),
+(89, '715', 'Jinri Hall Dormitory Building A', '진리관 가동', 'Dormitory', 35.238076, 129.077800),
+(90, '716', 'Jinri Hall Dormitory Building B', '진리관 나동', 'Dormitory', 35.238056, 129.077412),
+(91, '717', 'Jinri Hall Dormitory Building C', '진리관 다동', 'Dormitory', 35.238152, 129.076986);
 
-CREATE INDEX IF NOT EXISTS idx_academic_record_student ON academic_record(student_id);
-
--- 3) Upsert campus map buildings
-INSERT INTO facility (
-  name, type, latitude, longitude, hours, details, floors,
-  subtitle, phone, website, image_url, departments, amenities
-) VALUES
-(
-  'PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200,
-  '06:00 - 23:00', 'Main campus study resources.',
-  '1F Lounge; 2F Stacks; 3F Silent study',
-  'Study rooms, Books', '051-510-1800', 'https://lib.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&q=80',
-  '[{"name":"General Reading Rooms","floor":"1F"},{"name":"Book Stacks & Reference","floor":"2F"},{"name":"Silent Study Desks","floor":"3F"}]'::jsonb,
-  '[{"name":"Study Rooms","floor":"1F-3F"},{"name":"Computers","floor":"3F"},{"name":"Copy Center","floor":"1F"}]'::jsonb
-),
-(
-  'Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100,
-  '08:00 - 19:00', 'Popular student dining hall.',
-  '1F Cafeteria; 2F Convenience store',
-  'Food & Drinks', '051-510-1200', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80',
-  '[{"name":"Student Cafeteria","floor":"1F"},{"name":"Convenience Store & Cafe","floor":"2F"}]'::jsonb,
-  '[{"name":"Korean Set Meals","floor":"1F"},{"name":"Seating Lounge","floor":"1F"}]'::jsonb
-),
-(
-  'Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000,
-  '11:00 - 18:30', 'North campus cafeteria.',
-  '1F Buffet; 2F Lounge',
-  'Food & Drinks', '051-510-1210', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
-  '[{"name":"International Buffet","floor":"1F"},{"name":"Student Lounge","floor":"2F"}]'::jsonb,
-  '[{"name":"Western Corner","floor":"1F"},{"name":"Copy Center","floor":"2F"}]'::jsonb
-),
-(
-  'Engineering Building 3', 'Academic', 35.233000, 129.080500,
-  '08:00 AM - 10:00 PM', 'Home of Computer Science and multimedia labs.',
-  '2F Seminar; 3F CS Dept & Labs',
-  'Computer Science Dept.', '051-510-2200', 'https://cse.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&q=80',
-  '[{"name":"Computer Science Department","floor":"3F"},{"name":"Multimedia Lab","floor":"3F"},{"name":"Lecture Rooms 301-308","floor":"3F"},{"name":"Seminar Room","floor":"2F"}]'::jsonb,
-  '[{"name":"Computer Labs","floor":"3F"},{"name":"Seminar Room","floor":"2F"},{"name":"Student Lounge","floor":"1F"}]'::jsonb
-),
-(
-  'IT Building', 'Academic', 35.234200, 129.081000,
-  '08:00 AM - 09:00 PM', 'Information technology classrooms and labs.',
-  '1F-4F IT classrooms and labs',
-  'IT & Computing', '051-510-2210', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
-  '[{"name":"IT Help Desk","floor":"1F"},{"name":"Programming Labs","floor":"2F-3F"}]'::jsonb,
-  '[{"name":"Public Computers","floor":"1F"},{"name":"Printer Room","floor":"1F"}]'::jsonb
-),
-(
-  'Main Hall', 'Administrative', 35.232500, 129.078800,
-  '09:00 AM - 06:00 PM', 'Central campus hall for events and ceremonies.',
-  '1F Lobby; 2F Auditorium',
-  'Events & Ceremonies', '051-510-1100', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80',
-  '[{"name":"Main Auditorium","floor":"2F"},{"name":"Reception","floor":"1F"}]'::jsonb,
-  '[{"name":"Event Hall","floor":"2F"},{"name":"Cloakroom","floor":"1F"}]'::jsonb
-),
-(
-  'Student Center', 'Student Life', 35.232000, 129.079800,
-  '08:00 AM - 10:00 PM', 'Clubs, student council, and campus activities hub.',
-  '1F-3F Club rooms and offices',
-  'Clubs & Activities', '051-510-1300', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80',
-  '[{"name":"Student Council","floor":"2F"},{"name":"Club Offices","floor":"1F-3F"}]'::jsonb,
-  '[{"name":"Meeting Rooms","floor":"2F"},{"name":"Lounge","floor":"1F"}]'::jsonb
-),
-(
-  'University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500,
-  '09:00 - 18:00', 'OIA and student services.',
-  '1F Service Center; 2F OIA',
-  'Admin & Student Services', '051-510-1000', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80',
-  '[{"name":"Student Service Center","floor":"1F"},{"name":"Office of International Affairs","floor":"2F"}]'::jsonb,
-  '[{"name":"Visa & ARC Desk","floor":"2F"},{"name":"Information Desk","floor":"1F"}]'::jsonb
-)
-ON CONFLICT (name) DO UPDATE SET
-  type = EXCLUDED.type,
-  latitude = EXCLUDED.latitude,
-  longitude = EXCLUDED.longitude,
-  hours = EXCLUDED.hours,
-  details = EXCLUDED.details,
-  floors = EXCLUDED.floors,
-  subtitle = EXCLUDED.subtitle,
-  phone = EXCLUDED.phone,
-  website = EXCLUDED.website,
-  image_url = EXCLUDED.image_url,
-  departments = EXCLUDED.departments,
-  amenities = EXCLUDED.amenities;
-
--- Enrich any remaining existing rows by name pattern
-UPDATE facility SET
-  hours = COALESCE(hours, '06:00 - 23:00'),
-  subtitle = COALESCE(subtitle, 'Study rooms, Books'),
-  phone = COALESCE(phone, '051-510-1800'),
-  website = COALESCE(website, 'https://lib.pusan.ac.kr'),
-  image_url = COALESCE(image_url, 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&q=80'),
-  departments = COALESCE(departments, '[{"name":"General Reading Rooms","floor":"1F"}]'::jsonb),
-  amenities = COALESCE(amenities, '[{"name":"Study Rooms","floor":"1F-3F"}]'::jsonb)
-WHERE name ILIKE '%Library%';
-
-UPDATE facility SET
-  hours = COALESCE(hours, '08:00 - 19:00'),
-  subtitle = COALESCE(subtitle, 'Food & Drinks'),
-  phone = COALESCE(phone, '051-510-1200'),
-  website = COALESCE(website, 'https://www.pusan.ac.kr'),
-  image_url = COALESCE(image_url, 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80'),
-  departments = COALESCE(departments, '[{"name":"Student Cafeteria","floor":"1F"}]'::jsonb),
-  amenities = COALESCE(amenities, '[{"name":"Dining","floor":"1F"}]'::jsonb)
-WHERE type = 'Cafeteria' OR name ILIKE '%Cafeteria%' OR name ILIKE '%회관%';
-
--- 4) Academic demo: one summary + semester history per student
-DO $$
-DECLARE
-  s RECORD;
-  idx INTEGER := 0;
-  overall NUMERIC(3, 2);
-  completed INTEGER;
-BEGIN
-  FOR s IN SELECT student_id FROM student ORDER BY student_id LOOP
-    idx := idx + 1;
-    overall := LEAST(3.30 + (idx * 0.12), 4.00);
-    completed := LEAST(60 + (idx * 4), 100);
-
-    DELETE FROM academic_record WHERE student_id = s.student_id;
-
-    INSERT INTO academic_record (
-      student_id, record_type, overall_gpa, gpa_scale, standing,
-      completed_credits, required_credits, sort_order
-    ) VALUES (
-      s.student_id,
-      'summary',
-      overall,
-      4.5,
-      CASE
-        WHEN overall >= 3.7 THEN 'Good'
-        WHEN overall >= 3.5 THEN 'Satisfactory'
-        ELSE 'Warning'
-      END,
-      completed,
-      100,
-      0
-    );
-
-    INSERT INTO academic_record (student_id, record_type, semester_label, gpa, sort_order) VALUES
-    (s.student_id, 'semester', '2024 Spring', LEAST(overall + 0.13, 4.50), 1),
-    (s.student_id, 'semester', '2023 Fall', GREATEST(overall - 0.07, 0), 2),
-    (s.student_id, 'semester', '2023 Spring', GREATEST(overall - 0.22, 0), 3),
-    (s.student_id, 'semester', '2022 Fall', GREATEST(overall - 0.37, 0), 4);
-  END LOOP;
-END $$;
+-- 4. Advance sequence so new manually inserted records get ID 92+
+SELECT setval('facility_facility_id_seq', (SELECT MAX(facility_id) FROM facility));

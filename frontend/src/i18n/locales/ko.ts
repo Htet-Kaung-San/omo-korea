@@ -696,12 +696,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "다음 주",
   'campusLife.noMenuData': "식당 메뉴 데이터가 없습니다.",
   'campusLife.noMenuDetails': "이 식당의 메뉴 정보를 아직 불러올 수 없습니다.",
-  'emergency.title': "긴급",
-  'emergency.embassyTitle': "우리나라 대사관",
+  'emergency.title': "긴급 연락처 및 지원",
+  'emergency.embassyTitle': "주한 자국 대사관",
   'emergency.call': "전화",
   'emergency.map': "지도",
-  'emergency.nearestHelp': "가까운 도움",
+  'emergency.nearestHelp': "주요 도우미 및 센터",
   'emergency.navigate': "길찾기",
+  'emergency.police': "경찰 신고",
+  'emergency.fireMedical': "소방 및 구급",
+  'emergency.immigration': "출입국 및 종합안내",
+  'emergency.guidePhraseTitle': "긴급 상황 대처 문구",
+  'emergency.copyPhrase': "한국어 표현 복사",
+  'emergency.copied': "복사 완료!",
+  'emergency.housingSafetyTitle': "전월세 보증금 안전 가이드",
+  'emergency.visaOfficesTitle': "출입국·외국인관서",
 }
 
 export default messages

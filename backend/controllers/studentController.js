@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const {
   getCareerOpportunitiesPage,
 } = require("../services/jobKoreaScraperService");
+const {
+  fetchStoredCareerOpportunities,
+} = require("../services/careerOpportunityRepository");
 const { getEmergencyGuide } = require("../services/emergencyGuideService");
 const { getCampusFacilities } = require("../services/campusFacilitiesService");
 const communityService = require("../services/communityService");
@@ -2376,6 +2379,7 @@ const getCareerOpportunities = async (req, res, next) => {
   try {
     const requestedPage = Number(req.query.page);
     const requestedLimit = Number(req.query.limit);
+    const jobType = typeof req.query.jobType === "string" ? req.query.jobType : null;
 
     const page =
       Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
@@ -2384,7 +2388,35 @@ const getCareerOpportunities = async (req, res, next) => {
         ? Math.min(requestedLimit, 50)
         : 10;
 
-    const data = await getCareerOpportunitiesPage({ page, limit });
+    const [scrapedData, storedOpportunities] = await Promise.all([
+      getCareerOpportunitiesPage({ page, limit, jobType }),
+      fetchStoredCareerOpportunities({ limit: 50, jobType }).catch(() => []),
+    ]);
+
+    const seen = new Set();
+    const opportunities = [];
+
+    [...storedOpportunities, ...(scrapedData.opportunities || [])].forEach((item) => {
+      const key = item.sourceUrl || `${item.source}:${item.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      opportunities.push(item);
+    });
+
+    const careerCounts = new Map();
+    [...(scrapedData.careers || []), ...storedOpportunities.map((item) => ({ name: item.role || item.jobType || "volunteer", count: 1 }))]
+      .forEach((item) => {
+        if (!item.name) return;
+        careerCounts.set(item.name, (careerCounts.get(item.name) || 0) + item.count);
+      });
+
+    const data = {
+      ...scrapedData,
+      careers: Array.from(careerCounts.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ko")),
+      opportunities: opportunities.slice(0, limit),
+    };
 
     return res.status(200).json({
       success: true,
@@ -2402,12 +2434,21 @@ const getCareerOpportunities = async (req, res, next) => {
  */
 const getCareerRecommendations = async (req, res, next) => {
   try {
-    const data = await getCareerOpportunitiesPage({ page: 1, limit: 20 });
-    const recommended = (data.opportunities || []).slice(0, 3).map((item, index) => ({
+    const jobType = typeof req.query.jobType === "string" ? req.query.jobType : null;
+    const [data, volunteerOpportunities] = await Promise.all([
+      getCareerOpportunitiesPage({ page: 1, limit: 20, jobType }),
+      fetchStoredCareerOpportunities({ limit: 10, jobType: jobType || "volunteer" }).catch(() => []),
+    ]);
+    const recommendedSource = [...volunteerOpportunities, ...(data.opportunities || [])];
+    const recommended = recommendedSource.slice(0, 3).map((item, index) => ({
       ...item,
       location: item.location || "Korea",
       jobType: item.jobType || "internship",
-      matchReason: item.matchReason || "Popular entry-level opening",
+      matchReason:
+        item.matchReason ||
+        (item.jobType === "volunteer"
+          ? "Volunteer opportunity with an application deadline soon"
+          : "Popular entry-level opening"),
       recommendationRank: index + 1,
     }));
 

@@ -912,6 +912,7 @@ const {
 const {
   collectUserTags,
   fetchRecommendedPrograms,
+  fetchProgramDetail,
 } = require('../services/extracurricularProgramService');
 const {
   pilotCourses,
@@ -1243,6 +1244,7 @@ async function getAiDashboard(req, res, next) {
         studentProfile: context.rawStudentInput.profile || {},
         userTags: context.rawStudentInput.profile.interests || [],
         limit: 20,
+        language,
       });
     } catch (programErr) {
       console.warn(
@@ -1384,6 +1386,7 @@ async function getStudentNotifications(req, res, next) {
 
 async function getPrograms(req, res, next) {
   try {
+    const language = req.language || req.lang || "en";
     const context = await fetchStudentContext(req.user.student_id);
     if (!context) {
       const err = new Error("Student profile not found");
@@ -1395,11 +1398,46 @@ async function getPrograms(req, res, next) {
       studentProfile: context.rawStudentInput.profile || {},
       userTags: context.rawStudentInput.profile.interests || [],
       limit: 50,
+      language,
     });
 
     return res.status(200).json({
       success: true,
       data: programs.map(mapRecommendedProgram),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getProgramDetail(req, res, next) {
+  try {
+    const { programId } = req.params;
+    const language = req.language || req.lang || "en";
+    const context = await fetchStudentContext(req.user.student_id);
+    if (!context) {
+      const err = new Error("Student profile not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    const program = await fetchProgramDetail({
+      programId,
+      studentProfile: context.rawStudentInput.profile || {},
+      userTags: context.rawStudentInput.profile.interests || [],
+      language,
+    });
+
+    if (!program) {
+      return res.status(404).json({
+        success: false,
+        message: "Program not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: mapRecommendedProgram(program),
     });
   } catch (err) {
     next(err);
@@ -1424,6 +1462,7 @@ module.exports = {
   getCourseRecommendations,
   getAiDashboard,
   getPrograms,
+  getProgramDetail,
   getStudentNotifications,
 };
 

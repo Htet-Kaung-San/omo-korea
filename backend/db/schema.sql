@@ -63,16 +63,14 @@ CREATE TABLE IF NOT EXISTS enrollment (
 CREATE TABLE IF NOT EXISTS facility (
     facility_id SERIAL PRIMARY KEY,
     name VARCHAR(150) UNIQUE NOT NULL,
+    name_ko VARCHAR(150),
+    building_number VARCHAR(50),
     type VARCHAR(50) NOT NULL,
-    latitude NUMERIC(10, 6) NOT NULL,
-    longitude NUMERIC(10, 6) NOT NULL,
-    hours VARCHAR(150),
-    details TEXT,
-    floors TEXT,
-    subtitle VARCHAR(150),
+    latitude NUMERIC(10, 6) DEFAULT 0 NOT NULL,
+    longitude NUMERIC(10, 6) DEFAULT 0 NOT NULL,
     phone VARCHAR(50),
     website VARCHAR(255),
-    image_url TEXT,
+    image TEXT,
     departments JSONB DEFAULT '[]'::jsonb,
     amenities JSONB DEFAULT '[]'::jsonb
 );

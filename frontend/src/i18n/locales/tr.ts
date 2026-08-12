@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Sonraki hafta",
   'campusLife.noMenuData': "Yemekhane menü verisi yok.",
   'campusLife.noMenuDetails': "Bu yemekhane için menü detayları henüz mevcut değil.",
-  'emergency.title': "Acil durum",
-  'emergency.embassyTitle': "Ülkemin büyükelçiliği",
+  'emergency.title': "Acil Durum Desteği",
+  'emergency.embassyTitle': "Ülkemin Kore Büyükelçiliği",
   'emergency.call': "Ara",
   'emergency.map': "Harita",
-  'emergency.nearestHelp': "En yakın yardım",
+  'emergency.nearestHelp': "En Yakın Yardım İrtibatları",
   'emergency.navigate': "Yol tarifi",
+  'emergency.police': "Polis",
+  'emergency.fireMedical': "İtfaiye ve Tıbbi Yardım",
+  'emergency.immigration': "Göçmenlik ve Genel Destek",
+  'emergency.guidePhraseTitle': "Acil Durum İfade Rehberi",
+  'emergency.copyPhrase': "Korece ifadeyi kopyala",
+  'emergency.copied': "Kopyalandı!",
+  'emergency.housingSafetyTitle': "Konut Depozito Güvenliği Rehberi",
+  'emergency.visaOfficesTitle': "Göçmenlik ve Vize Bürosu",
 }
 
 export default messages

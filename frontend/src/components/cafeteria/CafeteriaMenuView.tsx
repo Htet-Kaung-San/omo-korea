@@ -4,6 +4,11 @@ import { useLanguage } from '@/context/LanguageContext'
 import type { CafeteriaMenuColumn, CampusFacility } from '@/types/api'
 import { findGeumjeongStudentCafeteria, getColumnMenuOptions } from '@/utils/cafeteria'
 
+/** Cafeterias don't publish a Saturday menu — drop that column everywhere. */
+function dropSaturday(columns: CafeteriaMenuColumn[]) {
+  return columns.filter((column) => column.day !== 'sat')
+}
+
 interface CafeteriaMenuViewProps {
   cafeterias: CampusFacility[]
   loading?: boolean
@@ -86,7 +91,7 @@ export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }:
     findGeumjeongStudentCafeteria(hallOptions) ??
     hallOptions[0]
   const menu = activeHall?.menu
-  const dayColumns = menu?.rows[0]?.columns ?? []
+  const dayColumns = dropSaturday(menu?.rows[0]?.columns ?? [])
   const weekLabel = formatWeekLabel(menu)
 
   if (!activeHall) {
@@ -187,7 +192,7 @@ export function CafeteriaMenuView({ cafeterias, loading = false, onWeekChange }:
                         </span>
                       ))}
                     </th>
-                    {row.columns.map((column) => (
+                    {dropSaturday(row.columns).map((column) => (
                       <td
                         key={`${row.meal_type}-${column.day}`}
                         className="border-r border-pnu-border px-2 py-3 align-top text-pnu-text last:border-r-0"

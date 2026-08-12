@@ -30,91 +30,98 @@ INSERT INTO course (course_name, course_name_en, credits, department, course_typ
 ('대학 수학 1', 'Calculus 1', 3, 'Mathematics', 'REQUIRED', 'Fri', '10:30', '12:00', 'Science Bldg 205');
 
 -- 4. SEED MAP FACILITIES
-INSERT INTO facility (
-  name, type, latitude, longitude, hours, details, floors,
-  subtitle, phone, website, image_url, departments, amenities
-) VALUES
-(
-  'PNU Main Library (중앙도서관)', 'Library', 35.233500, 129.079200, '06:00 - 23:00',
-  'Main campus study resources. Features extensive reading rooms on the 3rd floor.',
-  '1F: Main Study Lounge & Check-in; 2F: Book Stacks & Reference; 3F: Silent Study Desks & Computers',
-  'Study rooms, Books', '051-510-1800', 'https://lib.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&q=80',
-  '[{"name":"General Reading Rooms","floor":"1F"},{"name":"Book Stacks & Reference","floor":"2F"},{"name":"Silent Study Desks","floor":"3F"}]'::jsonb,
-  '[{"name":"Study Rooms","floor":"1F-3F"},{"name":"Computers","floor":"3F"}]'::jsonb
-),
-(
-  'Geumjeong Hall Cafeteria (금정회관)', 'Cafeteria', 35.231200, 129.081100, '08:00 - 19:00',
-  'Popular student dining hall located next to CSE classrooms. Serves local Korean set meals.',
-  '1F: Student Cafeteria (Korean Menu); 2F: Convenience Store & Café',
-  'Food & Drinks', '051-510-1200', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80',
-  '[{"name":"Student Cafeteria","floor":"1F"},{"name":"Convenience Store & Cafe","floor":"2F"}]'::jsonb,
-  '[{"name":"Korean Set Meals","floor":"1F"}]'::jsonb
-),
-(
-  'Moonchang Hall Cafeteria (문창회관)', 'Cafeteria', 35.234800, 129.078000, '11:00 - 18:30',
-  'North campus cafeteria featuring Western-style options and sandwich counters.',
-  '1F: International Buffet & Western Corner; 2F: Student Lounge & Copy Center',
-  'Food & Drinks', '051-510-1210', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
-  '[{"name":"International Buffet","floor":"1F"},{"name":"Student Lounge","floor":"2F"}]'::jsonb,
-  '[{"name":"Western Corner","floor":"1F"}]'::jsonb
-),
-(
-  'University Headquarters (대학본부)', 'Administrative', 35.230100, 129.082500, '09:00 - 18:00',
-  'Office of International Affairs (OIA) is on the 2nd floor for Visa & ARC documentation.',
-  '1F: Student Service Center; 2F: Office of International Affairs (OIA); 3F: President''s Office',
-  'Admin & Student Services', '051-510-1000', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80',
-  '[{"name":"Student Service Center","floor":"1F"},{"name":"Office of International Affairs","floor":"2F"}]'::jsonb,
-  '[{"name":"Visa & ARC Desk","floor":"2F"}]'::jsonb
-),
-(
-  'Woongbee Hall Dormitory (웅비관)', 'Dormitory', 35.236500, 129.075500, '24 Hours',
-  'Freshman international dorms located near the Geumjeongsan mountain edge.',
-  '1F: Lobby & Security Desk; 2F-8F: Student Dormitory Rooms; B1: Gym, Laundry & Kitchen',
-  'International Housing', '051-510-3500', 'https://dorm.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=1200&q=80',
-  '[{"name":"Lobby & Security","floor":"1F"},{"name":"Student Rooms","floor":"2F-8F"}]'::jsonb,
-  '[{"name":"Gym","floor":"B1"},{"name":"Laundry","floor":"B1"}]'::jsonb
-),
-(
-  'Engineering Building 3', 'Academic', 35.233000, 129.080500, '08:00 AM - 10:00 PM',
-  'Home of Computer Science and multimedia labs.',
-  '2F: Seminar Room; 3F: CS Dept & Labs',
-  'Computer Science Dept.', '051-510-2200', 'https://cse.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&q=80',
-  '[{"name":"Computer Science Department","floor":"3F"},{"name":"Multimedia Lab","floor":"3F"},{"name":"Lecture Rooms 301-308","floor":"3F"},{"name":"Seminar Room","floor":"2F"}]'::jsonb,
-  '[{"name":"Computer Labs","floor":"3F"},{"name":"Seminar Room","floor":"2F"}]'::jsonb
-),
-(
-  'IT Building', 'Academic', 35.234200, 129.081000, '08:00 AM - 09:00 PM',
-  'Information technology classrooms and labs.',
-  '1F-4F: IT classrooms and labs',
-  'IT & Computing', '051-510-2210', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
-  '[{"name":"IT Help Desk","floor":"1F"},{"name":"Programming Labs","floor":"2F-3F"}]'::jsonb,
-  '[{"name":"Public Computers","floor":"1F"}]'::jsonb
-),
-(
-  'Main Hall', 'Administrative', 35.232500, 129.078800, '09:00 AM - 06:00 PM',
-  'Central campus hall for events and ceremonies.',
-  '1F: Lobby; 2F: Auditorium',
-  'Events & Ceremonies', '051-510-1100', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1200&q=80',
-  '[{"name":"Main Auditorium","floor":"2F"},{"name":"Reception","floor":"1F"}]'::jsonb,
-  '[{"name":"Event Hall","floor":"2F"}]'::jsonb
-),
-(
-  'Student Center', 'Student Life', 35.232000, 129.079800, '08:00 AM - 10:00 PM',
-  'Clubs, student council, and campus activities hub.',
-  '1F-3F: Club rooms and offices',
-  'Clubs & Activities', '051-510-1300', 'https://www.pusan.ac.kr',
-  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80',
-  '[{"name":"Student Council","floor":"2F"},{"name":"Club Offices","floor":"1F-3F"}]'::jsonb,
-  '[{"name":"Meeting Rooms","floor":"2F"}]'::jsonb
-)
+INSERT INTO facility (building_number, name, name_ko, type, latitude, longitude) VALUES
+('101', 'MEMS / NANO Cleanroom', 'MEMS / NANO 클린룸동', 'Research', 0, 0),
+('102', 'IT Building', 'IT관', 'Academic', 0, 0),
+('103', 'Engineering Building 12', '제12공학관', 'Academic', 0, 0),
+('105', 'Engineering Building 3 (Convergence Mechanical)', '제3공학관(융합기계관)', 'Academic', 0, 0),
+('106', 'Hyowon Culture Hall', '효원문화회관', 'Student Life', 0, 0),
+('107', 'Engineering Building 8 (Aeronautical)', '제8공학관(항공관)', 'Academic', 0, 0),
+('108', 'Engineering Building 9 (Mechatronics)', '제9공학관(기전관)', 'Academic', 0, 0),
+('109', 'College of Engineering Joint Lab', '공과대학 공동실험관', 'Academic', 0, 0),
+('110', 'Energy Research Laboratory', '에너지분야 실험실', 'Research', 0, 0),
+('201', 'Engineering Building 6 (Computer Engineering)', '제6공학관(컴퓨터공학관)', 'Academic', 0, 0),
+('202', 'Unjukjeong Pavilion', '운죽정', 'Student Life', 0, 0),
+('203', 'Neokneokhan-teo Plaza', '넉넉한터', 'Student Life', 0, 0),
+('205', 'University Headquarters', '대학본부', 'Administrative', 0, 0),
+('206', 'Engineering Building 11 (Naval Architecture)', '제11공학관(조선해양공학관)', 'Academic', 0, 0),
+('207', 'Engineering Building 10 (Specialized Engineering)', '제10공학관(특성화공학관)', 'Academic', 0, 0),
+('208', 'Mechanical Technology Research Building', '기계기술연구동', 'Research', 0, 0),
+('209', 'Sangnam International House', '상남국제관', 'Administrative', 0, 0),
+('210', 'Language Education Institute', '언어교육원', 'Administrative', 0, 0),
+('211', 'Comprehensive Childcare Center', '보육종합센터', 'Administrative', 0, 0),
+('301', 'Structural Engineering Lab', '구조실험동', 'Research', 0, 0),
+('302', 'Geotechnical Engineering Lab', '토조실험동', 'Research', 0, 0),
+('303', 'Mechanical Engineering Building', '기계관', 'Academic', 0, 0),
+('306', 'College of Humanities', '인문관', 'Academic', 0, 0),
+('307', 'Humanities Faculty Research Building', '인문대교수연구동', 'Academic', 0, 0),
+('308', 'Physics Building 1', '제1물리관', 'Academic', 0, 0),
+('309', 'Physics Building 2', '제2물리관', 'Academic', 0, 0),
+('310', 'Moonchang Hall Cafeteria', '문창회관', 'Cafeteria', 0, 0),
+('311', 'Joint Research Equipment Building', '공동연구기기동', 'Research', 0, 0),
+('312', 'Joint Research & Experiment Building', '공동실험실습관', 'Research', 0, 0),
+('313', 'Natural Sciences Research Building', '자연대 연구실험동', 'Research', 0, 0),
+('314', 'Informatics Education Building', '정보화교육관', 'Academic', 0, 0),
+('315', 'Jayu Hall Dormitory Building A', '자유관 A동', 'Dormitory', 0, 0),
+('316', 'Jayu Hall Dormitory Building B', '자유관 B동', 'Dormitory', 0, 0),
+('317', 'Daycare Center', '직장어린이집', 'Administrative', 0, 0),
+('401', 'Construction & Architecture Building', '건설관', 'Academic', 0, 0),
+('402', 'Jeonghak Hall', '정학관', 'Academic', 0, 0),
+('403', '10.16 Memorial Hall', '10.16 기념관', 'Student Life', 0, 0),
+('405', 'Engineering Building 2 (Materials Science)', '제2공학관(재료관)', 'Academic', 0, 0),
+('406', 'Engineering Building 7 (Chemical Engineering)', '제7공학관(화공관)', 'Academic', 0, 0),
+('407', 'Towing Tank Research Building', '선박예인수조연구동', 'Research', 0, 0),
+('408', 'Engineering Building 5 (Organic Materials)', '제5공학관(유기소재관)', 'Academic', 0, 0),
+('409', 'Faculty Hall', '교수회관', 'Administrative', 0, 0),
+('410', 'Ship Impact & Fatigue Test Lab', '선박충격ㆍ피로ㆍ도장시험연구동', 'Research', 0, 0),
+('412', 'Museum Building A', '박물관 A', 'Student Life', 0, 0),
+('413', 'Museum Building B', '박물관 B', 'Student Life', 0, 0),
+('414', 'Earth Sciences Building', '지구관', 'Academic', 0, 0),
+('415', 'Saetbeol Hall', '샛벌회관', 'Student Life', 0, 0),
+('416', 'Biological Sciences Building', '생물관', 'Academic', 0, 0),
+('417', 'College of Education Building 1', '제1사범관', 'Academic', 0, 0),
+('418', 'Faculty Research Building 2', '제2교수연구동', 'Academic', 0, 0),
+('419', 'Geumjeong Hall Cafeteria', '금정회관', 'Cafeteria', 0, 0),
+('420', 'Saebyeokbeol Library', '새벽벌도서관', 'Library', 0, 0),
+('421', 'College of Social Sciences', '사회관', 'Academic', 0, 0),
+('422', 'Seonghak Hall', '성학관', 'Academic', 0, 0),
+('501', 'Advanced Science Building', '첨단과학관', 'Research', 0, 0),
+('503', 'College of Pharmacy', '약학관', 'Academic', 0, 0),
+('506', 'Hyowon Industry-Academia Cooperation Hall', '효원산학협동관', 'Research', 0, 0),
+('507', 'Indeok Hall', '인덕관', 'Academic', 0, 0),
+('508', 'Industry-Academia Cooperation Hall', '산학협동관', 'Research', 0, 0),
+('509', 'Museum Annex', '박물관 별관', 'Student Life', 0, 0),
+('510', 'Central Library', '중앙도서관', 'Library', 0, 0),
+('511', 'Gymnasium Annex', '간이체육관', 'Sports', 0, 0),
+('512', 'Tennis Courts', '테니스장', 'Sports', 0, 0),
+('514', 'College of Business Administration', '경영관', 'Academic', 0, 0),
+('515', 'Central Library Annex & AX Innovation Center', '중앙도서관 및 AX·정보화혁신본부', 'Library', 0, 0),
+('516', 'College of Economics & International Trade', '경제통상관', 'Academic', 0, 0),
+('601', 'College of Arts', '예술관', 'Academic', 0, 0),
+('602', 'College of Human Ecology (Lecture Hall)', '생활과학관 강의동', 'Academic', 0, 0),
+('603', 'College of Human Ecology (Research Hall)', '생활과학관 연구동', 'Academic', 0, 0),
+('605', 'ROTC Building', '학군단', 'Administrative', 0, 0),
+('606', 'Chemistry Building', '화학관', 'Academic', 0, 0),
+('607', 'Mathematics & Joint Institute Building', '수학관·공동연구소동', 'Academic', 0, 0),
+('608', 'Law School Building 2', '제2법학관', 'Academic', 0, 0),
+('609', 'Law School Building 1', '법학관', 'Academic', 0, 0),
+('701', 'College of Education Building 2', '제2사범관', 'Academic', 0, 0),
+('702', 'Sculpture Studio', '조소실', 'Academic', 0, 0),
+('703', 'Fine Arts Building', '미술관', 'Academic', 0, 0),
+('704', 'Design Building', '조형관', 'Academic', 0, 0),
+('705', 'Gyeongam Gymnasium (Faculty Research)', '경암체육관 교수연구동', 'Sports', 0, 0),
+('706', 'Gyeongam Gymnasium', '경암체육관', 'Sports', 0, 0),
+('707', 'Music Building', '음악관', 'Academic', 0, 0),
+('708', 'Student Union Building', '학생회관', 'Student Life', 0, 0),
+('709', 'Science & Technology Research Building', '과학기술연구동', 'Research', 0, 0),
+('710', 'Main Athletics Field', '대운동장', 'Sports', 0, 0),
+('711', 'Hyowonjae Study Hall', '효원재', 'Academic', 0, 0),
+('712', 'Ungbi Hall Dormitory Building A', '웅비관 A동', 'Dormitory', 0, 0),
+('713', 'Ungbi Hall Dormitory Building B', '웅비관 B동', 'Dormitory', 0, 0),
+('714', 'Jinri Hall Administration', '진리관 관리동', 'Dormitory', 0, 0),
+('715', 'Jinri Hall Dormitory Building A', '진리관 가동', 'Dormitory', 0, 0),
+('716', 'Jinri Hall Dormitory Building B', '진리관 나동', 'Dormitory', 0, 0),
+('717', 'Jinri Hall Dormitory Building C', '진리관 다동', 'Dormitory', 0, 0)
 ON CONFLICT (name) DO NOTHING;
 
 -- 4b. Academic records demo: one summary + semester history per student
@@ -157,18 +164,3 @@ BEGIN
     (s.student_id, 'semester', '2022 Fall', GREATEST(overall - 0.37, 0), 4);
   END LOOP;
 END $$;
-
--- 5. SEED NOTICES
-INSERT INTO notice (title, content, language, posted_date) VALUES
-('Guidelines for Alien Registration Card (ARC) Application', 'All incoming international students must apply for ARC within 90 days of arrival. Document checklist: passport, photo, enrollment certificate, fee (30,000 KRW).', 'English', '2026-06-20 10:00:00'),
-('National Health Insurance Enrollment Instructions', 'Automatic enrollment in Korea National Health Insurance is mandatory for international students starting from the month of arrival. Monthly bills will be mailed.', 'English', '2026-06-22 14:00:00');
-
--- 6. SEED FORUM POSTS
-INSERT INTO post (board_id, student_id, title, content, created_at) VALUES
-(3, '202455393', 'ARC Application Processing Time', 'Does anyone know how long the ARC card processing takes right now? I submitted it 2 weeks ago.', '2026-06-25 10:15:30'),
-(1, '202399999', 'Visa extension document review window', 'Hello! Quick heads up that the OIA is doing pre-checks on visa extensions this week.', '2026-06-27 11:30:00');
-
--- 7. SEED COMMENTS
-INSERT INTO comment (post_id, student_id, content, created_at) VALUES
-(1, '202012345', 'Usually takes about 3 to 4 weeks during peak semesters. I recommend booking the appointment early!', '2026-06-25 11:00:00'),
-(1, '202455393', 'Ah, I see! Thank you for the info.', '2026-06-25 11:20:00');

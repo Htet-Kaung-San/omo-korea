@@ -22,14 +22,14 @@ const FILTERS: Array<{ id: CareerJobType | 'all'; labelKey: string }> = [
 export function CareerOpportunitiesPage() {
   const { t } = useLanguage()
   const { isSaved, toggle } = useSavedJobs()
+  const [filter, setFilter] = useState<CareerJobType | 'all'>('all')
   const {
     items: recommended,
     loading: recommendedLoading,
     error: recommendedError,
-  } = useCareerRecommendations()
+  } = useCareerRecommendations(filter === 'all' ? undefined : filter)
 
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<CareerJobType | 'all'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [sortByDeadline, setSortByDeadline] = useState(false)
   const [showAllRecommended, setShowAllRecommended] = useState(false)
@@ -44,8 +44,13 @@ export function CareerOpportunitiesPage() {
     setLoading(true)
     setError('')
 
+    const jobType = filter === 'all' ? undefined : filter
     api
-      .getCareerOpportunities({ page: 1, limit: LATEST_PAGE_SIZE })
+      .getCareerOpportunities({
+        page: 1,
+        limit: filter === 'all' ? LATEST_PAGE_SIZE : 50,
+        jobType,
+      })
       .then((response) => {
         if (!cancelled) setLatest(response.opportunities)
       })
@@ -62,7 +67,7 @@ export function CareerOpportunitiesPage() {
     return () => {
       cancelled = true
     }
-  }, [t])
+  }, [t, filter])
 
   const filteredRecommended = useMemo(() => {
     return recommended.filter(

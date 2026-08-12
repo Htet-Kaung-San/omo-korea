@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, Sparkles } from 'lucide-react'
+import {
+  Bookmark,
+  ChevronRight,
+  ExternalLink,
+  Flame,
+  Search,
+  Sparkles,
+  Star,
+} from 'lucide-react'
 import { api } from '@/api'
 import type { ProgramItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
 import { getProgramIconForItem } from '@/utils/programIcons'
+
+const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
+const RECOMMENDED_LIMIT = 20
 
 type AiProgramItem = ProgramItem & {
   score?: number
@@ -15,118 +26,119 @@ type AiProgramItem = ProgramItem & {
 
 type ProgramTab = 'recommended' | 'all'
 
-function normalizeText(value?: string | null): string {
-  return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase()
+function parseDaysLeft(dateStr?: string | null): number | null {
+  if (!dateStr) return null
+  const raw = dateStr.trim()
+  const match = /^D-(\d+)$/i.exec(raw)
+  if (match) return Number(match[1])
+
+  const iso = raw.replace(/\./g, '-')
+  const target = new Date(iso)
+  if (!Number.isNaN(target.getTime())) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    target.setHours(0, 0, 0, 0)
+    return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  }
+  return null
 }
 
-function hasAny(text: string, keywords: string[]): boolean {
-  return keywords.some((keyword) => text.includes(keyword))
+function StatusPill({
+  dateStr,
+  t,
+}: {
+  dateStr?: string | null
+  t: (key: string, vars?: Record<string, string | number>) => string
+}) {
+  const daysLeft = parseDaysLeft(dateStr)
+  if (daysLeft !== null && daysLeft <= 3 && daysLeft >= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">
+        <Flame className="h-3 w-3" strokeWidth={2.2} />
+        {t('scholarships.closingInDays', { count: daysLeft })}
+      </span>
+    )
+  }
+  if (daysLeft !== null && daysLeft <= 10 && daysLeft >= 0) {
+    return (
+      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-600">
+        {daysLeft <= 7
+          ? t('scholarships.closingInWeek')
+          : t('scholarships.closingInDays', { count: daysLeft })}
+      </span>
+    )
+  }
+  return (
+    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+      {t('scholarships.open')}
+    </span>
+  )
 }
 
-function programDedupeKey(program: ProgramItem): string {
-  return [
-    normalizeText(program.title),
-    normalizeText(program.date),
-    normalizeText(program.category),
-  ].join('|')
-}
+function FeaturedTopPickCard({
+  program,
+  t,
+}: {
+  program: AiProgramItem
+  t: (key: string) => string
+}) {
+  const Icon = getProgramIconForItem(program)
+  const matchPct = Math.min(98, Math.max(82, program.score || 94))
 
-function inferProgramMatchHint(program: ProgramItem, fallback?: string): string {
-  const text = normalizeText([
-    program.title,
-    program.description,
-    program.category,
-    program.sourceUrl,
-  ].filter(Boolean).join(' '))
+  return (
+    <div
+      className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-pnu-blue p-4 text-white transition active:scale-[0.99]"
+      style={{ boxShadow: '0 12px 32px rgba(124,58,237,0.25)' }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
+          <Sparkles className="h-3.5 w-3.5 text-yellow-300" strokeWidth={2.2} />
+          {matchPct}% Match
+        </span>
+        <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-100">
+          Top AI Recommendation
+        </span>
+      </div>
 
-  const reasons: string[] = []
+      <div className="mt-3 flex items-start gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-white/20 text-white backdrop-blur-md">
+          <Icon className="h-5 w-5" strokeWidth={2} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/academic/programs/${program.id}`}
+            className="block text-[15px] font-bold leading-snug tracking-tight text-white hover:underline"
+          >
+            {program.title}
+          </Link>
+          {program.category ? (
+            <p className="mt-0.5 text-[12px] font-medium text-violet-100">
+              {program.category}
+            </p>
+          ) : null}
+        </div>
+      </div>
 
-  if (fallback && fallback !== 'Available for your year') {
-    reasons.push(fallback)
-  }
+      {program.matchHint ? (
+        <p className="mt-3 rounded-[14px] bg-white/15 px-3 py-2 text-[11px] leading-relaxed text-violet-50 backdrop-blur-sm">
+          💡 {program.matchHint}
+        </p>
+      ) : null}
 
-  if (hasAny(text, ['international', 'topik', 'korean', 'buddy', 'visa', 'dorm'])) {
-    reasons.push('International student support')
-  }
-
-  if (hasAny(text, ['career', 'job', 'intern', 'resume', 'interview', 'startup', 'mentor', 'mentoring'])) {
-    reasons.push('Career preparation')
-  }
-
-  if (hasAny(text, ['ai', 'sw', 'software', 'digital', 'data', 'gemini', 'coding', 'startup'])) {
-    reasons.push('Digital / AI skill building')
-  }
-
-  if (hasAny(text, ['culture', 'festival', 'busan', 'global'])) {
-    reasons.push('Cultural adaptation')
-  }
-
-  if (hasAny(text, ['counsel', 'mental', 'wellbeing', 'health'])) {
-    reasons.push('Student wellbeing support')
-  }
-
-  reasons.push('Available for your academic year')
-
-  return [...new Set(reasons)].slice(0, 3).join(' · ')
-}
-
-function dedupePrograms(programs: AiProgramItem[]): AiProgramItem[] {
-  const byKey = new Map<string, AiProgramItem>()
-
-  programs.forEach((program) => {
-    const key = programDedupeKey(program)
-    const existing = byKey.get(key)
-
-    if (!existing) {
-      byKey.set(key, program)
-      return
-    }
-
-    const existingScore = existing.score ?? 0
-    const currentScore = program.score ?? 0
-
-    if (
-      (program.aiRecommended && !existing.aiRecommended) ||
-      currentScore > existingScore ||
-      (!existing.sourceUrl && program.sourceUrl)
-    ) {
-      byKey.set(key, program)
-    }
-  })
-
-  return [...byKey.values()]
-}
-
-function mergeAiPrograms(aiPrograms: ProgramItem[], allPrograms: ProgramItem[]): AiProgramItem[] {
-  const merged = new Map<string, AiProgramItem>()
-
-  allPrograms.forEach((program) => {
-    merged.set(String(program.id), {
-      ...program,
-      aiRecommended: false,
-    })
-  })
-
-  aiPrograms.forEach((program, index) => {
-    const id = String(program.id)
-    const existing = merged.get(id)
-    const rawHint = (program as AiProgramItem).matchHint
-
-    merged.set(id, {
-      ...existing,
-      ...program,
-      id,
-      aiRecommended: true,
-      score: (program as AiProgramItem).score ?? Math.max(60, 95 - index * 3),
-      matchHint: inferProgramMatchHint(program, rawHint),
-    })
-  })
-
-  return dedupePrograms([...merged.values()]).sort((a, b) => {
-    if (a.aiRecommended !== b.aiRecommended) return a.aiRecommended ? -1 : 1
-    if ((b.score ?? 0) !== (a.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0)
-    return normalizeText(a.title).localeCompare(normalizeText(b.title))
-  })
+      <div className="mt-3.5 flex items-center justify-between border-t border-white/15 pt-3">
+        <span className="text-[11px] font-medium text-violet-100">
+          {program.date ? `Deadline: ${program.date}` : t('scholarships.open')}
+        </span>
+        <Link
+          to={`/academic/programs/${program.id}`}
+          className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-bold text-[#7C3AED] shadow-sm transition hover:bg-violet-50"
+        >
+          View Details
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.2} />
+        </Link>
+      </div>
+    </div>
+  )
 }
 
 export function ProgramsPage() {
@@ -135,6 +147,8 @@ export function ProgramsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [tab, setTab] = useState<ProgramTab>('recommended')
+  const [query, setQuery] = useState('')
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -142,15 +156,27 @@ export function ProgramsPage() {
     setLoading(true)
     setError('')
 
-    Promise.all([
-      api.getPrograms().catch(() => []),
-      api.getAiDashboard().catch(() => null),
-    ])
-      .then(([allPrograms, dashboard]) => {
+    // getPrograms() already returns AI-ranked programs (score + matchHint),
+    // so a separate ai-dashboard request is unnecessary here — one round trip,
+    // one translation warm, faster first paint.
+    api
+      .getPrograms()
+      .then((allPrograms) => {
         if (cancelled) return
 
-        const aiPrograms = dashboard?.matchedPrograms ?? []
-        setPrograms(mergeAiPrograms(aiPrograms, allPrograms))
+        const sorted = [...allPrograms].sort(
+          (a, b) => (b.score ?? 0) - (a.score ?? 0),
+        )
+        const recommendedIds = new Set(
+          sorted.slice(0, RECOMMENDED_LIMIT).map((p) => String(p.id)),
+        )
+
+        setPrograms(
+          sorted.map((p) => ({
+            ...p,
+            aiRecommended: recommendedIds.has(String(p.id)),
+          })),
+        )
       })
       .catch((err) => {
         if (!cancelled) {
@@ -178,120 +204,214 @@ export function ProgramsPage() {
     }
   }, [loading, recommendedPrograms.length, tab])
 
-  const visiblePrograms = tab === 'recommended' ? recommendedPrograms : programs
+  const rawVisible = tab === 'recommended' ? recommendedPrograms : programs
+
+  const filteredPrograms = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return rawVisible
+    return rawVisible.filter((p) => {
+      const hay = [p.title, p.category, p.description, p.matchHint].filter(Boolean).join(' ').toLowerCase()
+      return hay.includes(q)
+    })
+  }, [rawVisible, query])
+
+  const topPick = useMemo(() => {
+    if (tab !== 'recommended' || query.trim()) return null
+    return recommendedPrograms[0] ?? null
+  }, [tab, query, recommendedPrograms])
+
+  const listPrograms = useMemo(() => {
+    if (!topPick) return filteredPrograms
+    return filteredPrograms.filter((p) => p.id !== topPick.id)
+  }, [filteredPrograms, topPick])
 
   const tabs: { id: ProgramTab; labelKey: 'academic.recommendedForYou' | 'academic.allPrograms' }[] = [
     { id: 'recommended', labelKey: 'academic.recommendedForYou' },
     { id: 'all', labelKey: 'academic.allPrograms' },
   ]
 
+  function toggleSave(id: string, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setSavedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
   function renderProgramCard(program: AiProgramItem) {
     const Icon = getProgramIconForItem(program)
-    const showRecommendedDesign = tab === 'recommended' && Boolean(program.aiRecommended)
+    const isRecommended = Boolean(program.aiRecommended)
+    const isSaved = savedIds.has(String(program.id))
+    const matchPct = Math.min(98, Math.max(80, program.score || 90))
 
     return (
-      <article
+      <Link
         key={program.id}
-        className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm"
+        to={`/academic/programs/${program.id}`}
+        className="flex items-start gap-3 rounded-[18px] bg-white p-3.5 transition active:scale-[0.99]"
+        style={{ boxShadow: CARD_SHADOW }}
       >
-        <div className="flex items-start gap-3">
-          <span
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-              showRecommendedDesign ? 'bg-violet-50 text-violet-600' : 'bg-blue-50 text-pnu-blue'
-            }`}
-          >
-            <Icon className="h-5 w-5" strokeWidth={1.8} />
-          </span>
+        <span
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] ${
+            isRecommended
+              ? 'bg-[#F3E8FF] text-[#7C3AED]'
+              : 'bg-[#E0F2FE] text-[#0284C7]'
+          }`}
+        >
+          <Icon className="h-5 w-5" strokeWidth={1.9} />
+        </span>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <Link
-                to={`/academic/programs/${program.id}`}
-                className="text-sm font-bold text-pnu-text hover:text-pnu-blue-light"
-              >
-                {program.title}
-              </Link>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-1.5">
+            <p className="text-[14px] font-bold leading-snug tracking-tight text-pnu-text">
+              {program.title}
+            </p>
+            <button
+              type="button"
+              onClick={(e) => toggleSave(String(program.id), e)}
+              className="mt-0.5 p-0.5 text-pnu-muted hover:text-[#7C3AED]"
+              aria-label="Save program"
+            >
+              <Bookmark
+                className="h-4 w-4"
+                fill={isSaved ? '#7C3AED' : 'none'}
+                stroke={isSaved ? '#7C3AED' : 'currentColor'}
+                strokeWidth={1.8}
+              />
+            </button>
+          </div>
 
-              {showRecommendedDesign ? (
-                <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
-                  AI
-                </span>
-              ) : null}
-            </div>
+          {program.category ? (
+            <p className="mt-0.5 text-[12px] font-semibold text-[#7C3AED]">
+              {program.category}
+            </p>
+          ) : null}
 
-            {program.category ? (
-              <p className="mt-0.5 text-xs font-medium text-pnu-muted">{program.category}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <StatusPill dateStr={program.date} t={t} />
+            {isRecommended ? (
+              <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                ✨ {matchPct}% Match
+              </span>
             ) : null}
-
             {program.date ? (
-              <p className="mt-2 text-xs font-semibold text-pnu-blue-light">{program.date}</p>
-            ) : null}
-
-            {showRecommendedDesign && program.matchHint ? (
-              <p className="mt-2 rounded-xl bg-violet-50 px-3 py-2 text-[12px] leading-relaxed text-violet-700">
-                {program.matchHint}
-              </p>
-            ) : null}
-
-            {program.sourceUrl ? (
-              <a
-                href={program.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-pnu-blue-light hover:bg-blue-100"
-              >
-                {t('academic.viewAnnouncement')}
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-              </a>
+              <span className="text-[11px] font-bold text-pnu-blue">
+                {program.date}
+              </span>
             ) : null}
           </div>
+
+          {isRecommended && program.matchHint ? (
+            <p className="mt-2 rounded-[12px] bg-violet-50/80 px-2.5 py-1.5 text-[11px] leading-relaxed text-violet-800">
+              {program.matchHint}
+            </p>
+          ) : null}
         </div>
-      </article>
+
+        <div className="flex shrink-0 items-center self-center pl-1">
+          {program.sourceUrl ? (
+            <a
+              href={program.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-full bg-blue-50 p-1.5 text-pnu-blue transition hover:bg-blue-100"
+              title={t('academic.viewAnnouncement')}
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={2} />
+            </a>
+          ) : (
+            <ChevronRight className="h-4 w-4 text-pnu-muted opacity-40" strokeWidth={2} />
+          )}
+        </div>
+      </Link>
     )
   }
 
   return (
-    <div>
+    <div className="min-h-full bg-[#F5F7FB]">
       <PageHeader title={t('academic.programs')} subtitle={t('academic.programsSubtitle')} back />
 
-      <div className="space-y-4 px-5 pb-6 pt-1">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto pb-0.5">
-          {tabs.map(({ id, labelKey }) => {
-            const active = tab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setTab(id)}
-                className={[
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold transition',
-                  active
-                    ? 'bg-violet-600 text-white shadow-sm'
-                    : 'bg-white text-violet-700 ring-1 ring-violet-200',
-                ].join(' ')}
-              >
-                {id === 'recommended' ? (
-                  <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
-                ) : null}
-                {t(labelKey)}
-              </button>
-            )
-          })}
+      <div className="space-y-4 px-3 pb-6 pt-1">
+        {/* Search bar & tab filters */}
+        <div className="space-y-2.5">
+          <label className="relative min-w-0 flex-1 block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-pnu-muted" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search extracurriculars by name, category, or keyword..."
+              className="w-full rounded-[14px] border border-black/8 bg-white py-2.5 pl-9 pr-3 text-[13px] text-pnu-text outline-none placeholder:text-pnu-muted focus:border-[#7C3AED]/40"
+            />
+          </label>
+
+          <div className="flex gap-1.5">
+            {tabs.map(({ id, labelKey }) => {
+              const active = tab === id
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  className={[
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition',
+                    active
+                      ? 'bg-[#7C3AED] text-white shadow-sm'
+                      : 'bg-white text-pnu-muted ring-1 ring-black/8',
+                  ].join(' ')}
+                >
+                  {id === 'recommended' ? (
+                    <Sparkles className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+                  ) : null}
+                  {t(labelKey)}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {error ? (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         ) : null}
 
-        {loading ? <p className="text-sm text-pnu-muted">{t('academic.loading')}</p> : null}
-
-        {!loading && !error && visiblePrograms.length === 0 ? (
-          <p className="text-sm text-pnu-muted">{t('academic.noPrograms')}</p>
+        {loading ? (
+          <p className="py-8 text-center text-[13px] text-pnu-muted">{t('academic.loading')}</p>
         ) : null}
 
-        {!loading && !error && visiblePrograms.length > 0 ? (
-          <section className="space-y-3">
-            {visiblePrograms.map((program) => renderProgramCard(program))}
+        {!loading && !error && topPick ? (
+          <section>
+            <div className="mb-2 flex items-center gap-1.5 px-0.5">
+              <Star className="h-4 w-4 text-[#7C3AED]" fill="currentColor" strokeWidth={0} />
+              <h2 className="text-[14px] font-bold tracking-tight text-[#7C3AED]">Top Match For You</h2>
+            </div>
+            <FeaturedTopPickCard program={topPick} t={t} />
+          </section>
+        ) : null}
+
+        {!loading && !error && filteredPrograms.length === 0 ? (
+          <p
+            className="rounded-[16px] bg-white px-4 py-8 text-center text-[13px] text-pnu-muted"
+            style={{ boxShadow: CARD_SHADOW }}
+          >
+            {t('academic.noPrograms')}
+          </p>
+        ) : null}
+
+        {!loading && !error && listPrograms.length > 0 ? (
+          <section className="space-y-2">
+            {topPick ? (
+              <p className="px-0.5 text-[12px] font-bold text-pnu-text">
+                {t('academic.allPrograms')}
+              </p>
+            ) : null}
+            {listPrograms.map((program) => renderProgramCard(program))}
           </section>
         ) : null}
       </div>

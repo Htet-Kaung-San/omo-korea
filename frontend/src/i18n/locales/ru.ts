@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Следующая неделя",
   'campusLife.noMenuData': "Нет данных меню столовой.",
   'campusLife.noMenuDetails': "Детали меню для этой столовой пока недоступны.",
-  'emergency.title': "Экстренная помощь",
-  'emergency.embassyTitle': "Посольство моей страны",
+  'emergency.title': "Экстренная поддержка",
+  'emergency.embassyTitle': "Посольство моей страны в Корее",
   'emergency.call': "Позвонить",
   'emergency.map': "Карта",
-  'emergency.nearestHelp': "Ближайшая помощь",
+  'emergency.nearestHelp': "Ближайшая помощь и контакты",
   'emergency.navigate': "Маршрут",
+  'emergency.police': "Полиция",
+  'emergency.fireMedical': "Пожарная и медицинская помощь",
+  'emergency.immigration': "Иммиграция и общая поддержка",
+  'emergency.guidePhraseTitle': "Фразы для экстренных ситуаций",
+  'emergency.copyPhrase': "Скопировать фразу на корейском",
+  'emergency.copied': "Скопировано!",
+  'emergency.housingSafetyTitle': "Безопасность залога при аренде жилья",
+  'emergency.visaOfficesTitle': "Иммиграционная служба",
 }
 
 export default messages

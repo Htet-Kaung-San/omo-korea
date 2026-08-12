@@ -323,12 +323,20 @@ const messages: MessageDictionary = {
   'campusLife.nextWeek': "Дараагийн долоо хоног",
   'campusLife.noMenuData': "Хоолны газрын цэсний мэдээлэл байхгүй.",
   'campusLife.noMenuDetails': "Энэ хоолны газрын цэсний дэлгэрэнгүй одоогоор байхгүй.",
-  'emergency.title': "Яаралтай",
-  'emergency.embassyTitle': "Миний улсын элчин сайдын яам",
+  'emergency.title': "Яаралтай Тусламж",
+  'emergency.embassyTitle': "Солонгос дахь Миний Улсын Элчин Сайдын Яам",
   'emergency.call': "Залгах",
   'emergency.map': "Газрын зураг",
-  'emergency.nearestHelp': "Хамгийн ойр тусламж",
+  'emergency.nearestHelp': "Хамгийн Ойр Тусламжийн Харилцах Хэсэг",
   'emergency.navigate': "Чиглүүлэх",
+  'emergency.police': "Цагдаа",
+  'emergency.fireMedical': "Онцгой байдал ба Эмнэлэг",
+  'emergency.immigration': "Иммигрейшн ба Ерөнхий Тусламж",
+  'emergency.guidePhraseTitle': "Яаралтай Үеийн Хэллэг Заавар",
+  'emergency.copyPhrase': "Солонгос хэллэг хуулах",
+  'emergency.copied': "Хуулсан!",
+  'emergency.housingSafetyTitle': "Орон Сууцны Барьцаа Мөнгөний Аюулгүй Байдал",
+  'emergency.visaOfficesTitle': "Иммигрейшн ба Визний Алба",
 }
 
 export default messages
