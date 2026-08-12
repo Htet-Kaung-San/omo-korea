@@ -1,0 +1,32 @@
+{
+  "academicYear": 2026,
+  "semester": "2",
+  "datasetSha256": "6a363904829faa41c2e32c331f0967ffd4481cfefbb1422aa0eaab94a6d4a650",
+  "sourceOfferingWorkbookSha256": "28c563338239fa584802cb3fa158066b8529ed1166381b25bca7e7fd67f2b365",
+  "sourceRestrictionWorkbookSha256": "8b6b9d50e55567d63d22ac648f4141898bbea43a2a21dba1bf79efc841c3acf9",
+  "sourceOfferingSnapshotSha256": "ec30e8044dded2bb420005b13ec8c942b804fd2c9ad79d72b88d12cc9d779317",
+  "sourceRestrictionSnapshotSha256": "6aa445808628f4056e93545b8c3ad96e1591438020e939dee957fa253e93acd7",
+  "matchReportSha256": "a179f46aba320daa6fc2c2bf30ba3a9c153a2b0ad62f27798eacc30dd4eece35",
+  "dryRunReportSha256": "f29b6d787a9a4fccd90e5306afb95175ad4418ed4c43ab16d5f99787d92401a8",
+  "productionReviewReportSha256": "a1bb3c7b72c451ba6ad46165cfc9a061958902a0712daf2bb81077b692ed904c",
+  "applicationPackageFileSha256": "65c8c5ebdd7b1f6157d1426ee6c33b9dce3f669dc5fd6ca82f6e8336c0d137c7",
+  "sourcePhase5ProposalSha256": "00c5da474879f348e0345d718784aff635fdae14accfeab6f37fe673a66c58be",
+  "counts": {
+    "productionCourses": 1875,
+    "officialOfferings": 4275,
+    "officialPermanentSubjects": 2599,
+    "courseAssignments": 57,
+    "courseOfferings": 82,
+    "explicitEnglishOfferings": 13,
+    "sourceExplicitEnglishOfferings": 349,
+    "restrictions": 1225,
+    "uniqueRestrictions": 1196,
+    "duplicateRestrictionGroups": 25,
+    "restrictionExceptions": 37,
+    "courseRestrictions": 18,
+    "courseRestrictionExceptions": 2,
+    "ambiguousSubjectsExcluded": 94,
+    "unmatchedSubjectsExcluded": 2448,
+    "crossDepartmentNumbersExcluded": 3
+  }
+}

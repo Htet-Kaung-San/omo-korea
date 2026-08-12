@@ -324,8 +324,8 @@ export function CoursesPage() {
                 </h3>
               </div>
               <p className="mt-1 text-[11px] text-white/85 leading-normal">
-                Personalized course list compiled by analyzing your academic
-                track, graduation checkmarks, and selected interests.
+                Courses are ranked using your major, completed courses, course
+category, and available academic-profile information.
               </p>
 
               <div className="mt-3.5 grid grid-cols-2 gap-3 border-t border-white/10 pt-3 text-[11px]">

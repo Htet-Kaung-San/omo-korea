@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '@/api'
 import type {
   ChecklistItem,
   ChecklistVariant,
   GraduationProgress,
-  Notification,
+  ScholarshipItem,
 } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
 import { ChecklistRow } from '@/components/checklist/ChecklistRow'
 import { LatestNoticeCarousel } from '@/components/home/LatestNoticeCarousel'
 import { QuickAccessGrid } from '@/components/home/QuickAccessGrid'
@@ -33,10 +34,15 @@ function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null):
 export function HomePage() {
   const { user } = useAuth()
   const { language, t } = useLanguage()
+  const {
+    notifications: personalizedNotices,
+    loading: noticesLoading,
+    error: noticesError,
+  } = useNoticeRefresh()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [checklistVariant, setChecklistVariant] = useState<ChecklistVariant>('GRADUATION_REQUIREMENT')
-  const [notices, setNotices] = useState<Notification[]>([])
+  const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -47,18 +53,24 @@ export function HomePage() {
     Promise.all([
       api.getGraduationProgress(),
       api.getChecklist(),
-      api.getNotifications(),
       api.getScholarships().catch(() => []),
     ])
-      .then(([grad, checklistPayload, notifications, scholarships]) => {
+      .then(([grad, checklistPayload, scholarshipItems]) => {
         setProgress(grad)
         setChecklist(checklistPayload.items)
         setChecklistVariant(checklistPayload.variant)
-        setNotices(mergeNoticeFeed(notifications, scholarships))
+        setScholarships(scholarshipItems)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
       .finally(() => setLoading(false))
   }, [language, t, user?.studentId])
+
+  const notices = useMemo(
+    () => mergeNoticeFeed(personalizedNotices, scholarships),
+    [personalizedNotices, scholarships],
+  )
+  const pageError = error || noticesError
+  const pageLoading = loading || noticesLoading
 
   async function handleToggleChecklist(id: string, completed: boolean) {
     setUpdatingId(id)
@@ -111,13 +123,13 @@ export function HomePage() {
 
   return (
     <div className="relative animate-fade-in px-3.5 py-4">
-      {error ? (
+      {pageError ? (
         <p className="mb-4 rounded-[16px] bg-red-50 px-3 py-2 text-[11px] text-red-600">
-          {error}
+          {pageError}
         </p>
       ) : null}
 
-      {loading ? (
+      {pageLoading ? (
         <p className="text-[12px] text-pnu-muted">{t('home.loading')}</p>
       ) : (
         <div className="flex flex-col gap-6 pb-4">

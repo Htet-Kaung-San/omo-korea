@@ -96,7 +96,7 @@ export const realApi: HeyPnuApi = {
     const response = await apiFetch<BackendLoginResponse>('/students/login', {
       method: 'POST',
       body: JSON.stringify({
-        student_id: data.studentId,
+        identifier: data.identifier,
         password: data.password,
       }),
       suppressToast: true,
@@ -143,24 +143,32 @@ export const realApi: HeyPnuApi = {
     setSessionUser(user)
     return user
   },
+  async getRecommendedCourses(
+    type?: CourseType | 'ALL',
+  ): Promise<RecommendedCourse[]> {
+    const courses = await backendFetch<Parameters<typeof mapRecommendedCourse>[0][]>(
+      '/students/course-recommendations',
+    )
+    const mappedCourses = courses.map(mapRecommendedCourse)
 
-  async getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]> {
-    const dashboard = await backendFetch<{
-      recommendedCourses?: Parameters<typeof mapRecommendedCourse>[0][]
-    }>('/students/ai-dashboard')
-
-    const courses = (dashboard.recommendedCourses ?? []).map(mapRecommendedCourse)
-    if (type && type !== 'ALL') {
-      return courses.filter((course) => course.type === type)
-    }
-    return courses
+    return type && type !== 'ALL'
+      ? mappedCourses.filter((course) => course.type === type)
+      : mappedCourses
   },
 
   async getGraduationProgress(): Promise<GraduationProgress> {
     return emptyGraduationProgress()
   },
 
-  async getNotifications(): Promise<Notification[]> {
+  async getPersonalizedNotifications(): Promise<Notification[]> {
+    const notifications = await backendFetch<Parameters<typeof mapNotice>[0][]>(
+      '/students/notifications',
+    )
+
+    return notifications.map(mapNotice)
+  },
+
+  async getPublicNotices(): Promise<Notification[]> {
     const notifications = await backendFetch<Parameters<typeof mapNotice>[0][]>(
       '/students/notices',
     )

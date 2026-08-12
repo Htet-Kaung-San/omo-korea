@@ -17,7 +17,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
         message: "Access Denied: Session token is invalid or expired.",
       });

@@ -1,27 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { CalendarDays } from 'lucide-react'
-import { api } from '@/api'
 import type { Notification } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
+import { loadSavedNotices } from '@/utils/savedNotices'
+
+function formatSafeDate(
+  value: string | null | undefined,
+  locale: string,
+): string | null {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime())
+    ? null
+    : parsed.toLocaleDateString(locale)
+}
 
 export function NotificationPostPage() {
   const { notificationId } = useParams()
-  const { language, locale, t } = useLanguage()
-  const [notification, setNotification] = useState<Notification | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { locale, t } = useLanguage()
+  const { notifications, loading, error } = useNoticeRefresh()
+  const notification = useMemo<Notification | null>(() => {
+    const current = notifications.find((item) => item.id === notificationId)
+    const saved = loadSavedNotices().find((item) => item.id === notificationId)
+    return current ?? saved ?? null
+  }, [notificationId, notifications])
 
-  useEffect(() => {
-    api
-      .getNotifications()
-      .then((items) => {
-        setNotification(items.find((item) => item.id === notificationId) ?? null)
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : t('notifications.loadError')))
-      .finally(() => setLoading(false))
-  }, [language, notificationId, t])
+  const formattedDate = formatSafeDate(notification?.date, locale)
 
   return (
     <div>
@@ -37,17 +44,28 @@ export function NotificationPostPage() {
         ) : null}
         {notification ? (
           <article className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-pnu-blue">
-                {notification.category}
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs text-pnu-muted">
-                <CalendarDays className="h-3.5 w-3.5" />
-                {new Date(notification.date).toLocaleDateString(locale)}
-              </span>
-            </div>
+            {notification.category || formattedDate ? (
+              <div className="mb-3 flex items-center justify-between gap-3">
+                {notification.category ? (
+                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-pnu-blue">
+                    {notification.category}
+                  </span>
+                ) : null}
+                {formattedDate ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-pnu-muted">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {formattedDate}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
             <h1 className="text-lg font-bold text-pnu-text">{notification.title}</h1>
             <p className="mt-3 text-sm leading-relaxed text-pnu-muted">{notification.body}</p>
+            {notification.matchHint ? (
+              <p className="mt-3 rounded-xl bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700">
+                {notification.matchHint}
+              </p>
+            ) : null}
           </article>
         ) : null}
       </div>

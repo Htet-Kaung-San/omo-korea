@@ -82,7 +82,6 @@ router.get("/facilities/:facility_id", getFacilityById);
 router.get("/pnu-contacts", getPnuContacts);
 router.get("/faq", getFaqItems);
 router.get("/notices", getNotices);
-router.post("/notices/sync", syncNotices);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
 router.get("/scholarships", getAllScholarships);
@@ -95,6 +94,12 @@ router.get("/courses", getCourses);
 
 // Protected / named routes (before /:student_id)
 router.get("/", authenticateToken, requireAdmin, getAllStudents);
+router.post(
+  "/notices/sync",
+  authenticateToken,
+  requireAdmin,
+  syncNotices,
+);
 router.get("/checklist/:student_id", authenticateToken, getStudentChecklist);
 router.put("/checklist/:checklist_id", authenticateToken, updateChecklistItem);
 router.get("/notifications/:student_id", authenticateToken, getNotifications);
@@ -108,7 +113,7 @@ router.put(
   validateBody(updateProfileSchema),
   updateStudentProfile,
 );
-router.get("/enrollments/:student_id", getEnrollments);
+router.get("/enrollments/:student_id", authenticateToken, getEnrollments);
 router.post("/enrollments", authenticateToken, createEnrollment);
 router.delete("/enrollments/:enrollment_id", authenticateToken, deleteEnrollment);
 router.post("/scholarships/apply", authenticateToken, applyForScholarship);
@@ -140,7 +145,7 @@ router.post("/comments", authenticateToken, validateBody(createCommentSchema), c
 router.post("/posts/:post_id/comments", authenticateToken, validateBody(createCommentSchema), createComment);
 
 // Parametric student routes last
-router.get("/:student_id", getStudentProfile);
+router.get("/:student_id", authenticateToken, getStudentProfile);
 router.patch("/:student_id", authenticateToken, updateStudentProfile);
 router.patch("/:student_id/request-delete", authenticateToken, requestStudentDeletion);
 router.patch("/:student_id/language", authenticateToken, updateLanguagePreference);

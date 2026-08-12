@@ -106,13 +106,14 @@ function adaptStudentProfile(rawInput = {}) {
       topN: normalizeTopN(questionnaire.topN),
     },
     recommendationProfile: {
-      major: normalizeString(profile.major),
-      majorId: normalizeNumber(profile.majorId),
-      interests: normalizeReadableArray(profile.interests),
-      languages: normalizeReadableArray(profile.languages),
-      gpa: normalizeNumber(profile.gpa),
-      nationality: normalizeString(profile.nationality),
-      year: normalizeNumber(profile.year),
+  major: normalizeString(profile.major),
+  majorId: normalizeNumber(profile.majorId),
+  interests: normalizeReadableArray(profile.interests),
+  languages: normalizeReadableArray(profile.languages),
+  gpa: normalizeNumber(profile.gpa),
+  nationality: normalizeString(profile.nationality),
+  year: normalizeNumber(profile.year ?? profile.grade),
+  mbti: normalizeString(profile.mbti)?.toUpperCase() ?? null,
       academicAreas: normalizeReadableArray(profile.academicAreas),
       activities: normalizeReadableArray(profile.activities),
       strengths: normalizeReadableArray(profile.strengths),
@@ -126,5 +127,3 @@ function adaptStudentProfile(rawInput = {}) {
 module.exports = {
   adaptStudentProfile,
 };
-
-

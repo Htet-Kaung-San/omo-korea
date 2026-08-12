@@ -17,6 +17,21 @@ logs/
 *.log
 npm-debug.log*
 
+# Read-only PNU course-source prototype output
+data/local/pnu-course-offerings/
+data/local/pnu-course-restrictions/
+data/local/pnu-course-matches/
+data/local/pnu-course-backfill-dry-run/
+data/local/pnu-course-production-review/
+data/local/pnu-course-application/
+data/local/pnu-course-application-results/
+data/local/pnu-course-production-backups/
+data/local/pnu-course-metadata-dry-run/
+
+# Official syllabus evidence remains local. Only the reviewed checksum manifest
+# is tracked.
+data/source/2026-2/syllabi/
+
 # =========================
 # OS / editor
 # =========================

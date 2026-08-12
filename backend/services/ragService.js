@@ -99,6 +99,20 @@ async function syncDocument(docId) {
   return { success: true, chunksCount: chunks.length };
 }
 
+/**
+ * Cosine-similarity floor for a chunk to count as relevant.
+ *
+ * Measured against the current knowledge base (47 documents): genuinely
+ * on-topic questions score 0.73-0.86, while off-topic ones ("what is the
+ * capital of France?", "how do I cook kimchi jjigae?") top out at 0.61. The
+ * previous value of 0.45 sat below both bands, so every question retrieved
+ * something and unrelated context was injected into the prompt. 0.65 sits in
+ * the empty band between them with margin on each side.
+ *
+ * Re-measure this if the knowledge base changes shape substantially.
+ */
+const MATCH_THRESHOLD = 0.65;
+
 async function retrieveContext(queryText, filters = {}, limit = 3) {
   let queryEmbedding;
   try {
@@ -110,7 +124,7 @@ async function retrieveContext(queryText, filters = {}, limit = 3) {
 
   const { data, error } = await supabase.rpc("match_kb_chunks", {
     query_embedding: queryEmbedding,
-    match_threshold: 0.45,
+    match_threshold: MATCH_THRESHOLD,
     match_count: limit,
     filter_category: filters.category || null,
     filter_country: filters.country || "ALL",
