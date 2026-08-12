@@ -1,5 +1,8 @@
 # PNU Course Source Prototype
 
+> Historical pre-application source investigation. The reviewed 2026-2
+> packages were applied later; current facts are in the production runbook.
+
 Phase 2 investigates official, public PNU course data without importing it or
 changing recommendation scoring. The prototype performs public GET requests
 only and writes a local JSON snapshot under the gitignored
@@ -125,6 +128,6 @@ discarded before matching. See `PNU_COURSE_IDENTITY.md` for the dry-run totals.
 ## Next implementation step
 
 Review every Phase 3 backfill candidate and resolve the cross-department and
-ambiguous identities. Only a separately approved phase may apply the draft
-migration or perform a backfill. Recommendation and frontend integration must
-wait until exact official identities are stored.
+ambiguous identities. This was the historical gate before a separately
+reviewed phase applied exact identities. It is not an instruction to rerun the
+retained migration or application RPC.

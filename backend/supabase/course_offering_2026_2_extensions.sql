@@ -1,6 +1,6 @@
--- DRAFT ADDITIVE MIGRATION FOR THE REVIEWED 2026-2 SOURCE. Apply manually only
--- after course_identity_and_offerings.sql and course_metadata.sql. No data is
--- changed by this migration and no client policy is created.
+-- RETAINED ADDITIVE MIGRATION FOR THE REVIEWED 2026-2 SOURCE. Already applied;
+-- do not rerun blindly. The definition contains no data mutation and creates
+-- no client policy.
 
 begin;
 

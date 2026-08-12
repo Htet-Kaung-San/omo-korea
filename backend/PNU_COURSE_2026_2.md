@@ -1,5 +1,10 @@
 # PNU 2026-2 reviewed course package
 
+The reviewed base package and later CSE metadata package were applied manually
+by Tuvshinjargal03 before 2026-08-11 KST. Verified production state is 1,875
+courses, 89 offerings, 9 metadata rows, 20 restriction/exception rows, and 64
+populated official course numbers. The deployed feature flag remains disabled.
+
 The official offering workbook contains 4,275 section rows and 2,599 permanent
 subject numbers. The separate restriction workbook contains 1,225 raw restriction
 rows and 37 exception rows. Key-based deduplication preserves 1,196 unique rules
@@ -40,5 +45,5 @@ installed and verified, they should not be rerun. The new additive
 `course_offering_2026_2_extensions.sql` is required before the regenerated RPC;
 it adds enrollment limit, team-teaching, remarks, general-education area, and a
 backend-only RLS restriction table. It creates no public policies and performs
-no data writes. The feature flag remains `ENABLE_COURSE_OFFERINGS=false` until a
-controlled application and postflight verification succeed.
+no data writes. The feature flag remains `ENABLE_COURSE_OFFERINGS=false` or
+missing pending a separate deployment exposure review.

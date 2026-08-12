@@ -1,6 +1,7 @@
--- REVIEWED RPC DEFINITION ONLY. Applying this file creates or replaces the
--- protected function; it does not write data until the function is called
--- separately with both exact reviewed checksums.
+-- RETAINED APPLICATION RPC PLUS PROPOSED METADATA ROLLBACK DEFINITION. The
+-- reviewed metadata package was already applied, but the rollback added below
+-- is not confirmed installed in production. Do not invoke installed production
+-- rollback functions. Installation requires separate schema-change approval.
 --
 -- The seven permanent courses below were matched without fuzzy names: the
 -- official Korean title and syllabus English title form the exact production
@@ -277,6 +278,107 @@ $function$;
 revoke all on function public.apply_reviewed_pnu_course_metadata_2026_2(text, text)
   from public, anon, authenticated;
 grant execute on function public.apply_reviewed_pnu_course_metadata_2026_2(text, text)
+  to service_role;
+
+create or replace function public.rollback_reviewed_pnu_course_metadata_2026_2(
+  p_manifest_sha256 text,
+  p_resolution_sha256 text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $function$
+declare
+  expected_manifest_sha256 constant text := '288ff7569cff5494e029b12f14aeddd174bbb7083926984b70a3c159bfaaf051';
+  expected_resolution_sha256 constant text := '977bcca97a1f885c35faa9bf63c9102a707f10877fcc8faf5c0d0b7e2ec6aab2';
+  exact_metadata_count integer;
+  exact_resolution_count integer;
+  dependent_restriction_count integer;
+  deleted_metadata_count integer;
+  deleted_offering_count integer;
+  restored_course_count integer;
+begin
+  if p_manifest_sha256 is distinct from expected_manifest_sha256 then raise exception 'metadata manifest checksum mismatch'; end if;
+  if p_resolution_sha256 is distinct from expected_resolution_sha256 then raise exception 'metadata resolution checksum mismatch'; end if;
+
+  create temporary table rollback_resolution_2026_2(course_id integer primary key, official_course_number text unique, academic_year smallint, semester text, section text) on commit drop;
+  insert into rollback_resolution_2026_2 values
+    (66, 'CB1501019', 2026, '2', '059'), (75, 'CB2001103', 2026, '2', '059'),
+    (77, 'CB2001105', 2026, '2', '059'), (78, 'CB2001106', 2026, '2', '059'),
+    (88, 'CB1501024', 2026, '2', '059'), (86, 'CB2001111', 2026, '2', '059'),
+    (87, 'CB2001610', 2026, '2', '059');
+
+  create temporary table rollback_metadata_2026_2(
+    official_course_number text primary key, academic_year smallint, semester text, section text,
+    presentation_requirement text, group_project_requirement text, assignment_requirement text,
+    exam_information text, verified_at timestamptz
+  ) on commit drop;
+  insert into rollback_metadata_2026_2 values
+    ('CB1501019', 2026, '2', '059', null, null, null, 'Exams 90%', '2026-08-05T12:38:58.356Z'),
+    ('CB1501022', 2026, '2', '059', null, null, 'REQUIRED', 'Midterm 40%; Final exam 40%; Assignment 15%', '2026-08-05T12:38:58.356Z'),
+    ('CB2001103', 2026, '2', '059', 'REQUIRED', null, 'REQUIRED', 'Midterm 40%; Final exam 40%; Final project 15%', '2026-08-05T12:38:58.356Z'),
+    ('CB2001105', 2026, '2', '059', null, null, 'REQUIRED', 'Midterm 30%; Final exam 35%; Assignment 25%', '2026-08-05T12:38:58.356Z'),
+    ('CB2001106', 2026, '2', '059', null, null, 'REQUIRED', 'Midterm 40%; Final exam 40%; Homework 10%', '2026-08-05T12:38:58.356Z'),
+    ('CB1501024', 2026, '2', '059', null, null, 'REQUIRED', 'Midterm 30%; Final exam 35%; Homework 25%', '2026-08-05T12:38:58.356Z'),
+    ('CB2001111', 2026, '2', '059', null, null, null, null, '2026-08-05T12:38:58.356Z'),
+    ('CB2001610', 2026, '2', '059', null, null, 'REQUIRED', 'Homework 70%; Final project 20%', '2026-08-05T12:38:58.356Z'),
+    ('CB2001125', 2026, '2', '059', 'REQUIRED', 'REQUIRED', 'REQUIRED', 'Presentation and final work evaluation', '2026-08-05T12:38:58.356Z');
+
+  select count(*) into exact_resolution_count
+  from rollback_resolution_2026_2 reviewed
+  join public.course course on course.course_id = reviewed.course_id and course.official_course_number = reviewed.official_course_number
+  join public.course_offering offering on offering.course_id = reviewed.course_id and offering.official_course_number = reviewed.official_course_number
+    and offering.academic_year = reviewed.academic_year and offering.semester = reviewed.semester and offering.section = reviewed.section;
+  if exact_resolution_count <> 7 then raise exception 'metadata rollback identity drift: expected 7 resolved offerings, found %', exact_resolution_count; end if;
+
+  select count(*) into exact_metadata_count
+  from rollback_metadata_2026_2 reviewed
+  join public.course_offering offering on offering.official_course_number = reviewed.official_course_number
+    and offering.academic_year = reviewed.academic_year and offering.semester = reviewed.semester and offering.section = reviewed.section
+  join public.course_metadata metadata on metadata.course_offering_id = offering.course_offering_id
+  where metadata.presentation_requirement is not distinct from reviewed.presentation_requirement
+    and metadata.group_project_requirement is not distinct from reviewed.group_project_requirement
+    and metadata.assignment_requirement is not distinct from reviewed.assignment_requirement
+    and metadata.exam_information is not distinct from reviewed.exam_information
+    and metadata.practical_type is null and metadata.source_url is null and metadata.source_updated_at is null
+    and metadata.verified_at is not distinct from reviewed.verified_at;
+  if exact_metadata_count <> 9 then raise exception 'metadata rollback drift: expected 9 exact metadata rows, found %', exact_metadata_count; end if;
+
+  select count(*) into dependent_restriction_count
+  from rollback_resolution_2026_2 reviewed
+  join public.course_offering offering on offering.official_course_number = reviewed.official_course_number
+    and offering.academic_year = reviewed.academic_year and offering.semester = reviewed.semester and offering.section = reviewed.section
+  join public.course_offering_restriction restriction on restriction.course_offering_id = offering.course_offering_id;
+  if dependent_restriction_count <> 0 then raise exception 'metadata rollback blocked by % unrelated restriction rows', dependent_restriction_count; end if;
+
+  delete from public.course_metadata metadata
+  using public.course_offering offering, rollback_metadata_2026_2 reviewed
+  where metadata.course_offering_id = offering.course_offering_id
+    and offering.official_course_number = reviewed.official_course_number
+    and offering.academic_year = reviewed.academic_year and offering.semester = reviewed.semester and offering.section = reviewed.section;
+  get diagnostics deleted_metadata_count = row_count;
+
+  delete from public.course_offering offering using rollback_resolution_2026_2 reviewed
+  where offering.course_id = reviewed.course_id and offering.official_course_number = reviewed.official_course_number
+    and offering.academic_year = reviewed.academic_year and offering.semester = reviewed.semester and offering.section = reviewed.section;
+  get diagnostics deleted_offering_count = row_count;
+
+  update public.course course set official_course_number = null
+  from rollback_resolution_2026_2 reviewed
+  where course.course_id = reviewed.course_id and course.official_course_number = reviewed.official_course_number;
+  get diagnostics restored_course_count = row_count;
+
+  if deleted_metadata_count <> 9 or deleted_offering_count <> 7 or restored_course_count <> 7 then
+    raise exception 'metadata rollback count failure: metadata %, offerings %, courses %', deleted_metadata_count, deleted_offering_count, restored_course_count;
+  end if;
+  return jsonb_build_object('rolledBack', true, 'deletedMetadataRows', deleted_metadata_count, 'deletedAdditionalOfferings', deleted_offering_count, 'restoredCourseOfficialNumbers', restored_course_count, 'manifestSha256', expected_manifest_sha256, 'resolutionSha256', expected_resolution_sha256);
+end
+$function$;
+
+revoke all on function public.rollback_reviewed_pnu_course_metadata_2026_2(text, text)
+  from public, anon, authenticated;
+grant execute on function public.rollback_reviewed_pnu_course_metadata_2026_2(text, text)
   to service_role;
 
 commit;

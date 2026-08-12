@@ -1,5 +1,10 @@
 # PNU 2026-2 syllabus metadata
 
+The reviewed package was applied manually by Tuvshinjargal03 before 2026-08-11
+KST: 7 additional CSE offering identities and 9 metadata rows. The feature flag
+remains disabled. The RPC is retained for audit/recovery and must not be invoked
+again casually.
+
 This phase uses exactly nine official PNU syllabus PDFs supplied under
 `data/source/2026-2/syllabi`. The PDF directory is ignored and must remain
 untracked. The reviewed filenames, SHA-256 values, evidence summaries, and
@@ -96,7 +101,8 @@ it does not call it or write metadata. The function:
 - is idempotent when identical rows already exist;
 - creates no public client policy.
 
-Do not apply or invoke the RPC until a separate production approval is given.
+Historically, invocation required separate production approval. Any recovery
+or re-application now requires a new approval and both exact checksums.
 
 ## Application behavior
 
