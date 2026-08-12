@@ -14,6 +14,8 @@ export interface User {
   major: string
   interests: string[]
   studentType?: "Freshman" | "Current"
+  /** Academic year: 1–4, or 0 for exchange student. */
+  grade?: number | null
   visaStatus?: string
   language_pref?: string
   email?: string
@@ -29,9 +31,18 @@ export interface AuthResponse {
 }
 
 export interface LoginRequest {
-  /** School email (preferred) or student ID. The backend detects which by '@'. */
-  identifier: string
+  email: string
   password: string
+}
+
+export interface LoginChallengeResponse {
+  challengeId: string
+  maskedEmail: string
+}
+
+export interface VerifyLoginRequest {
+  challengeId: string
+  code: string
 }
 
 export interface MajorRecommendationRequest {
@@ -56,6 +67,9 @@ export interface UpdateProfileRequest {
   email?: string
   completed_courses?: string[]
   intake_term?: "March" | "September"
+  /** 1–4 or 'exchange' (stored as grade 0). */
+  year?: 1 | 2 | 3 | 4 | 'exchange' | number | string
+  grade?: number | null
   current_password?: string
   new_password?: string
 }
@@ -356,6 +370,23 @@ export interface Enrollment {
   classroom?: string;
 }
 
+export interface GradeSummary {
+  hasCompletedCoursework: boolean
+  overallGpa: number | null
+  majorGpa: number | null
+  gpaScale: number
+  averageLetter: string | null
+  semesterCredits: number
+  standing: string | null
+}
+
+export interface GraduationRequirementItem {
+  id: string
+  title: string
+  description: string
+  completed: boolean
+}
+
 export interface GraduationProgress {
   totalRequired: number
   totalCompleted: number
@@ -373,6 +404,9 @@ export interface GraduationProgress {
     /** 일반선택 – General Free Elective */
     generalFree: CreditBreakdown
   }
+  gradeSummary?: GradeSummary
+  /** Department milestones from `graduation_requirement` (not checklist_item). */
+  requirements?: GraduationRequirementItem[]
 }
 
 export interface Notification {
@@ -484,7 +518,8 @@ export interface GetCareerOpportunitiesParams {
 
 /** Backend team: implement these endpoints — see BACKEND.md */
 export interface HeyPnuApi {
-  login(data: LoginRequest): Promise<AuthResponse>
+  login(data: LoginRequest): Promise<LoginChallengeResponse>
+  verifyLogin(data: VerifyLoginRequest): Promise<AuthResponse>
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>
@@ -492,6 +527,10 @@ export interface HeyPnuApi {
   resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
   getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
   getGraduationProgress(): Promise<GraduationProgress>
+  updateGraduationRequirement(
+    requirementId: string,
+    completed: boolean,
+  ): Promise<GraduationRequirementItem>
   getPersonalizedNotifications(): Promise<Notification[]>
   getPublicNotices(): Promise<Notification[]>
   getChecklist(): Promise<ChecklistPayload>

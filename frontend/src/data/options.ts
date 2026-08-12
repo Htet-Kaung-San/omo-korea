@@ -214,6 +214,23 @@ export const DEPARTMENT_MAJOR_OPTIONS = Array.from(new Set(MAJOR_OPTIONS)).sort(
   (a, b) => a.localeCompare(b),
 );
 
+/** Short major list shown after OTP login before entering the app. */
+export const LOGIN_MAJOR_OPTIONS = [
+  'Computer Science and Engineering',
+  'Artificial Intelligence',
+  'Architecture',
+  'Aerospace Engineering',
+  'Chemical and Biomolecular Engineering',
+  'Environmental Engineering',
+  'Electronics Engineering',
+  'Electrical Engineering',
+  'Industrial Engineering',
+  'Materials Science and Engineering',
+  'Polymer Engineering',
+  'Ship and Ocean Engineering',
+  'Urban Planning and Engineering',
+] as const;
+
 export const NATIONALITY_OPTIONS = [
   "Vietnam",
   "China",

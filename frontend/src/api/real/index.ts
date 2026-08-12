@@ -21,10 +21,13 @@ import type {
   GetCampusFacilitiesParams,
   GetCareerOpportunitiesParams,
   GraduationProgress,
+  GraduationRequirementItem,
   HeyPnuApi,
+  LoginChallengeResponse,
   LoginRequest,
   MajorRecommendationRequest,
   MajorRecommendationResponse,
+  VerifyLoginRequest,
   Notification,
   ProgramItem,
   PnuContact,
@@ -46,6 +49,8 @@ import {
   mapNotice,
   mapAcademicRecords,
   mapFaqItem,
+  mapGraduationProgress,
+  mapGraduationRequirementItem,
   mapMapFacility,
   mapPnuContact,
   mapProgramItem,
@@ -59,7 +64,15 @@ import {
   setSessionUser,
 } from './session'
 
-interface BackendLoginResponse {
+interface BackendLoginChallengeResponse {
+  success: true
+  requiresVerification: true
+  challengeId: string
+  maskedEmail: string
+  message?: string
+}
+
+interface BackendAuthResponse {
   success: true
   token: string
   data: Parameters<typeof mapBackendStudent>[0]
@@ -92,12 +105,28 @@ function requireStudentId(): string {
 
 /** HTTP adapter wired to the Express + Supabase backend */
 export const realApi: HeyPnuApi = {
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await apiFetch<BackendLoginResponse>('/students/login', {
+  async login(data: LoginRequest): Promise<LoginChallengeResponse> {
+    const response = await apiFetch<BackendLoginChallengeResponse>('/students/login', {
       method: 'POST',
       body: JSON.stringify({
-        identifier: data.identifier,
+        email: data.email.trim().toLowerCase(),
         password: data.password,
+      }),
+      suppressToast: true,
+    })
+
+    return {
+      challengeId: response.challengeId,
+      maskedEmail: response.maskedEmail,
+    }
+  },
+
+  async verifyLogin(data: VerifyLoginRequest): Promise<AuthResponse> {
+    const response = await apiFetch<BackendAuthResponse>('/students/verify-login', {
+      method: 'POST',
+      body: JSON.stringify({
+        challengeId: data.challengeId,
+        code: data.code.trim(),
       }),
       suppressToast: true,
     })
@@ -130,16 +159,19 @@ export const realApi: HeyPnuApi = {
       body: JSON.stringify({
         name: data.name,
         nationality: data.nationality,
+        major: data.major,
         interests: data.interests,
         language_pref: data.languagePref,
         visa_status: data.visaStatus,
         mbti: data.mbti,
         phone: data.phone,
+        year: data.year,
+        grade: data.grade,
       }),
     })
 
     const user = mapBackendStudent(updated)
-    user.major = data.major || user.major
+    if (data.major) user.major = data.major
     setSessionUser(user)
     return user
   },
@@ -157,7 +189,25 @@ export const realApi: HeyPnuApi = {
   },
 
   async getGraduationProgress(): Promise<GraduationProgress> {
-    return emptyGraduationProgress()
+    const studentId = requireStudentId()
+    const payload = await backendFetch<Parameters<typeof mapGraduationProgress>[0]>(
+      `/students/graduation-progress/${encodeURIComponent(studentId)}`,
+    )
+    return mapGraduationProgress(payload)
+  },
+
+  async updateGraduationRequirement(
+    requirementId: string,
+    completed: boolean,
+  ): Promise<GraduationRequirementItem> {
+    const updated = await backendFetch<Parameters<typeof mapGraduationRequirementItem>[0]>(
+      `/students/graduation-requirement/${encodeURIComponent(requirementId)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ status: completed ? 'Completed' : 'Not Started' }),
+      },
+    )
+    return mapGraduationRequirementItem(updated)
   },
 
   async getPersonalizedNotifications(): Promise<Notification[]> {

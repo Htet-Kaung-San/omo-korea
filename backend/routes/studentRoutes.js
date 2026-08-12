@@ -2,6 +2,7 @@ const express = require("express");
 const {
   testConnection,
   loginStudent,
+  verifyLoginStudent,
   signupStudent,
   forgotPassword,
   resetPassword,
@@ -21,6 +22,8 @@ const {
   getPnuContacts,
   getFaqItems,
   getAcademicRecords,
+  getGraduationProgress,
+  updateGraduationRequirement,
   getNotices,
   syncNotices,
   getNotifications,
@@ -71,6 +74,7 @@ const router = express.Router();
 // Public routes
 router.get("/test", testConnection);
 router.post("/login", loginStudent);
+router.post("/verify-login", verifyLoginStudent);
 router.post("/signup", signupStudent);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
@@ -124,6 +128,21 @@ router.get(
   "/academic-records/:student_id",
   authenticateToken,
   getAcademicRecords,
+);
+router.get(
+  "/graduation-progress/:student_id",
+  authenticateToken,
+  getGraduationProgress,
+);
+router.get(
+  "/graduation-progress",
+  authenticateToken,
+  getGraduationProgress,
+);
+router.put(
+  "/graduation-requirement/:requirement_id",
+  authenticateToken,
+  updateGraduationRequirement,
 );
 
 router.post("/posts", authenticateToken, validateBody(createPostSchema), createPost);

@@ -45,6 +45,18 @@ const updateProfileSchema = Joi.object({
   visa_status: Joi.string().trim().max(30),
   mbti: Joi.string().trim().max(4),
   phone: Joi.string().trim().max(30),
+  grade: Joi.alternatives().try(
+    Joi.number().integer().min(0).max(4),
+    Joi.string().valid('0', '1', '2', '3', '4', 'exchange'),
+  ),
+  year: Joi.alternatives().try(
+    Joi.number().integer().min(0).max(4),
+    Joi.string().valid('0', '1', '2', '3', '4', 'exchange'),
+  ),
+  academic_year: Joi.alternatives().try(
+    Joi.number().integer().min(0).max(4),
+    Joi.string().valid('0', '1', '2', '3', '4', 'exchange'),
+  ),
 })
   .min(1)
   .messages({

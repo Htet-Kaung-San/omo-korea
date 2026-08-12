@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api } from '@/api'
-import type {
-  ChecklistItem,
-  ChecklistVariant,
-  GraduationProgress,
-  ScholarshipItem,
-} from '@/types/api'
+import type { ChecklistItem, ScholarshipItem } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
@@ -15,22 +11,6 @@ import { QuickAccessGrid } from '@/components/home/QuickAccessGrid'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { mergeNoticeFeed } from '@/utils/noticeFeed'
 
-function isItemLocked(item: ChecklistItem, progress: GraduationProgress | null): boolean {
-  if (!item.creditRequirement || !progress) return false
-  const { category } = item.creditRequirement
-  const required =
-    category === 'total'
-      ? progress.totalRequired
-      : progress.breakdown[category].required
-
-  const completed =
-    category === 'total'
-      ? progress.totalCompleted
-      : progress.breakdown[category].completed
-
-  return completed < required
-}
-
 export function HomePage() {
   const { user } = useAuth()
   const { language, t } = useLanguage()
@@ -39,26 +19,20 @@ export function HomePage() {
     loading: noticesLoading,
     error: noticesError,
   } = useNoticeRefresh()
-  const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
-  const [checklistVariant, setChecklistVariant] = useState<ChecklistVariant>('GRADUATION_REQUIREMENT')
   const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const isFresher = checklistVariant === 'NEW_STUDENT'
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      api.getGraduationProgress(),
       api.getChecklist(),
       api.getScholarships().catch(() => []),
     ])
-      .then(([grad, checklistPayload, scholarshipItems]) => {
-        setProgress(grad)
+      .then(([checklistPayload, scholarshipItems]) => {
         setChecklist(checklistPayload.items)
-        setChecklistVariant(checklistPayload.variant)
         setScholarships(scholarshipItems)
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('home.loadError')))
@@ -85,41 +59,10 @@ export function HomePage() {
     }
   }
 
+  const pendingChecklist = checklist.filter((i) => !i.completed)
   const completedCount = checklist.filter((i) => i.completed).length
-  const showChecklistSection =
-    isFresher && checklist.length > 0 && completedCount < checklist.length
-  const previewChecklist = checklist.slice(0, 2)
-
-  function getLocalizedLockReason(item: ChecklistItem): string {
-    if (!item.creditRequirement || !progress) return ''
-    const { category } = item.creditRequirement
-    const labels: Record<string, string> = {
-      generalRequired: '교양필수',
-      generalElective: '교양선택',
-      majorBasic: '전공기초',
-      majorRequired: '전공필수',
-      majorElective: '전공선택',
-      generalFree: '일반선택',
-    }
-    const required =
-      category === 'total'
-        ? progress.totalRequired
-        : progress.breakdown[category].required
-    const completed =
-      category === 'total'
-        ? progress.totalCompleted
-        : progress.breakdown[category].completed
-    const remaining = Math.max(required - completed, 0)
-    if (category === 'total') {
-      return t('checklist.lockReasonTotal', { required, completed, remaining })
-    }
-    return t('checklist.lockReasonCategory', {
-      required,
-      label: labels[category] ?? category,
-      completed,
-      remaining,
-    })
-  }
+  const showChecklistSection = pendingChecklist.length > 0
+  const previewChecklist = pendingChecklist.slice(0, 2)
 
   return (
     <div className="relative animate-fade-in px-3.5 py-4">
@@ -138,18 +81,26 @@ export function HomePage() {
               <div className="mb-2.5 flex items-end justify-between gap-2 px-0.5">
                 <div>
                   <h2 className="text-[15px] font-bold tracking-tight text-pnu-text">
-                    {t('home.newStudentChecklist')}
+                    {t('checklist.title')}
                   </h2>
                   <p className="mt-0.5 text-[11px] font-medium text-pnu-muted">
-                    {t('home.checklistSubtitle')}
+                    {t('checklist.subtitle')}
                   </p>
                 </div>
-                <span className="text-[11px] font-semibold text-pnu-muted">
-                  {t('common.completedCount', {
-                    completed: completedCount,
-                    total: checklist.length,
-                  })}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[11px] font-semibold text-pnu-muted">
+                    {t('common.completedCount', {
+                      completed: completedCount,
+                      total: checklist.length,
+                    })}
+                  </span>
+                  <Link
+                    to="/checklist"
+                    className="text-[11px] font-semibold text-pnu-blue transition active:scale-[0.98]"
+                  >
+                    {t('common.viewAll')}
+                  </Link>
+                </div>
               </div>
               <div
                 className="overflow-hidden rounded-[24px] bg-white px-3.5 py-3.5"
@@ -157,21 +108,15 @@ export function HomePage() {
               >
                 <ProgressBar value={completedCount} max={checklist.length} size="sm" />
                 <div className="mt-2 divide-y divide-pnu-border">
-                  {previewChecklist.map((item) => {
-                    const locked = isItemLocked(item, progress)
-                    const lockReason = locked ? getLocalizedLockReason(item) : undefined
-                    return (
-                      <ChecklistRow
-                        key={item.id}
-                        item={item}
-                        variant="plain"
-                        disabled={updatingId === item.id}
-                        locked={locked}
-                        lockReason={lockReason}
-                        onToggle={handleToggleChecklist}
-                      />
-                    )
-                  })}
+                  {previewChecklist.map((item) => (
+                    <ChecklistRow
+                      key={item.id}
+                      item={item}
+                      variant="plain"
+                      disabled={updatingId === item.id}
+                      onToggle={handleToggleChecklist}
+                    />
+                  ))}
                 </div>
               </div>
             </section>

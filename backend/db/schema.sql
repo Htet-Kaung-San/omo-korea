@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS student (
     nationality VARCHAR(100) NOT NULL,
     major_id INTEGER REFERENCES major(major_id) ON DELETE SET NULL,
     student_type VARCHAR(20) DEFAULT 'Freshman' CHECK (student_type IN ('Freshman', 'Current')),
+    -- Academic year: 1–4. Exchange students use grade = 0.
+    grade INTEGER,
     visa_status VARCHAR(20) DEFAULT 'None',
     -- Lowercase ISO 639-1 codes aligned with PDF Accept-Language / UI locales
     language_pref VARCHAR(5) DEFAULT 'en' CHECK (
@@ -190,16 +192,22 @@ CREATE TABLE IF NOT EXISTS comment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. CHECKLIST ITEMS TABLE
+-- 9. CHECKLIST ITEM CATALOG (shared — no student_id / status)
 CREATE TABLE IF NOT EXISTS checklist_item (
     checklist_id SERIAL PRIMARY KEY,
-    student_id VARCHAR(50) REFERENCES student(student_id) ON DELETE CASCADE,
     task_name VARCHAR(255) NOT NULL,
-    status VARCHAR(20) DEFAULT 'Not Started' CHECK (status IN ('Not Started', 'In Progress', 'Completed')),
-    due_date TIMESTAMP,
-    description TEXT,
-    target_semester VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    target_semester VARCHAR(50) NOT NULL DEFAULT '2026',
+    UNIQUE (task_name, target_semester)
+);
+
+-- Per-student completion against shared catalog rows
+CREATE TABLE IF NOT EXISTS student_checklist_status (
+    student_id INTEGER NOT NULL REFERENCES student(student_id) ON DELETE CASCADE,
+    checklist_id INTEGER NOT NULL REFERENCES checklist_item(checklist_id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL DEFAULT 'Not Started'
+      CHECK (status IN ('Not Started', 'In Progress', 'Completed')),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (student_id, checklist_id)
 );
 
 -- Indexing for lookup speed optimizations
@@ -207,5 +215,6 @@ CREATE INDEX IF NOT EXISTS idx_student_major ON student(major_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_student ON enrollment(student_id);
 CREATE INDEX IF NOT EXISTS idx_post_board ON post(board_id);
 CREATE INDEX IF NOT EXISTS idx_comment_post ON comment(post_id);
-CREATE INDEX IF NOT EXISTS idx_checklist_item_student ON checklist_item(student_id);
+CREATE INDEX IF NOT EXISTS idx_checklist_item_semester ON checklist_item(target_semester);
+CREATE INDEX IF NOT EXISTS idx_student_checklist_status_student ON student_checklist_status(student_id);
 CREATE INDEX IF NOT EXISTS idx_academic_record_student ON academic_record(student_id);

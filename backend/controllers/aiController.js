@@ -21,6 +21,10 @@ const {
   generateOpenRouterChatStream,
   generateOpenRouterMajorAnalysis,
 } = require("../services/openrouterService");
+const {
+  getChecklistForStudent,
+  normalizeGrade,
+} = require("../services/semesterChecklistService");
 async function getAcademicPromptContext(studentId, supabaseClient) {
   if (!studentId) return "";
   try {
@@ -1282,22 +1286,19 @@ async function getStudentNotifications(req, res, next) {
       return next(err);
     }
 
-    const { data: checklistItems, error: checklistError } = await supabase
-      .from("checklist_item")
-      .select("*")
-      .eq("student_id", studentId);
+    const { data: studentGradeRow } = await supabase
+      .from("student")
+      .select("grade")
+      .eq("student_id", studentId)
+      .maybeSingle();
 
-    if (checklistError) {
-      const databaseError = new Error(
-        `Failed to fetch checklist notifications from Supabase: ${checklistError.message}`,
-      );
-      databaseError.statusCode = 502;
-      databaseError.code = "SUPABASE_CHECKLIST_QUERY_FAILED";
-      databaseError.cause = checklistError;
-      throw databaseError;
-    }
+    const checklistPayload = await getChecklistForStudent(
+      supabase,
+      studentId,
+      normalizeGrade(studentGradeRow?.grade),
+    );
 
-    const checklistNotifications = (checklistItems || [])
+    const checklistNotifications = (checklistPayload.items || [])
       .filter(
         (item) => String(item.status ?? "").toLowerCase() !== "completed",
       )
@@ -1316,9 +1317,9 @@ async function getStudentNotifications(req, res, next) {
             item.title ??
             "Checklist item",
           body: localized.description ?? item.description ?? "",
-          date: item.due_date ?? item.updated_at ?? null,
+          date: item.due_date ?? item.updated_at ?? item.created_at ?? null,
           dueDate: item.due_date ?? null,
-          updatedAt: item.updated_at ?? null,
+          updatedAt: item.updated_at ?? item.created_at ?? null,
           status: item.status ?? null,
         };
       });

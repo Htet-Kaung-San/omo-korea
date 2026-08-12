@@ -12,6 +12,7 @@ import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
 import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
 import { CreditsPage } from '@/pages/CreditsPage'
+import { ChecklistPage } from '@/pages/ChecklistPage'
 import { RecommendedCoursesPage } from '@/pages/RecommendedCoursesPage'
 import { CourseDetailPage } from '@/pages/CourseDetailPage'
 import { ProgramsPage } from '@/pages/ProgramsPage'
@@ -142,7 +143,7 @@ function AppRoutes() {
         <Route path="notifications/:notificationId" element={<NotificationPostPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />
         <Route path="credits" element={<CreditsPage />} />
-        <Route path="checklist" element={<Navigate to="/credits" replace />} />
+        <Route path="checklist" element={<ChecklistPage />} />
         <Route path="chat" element={<Navigate to="/ai" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
