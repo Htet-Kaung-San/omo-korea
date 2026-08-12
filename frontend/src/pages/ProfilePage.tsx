@@ -30,6 +30,8 @@ import {
   Settings,
 } from "lucide-react";
 
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext';
+
 function yearLabelFromStudentId(studentId?: string, studentType?: string): string {
   if (!studentId || studentId.length < 4) {
     return studentType === "Freshman" ? "1st Year" : "Student";
@@ -49,12 +51,13 @@ function yearLabelFromStudentId(studentId?: string, studentType?: string): strin
 export function ProfilePage() {
   const { user, logout, refreshUser, isAdmin } = useAuth();
   const { t, language, setLanguage, options, localeLoading } = useLanguage();
+  const { notifications } = useNoticeRefresh();
   const navigate = useNavigate();
 
   const [activeSubView, setActiveSubView] = useState<
     "menu" | "profile" | "language" | "account" | "visa" | "settings"
   >("menu");
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = notifications.length;
 
   // Base details
   const [name, setName] = useState("");
@@ -94,13 +97,6 @@ export function ProfilePage() {
     setDeletionRequested(user.deletion_requested || false);
     setIntakeTerm(user.intake_term || "March");
   }, [user]);
-
-  useEffect(() => {
-    api
-      .getPersonalizedNotifications()
-      .then((items) => setUnreadCount(items.length))
-      .catch(() => setUnreadCount(0));
-  }, []);
 
   // Load all catalog courses when editing profile
   useEffect(() => {

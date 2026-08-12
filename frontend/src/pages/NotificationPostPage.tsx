@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { CalendarDays } from 'lucide-react'
-import { api } from '@/api'
 import type { Notification } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
 import { loadSavedNotices } from '@/utils/savedNotices'
 
 function formatSafeDate(
@@ -20,24 +20,13 @@ function formatSafeDate(
 
 export function NotificationPostPage() {
   const { notificationId } = useParams()
-  const { language, locale, t } = useLanguage()
-  const [notification, setNotification] = useState<Notification | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    api
-      .getPersonalizedNotifications()
-      .then((items) => {
-        const current = items.find((item) => item.id === notificationId)
-        const saved = loadSavedNotices().find(
-          (item) => item.id === notificationId,
-        )
-        setNotification(current ?? saved ?? null)
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : t('notifications.loadError')))
-      .finally(() => setLoading(false))
-  }, [language, notificationId, t])
+  const { locale, t } = useLanguage()
+  const { notifications, loading, error } = useNoticeRefresh()
+  const notification = useMemo<Notification | null>(() => {
+    const current = notifications.find((item) => item.id === notificationId)
+    const saved = loadSavedNotices().find((item) => item.id === notificationId)
+    return current ?? saved ?? null
+  }, [notificationId, notifications])
 
   const formattedDate = formatSafeDate(notification?.date, locale)
 

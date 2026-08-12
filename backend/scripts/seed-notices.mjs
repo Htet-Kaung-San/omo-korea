@@ -1,5 +1,5 @@
 /**
- * Scrape recent PNU International and CSE notices into Supabase.
+ * Scrape recent notices from the configured public PNU sources into Supabase.
  *
  * External schedulers can run:
  *   npm run seed:notices
@@ -7,6 +7,7 @@
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 import { createRequire } from 'module'
+import WebSocket from 'ws'
 
 const require = createRequire(import.meta.url)
 const { scrapeRecentNotices } = require('../services/pnuNoticeScraperService.js')
@@ -20,7 +21,9 @@ if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('placeholder')) {
   process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: { transport: WebSocket },
+})
 const { error: schemaError } = await supabase
   .from('notice')
   .select('source_url')
@@ -46,4 +49,6 @@ console.log(
     return counts
   }, {}),
 )
-console.log(`Upserted: ${result.inserted} inserted, ${result.updated} updated`)
+console.log(
+  `Synchronized: ${result.inserted} inserted, ${result.updated} updated, ${result.unchanged} unchanged`,
+)

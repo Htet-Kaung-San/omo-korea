@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { ToastProvider } from '@/context/ToastContext'
+import { NoticeRefreshProvider } from '@/context/NoticeRefreshContext'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/LoginPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
@@ -71,7 +72,9 @@ function AppRoutes() {
       <Route
         element={
           <ProtectedRoute>
-            <AppShell />
+            <NoticeRefreshProvider>
+              <AppShell />
+            </NoticeRefreshProvider>
           </ProtectedRoute>
         }
       >

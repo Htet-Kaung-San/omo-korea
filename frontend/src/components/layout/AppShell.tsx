@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
@@ -8,8 +7,8 @@ import {
   User,
   type LucideIcon,
 } from 'lucide-react'
-import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
+import { useNoticeRefresh } from '@/context/NoticeRefreshContext'
 import { LanguageSelect } from '@/components/layout/LanguageSelect'
 import pnuSeal from '@/assets/pnu-seal.svg'
 import sanjini from '@/assets/pnu-character.png'
@@ -31,19 +30,11 @@ const tabs: TabItem[] = [
 ]
 
 export function AppShell() {
-  const { language, t } = useLanguage()
+  const { t } = useLanguage()
   const location = useLocation()
   const navigate = useNavigate()
-  const [highPriorityCount, setHighPriorityCount] = useState(0)
-
-  useEffect(() => {
-    api
-      .getPersonalizedNotifications()
-      .then((items) => {
-        setHighPriorityCount(items.filter((n) => n.priority === 'HIGH').length)
-      })
-      .catch(() => setHighPriorityCount(0))
-  }, [language, location.pathname])
+  const { notifications } = useNoticeRefresh()
+  const highPriorityCount = notifications.filter((n) => n.priority === 'HIGH').length
 
   function isTabActive(to: string, end?: boolean) {
     if (end) return location.pathname === '/'

@@ -15,6 +15,13 @@ jest.mock('../ai/supabaseDataRepository', () => ({
   fetchDashboardCatalogs: jest.fn(),
 }));
 jest.mock('../services/pnuNoticeScraperService', () => ({
+  noticeSourceLabel: (source) => ({
+    'pnu-main': 'PNU Main Notices',
+    onestop: 'PNU Student Support',
+    international: 'PNU International',
+    cse: 'CSE Department',
+    dormitory: 'PNU Dormitory',
+  })[source] || source || null,
   scrapeRecentNotices: mockScrapeRecentNotices,
 }));
 jest.mock('../services/noticeSyncService', () => ({
@@ -95,7 +102,7 @@ describe('notice routes and authorization', () => {
       languages: ['Korean'],
       category: null,
       priority: null,
-      source: 'international',
+      source: 'pnu-main',
       sourceUrl: 'https://example.edu/notice/1',
     }]);
 
@@ -110,6 +117,7 @@ describe('notice routes and authorization', () => {
       languages: ['Korean'],
       category: null,
       priority: null,
+      source: 'PNU Main Notices',
     });
     expect(response.headers['cache-control']).toBe('no-store');
     expect(mockScrapeRecentNotices).not.toHaveBeenCalled();
