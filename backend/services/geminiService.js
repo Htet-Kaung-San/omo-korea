@@ -1004,6 +1004,118 @@ async function translatePrograms(programs = [], targetLanguage = "en", options =
   });
 }
 
+const careerTranslationCache = new Map();
+
+async function translateCareers(opportunities = [], targetLanguage = "en") {
+  const lang = String(targetLanguage || "en").toLowerCase().split("-")[0];
+  if (!Array.isArray(opportunities) || opportunities.length === 0) return opportunities;
+  if (lang === "ko") return opportunities;
+  if (!isGeminiConfigured() && !process.env.OPENROUTER_API_KEY) return opportunities;
+
+  const cacheLang = "en";
+  let cache = careerTranslationCache.get(cacheLang);
+  if (!cache) {
+    cache = new Map();
+    careerTranslationCache.set(cacheLang, cache);
+  }
+
+  const missing = opportunities.filter((o) => !cache.has(String(o.id)));
+
+  if (missing.length > 0) {
+    const chunks = chunkArray(missing, 20);
+    for (const chunk of chunks) {
+      const prompt = `
+You are an expert translator for Pusan National University (PNU) career opportunities.
+Translate each job/internship item from Korean into clear, high-quality English.
+Return JSON ONLY matching this format:
+{
+  "translations": [
+    {
+      "id": "<exact string id>",
+      "title": "<translated title in English>",
+      "company": "<translated company name in English>",
+      "matchReason": "<translated matchReason in English if present>"
+    }
+  ]
+}
+
+Items to translate:
+${JSON.stringify(chunk.map(m => ({ id: m.id, title: m.title, company: m.company, matchReason: m.matchReason })), null, 2)}
+`.trim();
+
+      let jsonText = "";
+      if (isGeminiConfigured()) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+            }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          }
+        } catch (err) {
+          console.warn("[geminiService] Gemini career translation failed", err.message);
+        }
+      }
+
+      if (!jsonText && process.env.OPENROUTER_API_KEY) {
+        const orUrl = "https://openrouter.ai/api/v1/chat/completions";
+        try {
+          const response = await fetch(orUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.2,
+            }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            jsonText = data.choices?.[0]?.message?.content || "";
+          }
+        } catch (err) {
+          console.warn("[geminiService] OpenRouter career translation failed", err.message);
+        }
+      }
+
+      if (jsonText) {
+        const parsed = parseGeminiJson(jsonText);
+        const list = Array.isArray(parsed) ? parsed : (parsed?.translations || []);
+        for (const t of list) {
+          if (t && t.id) {
+            cache.set(String(t.id), {
+              title: t.title,
+              company: t.company,
+              matchReason: t.matchReason
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return opportunities.map((p) => {
+    const t = cache.get(String(p.id));
+    if (!t) return p;
+    return {
+      ...p,
+      title: t.title || p.title,
+      company: t.company || p.company,
+      matchReason: t.matchReason || p.matchReason,
+    };
+  });
+}
+
 module.exports = {
   isGeminiConfigured,
   generateGeminiChat,
@@ -1013,5 +1125,6 @@ module.exports = {
   translateCafeteriaMenus,
   preTranslateCafeteriaMenus,
   translatePrograms,
+  translateCareers,
 };
 

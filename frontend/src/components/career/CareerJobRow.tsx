@@ -2,8 +2,6 @@ import { Bookmark } from 'lucide-react'
 import type { CareerOpportunity } from '@/types/api'
 import { useLanguage } from '@/context/LanguageContext'
 import {
-  companyInitials,
-  companyLogoTone,
   formatDeadlineBadge,
   inferCareerJobType,
   jobTypeLabelKey,
@@ -28,7 +26,6 @@ export function CareerJobRow({
   const jobType = inferCareerJobType(opportunity)
   const location = opportunity.location?.trim() || 'Korea'
   const meta = `${location} · ${t(jobTypeLabelKey(jobType))}`
-  const tone = companyLogoTone(opportunity.company)
 
   return (
     <a
@@ -37,28 +34,16 @@ export function CareerJobRow({
       rel="noreferrer"
       className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-[#F8F8FB] active:bg-[#F2F2F7]"
     >
-      <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-[13px] font-bold ${tone}`}
-      >
-        {opportunity.logoUrl ? (
-          <img
-            src={opportunity.logoUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          companyInitials(opportunity.company)
-        )}
-      </div>
+
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[15px] font-bold leading-snug text-pnu-text">
+        <p className="text-[15px] font-bold leading-snug text-pnu-text">
           {opportunity.title}
         </p>
-        <p className="mt-0.5 truncate text-[13px] text-pnu-muted">{opportunity.company}</p>
-        <p className="mt-0.5 truncate text-[12px] text-pnu-muted/80">{meta}</p>
+        <p className="mt-0.5 text-[13px] text-pnu-muted">{opportunity.company}</p>
+        <p className="mt-0.5 text-[12px] text-pnu-muted/80">{meta}</p>
         {opportunity.matchReason ? (
-          <p className="mt-1 truncate text-[11px] font-medium text-pnu-blue">
+          <p className="mt-1 text-[11px] font-medium text-pnu-blue">
             {opportunity.matchReason}
           </p>
         ) : null}
