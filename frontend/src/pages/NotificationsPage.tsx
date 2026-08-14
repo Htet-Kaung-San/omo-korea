@@ -154,6 +154,8 @@ function toDisplay(n: Notification): DisplayNotice {
     channel,
     source: n.source ?? null,
     daysLeft: daysUntil(n.date),
+    source: inferSource(n, channel),
+    daysLeft: daysUntil(n.date ?? ''),
     read: n.read ?? false,
     ...visual,
   }
@@ -192,6 +194,14 @@ export function NotificationsPage() {
       })
       .catch(() => {
         if (active) setScholarships([])
+    setLoading(true)
+    Promise.all([
+      api.getPersonalizedNotifications().catch(() => []),
+      api.getScholarships().catch(() => []),
+    ])
+      .then(([items, scholarships]) => {
+        const feed = mergeNoticeFeed(items, scholarships)
+        setNotifications(feed)
       })
     return () => {
       active = false
@@ -217,6 +227,7 @@ export function NotificationsPage() {
     let list = [...catalog]
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
     return list
+    return list.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime())
   }, [catalog, feedTab])
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
@@ -392,6 +403,9 @@ export function NotificationsPage() {
                               {formatDate(item.date, locale)}
                             </span>
                           ) : null}
+                          <span className="text-[10px] font-medium text-pnu-muted">
+                            {formatDate(item.date ?? '', locale)}
+                          </span>
                           <div className="flex items-center gap-1">
                             <ChevronRight
                               className="h-3.5 w-3.5 text-pnu-muted opacity-40"

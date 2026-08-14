@@ -18,3 +18,7 @@ create table if not exists program_translation (
 
 create index if not exists program_translation_updated_at_idx
   on program_translation (updated_at desc);
+
+-- Translations are populated and read by the backend service. Keep the table
+-- closed to anonymous clients; the backend secret key bypasses RLS.
+alter table public.program_translation enable row level security;

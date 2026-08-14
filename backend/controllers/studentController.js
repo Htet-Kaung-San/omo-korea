@@ -35,6 +35,7 @@ const {
   createLoginChallenge,
   consumeLoginChallenge,
 } = require("../services/loginChallengeService");
+const { translateCareers } = require("../services/geminiService");
 const {
   buildGraduationProgress,
   toApiPayload: toGraduationApiPayload,
@@ -2623,12 +2624,14 @@ const getCareerOpportunities = async (req, res, next) => {
         careerCounts.set(item.name, (careerCounts.get(item.name) || 0) + item.count);
       });
 
+    const translatedOpportunities = await translateCareers(opportunities.slice(0, limit), req.language);
+
     const data = {
       ...scrapedData,
       careers: Array.from(careerCounts.entries())
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ko")),
-      opportunities: opportunities.slice(0, limit),
+      opportunities: translatedOpportunities,
     };
 
     return res.status(200).json({
@@ -2665,9 +2668,11 @@ const getCareerRecommendations = async (req, res, next) => {
       recommendationRank: index + 1,
     }));
 
+    const translatedRecommended = await translateCareers(recommended, req.language);
+
     return res.status(200).json({
       success: true,
-      data: recommended,
+      data: translatedRecommended,
     });
   } catch (err) {
     return next(err);

@@ -2,33 +2,43 @@
   "majors": [
     {
       "major_id": 1,
-      "major_name": "Computer Science & Engineering",
+      "major_name": "Korean Language and Literature",
+      "department": "College of Humanities"
+    },
+    {
+      "major_id": 30,
+      "major_name": "Mechanical Engineering",
       "department": "College of Engineering"
     },
     {
-      "major_id": 2,
-      "major_name": "Electrical Engineering",
+      "major_id": 35,
+      "major_name": "Electrical and Electronic Engineering - Electronics Engineering major",
       "department": "College of Engineering"
     },
     {
-      "major_id": 3,
+      "major_id": 36,
+      "major_name": "Electrical and Electronic Engineering - Electrical Engineering major",
+      "department": "College of Engineering"
+    },
+    {
+      "major_id": 41,
+      "major_name": "Aerospace Engineering",
+      "department": "College of Engineering"
+    },
+    {
+      "major_id": 79,
       "major_name": "Business Administration",
       "department": "College of Business"
     },
     {
-      "major_id": 4,
-      "major_name": "Korean Language & Literature",
-      "department": "College of Humanities"
+      "major_id": 102,
+      "major_name": "Information and Computer Engineering - Computer Engineering major",
+      "department": "College of Information and BioMedical Engineering"
     },
     {
-      "major_id": 5,
-      "major_name": "Artificial Intelligence",
-      "department": "College of Engineering"
-    },
-    {
-      "major_id": 6,
-      "major_name": "Computer Engineering",
-      "department": "College of Engineering"
+      "major_id": 103,
+      "major_name": "Information and Computer Engineering - Artificial Intelligence major",
+      "department": "College of Information and BioMedical Engineering"
     }
   ],
   "students": [
