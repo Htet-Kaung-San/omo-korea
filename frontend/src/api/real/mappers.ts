@@ -5,6 +5,8 @@ import type {
   ChecklistVariant,
   CourseType,
   CourseMetadataRequirement,
+  GraduationProgress,
+  GraduationRequirementItem,
   OriginalLanguageCode,
   RemoteCourseStatus,
   FacilityRoom,
@@ -22,6 +24,11 @@ import type {
   User,
 } from '@/types/api'
 
+interface BackendCreditBucket {
+  completed?: number
+  required?: number
+}
+
 interface BackendStudent {
   student_id: string | number
   name?: string | null
@@ -30,6 +37,7 @@ interface BackendStudent {
   department?: string | null
   interests?: string[] | null
   student_type?: "Freshman" | "Current"
+  grade?: number | null
   visa_status?: string
   language_pref?: string
   email?: string
@@ -128,6 +136,10 @@ export function mapBackendStudent(data: BackendStudent): User {
     major: data.major_name ?? data.department ?? '',
     interests: Array.isArray(data.interests) ? data.interests : [],
     studentType: data.student_type,
+    grade:
+      data.grade === null || data.grade === undefined
+        ? null
+        : Number(data.grade),
     visaStatus: data.visa_status,
     language_pref: data.language_pref,
     email: data.email,
@@ -139,10 +151,11 @@ export function mapBackendStudent(data: BackendStudent): User {
 }
 
 export function mapChecklistVariant(
-  studentId: string,
+  _studentId: string,
   isNewFresher?: boolean,
 ): ChecklistVariant {
-  if (isNewFresher === true || isFreshmanStudent(studentId)) return 'NEW_STUDENT'
+  // Trust the backend enrollment-history flag from the database.
+  if (isNewFresher === true) return 'NEW_STUDENT'
   return 'GRADUATION_REQUIREMENT'
 }
 
@@ -175,6 +188,79 @@ export function mapChecklistPayload(
   return {
     variant: mapChecklistVariant(studentId, options?.isNewFresher),
     items: flattenChecklistItems(items).map(mapChecklistItem),
+  }
+}
+
+export function mapGraduationRequirementItem(row: {
+  requirement_id?: number | string
+  req_id?: number | string
+  task_name?: string
+  title?: string
+  requirement_name?: string
+  description?: string | null
+  status?: string
+}): GraduationRequirementItem {
+  const status = String(row.status || '').toLowerCase()
+  return {
+    id: String(row.requirement_id ?? row.req_id ?? ''),
+    title: row.title || row.task_name || row.requirement_name || '',
+    description: row.description || '',
+    completed: status === 'completed' || status === 'done',
+  }
+}
+
+export function mapGraduationProgress(row: {
+  total_required?: number
+  total_completed?: number
+  breakdown?: {
+    general_required?: BackendCreditBucket
+    general_elective?: BackendCreditBucket
+    major_basic?: BackendCreditBucket
+    major_required?: BackendCreditBucket
+    major_elective?: BackendCreditBucket
+    general_free?: BackendCreditBucket
+  }
+  grade_summary?: {
+    has_completed_coursework?: boolean
+    overall_gpa?: number | null
+    major_gpa?: number | null
+    gpa_scale?: number
+    average_letter?: string | null
+    semester_credits?: number
+    standing?: string | null
+  }
+  requirements?: Array<Parameters<typeof mapGraduationRequirementItem>[0]>
+}): GraduationProgress {
+  const bucket = (value?: BackendCreditBucket) => ({
+    completed: Number(value?.completed) || 0,
+    required: Number(value?.required) || 0,
+  })
+
+  const grade = row.grade_summary
+  return {
+    totalRequired: Number(row.total_required) || 0,
+    totalCompleted: Number(row.total_completed) || 0,
+    breakdown: {
+      generalRequired: bucket(row.breakdown?.general_required),
+      generalElective: bucket(row.breakdown?.general_elective),
+      majorBasic: bucket(row.breakdown?.major_basic),
+      majorRequired: bucket(row.breakdown?.major_required),
+      majorElective: bucket(row.breakdown?.major_elective),
+      generalFree: bucket(row.breakdown?.general_free),
+    },
+    gradeSummary: grade
+      ? {
+          hasCompletedCoursework: Boolean(grade.has_completed_coursework),
+          overallGpa:
+            grade.overall_gpa == null ? null : Number(grade.overall_gpa),
+          majorGpa: grade.major_gpa == null ? null : Number(grade.major_gpa),
+          gpaScale: Number(grade.gpa_scale) || 4.5,
+          averageLetter: grade.average_letter ?? null,
+          semesterCredits: Number(grade.semester_credits) || 0,
+          standing: grade.standing ?? null,
+        }
+      : undefined,
+    requirements: (row.requirements || []).map(mapGraduationRequirementItem),
   }
 }
 

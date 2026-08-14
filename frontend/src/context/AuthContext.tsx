@@ -7,7 +7,12 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { LoginRequest, User } from '@/types/api'
+import type {
+  LoginChallengeResponse,
+  LoginRequest,
+  User,
+  VerifyLoginRequest,
+} from '@/types/api'
 import { api, clearAuthSession, getStoredToken, setStoredToken } from '@/api'
 import { AUTH_SESSION_CLEARED_EVENT } from '@/api/client'
 
@@ -16,7 +21,8 @@ interface AuthContextValue {
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
-  login: (data: LoginRequest) => Promise<void>
+  requestLogin: (data: LoginRequest) => Promise<LoginChallengeResponse>
+  verifyLogin: (data: VerifyLoginRequest) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -57,8 +63,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       )
   }, [])
 
-  const login = useCallback(async (data: LoginRequest) => {
-    const { token, user: loggedInUser } = await api.login(data)
+  const requestLogin = useCallback(async (data: LoginRequest) => {
+    return api.login(data)
+  }, [])
+
+  const verifyLogin = useCallback(async (data: VerifyLoginRequest) => {
+    const { token, user: loggedInUser } = await api.verifyLogin(data)
     setStoredToken(token)
     setUser(loggedInUser)
   }, [])
@@ -78,11 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       isAuthenticated: Boolean(user),
       isAdmin: false,
-      login,
+      requestLogin,
+      verifyLogin,
       logout,
       refreshUser,
     }),
-    [user, isLoading, login, logout, refreshUser],
+    [user, isLoading, requestLogin, verifyLogin, logout, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

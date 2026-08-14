@@ -8,8 +8,11 @@ import {
 import { api } from '@/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import type { Enrollment, GraduationProgress } from '@/types/api'
-import { demoGpa, demoLetterGrade } from '@/utils/demoGrades'
+import type {
+  Enrollment,
+  GraduationProgress,
+  GraduationRequirementItem,
+} from '@/types/api'
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 const ACCENT = '#7C3AED'
@@ -116,9 +119,12 @@ export function CreditsPage() {
   const { t } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
+  const [requirements, setRequirements] = useState<GraduationRequirementItem[]>(
+    [],
+  )
   const [loading, setLoading] = useState(true)
   const [checklistOpen, setChecklistOpen] = useState(false)
-  const [certificateDone, setCertificateDone] = useState<Record<string, boolean>>({})
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -128,11 +134,15 @@ export function CreditsPage() {
       ? api.getEnrollments(user.studentId).catch(() => [] as Enrollment[])
       : Promise.resolve([] as Enrollment[])
 
-    Promise.all([api.getGraduationProgress().catch(() => null), enrollmentPromise])
+    Promise.all([
+      api.getGraduationProgress().catch(() => null),
+      enrollmentPromise,
+    ])
       .then(([grad, enrolls]) => {
         if (cancelled) return
         setProgress(grad)
         setEnrollments(enrolls)
+        setRequirements(grad?.requirements ?? [])
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -153,13 +163,11 @@ export function CreditsPage() {
   }, [progress])
 
   const gradeSummary = useMemo(() => {
-    const ids = enrollments.map((e) => e.course_id)
-    const gpa = demoGpa(ids)
-    const majorIds = ids.filter((_, i) => i % 2 === 0)
-    const majorGpa = demoGpa(majorIds.length > 0 ? majorIds : ids)
-    const avgLetter =
-      ids.length > 0 ? demoLetterGrade(ids[0]).letter : '—'
-    const semesterCredits = enrollments
+    const summary = progress?.gradeSummary
+    const formatGpa = (value: number | null | undefined) =>
+      value == null || Number.isNaN(value) ? '—' : value.toFixed(2)
+
+    const semesterCreditsFromEnrollments = enrollments
       .filter((e) => {
         const s = e.status.toLowerCase()
         return !s.includes('complete') && !s.includes('passed')
@@ -167,27 +175,28 @@ export function CreditsPage() {
       .reduce((sum, e) => sum + (e.credit ?? 0), 0)
 
     return {
-      cumulativeGpa: gpa === '—' ? '3.50' : gpa,
-      majorGpa: majorGpa === '—' ? '3.62' : majorGpa,
-      averageGrade: avgLetter === '—' ? 'A-' : avgLetter,
-      semesterCredits: semesterCredits || 12,
+      cumulativeGpa: formatGpa(summary?.overallGpa),
+      majorGpa: formatGpa(summary?.majorGpa),
+      averageGrade: summary?.averageLetter ?? '—',
+      semesterCredits:
+        summary?.semesterCredits && summary.semesterCredits > 0
+          ? summary.semesterCredits
+          : semesterCreditsFromEnrollments,
     }
-  }, [enrollments])
+  }, [progress, enrollments])
 
-  const checklist = useMemo(
-    () => [
-      { id: 'topik', labelKey: 'credits.checkTopik' },
-      { id: 'enrollment', labelKey: 'credits.checkEnrollmentCert' },
-      { id: 'transcript', labelKey: 'credits.checkTranscript' },
-      { id: 'graduation', labelKey: 'credits.checkGraduationCert' },
-    ],
-    [],
-  )
+  const checklistDoneCount = requirements.filter((item) => item.completed).length
 
-  const checklistDoneCount = checklist.filter((item) => certificateDone[item.id]).length
-
-  function toggleCertificateItem(id: string) {
-    setCertificateDone((prev) => ({ ...prev, [id]: !prev[id] }))
+  async function toggleRequirement(id: string, completed: boolean) {
+    setUpdatingId(id)
+    try {
+      const updated = await api.updateGraduationRequirement(id, completed)
+      setRequirements((prev) =>
+        prev.map((item) => (item.id === id ? updated : item)),
+      )
+    } finally {
+      setUpdatingId(null)
+    }
   }
 
   const percent =
@@ -285,7 +294,7 @@ export function CreditsPage() {
                   {t('credits.checklist')}
                 </p>
                 <span className="text-[10px] font-semibold text-pnu-muted">
-                  {checklistDoneCount}/{checklist.length}
+                  {checklistDoneCount}/{requirements.length}
                 </span>
                 <ChevronDown
                   className={[
@@ -298,45 +307,50 @@ export function CreditsPage() {
 
               {checklistOpen ? (
                 <ul className="divide-y divide-black/6 border-t border-black/6 px-3.5 pb-2">
-                  {checklist.map((item) => {
-                    const done = Boolean(certificateDone[item.id])
-                    return (
-                      <li key={item.id}>
-                        <button
-                          type="button"
-                          onClick={() => toggleCertificateItem(item.id)}
-                          className="flex w-full items-center gap-2.5 py-2.5 text-left transition active:bg-black/[0.02]"
-                        >
-                          <span
-                            className={[
-                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition',
-                              done
-                                ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
-                                : 'border-black/20 bg-white',
-                            ].join(' ')}
-                            aria-hidden="true"
+                  {requirements.length === 0 ? (
+                    <li className="py-3 text-[12px] text-pnu-muted">{t('home.noChecklist')}</li>
+                  ) : (
+                    requirements.map((item) => {
+                      const done = item.completed
+                      return (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            disabled={updatingId === item.id}
+                            onClick={() => void toggleRequirement(item.id, !done)}
+                            className="flex w-full items-center gap-2.5 py-2.5 text-left transition active:bg-black/[0.02] disabled:opacity-60"
                           >
-                            {done ? (
-                              <Check className="h-3 w-3" strokeWidth={3} />
-                            ) : null}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[12px] font-semibold text-pnu-text">
-                              {t(item.labelKey)}
-                            </p>
-                          </div>
-                          <span
-                            className={[
-                              'shrink-0 text-[11px] font-bold',
-                              done ? 'text-[#16A34A]' : 'text-[#7C3AED]',
-                            ].join(' ')}
-                          >
-                            {done ? t('credits.certDone') : t('credits.certPending')}
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
+                            <span
+                              className={[
+                                'flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition',
+                                done
+                                  ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
+                                  : 'border-black/20 bg-white',
+                              ].join(' ')}
+                              aria-hidden="true"
+                            >
+                              {done ? (
+                                <Check className="h-3 w-3" strokeWidth={3} />
+                              ) : null}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold text-pnu-text">
+                                {item.title}
+                              </p>
+                            </div>
+                            <span
+                              className={[
+                                'shrink-0 text-[11px] font-bold',
+                                done ? 'text-[#16A34A]' : 'text-[#7C3AED]',
+                              ].join(' ')}
+                            >
+                              {done ? t('credits.certDone') : t('credits.certPending')}
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    })
+                  )}
                 </ul>
               ) : null}
             </section>
