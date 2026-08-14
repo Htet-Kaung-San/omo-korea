@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { CalendarDays, ExternalLink, Sparkles, Trophy, Users } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { api } from '@/api'
 import type { ProgramItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
-
-function looksLikeHtml(value: string): boolean {
-  return /<\s*(p|div|table|br|ul|ol|h[1-6]|span|a|strong|em|tbody|tr|td|th)\b/i.test(value)
-}
 
 export function ProgramDetailPage() {
   const { programId } = useParams()
@@ -90,16 +87,9 @@ export function ProgramDetailPage() {
                 {t('academic.programDetails')}
               </h2>
               {program.description?.trim() ? (
-                looksLikeHtml(program.description) ? (
-                  <div
-                    className="program-description-html mt-4 text-[15px] leading-[1.75] text-pnu-text"
-                    dangerouslySetInnerHTML={{ __html: program.description }}
-                  />
-                ) : (
-                  <div className="mt-4 whitespace-pre-wrap text-[15px] leading-[1.75] text-pnu-text">
-                    {program.description}
-                  </div>
-                )
+                <div className="program-description-html mt-4 text-[15px] leading-[1.75] text-pnu-text">
+                  <ReactMarkdown>{program.description}</ReactMarkdown>
+                </div>
               ) : (
                 <p className="mt-4 text-[14px] leading-relaxed text-pnu-muted">
                   {t('academic.noProgramDescription')}

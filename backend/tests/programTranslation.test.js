@@ -5,11 +5,15 @@ jest.mock('../supabaseClient', () => {
     from() {
       return {
         select() {
-          return {
+          const chain = {
+            eq() {
+              return chain;
+            },
             in() {
               return Promise.resolve({ data: [], error: null });
             },
           };
+          return chain;
         },
         upsert() {
           return Promise.resolve({ error: null });

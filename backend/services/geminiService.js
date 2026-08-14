@@ -9,7 +9,7 @@ async function generateGeminiChat(message, languagePref, context) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const langName =
     languagePref === "KO"
@@ -61,7 +61,7 @@ async function generateGeminiMajorAnalysis(userProfile, recommendations) {
     };
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const prompt = `
 You are the major recommendation assistant for Hey! PNU, a support platform for international students at Pusan National University.
@@ -138,7 +138,7 @@ async function translateGeminiAnnouncement(imageBase64, mimeType, textContent) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const systemPrompt = `
 You are the Hey! PNU Academic and Settlement Notice Translator.
@@ -213,7 +213,7 @@ Please return JSON ONLY matching the following schema:
   return JSON.parse(cleanedText);
 }
 
-const CAFETERIA_LANGUAGE_NAMES = {
+const LANGUAGE_NAMES = {
   en: "English",
   ko: "Korean",
   zh: "Chinese (Simplified)",
@@ -364,7 +364,7 @@ async function requestCafeteriaTranslationsViaOpenRouter(strings, langName) {
   const preferredModel = process.env.OPENROUTER_MODEL;
   const models = [
     ...(preferredModel ? [preferredModel] : []),
-    "google/gemini-2.5-flash",
+    "google/gemini-1.5-flash",
     "meta-llama/llama-3.3-70b-instruct:free",
     "openrouter/free",
   ];
@@ -441,7 +441,7 @@ ${JSON.stringify(strings, null, 2)}
 }
 
 async function requestCafeteriaTranslations(strings, langName, { retries = 3 } = {}) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const prompt = `
 You are translating a Pusan National University (PNU) cafeteria weekly menu for international students.
@@ -564,7 +564,7 @@ async function translateCafeteriaMenus(cafeterias, targetLanguage = "en", cacheS
     };
   }
 
-  const langName = CAFETERIA_LANGUAGE_NAMES[lang] || "English";
+  const langName = LANGUAGE_NAMES[lang] || "English";
 
   const warm = async () => {
     const dictionary = {};
@@ -642,7 +642,7 @@ async function generateGeminiChatStream(message, languagePref, context) {
     throw new Error("Gemini API key is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?key=${process.env.GEMINI_API_KEY}`;
 
   const langName =
     languagePref === "KO"
@@ -708,7 +708,7 @@ function toProgramCacheEntry(translation, includeDescriptions) {
   return { fetchedAt: Date.now(), data, fields };
 }
 
-async function hydrateProgramTranslationsFromDb(ids, cache) {
+async function hydrateProgramTranslationsFromDb(ids, cache, lang) {
   const numericIds = [...new Set(ids.map((id) => Number(id)).filter((n) => Number.isInteger(n)))];
   if (!numericIds.length) return;
 
@@ -721,7 +721,8 @@ async function hydrateProgramTranslationsFromDb(ids, cache) {
 
   const { data, error } = await supabase
     .from("program_translation")
-    .select("program_id, title_en, category_en, description_en, match_hint_en")
+    .select("program_id, title, category, description, match_hint")
+    .eq("language", lang)
     .in("program_id", numericIds);
 
   if (error) {
@@ -731,23 +732,24 @@ async function hydrateProgramTranslationsFromDb(ids, cache) {
 
   for (const row of data || []) {
     cache.set(String(row.program_id), toProgramCacheEntry({
-      title: row.title_en,
-      category: row.category_en,
-      description: row.description_en,
-      matchHint: row.match_hint_en,
+      title: row.title,
+      category: row.category,
+      description: row.description,
+      matchHint: row.match_hint,
     }, true));
   }
 }
 
-async function upsertProgramTranslations(translations) {
+async function upsertProgramTranslations(translations, lang) {
   const rows = (translations || [])
     .filter((t) => t && Number.isInteger(Number(t.id)))
     .map((t) => ({
       program_id: Number(t.id),
-      title_en: t.title || null,
-      category_en: t.category || null,
-      description_en: t.description || null,
-      match_hint_en: t.matchHint || null,
+      language: lang,
+      title: t.title || null,
+      category: t.category || null,
+      description: t.description || null,
+      match_hint: t.matchHint || null,
       updated_at: new Date().toISOString(),
     }));
 
@@ -762,7 +764,7 @@ async function upsertProgramTranslations(translations) {
 
   const { error } = await supabase
     .from("program_translation")
-    .upsert(rows, { onConflict: "program_id" });
+    .upsert(rows, { onConflict: "program_id, language" });
 
   if (error) {
     console.warn("[geminiService] Failed to persist program translations:", error.message);
@@ -778,7 +780,7 @@ async function upsertProgramTranslations(translations) {
 async function requestProgramTranslations(itemsToTranslate, langName, includeDescriptions = true) {
   const prompt = `
 You are an expert academic translator for Pusan National University (PNU) extracurricular programs, student activities, and competitions.
-Translate each program item from Korean into clear, high-quality English.
+Translate each program item from Korean into clear, high-quality ${langName}.
 
 Rules:
 - Return JSON ONLY matching this format:
@@ -786,14 +788,14 @@ Rules:
   "translations": [
     {
       "id": "<matching exact string id>",
-      "title": "<translated title in English>",
-      "category": "<translated category in English>",
-      ${includeDescriptions ? '"description": "<translated description in English - keep HTML tags if the original contains HTML>",' : ""}
-      "matchHint": "<translated matchHint in English if present>"
+      "title": "<translated title in ${langName}>",
+      "category": "<translated category in ${langName}>",
+      ${includeDescriptions ? `"description": "<translated description in ${langName} - format as clean Markdown>",` : ""}
+      "matchHint": "<translated matchHint in ${langName} if present>"
     }
   ]
 }
-${includeDescriptions ? "- Preserve all HTML tags (like <p>, <br>, <strong>, <ul>, <li>, <table>, <a>) inside \"description\".\n" : ""}- Do not alter IDs.
+${includeDescriptions ? "- Convert any HTML tags in the original description into clean, equivalent Markdown formatting.\n" : ""}- Do not alter IDs.
 - Omit any field that is empty in the source item.
 
 Programs to translate:
@@ -803,7 +805,7 @@ ${JSON.stringify(itemsToTranslate, null, 2)}
   let jsonText = "";
 
   if (isGeminiConfigured()) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -831,7 +833,7 @@ ${JSON.stringify(itemsToTranslate, null, 2)}
     const preferredModel = process.env.OPENROUTER_MODEL;
     const models = [
       ...(preferredModel ? [preferredModel] : []),
-      "google/gemini-2.5-flash",
+      "google/gemini-1.5-flash",
       "meta-llama/llama-3.3-70b-instruct:free",
       "openrouter/free",
     ];
@@ -893,7 +895,7 @@ ${JSON.stringify(itemsToTranslate, null, 2)}
 }
 
 /**
- * Real-time AI translation for Extracurricular Programs (Korean -> English for all non-Korean options).
+ * Real-time AI translation for Extracurricular Programs (Korean -> targetLanguage).
  * Translates program title, category, matchHint, and detailed description body.
  *
  * Results are cached per program id (not per request-list). A Supabase-backed
@@ -918,17 +920,15 @@ async function translatePrograms(programs = [], targetLanguage = "en", options =
     return programs;
   }
 
-  // Non-Korean option -> display in English using Gemini API
+  // Non-Korean option -> display in target language using Gemini API
   if (!isGeminiConfigured() && !process.env.OPENROUTER_API_KEY) {
     return programs;
   }
 
   const includeDescriptions = options.includeDescriptions === true;
 
-  // The prompt always produces English, so share one cache across every
-  // non-Korean UI language for the highest hit rate.
-  const cacheLang = "en";
-  const cache = getProgramCache(cacheLang);
+  const langName = LANGUAGE_NAMES[lang] || "English";
+  const cache = getProgramCache(lang);
   const now = Date.now();
 
   const isFresh = (entry) =>
@@ -946,7 +946,7 @@ async function translatePrograms(programs = [], targetLanguage = "en", options =
   let missing = resolveMissing();
 
   if (missing.length > 0) {
-    await hydrateProgramTranslationsFromDb(missing.map((p) => p.id), cache);
+    await hydrateProgramTranslationsFromDb(missing.map((p) => p.id), cache, lang);
     missing = resolveMissing();
   }
 
@@ -963,7 +963,7 @@ async function translatePrograms(programs = [], targetLanguage = "en", options =
     );
 
     for (const chunk of chunks) {
-      const chunkKey = `en:${includeDescriptions ? "full" : "list"}:${chunk
+      const chunkKey = `${lang}:${includeDescriptions ? "full" : "list"}:${chunk
         .map((i) => i.id)
         .sort()
         .join(",")}`;
@@ -971,13 +971,13 @@ async function translatePrograms(programs = [], targetLanguage = "en", options =
       let inflight = programTranslationInflight.get(chunkKey);
       if (!inflight) {
         inflight = (async () => {
-          const translations = await requestProgramTranslations(chunk, cacheLang, includeDescriptions);
+          const translations = await requestProgramTranslations(chunk, langName, includeDescriptions);
           for (const t of translations) {
             if (!t || !t.id) continue;
             cache.set(String(t.id), toProgramCacheEntry(t, includeDescriptions));
           }
           if (includeDescriptions) {
-            await upsertProgramTranslations(translations);
+            await upsertProgramTranslations(translations, lang);
           }
         })().catch((error) => {
           console.warn("[geminiService] Program translation error:", error.message);
@@ -1008,11 +1008,26 @@ const careerTranslationCache = new Map();
 
 async function translateCareers(opportunities = [], targetLanguage = "en") {
   const lang = String(targetLanguage || "en").toLowerCase().split("-")[0];
+  console.log(`[translateCareers] Called with ${opportunities.length} items, targetLanguage: ${targetLanguage}, resolved lang: ${lang}`);
   if (!Array.isArray(opportunities) || opportunities.length === 0) return opportunities;
   if (lang === "ko") return opportunities;
-  if (!isGeminiConfigured() && !process.env.OPENROUTER_API_KEY) return opportunities;
+  if (!isGeminiConfigured() && !process.env.OPENROUTER_API_KEY) {
+    console.log("[translateCareers] No API key configured, returning original.");
+    return opportunities;
+  }
 
-  const cacheLang = "en";
+  const langName =
+    lang === "zh"
+      ? "Chinese (Simplified)"
+      : lang === "es"
+        ? "Spanish"
+        : lang === "my"
+          ? "Burmese"
+          : lang === "am"
+            ? "Amharic"
+            : "English";
+
+  const cacheLang = lang;
   let cache = careerTranslationCache.get(cacheLang);
   if (!cache) {
     cache = new Map();
@@ -1020,21 +1035,22 @@ async function translateCareers(opportunities = [], targetLanguage = "en") {
   }
 
   const missing = opportunities.filter((o) => !cache.has(String(o.id)));
+  console.log(`[translateCareers] Cache missing for ${missing.length} items in ${langName}.`);
 
   if (missing.length > 0) {
     const chunks = chunkArray(missing, 20);
     for (const chunk of chunks) {
       const prompt = `
 You are an expert translator for Pusan National University (PNU) career opportunities.
-Translate each job/internship item from Korean into clear, high-quality English.
+Translate each job/internship item from Korean into clear, high-quality ${langName}.
 Return JSON ONLY matching this format:
 {
   "translations": [
     {
       "id": "<exact string id>",
-      "title": "<translated title in English>",
-      "company": "<translated company name in English>",
-      "matchReason": "<translated matchReason in English if present>"
+      "title": "<translated title in ${langName}>",
+      "company": "<translated company name in ${langName}>",
+      "matchReason": "<translated matchReason in ${langName} if present>"
     }
   ]
 }
@@ -1045,7 +1061,7 @@ ${JSON.stringify(chunk.map(m => ({ id: m.id, title: m.title, company: m.company,
 
       let jsonText = "";
       if (isGeminiConfigured()) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
         try {
           const response = await fetch(url, {
             method: "POST",
@@ -1058,9 +1074,15 @@ ${JSON.stringify(chunk.map(m => ({ id: m.id, title: m.title, company: m.company,
           if (response.ok) {
             const data = await response.json();
             jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            if (!jsonText) {
+               console.warn("[translateCareers] response.ok but jsonText is empty. Data:", JSON.stringify(data));
+            }
+          } else {
+            const errText = await response.text();
+            console.warn(`[translateCareers] Gemini fetch failed: ${response.status} - ${errText}`);
           }
         } catch (err) {
-          console.warn("[geminiService] Gemini career translation failed", err.message);
+          console.warn("[geminiService] Gemini career translation network failed", err.message);
         }
       }
 
@@ -1074,7 +1096,7 @@ ${JSON.stringify(chunk.map(m => ({ id: m.id, title: m.title, company: m.company,
               Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
+              model: "google/gemini-3.5-flash",
               messages: [{ role: "user", content: prompt }],
               temperature: 0.2,
             }),
@@ -1082,17 +1104,25 @@ ${JSON.stringify(chunk.map(m => ({ id: m.id, title: m.title, company: m.company,
           if (response.ok) {
             const data = await response.json();
             jsonText = data.choices?.[0]?.message?.content || "";
+            if (!jsonText) {
+               console.warn("[translateCareers] OR response.ok but jsonText is empty. Data:", JSON.stringify(data));
+            }
+          } else {
+            const errText = await response.text();
+            console.warn(`[translateCareers] OR fetch failed: ${response.status} - ${errText}`);
           }
         } catch (err) {
-          console.warn("[geminiService] OpenRouter career translation failed", err.message);
+          console.warn("[geminiService] OpenRouter career translation network failed", err.message);
         }
       }
 
       if (jsonText) {
         const parsed = parseGeminiJson(jsonText);
         const list = Array.isArray(parsed) ? parsed : (parsed?.translations || []);
+        console.log(`[translateCareers] Gemini returned ${list.length} translations`);
         for (const t of list) {
           if (t && t.id) {
+            console.log(`[translateCareers] Saving cache for id: ${t.id}`);
             cache.set(String(t.id), {
               title: t.title,
               company: t.company,

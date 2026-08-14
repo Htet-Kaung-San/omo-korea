@@ -41,8 +41,10 @@ export function AppShell() {
     if (to === '/schedule') {
       return (
         location.pathname === '/schedule' ||
+        location.pathname === '/academic-calendar' ||
         (location.pathname.startsWith('/academic') &&
-          !location.pathname.startsWith('/academic/scholarships'))
+          !location.pathname.startsWith('/academic/scholarships') &&
+          !location.pathname.startsWith('/academic/programs'))
       )
     }
     if (to === '/map') {
