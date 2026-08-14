@@ -78,22 +78,6 @@ interface BackendAuthResponse {
   data: Parameters<typeof mapBackendStudent>[0]
 }
 
-function emptyGraduationProgress(): GraduationProgress {
-  const empty = { completed: 0, required: 0 }
-
-  return {
-    totalRequired: 0,
-    totalCompleted: 0,
-    breakdown: {
-      generalRequired: empty,
-      generalElective: empty,
-      majorBasic: empty,
-      majorRequired: empty,
-      majorElective: empty,
-      generalFree: empty,
-    },
-  }
-}
 
 function requireStudentId(): string {
   const studentId = resolveStudentId()

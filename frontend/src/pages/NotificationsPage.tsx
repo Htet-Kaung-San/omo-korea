@@ -158,7 +158,7 @@ function toDisplay(n: Notification): DisplayNotice {
     ...n,
     channel,
     source: inferSource(n, channel),
-    daysLeft: daysUntil(n.date),
+    daysLeft: daysUntil(n.date ?? ''),
     read: n.read ?? false,
     ...visual,
   }
@@ -187,7 +187,7 @@ export function NotificationsPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      api.getNotifications().catch(() => []),
+      api.getPersonalizedNotifications().catch(() => []),
       api.getScholarships().catch(() => []),
     ])
       .then(([items, scholarships]) => {
@@ -214,7 +214,7 @@ export function NotificationsPage() {
   const feedItems = useMemo(() => {
     let list = [...catalog]
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
-    return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return list.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime())
   }, [catalog, feedTab])
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
@@ -382,7 +382,7 @@ export function NotificationsPage() {
                         )}
                         <div className="flex shrink-0 flex-col items-end gap-2">
                           <span className="text-[10px] font-medium text-pnu-muted">
-                            {formatDate(item.date, locale)}
+                            {formatDate(item.date ?? '', locale)}
                           </span>
                           <div className="flex items-center gap-1">
                             <ChevronRight
