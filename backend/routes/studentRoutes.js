@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getAllMajors,
   testConnection,
   loginStudent,
   verifyLoginStudent,
@@ -88,6 +89,7 @@ router.get("/faq", getFaqItems);
 router.get("/notices", getNotices);
 router.get("/search", globalSearch);
 router.get("/health-check", healthCheck);
+router.get("/majors", getAllMajors);
 router.get("/scholarships", getAllScholarships);
 router.get("/career-opportunities", getCareerOpportunities);
 router.get("/career-recommendations", getCareerRecommendations);

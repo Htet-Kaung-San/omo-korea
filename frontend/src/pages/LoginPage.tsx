@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { api } from '@/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { LanguageSelect } from '@/components/layout/LanguageSelect'
-import { LOGIN_MAJOR_OPTIONS } from '@/data/options'
+import type { MajorData } from '@/types/api'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`.
@@ -39,8 +39,21 @@ export function LoginPage() {
   const [challengeId, setChallengeId] = useState('')
   const [maskedEmail, setMaskedEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
+  const [majorsData, setMajorsData] = useState<MajorData[]>([])
+  const [selectedCollege, setSelectedCollege] = useState('')
   const [selectedMajor, setSelectedMajor] = useState('')
+  const [loadingMajors, setLoadingMajors] = useState(false)
   const [selectedYear, setSelectedYear] = useState<'' | '1' | '2' | '3' | '4' | 'exchange'>('')
+
+  useEffect(() => {
+    if (step === 'major') {
+      setLoadingMajors(true)
+      api.getMajors()
+        .then(res => setMajorsData(res.data || []))
+        .catch(err => console.error('Failed to load majors', err))
+        .finally(() => setLoadingMajors(false))
+    }
+  }, [step])
 
   if (isLoading) {
     return (
@@ -87,7 +100,7 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      await verifyLogin({
+      const response = await verifyLogin({
         challengeId,
         code: otpCode.trim(),
       })
@@ -99,7 +112,12 @@ export function LoginPage() {
         localStorage.removeItem(LEGACY_REMEMBERED_ID_KEY)
       }
       setSelectedMajor('')
-      setStep('major')
+      setSelectedCollege('')
+      if (response.user?.major) {
+        setStep('year')
+      } else {
+        setStep('major')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.otpError'))
     } finally {
@@ -366,25 +384,55 @@ export function LoginPage() {
                 </p>
               </div>
 
-              <div className="max-h-[320px] space-y-1.5 overflow-y-auto pr-1">
-                {LOGIN_MAJOR_OPTIONS.map((major) => {
-                  const active = selectedMajor === major
-                  return (
-                    <button
-                      key={major}
-                      type="button"
-                      onClick={() => setSelectedMajor(major)}
-                      className={[
-                        'w-full rounded-[14px] border px-3.5 py-3 text-left text-[13px] font-semibold transition',
-                        active
-                          ? 'border-pnu-blue bg-[#EEF4FF] text-pnu-blue'
-                          : 'border-pnu-border bg-white text-pnu-text hover:border-pnu-blue-light',
-                      ].join(' ')}
-                    >
-                      {major}
-                    </button>
-                  )
-                })}
+              <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
+                {loadingMajors ? (
+                  <p className="text-sm text-pnu-muted text-center py-4">{t('common.loading')}</p>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="block text-[13px] font-semibold text-pnu-blue">Select College</label>
+                      <select
+                        value={selectedCollege}
+                        onChange={(e) => {
+                          setSelectedCollege(e.target.value)
+                          setSelectedMajor('')
+                        }}
+                        className={inputCls}
+                      >
+                        <option value="">-- Choose College --</option>
+                        {Array.from(new Set(majorsData.map((m) => m.department)))
+                          .filter(Boolean)
+                          .sort()
+                          .map((col) => (
+                            <option key={col} value={col}>
+                              {col}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    {selectedCollege && (
+                      <div className="space-y-1.5">
+                        <label className="block text-[13px] font-semibold text-pnu-blue">Select Major</label>
+                        <select
+                          value={selectedMajor}
+                          onChange={(e) => setSelectedMajor(e.target.value)}
+                          className={inputCls}
+                        >
+                          <option value="">-- Choose Major --</option>
+                          {majorsData
+                            .filter((m) => m.department === selectedCollege)
+                            .sort((a, b) => a.major_name.localeCompare(b.major_name))
+                            .map((major) => (
+                              <option key={major.major_id} value={major.major_name}>
+                                {major.major_name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {error ? (
