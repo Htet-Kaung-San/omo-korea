@@ -19,6 +19,24 @@ jest.mock('../ai/noticeRecommendationEngine', () => ({
   recommendNotices: mockRecommendNotices,
 }));
 
+// Stub only the storage call. getChecklistForStudent spans three helper queries
+// across checklist_item, student_checklist_status and the legacy name lookup, so
+// mocking the raw Supabase chain here made this suite a test of the service's
+// internals rather than of the endpoint. The real grade gate is kept below.
+const mockGetChecklistItems = jest.fn();
+jest.mock('../services/semesterChecklistService', () => {
+  const actual = jest.requireActual('../services/semesterChecklistService');
+  return {
+    ...actual,
+    getChecklistForStudent: async (_supabase, studentId, grade) => {
+      if (!actual.shouldShowChecklist(grade)) {
+        return { eligible: false, semester: actual.CURRENT_CHECKLIST_SEMESTER, items: [] };
+      }
+      return mockGetChecklistItems(studentId, grade);
+    },
+  };
+});
+
 const {
   getStudentNotifications,
 } = require('../controllers/aiController');
@@ -31,6 +49,10 @@ function createStudentQuery(result) {
     select: jest.fn(() => query),
     eq: jest.fn(() => query),
     single: jest.fn(() => Promise.resolve(result)),
+    // The controller reads the student row twice: once with .single() for the
+    // profile, and once with .maybeSingle() for `grade`. Both land on this
+    // query because from() is routed by table name.
+    maybeSingle: jest.fn(() => Promise.resolve(result)),
   };
   return query;
 }
@@ -39,6 +61,7 @@ function createChecklistQuery(result) {
   const query = {
     select: jest.fn(() => query),
     eq: jest.fn(() => query),
+    order: jest.fn(() => query),
     then(resolve, reject) {
       return Promise.resolve(result).then(resolve, reject);
     },
@@ -239,14 +262,18 @@ describe('GET /api/students/notifications', () => {
         student_id: 'student-1',
         major_id: 7,
         major: { major_name: 'Computer Science & Engineering' },
-        grade: 3,
+        // The checklist is only built for grade 0 (exchange) or 1 (first year)
+        // — see shouldShowChecklist in services/semesterChecklistService.js.
+        grade: 1,
         interest_tags: [],
         language_pref: 'ko',
       },
       error: null,
     });
-    const checklistQuery = createChecklistQuery({
-      data: [{
+    mockGetChecklistItems.mockResolvedValue({
+      eligible: true,
+      semester: '2026-2',
+      items: [{
         checklist_id: 4,
         title: 'Submit document',
         description: 'Upload the required document',
@@ -254,11 +281,9 @@ describe('GET /api/students/notifications', () => {
         updated_at: '2026-07-20',
         status: 'Not Started',
       }],
-      error: null,
     });
     mockSupabase.from.mockImplementation((tableName) => {
       if (tableName === 'student') return studentQuery;
-      if (tableName === 'checklist_item') return checklistQuery;
       throw new Error(`Unexpected table: ${tableName}`);
     });
     mockFetchAllNotices.mockResolvedValue([productionNotice()]);
@@ -283,6 +308,51 @@ describe('GET /api/students/notifications', () => {
     expect(response.body.data[1]).not.toHaveProperty('score');
   });
 
+  // PR #26/#27 gated the checklist on grade, which is easy to regress into
+  // invisibility: every seeded student currently has grade 2-3 or null, so the
+  // "New Student Checklist" renders for nobody. These two pin both sides.
+  test.each([
+    ['first year', 1, true],
+    ['exchange', 0, true],
+    ['third year', 3, false],
+    ['grade not set', null, false],
+  ])('checklist visibility for %s (grade %s) is %s', async (_label, grade, expected) => {
+    const studentQuery = createStudentQuery({
+      data: {
+        student_id: 'student-1',
+        major_id: 7,
+        major: { major_name: 'Computer Science & Engineering' },
+        grade,
+        interest_tags: [],
+        language_pref: 'ko',
+      },
+      error: null,
+    });
+    mockGetChecklistItems.mockResolvedValue({
+      eligible: true,
+      semester: '2026-2',
+      items: [{
+        checklist_id: 9,
+        title: 'Open a Korean bank account',
+        description: 'Bring your ARC',
+        due_date: '2026-09-01',
+        updated_at: '2026-08-01',
+        status: 'Not Started',
+      }],
+    });
+    mockSupabase.from.mockImplementation((tableName) => {
+      if (tableName === 'student') return studentQuery;
+      throw new Error(`Unexpected table: ${tableName}`);
+    });
+    mockFetchAllNotices.mockResolvedValue([productionNotice()]);
+    mockRecommendNotices.mockReturnValue([]);
+
+    const response = await authenticatedGet(createApp()).expect(200);
+
+    const kinds = response.body.data.map((item) => item.kind);
+    expect(kinds.includes('CHECKLIST')).toBe(expected);
+  });
+
   test('propagates checklist database failures', async () => {
     mockSupabase.from.mockImplementation((tableName) => {
       if (tableName === 'student') {
@@ -291,18 +361,21 @@ describe('GET /api/students/notifications', () => {
             student_id: 'student-1',
             major_id: 7,
             major: { major_name: 'Computer Science & Engineering' },
+            // Without a qualifying grade the checklist is skipped entirely and
+            // the query below is never reached, so the failure cannot surface.
+            grade: 1,
           },
           error: null,
         });
       }
-      if (tableName === 'checklist_item') {
-        return createChecklistQuery({
-          data: null,
-          error: { message: 'checklist unavailable' },
-        });
-      }
       throw new Error(`Unexpected table: ${tableName}`);
     });
+    mockGetChecklistItems.mockRejectedValue(
+      Object.assign(new Error('checklist unavailable'), {
+        status: 502,
+        code: 'SUPABASE_CHECKLIST_QUERY_FAILED',
+      }),
+    );
 
     const response = await authenticatedGet(createApp()).expect(502);
 

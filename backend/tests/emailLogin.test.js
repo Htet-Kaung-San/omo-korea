@@ -19,6 +19,8 @@ jest.mock('../services/pnuNoticeScraperService', () => ({ scrapeRecentNotices: j
 jest.mock('../services/noticeSyncService', () => ({ synchronizeNotices: jest.fn() }));
 
 const studentRoutes = require('../routes/studentRoutes');
+// Imported rather than hardcoded so the fixture code tracks the service.
+const { DEMO_OTP } = require('../services/loginChallengeService');
 
 const STUDENT = {
   student_id: 202612345,
@@ -69,9 +71,14 @@ describe('POST /api/students/login', () => {
     const res = await login({ email: '202612345@PUSAN.AC.KR', password: 'password' });
 
     expect(res.status).toBe(200);
-    expect(calls.ilike).toEqual({ col: 'email', value: '202612345@PUSAN.AC.KR' });
+    // PR #27 normalises the address to lower case before the (still
+    // case-insensitive) lookup, so an all-caps address reaches the same row.
+    expect(calls.ilike).toEqual({ col: 'email', value: '202612345@pusan.ac.kr' });
     expect(calls.eq).toBeNull();
-    expect(res.body.token).toBeTruthy();
+    // Login now only issues an OTP challenge; the token is minted by
+    // /verify-login. Asserting the challenge keeps this test about routing.
+    expect(res.body.requiresVerification).toBe(true);
+    expect(res.body.challengeId).toBeTruthy();
   });
 
   test('still signs in with a student ID', async () => {
@@ -97,11 +104,21 @@ describe('POST /api/students/login', () => {
   test('never returns the password column', async () => {
     mockLookup(STUDENT);
 
-    const res = await login({ email: STUDENT.email, password: 'password' });
+    const challenge = await login({ email: STUDENT.email, password: 'password' });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data).not.toHaveProperty('password');
-    expect(JSON.stringify(res.body)).not.toContain('$2b$');
+    expect(challenge.status).toBe(200);
+    expect(JSON.stringify(challenge.body)).not.toContain('$2b$');
+
+    // The student payload moved to /verify-login with the OTP flow, so the hash
+    // has to be absent there too — that is the response the client stores.
+    mockLookup(STUDENT);
+    const verified = await request(createApp())
+      .post('/api/students/verify-login')
+      .send({ challengeId: challenge.body.challengeId, code: DEMO_OTP });
+
+    expect(verified.status).toBe(200);
+    expect(verified.body.data ?? {}).not.toHaveProperty('password');
+    expect(JSON.stringify(verified.body)).not.toContain('$2b$');
   });
 
   test('reports an unknown email distinctly from an unknown student ID', async () => {
