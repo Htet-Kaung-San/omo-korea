@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import {
@@ -77,6 +77,28 @@ function ProfileInfoSection({
   );
 }
 
+// Bounded scan over ACADEMIC_HIERARCHY, a module constant. This was a useMemo,
+// but React Compiler compiles the memo away as cheap enough to recompute, and
+// react-hooks/preserve-manual-memoization then errors on the mismatch. The
+// result is only read for two string fields in JSX and is never a dependency,
+// so recomputing per render is free and the compiler still memoizes the
+// component itself.
+function findAcademicPlacement(major?: string | null) {
+  if (!major) {
+    return { college: "", department: "" };
+  }
+
+  for (const college of ACADEMIC_HIERARCHY) {
+    for (const dept of college.departments) {
+      if (dept.majors.includes(major)) {
+        return { college: college.name, department: dept.name };
+      }
+    }
+  }
+
+  return { college: "", department: "" };
+}
+
 export function ProfilePage() {
   const { user, logout, refreshUser, isAdmin } = useAuth();
   const { t, language, setLanguage, options, localeLoading } = useLanguage();
@@ -108,21 +130,7 @@ export function ProfilePage() {
     setDeletionRequested(user.deletion_requested || false);
   }, [user]);
 
-  const academicPlacement = useMemo(() => {
-    if (!user?.major) {
-      return { college: "", department: "" };
-    }
-
-    for (const college of ACADEMIC_HIERARCHY) {
-      for (const dept of college.departments) {
-        if (dept.majors.includes(user.major)) {
-          return { college: college.name, department: dept.name };
-        }
-      }
-    }
-
-    return { college: "", department: "" };
-  }, [user?.major]);
+  const academicPlacement = findAcademicPlacement(user?.major);
 
   async function handleRequestDeletion() {
     if (!user) return;
