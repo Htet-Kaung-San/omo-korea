@@ -154,8 +154,6 @@ function toDisplay(n: Notification): DisplayNotice {
     channel,
     source: n.source ?? null,
     daysLeft: daysUntil(n.date),
-    source: inferSource(n, channel),
-    daysLeft: daysUntil(n.date ?? ''),
     read: n.read ?? false,
     ...visual,
   }
@@ -194,14 +192,6 @@ export function NotificationsPage() {
       })
       .catch(() => {
         if (active) setScholarships([])
-    setLoading(true)
-    Promise.all([
-      api.getPersonalizedNotifications().catch(() => []),
-      api.getScholarships().catch(() => []),
-    ])
-      .then(([items, scholarships]) => {
-        const feed = mergeNoticeFeed(items, scholarships)
-        setNotifications(feed)
       })
     return () => {
       active = false
