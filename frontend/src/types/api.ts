@@ -579,7 +579,6 @@ export interface HeyPnuApi {
   likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
   deleteCommunityPost(postId: string): Promise<{ id: string }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
-  getCampusFacilities(): Promise<CampusFacility[]>
   getMajors(): Promise<{ data: MajorData[] }>
   getMapFacilities(): Promise<MapFacility[]>
   getMapFacility(id: string): Promise<MapFacility>

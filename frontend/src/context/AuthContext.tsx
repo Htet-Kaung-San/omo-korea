@@ -22,7 +22,13 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isAdmin: boolean
   requestLogin: (data: LoginRequest) => Promise<LoginChallengeResponse>
-  verifyLogin: (data: VerifyLoginRequest) => Promise<void>
+  /**
+   * Returns the signed-in user so the caller can branch on it immediately.
+   * LoginPage needs to know whether a major is already set to decide between
+   * the major and year onboarding steps, and the context `user` state has not
+   * propagated yet at that point in the same tick.
+   */
+  verifyLogin: (data: VerifyLoginRequest) => Promise<User>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -71,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user: loggedInUser } = await api.verifyLogin(data)
     setStoredToken(token)
     setUser(loggedInUser)
+    return loggedInUser
   }, [])
 
   const logout = useCallback(async () => {
