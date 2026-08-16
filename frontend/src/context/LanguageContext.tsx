@@ -31,6 +31,25 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
 
+/** Set by the provider so non-React callers can translate. See translateStatic. */
+let currentTranslate:
+  | ((key: string, vars?: Record<string, string | number>) => string)
+  | null = null
+
+/**
+ * Translate from outside the React tree — specifically the API client, which
+ * raises toasts and cannot call a hook.
+ *
+ * `fallback` is returned when the provider has not mounted yet or the key is
+ * missing. t() returns the key itself when it cannot resolve one, and showing a
+ * user the raw string "errors.network" would be worse than English.
+ */
+export function translateStatic(key: string, fallback: string): string {
+  if (!currentTranslate) return fallback
+  const resolved = currentTranslate(key)
+  return resolved === key ? fallback : resolved
+}
+
 function interpolate(template: string, vars?: Record<string, string | number>): string {
   if (!vars) return template
   return Object.entries(vars).reduce(
@@ -108,6 +127,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     },
     [fallbackMessages, messages],
   )
+
+  // Publish the active translator for code that runs outside the React tree.
+  // The API client raises toasts and has no way to reach a hook.
+  useEffect(() => {
+    currentTranslate = t
+    return () => {
+      if (currentTranslate === t) currentTranslate = null
+    }
+  }, [t])
 
   const value = useMemo(
     () => ({

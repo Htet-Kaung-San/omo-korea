@@ -309,7 +309,9 @@ export function ScholarshipsPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      api.getScholarships().catch(() => []),
+      // This page renders its own empty state (scholarships.empty), so a
+      // failure does not also need a toast on top of it.
+      api.getScholarships({ suppressToast: true }).catch(() => []),
       api.getAiDashboard().catch(() => null),
     ])
       .then(([items, dashboard]) => {

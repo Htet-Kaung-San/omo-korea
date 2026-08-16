@@ -186,7 +186,9 @@ export function NotificationsPage() {
   useEffect(() => {
     let active = true
     api
-      .getScholarships()
+      // Supplementary to the notice feed — the page is useful without them, so
+      // a failure degrades to an empty list rather than a toast.
+      .getScholarships({ suppressToast: true })
       .then((items) => {
         if (active) setScholarships(items)
       })

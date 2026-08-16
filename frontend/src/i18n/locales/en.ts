@@ -8,6 +8,10 @@ const messages: MessageDictionary = {
   'common.progress': "Progress",
   'common.completedCount': "{{completed}} of {{total}} completed",
   'common.errorFallback': "Something went wrong.",
+  // Shown in toasts raised by the API client. Deliberately free of internals —
+  // a student cannot act on "Check that the API server is running".
+  'errors.network': "Cannot reach the server. Check your connection and try again.",
+  'errors.serverError': "Something went wrong on our side. Please try again shortly.",
   'common.goBack': "Go back",
   'common.back': "Back",
   'common.search': "Search",

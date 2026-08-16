@@ -28,6 +28,8 @@
     "prescrape:cafeteria": "node scripts/prescrape-cafeteria.js",
     "sync:1365-volunteers": "node scripts/sync-1365-volunteers.js",
     "sync:facilities": "node scripts/sync-facility-coordinates.mjs",
+    "backfill:student-grade": "node scripts/backfill-student-grade.mjs",
+    "seed:scholarships": "node scripts/seed-scholarships.mjs",
     "test": "jest --testPathIgnorePatterns=tests/api.test.js"
   },
   "keywords": [],

@@ -29,7 +29,10 @@ export function HomePage() {
     setLoading(true)
     Promise.all([
       api.getChecklist(),
-      api.getScholarships().catch(() => []),
+      // Scholarships are supplementary here: the home feed merges them in
+      // alongside notices. Failing to load them should not put a red banner
+      // over the navigation bar, so the error is both suppressed and handled.
+      api.getScholarships({ suppressToast: true }).catch(() => []),
     ])
       .then(([checklistPayload, scholarshipItems]) => {
         setChecklist(checklistPayload.items)
