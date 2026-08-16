@@ -487,6 +487,29 @@ export interface ChatMessageResponse {
   intentId?: string
 }
 
+/**
+ * One completed exchange. The backend expects {question, answer} pairs rather
+ * than the OpenAI-style {role, content} — see generateOpenRouterChatStream,
+ * which reads turn.question / turn.answer. Sending the wrong shape yields
+ * undefined content and the model silently loses the thread.
+ */
+export interface ChatHistoryTurn {
+  question: string
+  answer: string
+}
+
+export interface ChatStreamRequest {
+  message: string
+  history: ChatHistoryTurn[]
+}
+
+export interface ChatStreamHandlers {
+  onText: (chunk: string) => void
+  /** Follow-up prompts grounded in the knowledge-base documents that matched. */
+  onFollowUps?: (followUps: string[]) => void
+  signal?: AbortSignal
+}
+
 export interface ApiError {
   message: string
   status?: number
@@ -559,6 +582,10 @@ export interface HeyPnuApi {
   getChecklist(): Promise<ChecklistPayload>
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem>
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
+  streamChatMessage(
+    data: ChatStreamRequest,
+    handlers: ChatStreamHandlers,
+  ): Promise<void>
   getChatSuggestions(): Promise<string[]>
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
   /**

@@ -631,11 +631,14 @@ async function handleChatStream(req, res) {
 
     // Retrieve grounding context from Vector RAG system
     let context = "";
+    let ragSources = [];
     let ragUsed = false;
     let ragStatus = "not-used";
     try {
       const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
-      context = await ragService.retrieveContext(augmentedQuery, filters, 3);
+      const retrieved = await ragService.retrieveContextWithSources(augmentedQuery, filters, 3);
+      context = retrieved.context;
+      ragSources = retrieved.sources;
       if (context) {
         ragUsed = true;
         ragStatus = "used";
@@ -645,10 +648,72 @@ async function handleChatStream(req, res) {
       console.error("RAG context retrieval failed for stream:", ragErr.message);
     }
 
+    // Follow-up prompts are built from documents that actually matched, so every
+    // suggestion is one the knowledge base can answer.
+    //
+    // Curriculum documents are excluded. They are machine-generated per-major,
+    // per-year recommendation payloads titled like "Computer Engineering - 2nd
+    // Year - 1st Semester Recommendations" — useful as model context, but not
+    // something to invite a student to read. They also surface constantly
+    // regardless of topic, because the retrieval query is expanded with the
+    // student's academic background, so an immigration question reliably pulls
+    // them in too. Every other category is a human-written guide and makes a
+    // sensible chip. When nothing qualifies we send none and the client keeps
+    // its own defaults.
+    const MACHINE_GENERATED_CATEGORIES = new Set(["Curriculum"]);
+    const priorTurns = Array.isArray(req.body.history) ? req.body.history : [];
+    const askedAlready = new Set(
+      priorTurns
+        .map((turn) => String(turn?.question ?? "").toLowerCase().trim())
+        .concat(String(message).toLowerCase().trim()),
+    );
+
+    const followUps = ragSources
+      .filter((source) => !MACHINE_GENERATED_CATEGORIES.has(source.category))
+      .map((source) => `Tell me more about ${source.title}`)
+      .filter((prompt) => !askedAlready.has(prompt.toLowerCase().trim()))
+      .slice(0, 3);
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+
+    // Mirror every token we stream so the finished answer can be logged. The
+    // non-streaming /ai/chat writes to chatbot_log; this handler did not, so a
+    // client on the streaming endpoint left no history behind — which also
+    // starved this endpoint's own DB fallback for callers that send no history.
+    let fullReply = "";
+    const emitText = (text) => {
+      if (!text) return;
+      fullReply += text;
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    };
+
+    const finish = async (provider) => {
+      if (studentId && fullReply.trim()) {
+        try {
+          const { error: insertError } = await supabase.from("chatbot_log").insert({
+            student_id: studentId,
+            question: message,
+            answer: fullReply,
+            timestamp: new Date().toISOString(),
+          });
+          if (insertError) {
+            console.error("Failed to save streamed chatbot log:", insertError.message);
+          }
+        } catch (logErr) {
+          console.error("Failed to save streamed chatbot log:", logErr.message);
+        }
+      }
+      res.write(
+        `data: ${JSON.stringify({
+          metadata: { provider, isFallback: false, ragUsed, ragStatus, followUps },
+        })}\n\n`,
+      );
+      res.write("data: [DONE]\n\n");
+      res.end();
+    };
 
     if (isOpenRouterConfigured()) {
       let augmentedMsg = "";
@@ -699,10 +764,7 @@ async function handleChatStream(req, res) {
             const rawJson = trimmed.slice(6);
             try {
               const parsed = JSON.parse(rawJson);
-              const content = parsed.choices?.[0]?.delta?.content || "";
-              if (content) {
-                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
-              }
+              emitText(parsed.choices?.[0]?.delta?.content || "");
             } catch {
               // ignore partial line parsing issues
             }
@@ -714,16 +776,11 @@ async function handleChatStream(req, res) {
         const rawJson = buffer.trim().slice(6);
         try {
           const parsed = JSON.parse(rawJson);
-          const content = parsed.choices?.[0]?.delta?.content || "";
-          if (content) {
-            res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
-          }
+          emitText(parsed.choices?.[0]?.delta?.content || "");
         } catch {}
       }
 
-      res.write(`data: ${JSON.stringify({ metadata: { provider: "openrouter", isFallback: false, ragUsed, ragStatus } })}\n\n`);
-      res.write("data: [DONE]\n\n");
-      res.end();
+      await finish("openrouter");
     } else {
       let geminiMsg = message;
       if (academicPromptContext) {
@@ -741,7 +798,7 @@ async function handleChatStream(req, res) {
           const rawText = match[1];
           try {
             const cleanText = JSON.parse(`"${rawText}"`);
-            res.write(`data: ${JSON.stringify({ text: cleanText })}\n\n`);
+            emitText(cleanText);
           } catch {
             // ignore parsing error
           }
@@ -749,9 +806,7 @@ async function handleChatStream(req, res) {
         buffer = buffer.slice(-100);
       }
 
-      res.write(`data: ${JSON.stringify({ metadata: { provider: "gemini", isFallback: false, ragUsed, ragStatus } })}\n\n`);
-      res.write("data: [DONE]\n\n");
-      res.end();
+      await finish("gemini");
     }
   } catch (err) {
     console.error("AI Streaming error:", err);

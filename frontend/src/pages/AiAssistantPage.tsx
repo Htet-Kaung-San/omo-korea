@@ -31,6 +31,28 @@ const DEFAULT_SUGGESTIONS = [
   'Dorm housing',
 ]
 
+/** Turns kept as context. Enough to follow a thread, short enough to stay cheap. */
+const HISTORY_TURNS = 6
+
+/**
+ * Fold the rendered transcript into the {question, answer} pairs the backend
+ * expects. Only completed exchanges count: a user message with no reply yet
+ * would send an empty answer and teach the model that questions go unanswered.
+ */
+function buildHistory(messages: Message[]) {
+  const turns: { question: string; answer: string }[] = []
+
+  for (let i = 0; i < messages.length - 1; i += 1) {
+    const question = messages[i]
+    const answer = messages[i + 1]
+    if (question.role !== 'user' || answer.role !== 'assistant') continue
+    if (!question.text.trim() || !answer.text.trim()) continue
+    turns.push({ question: question.text, answer: answer.text })
+  }
+
+  return turns.slice(-HISTORY_TURNS)
+}
+
 function formatTime(ts: number, locale: string) {
   return new Date(ts).toLocaleTimeString(locale, {
     hour: 'numeric',
@@ -97,6 +119,12 @@ export function AiAssistantPage() {
     const trimmed = text.trim()
     if (!trimmed || sending) return
 
+    // Pair up the turns already on screen and send them as context. Without
+    // this the assistant answers every message in isolation — asking "how do I
+    // apply for it?" after a work-permit answer used to return "what does 'it'
+    // refer to?". Capped so a long thread cannot blow the model's context.
+    const history = buildHistory(messages)
+
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: 'user', text: trimmed, at: Date.now() },
@@ -104,18 +132,42 @@ export function AiAssistantPage() {
     setInput('')
     setSending(true)
 
+    const replyId = crypto.randomUUID()
+    let streamed = ''
+
     try {
-      const { reply } = await api.sendChatMessage({ message: trimmed })
+      // Placeholder the tokens stream into, so text appears as it is generated
+      // rather than after the whole answer is ready.
       setMessages((prev) => [
         ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          text: reply || t('chat.unavailable'),
-          at: Date.now(),
-        },
+        { id: replyId, role: 'assistant', text: '', at: Date.now() },
       ])
+
+      await api.streamChatMessage(
+        { message: trimmed, history },
+        {
+          onText: (chunk) => {
+            streamed += chunk
+            setMessages((prev) =>
+              prev.map((m) => (m.id === replyId ? { ...m, text: streamed } : m)),
+            )
+          },
+          onFollowUps: (followUps) => {
+            if (followUps.length > 0) setSuggestions(followUps)
+          },
+        },
+      )
+
+      if (!streamed.trim()) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === replyId ? { ...m, text: t('chat.unavailable') } : m,
+          ),
+        )
+      }
     } catch (err) {
+      // Drop the empty placeholder before appending the error bubble.
+      setMessages((prev) => prev.filter((m) => m.id !== replyId))
       setMessages((prev) => [
         ...prev,
         {
