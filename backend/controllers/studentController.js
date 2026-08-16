@@ -288,10 +288,26 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    const challenge = createLoginChallenge({
-      studentId: data.student_id,
-      email: data.email,
-    });
+    let challenge;
+    try {
+      challenge = await createLoginChallenge({
+        studentId: data.student_id,
+        email: data.email,
+      });
+    } catch (challengeError) {
+      if (challengeError.code === "OTP_DELIVERY_FAILED") {
+        // Surfaced rather than swallowed: a student who never receives a code
+        // is locked out, and silently returning a challenge id would leave
+        // them staring at a verification screen that can never succeed.
+        return res.status(502).json({
+          success: false,
+          message:
+            "We could not email your verification code. Please try again in a moment.",
+          error: { status: 502, code: "OTP_DELIVERY_FAILED" },
+        });
+      }
+      throw challengeError;
+    }
 
     const payload = {
       success: true,
@@ -326,7 +342,7 @@ const verifyLoginStudent = async (req, res) => {
       });
     }
 
-    const result = consumeLoginChallenge({ challengeId, code });
+    const result = await consumeLoginChallenge({ challengeId, code });
     if (!result.ok) {
       const status =
         result.reason === "too_many_attempts"

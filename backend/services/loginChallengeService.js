@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const supabaseAuth = require("../supabaseAuthClient");
 
 const CHALLENGE_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -47,40 +48,95 @@ function purgeExpired() {
 
 /**
  * Create a login OTP challenge after password verification succeeded.
- * Returns the plaintext code only for logging / test helpers — never put it
- * in the public API response except when NODE_ENV=test.
+ *
+ * Delivery
+ * --------
+ * There are two paths, and which one runs decides who owns the code.
+ *
+ *   "local"    — the demo account, and anything under LOGIN_OTP_FIXED=1. We
+ *                mint the code ourselves and only log it. Nothing is emailed,
+ *                which is what makes the demo and the test suite work offline.
+ *   "supabase" — everyone else. Supabase generates and EMAILS the code through
+ *                its own auth mailer, and later verifies it. We cannot email a
+ *                code we generated: Supabase's mailer only sends messages it
+ *                composes, and the project has no SMTP provider of its own.
+ *                So for real accounts Supabase owns the secret and this module
+ *                just tracks who the challenge belongs to.
+ *
+ * Before this, every code was local and merely console.log'd, so no student
+ * outside the demo account could ever complete a login — the code existed only
+ * in the server's stdout.
+ *
+ * @returns {Promise<{challengeId: string, maskedEmail: string, delivery: string, debugCode: string|null}>}
  */
-function createLoginChallenge({ studentId, email }) {
+async function createLoginChallenge({ studentId, email }) {
   purgeExpired();
 
   const normalizedEmail = normalizeEmail(email);
   const challengeId = crypto.randomUUID();
-  const code =
-    normalizedEmail === DEMO_EMAIL || process.env.LOGIN_OTP_FIXED === "1"
-      ? DEMO_OTP
-      : generateOtp();
+  const useLocalCode =
+    normalizedEmail === DEMO_EMAIL || process.env.LOGIN_OTP_FIXED === "1";
+
+  if (useLocalCode) {
+    const code = DEMO_OTP;
+    challenges.set(challengeId, {
+      studentId: String(studentId),
+      email: normalizedEmail,
+      delivery: "local",
+      codeHash: hashCode(code),
+      expiresAt: Date.now() + CHALLENGE_TTL_MS,
+      attempts: 0,
+    });
+
+    console.log(
+      `[login-otp] challenge ${challengeId} for ${maskEmail(normalizedEmail)} delivery=local code=${code}`,
+    );
+
+    return {
+      challengeId,
+      maskedEmail: maskEmail(normalizedEmail),
+      delivery: "local",
+      debugCode: code,
+    };
+  }
+
+  // shouldCreateUser:false matters — without it a typo'd address would mint a
+  // brand new auth user instead of failing, and signup is not an OTP flow.
+  const { error } = await supabaseAuth.auth.signInWithOtp({
+    email: normalizedEmail,
+    options: { shouldCreateUser: false },
+  });
+
+  if (error) {
+    const deliveryError = new Error(
+      `Could not send the verification code: ${error.message}`,
+    );
+    deliveryError.code = "OTP_DELIVERY_FAILED";
+    throw deliveryError;
+  }
 
   challenges.set(challengeId, {
     studentId: String(studentId),
     email: normalizedEmail,
-    codeHash: hashCode(code),
+    delivery: "supabase",
+    codeHash: null,
     expiresAt: Date.now() + CHALLENGE_TTL_MS,
     attempts: 0,
   });
 
   console.log(
-    `[login-otp] challenge ${challengeId} for ${maskEmail(normalizedEmail)} code=${code}`,
+    `[login-otp] challenge ${challengeId} for ${maskEmail(normalizedEmail)} delivery=supabase`,
   );
 
   return {
     challengeId,
     maskedEmail: maskEmail(normalizedEmail),
-    // Exposed to callers for test/dev helpers only.
-    debugCode: code,
+    delivery: "supabase",
+    debugCode: null,
   };
 }
 
-function consumeLoginChallenge({ challengeId, code }) {
+async function consumeLoginChallenge({ challengeId, code }) {
   purgeExpired();
 
   const challenge = challenges.get(String(challengeId || ""));
@@ -100,7 +156,20 @@ function consumeLoginChallenge({ challengeId, code }) {
   }
 
   const provided = String(code || "").trim();
-  if (hashCode(provided) !== challenge.codeHash) {
+
+  if (challenge.delivery === "supabase") {
+    // Supabase issued and emailed this code, so it is the only party that can
+    // check it. A failure here is an ordinary wrong-code result, not an error:
+    // the attempt counter above still applies.
+    const { error } = await supabaseAuth.auth.verifyOtp({
+      email: challenge.email,
+      token: provided,
+      type: "email",
+    });
+    if (error) {
+      return { ok: false, reason: "invalid_code" };
+    }
+  } else if (hashCode(provided) !== challenge.codeHash) {
     return { ok: false, reason: "invalid_code" };
   }
 
@@ -121,8 +190,8 @@ function getChallengeDebugCode(challengeId) {
 
 // Attach debug code on create for tests that need to read it back.
 const _create = createLoginChallenge;
-function createLoginChallengeWithDebug(args) {
-  const result = _create(args);
+async function createLoginChallengeWithDebug(args) {
+  const result = await _create(args);
   const entry = challenges.get(result.challengeId);
   if (entry) {
     entry._debugCode = result.debugCode;
