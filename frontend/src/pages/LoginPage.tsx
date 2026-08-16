@@ -4,17 +4,15 @@ import { Eye, EyeOff } from 'lucide-react'
 import { api } from '@/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import pnuSeal from '@/assets/pnu-seal.svg'
-
-// PR #23 hid the demo button outside mock mode so a working credential is not
-// shown on a public deployment. PR #24 removed the mock API entirely, which
-// left that import dangling and crashed the page. The intent still holds, so
-// gate on the dev build instead — reviewers running locally keep the shortcut,
-// production never renders it.
-const SHOW_DEMO_ACCOUNT = import.meta.env.DEV
 import { LanguageSelect } from '@/components/layout/LanguageSelect'
 import { LOGIN_MAJOR_OPTIONS } from '@/data/options'
 import pnuSeal from '@/assets/pnu-seal.svg'
+
+// PR #23 hid the demo button outside mock mode so a working credential is never
+// shown on a public deployment; this repo is public. The mock API is gone, so
+// gate on the dev build instead — reviewers running locally keep the shortcut,
+// a production build never renders it.
+const SHOW_DEMO_ACCOUNT = import.meta.env.DEV
 
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`.
 const DEMO_EMAIL = '202612345@pusan.ac.kr'
@@ -278,17 +276,19 @@ export function LoginPage() {
                 {submitting ? t('auth.loggingIn') : t('auth.continue')}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail(DEMO_EMAIL)
-                  setPassword(DEMO_PASSWORD)
-                  setError('')
-                }}
-                className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
-              >
-                {t('auth.useDemoAccount')}
-              </button>
+              {SHOW_DEMO_ACCOUNT ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail(DEMO_EMAIL)
+                    setPassword(DEMO_PASSWORD)
+                    setError('')
+                  }}
+                  className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
+                >
+                  {t('auth.useDemoAccount')}
+                </button>
+              ) : null}
             </form>
           ) : null}
 
@@ -367,19 +367,6 @@ export function LoginPage() {
               onSubmit={handleMajorSubmit}
               className="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(0,61,130,0.08)] p-6 space-y-4"
             >
-              {submitting ? t('auth.loggingIn') : t('auth.login')}
-            </button>
-
-            {/* Demo account - one-click access for reviewers */}
-            {SHOW_DEMO_ACCOUNT ? (
-            <button
-              type="button"
-              onClick={() => {
-                setIdentifier(DEMO_EMAIL)
-                setPassword(DEMO_PASSWORD)
-                setError('')
-              }}
-              className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
               <div>
                 <h2 className="text-[16px] font-bold text-pnu-text">{t('auth.majorTitle')}</h2>
                 <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">
