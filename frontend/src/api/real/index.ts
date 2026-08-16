@@ -36,7 +36,7 @@ import type {
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken } from '../client'
+import { apiFetch, apiStream, clearStoredToken } from '../client'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,
@@ -249,6 +249,23 @@ export const realApi: HeyPnuApi = {
     })
 
     return { reply: response.reply }
+  },
+
+  async streamChatMessage(data, handlers) {
+    await apiStream(
+      '/ai/chat-stream',
+      { message: data.message, history: data.history },
+      {
+        onText: handlers.onText,
+        onMetadata: (metadata) => {
+          const followUps = metadata.followUps
+          if (Array.isArray(followUps)) {
+            handlers.onFollowUps?.(followUps.filter((f): f is string => typeof f === 'string'))
+          }
+        },
+        signal: handlers.signal,
+      },
+    )
   },
 
   async getChatSuggestions(): Promise<string[]> {

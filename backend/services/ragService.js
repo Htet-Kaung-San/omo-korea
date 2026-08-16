@@ -113,13 +113,24 @@ async function syncDocument(docId) {
  */
 const MATCH_THRESHOLD = 0.65;
 
-async function retrieveContext(queryText, filters = {}, limit = 3) {
+/**
+ * Same retrieval as retrieveContext, but also returns which documents matched.
+ *
+ * The chat stream uses the source list to offer follow-up prompts that are
+ * grounded in documents actually in the knowledge base, rather than inviting
+ * the student to ask something we have no material for.
+ *
+ * @returns {Promise<{context: string, sources: Array<{title: string, category: string}>}>}
+ */
+async function retrieveContextWithSources(queryText, filters = {}, limit = 3) {
+  const empty = { context: "", sources: [] };
+
   let queryEmbedding;
   try {
     queryEmbedding = await generateEmbedding(queryText);
   } catch (embeddingErr) {
     console.warn("Embedding generation failed; RAG context retrieval skipped:", embeddingErr.message);
-    return "";
+    return empty;
   }
 
   const { data, error } = await supabase.rpc("match_kb_chunks", {
@@ -133,18 +144,35 @@ async function retrieveContext(queryText, filters = {}, limit = 3) {
 
   if (error) {
     console.error("Vector RPC match failed:", error.message);
-    return "";
+    return empty;
   }
 
   const results = data || [];
-  if (results.length === 0) return "";
+  if (results.length === 0) return empty;
 
-  return results
+  const context = results
     .map(
       (r, index) =>
         `[Source #${index + 1}: ${r.title} (${r.category})]\n${r.chunk_text}`,
     )
     .join("\n\n");
+
+  // De-duplicate by title: several chunks of one document routinely match.
+  const seen = new Set();
+  const sources = [];
+  for (const r of results) {
+    const title = String(r.title ?? "").trim();
+    if (!title || seen.has(title)) continue;
+    seen.add(title);
+    sources.push({ title, category: String(r.category ?? "").trim() });
+  }
+
+  return { context, sources };
+}
+
+async function retrieveContext(queryText, filters = {}, limit = 3) {
+  const { context } = await retrieveContextWithSources(queryText, filters, limit);
+  return context;
 }
 
 module.exports = {
@@ -152,5 +180,6 @@ module.exports = {
   chunkText,
   syncDocument,
   retrieveContext,
+  retrieveContextWithSources,
   isGeminiConfigured,
 };
