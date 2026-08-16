@@ -227,6 +227,35 @@ const testConnection = async (req, res) => {
   }
 };
 
+const getAllMajors = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("major")
+      .select("*")
+      .order("department", { ascending: true })
+      .order("major_name", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch majors",
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
 const loginStudent = async (req, res) => {
   try {
     const { student_id, email, identifier, password } = req.body;
@@ -2789,6 +2818,7 @@ const deleteCommunityPostHandler = async (req, res) => {
 };
 
 module.exports = {
+  getAllMajors,
   getAllStudents,
   requestStudentDeletion,
   hardDeleteStudent,

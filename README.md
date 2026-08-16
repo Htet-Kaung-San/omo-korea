@@ -271,6 +271,7 @@ Apply these once (safe to re-run where noted):
 6. `backend/supabase/notice_source.sql` — notice `source` / `source_url` for scraped boards
 7. `backend/supabase/extracurricular_program_descriptions.sql` — single `description` column for program body
 8. `backend/supabase/post_engagement_and_schedule.sql` — post likes/reports + course schedule columns
+9. `backend/supabase/community_major_migration.sql` — group posts by parent major (one-time)
 
 Optional seed scripts (after migrations):
 

@@ -129,6 +129,18 @@ export const realApi: HeyPnuApi = {
     clearSessionUser()
   },
 
+  async getCampusFacilities(): Promise<CampusFacility[]> {
+    const res = await fetch(`${API_BASE}/students/campus-facilities`)
+    if (!res.ok) throw new Error('Failed to fetch campus facilities')
+    return res.json()
+  },
+
+  async getMajors(): Promise<{ data: MajorData[] }> {
+    const res = await fetch(`${API_BASE}/students/majors`)
+    if (!res.ok) throw new Error('Failed to fetch majors')
+    return res.json()
+  },
+
   async getMe(): Promise<User> {
     const user = getSessionUser()
     if (!user) {

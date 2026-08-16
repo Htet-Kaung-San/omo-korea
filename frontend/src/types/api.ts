@@ -55,6 +55,29 @@ export interface MajorRecommendationRequest {
   topN?: number;
 }
 
+export interface StudentProfile {
+  student_id: string
+  name: string
+  nationality: string
+  major_id?: number
+  major?: string
+  department?: string
+  student_type: 'Freshman' | 'Transfer' | 'Exchange' | 'Current'
+  visa_status: string
+  language_pref: string
+  is_in_korea: boolean
+  mbti?: string
+  d2_semester?: number
+  completed_courses?: string[]
+  intake_term?: string
+}
+
+export interface MajorData {
+  major_id: number;
+  major_name: string;
+  department: string;
+}
+
 export interface UpdateProfileRequest {
   name: string
   nationality: string
@@ -556,6 +579,8 @@ export interface HeyPnuApi {
   likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
   deleteCommunityPost(postId: string): Promise<{ id: string }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
+  getCampusFacilities(): Promise<CampusFacility[]>
+  getMajors(): Promise<{ data: MajorData[] }>
   getMapFacilities(): Promise<MapFacility[]>
   getMapFacility(id: string): Promise<MapFacility>
   getAcademicRecords(): Promise<AcademicRecords>

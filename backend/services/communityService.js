@@ -8,7 +8,11 @@ function normalize(value) {
 }
 
 function studentMajorName(user) {
-  return String(user?.major_name || user?.major || "").trim();
+  const raw = String(user?.major_name || user?.major || "").trim();
+  if (raw.includes("-")) {
+    return raw.split("-")[0].trim();
+  }
+  return raw;
 }
 
 function slugifyLabel(raw) {
