@@ -2,6 +2,13 @@ name: PR CI
 
 on:
   pull_request:
+  # Also run on main after a merge. Twice now (#24, #27) a merge resolution has
+  # interleaved two versions of a file without producing conflict markers, so
+  # git reported a clean merge while leaving code that does not compile. Because
+  # this workflow only listened to pull_request, nothing rechecked main
+  # afterwards and the breakage sat undetected for hours.
+  push:
+    branches: [main]
 
 permissions:
   contents: read
