@@ -106,7 +106,7 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      const response = await verifyLogin({
+      const loggedInUser = await verifyLogin({
         challengeId,
         code: otpCode.trim(),
       })
@@ -121,7 +121,7 @@ export function LoginPage() {
       setSelectedCollege('')
       // verifyLogin resolves to the signed-in user itself, so a student who
       // already picked a major skips straight to the year step.
-      if (response?.major) {
+      if (loggedInUser.major) {
         setStep('year')
       } else {
         setStep('major')

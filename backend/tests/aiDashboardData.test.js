@@ -3,10 +3,10 @@ const {
   fetchDashboardCatalogs,
 } = require('../ai/supabaseDataRepository');
 
-function createSupabaseStub(rows) {
+function createSupabaseStub(rows, errors = {}) {
   return {
     from(tableName) {
-      if (tableName === 'notice') {
+      if (tableName === 'notice' || tableName === 'course') {
         return {
           select: () => ({
             order: () => ({
@@ -20,7 +20,7 @@ function createSupabaseStub(rows) {
         };
       }
       return {
-        select: () => Promise.resolve({ data: rows[tableName] || [], error: null }),
+        select: () => Promise.resolve({ data: rows[tableName] || [], error: errors[tableName] || null }),
       };
     },
   };
@@ -158,6 +158,34 @@ describe('fetchDashboardCatalogs', () => {
         majors: 'empty',
       }),
     );
+  });
+
+  it('uses verified scholarship notices when the legacy scholarship table is absent', async () => {
+    const supabase = createSupabaseStub({
+      course: [],
+      scholarship: [],
+      extracurricular_program: [],
+      notice: [{
+        notice_id: 239,
+        title: '[장학] 국가장학금 신청 안내',
+        content: 'See the official application notice.',
+        source: 'pnu-main',
+        source_url: 'https://www.pusan.ac.kr/example',
+      }],
+      major: [],
+    }, {
+      scholarship: { code: 'PGRST205', message: 'table not found' },
+    });
+
+    const catalogs = await fetchDashboardCatalogs(supabase, { language: 'en' });
+
+    expect(catalogs.scholarships).toEqual([
+      expect.objectContaining({
+        id: 'notice-239',
+        title: '[장학] 국가장학금 신청 안내',
+        sourceUrl: 'https://www.pusan.ac.kr/example',
+      }),
+    ]);
   });
 });
 

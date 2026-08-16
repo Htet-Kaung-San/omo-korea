@@ -124,10 +124,10 @@ export function DayClassList({ classes, embedded = false }: DayClassListProps) {
                   <p className="mt-0.5 text-[12px] font-medium text-pnu-muted">
                     {slot.start} – {slot.end}
                   </p>
-                  {enrollment.classroom ? (
+                  {(slot.classroom || enrollment.classroom) ? (
                     <p className="mt-1 inline-flex max-w-full items-center gap-1 text-[11px] font-medium text-pnu-muted">
                       <MapPin className="h-3 w-3 shrink-0 text-pnu-blue/70" />
-                      <span className="truncate">{enrollment.classroom}</span>
+                      <span className="truncate">{slot.classroom || enrollment.classroom}</span>
                     </p>
                   ) : null}
                 </div>

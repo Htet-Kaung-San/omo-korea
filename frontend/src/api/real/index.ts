@@ -10,7 +10,10 @@ import type {
   ChecklistItem,
   ChecklistPayload,
   Course,
+  CourseCatalogPage,
+  CourseCatalogParams,
   CourseType,
+  CreateTimetableEntryInput,
   EmergencyGuide,
   Enrollment,
   FaqItem,
@@ -34,6 +37,7 @@ import type {
   PnuContact,
   RecommendedCourse,
   ScholarshipItem,
+  TimetableEntry,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
@@ -47,6 +51,7 @@ import {
   mapBackendStudent,
   mapChecklistItem,
   mapChecklistPayload,
+  mapCourseCatalogItem,
   mapNotice,
   mapAcademicRecords,
   mapFaqItem,
@@ -174,15 +179,68 @@ export const realApi: HeyPnuApi = {
   },
   async getRecommendedCourses(
     type?: CourseType | 'ALL',
+    term?: {
+      academicYear: number
+      semester: '1' | '2' | 'SUMMER' | 'WINTER'
+      offeredOnly?: boolean
+    },
   ): Promise<RecommendedCourse[]> {
+    const query = new URLSearchParams()
+    if (term) {
+      query.set('academicYear', String(term.academicYear))
+      query.set('semester', term.semester)
+      if (term.offeredOnly) query.set('offeredOnly', 'true')
+    }
+    const suffix = query.size ? `?${query.toString()}` : ''
     const courses = await backendFetch<Parameters<typeof mapRecommendedCourse>[0][]>(
-      '/students/course-recommendations',
+      `/students/course-recommendations${suffix}`,
     )
     const mappedCourses = courses.map(mapRecommendedCourse)
 
     return type && type !== 'ALL'
       ? mappedCourses.filter((course) => course.type === type)
       : mappedCourses
+  },
+
+  async getCourseCatalog(params: CourseCatalogParams = {}): Promise<CourseCatalogPage> {
+    const query = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value))
+      }
+    }
+    const suffix = query.size ? `?${query.toString()}` : ''
+    const page = await backendFetch<{
+      items: Parameters<typeof mapCourseCatalogItem>[0][]
+      page: number
+      pageSize: number
+      total: number
+      totalPages: number
+      hasMore: boolean
+    }>(`/students/course-catalog${suffix}`)
+    return { ...page, items: page.items.map(mapCourseCatalogItem) }
+  },
+
+  async getTimetable(params = {}): Promise<TimetableEntry[]> {
+    const query = new URLSearchParams()
+    if (params.academicYear) query.set('academicYear', String(params.academicYear))
+    if (params.semester) query.set('semester', params.semester)
+    const suffix = query.size ? `?${query.toString()}` : ''
+    return backendFetch<TimetableEntry[]>(`/students/timetable${suffix}`)
+  },
+
+  async createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry> {
+    return backendFetch<TimetableEntry>('/students/timetable', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async deleteTimetableEntry(timetableEntryId: number): Promise<void> {
+    await backendFetch<{ timetableEntryId: number }>(
+      `/students/timetable/${timetableEntryId}`,
+      { method: 'DELETE' },
+    )
   },
 
   async getGraduationProgress(): Promise<GraduationProgress> {
@@ -498,6 +556,13 @@ export const realApi: HeyPnuApi = {
         student_id: studentId,
         course_id: courseId,
       }),
+    })
+  },
+
+  async addPastCourse(courseId: number, semester: string): Promise<Enrollment> {
+    return backendFetch<Enrollment>('/students/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({ course_id: courseId, semester, status: 'Completed' }),
     })
   },
 

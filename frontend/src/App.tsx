@@ -10,6 +10,7 @@ import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
+import { AssignmentsPage } from '@/pages/AssignmentsPage'
 import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
 import { CreditsPage } from '@/pages/CreditsPage'
 import { ChecklistPage } from '@/pages/ChecklistPage'
@@ -81,6 +82,7 @@ function AppRoutes() {
       >
         <Route index element={<HomePage />} />
         <Route path="schedule" element={<AcademicPage />} />
+        <Route path="schedule/assignments" element={<AssignmentsPage />} />
         <Route path="ai" element={<AiAssistantPage />} />
         <Route path="map" element={<CampusMapPage />} />
         <Route path="map/:facilityId" element={<FacilityDetailPage />} />

@@ -141,7 +141,34 @@ function mapScholarshipRow(row, language = "en") {
     category: row.category ?? null,
     tag: row.tag ?? null,
     deadlineAt: row.deadline_at ?? row.deadlineAt ?? null,
+    sourceUrl: row.source_url ?? row.sourceUrl ?? null,
   };
+}
+
+function isMissingTableError(error) {
+  return error?.code === "PGRST205" || /could not find the table/i.test(error?.message || "");
+}
+
+function isScholarshipNotice(row) {
+  return /장학|scholarship|학자금|등록금\s*지원/i.test(
+    `${row?.title || ""} ${row?.content || ""}`,
+  );
+}
+
+function mapScholarshipNotice(row, language = "en") {
+  const localized = localizeRow(row, language, ["title", "content"]);
+  return mapScholarshipRow(
+    {
+      id: `notice-${row.notice_id}`,
+      title: localized.title || row.title,
+      content: localized.content || row.content || "",
+      provider: noticeSourceLabel(row.source) || "PNU",
+      eligibility: "See the official notice for eligibility and application requirements.",
+      category: row.source === "cse" ? "department" : "other",
+      source_url: row.source_url,
+    },
+    language,
+  );
 }
 
 function normalizeSearchText(value) {
@@ -550,11 +577,36 @@ const getAllScholarships = async (req, res) => {
       .select("*")
       .order("deadline", { ascending: true });
 
-    if (error) {
+    if (error && !isMissingTableError(error)) {
       return res.status(500).json({
         success: false,
         message: "Failed to fetch scholarships",
         error: error.message,
+      });
+    }
+
+    // Some deployments have the legacy table but no rows. In that case the
+    // verified PNU scholarship notices are still the best available source.
+    if (isMissingTableError(error) || !Array.isArray(data) || data.length === 0) {
+      const { data: notices, error: noticeError } = await supabase
+        .from("notice")
+        .select("notice_id,title,content,posted_date,source,source_url")
+        .order("posted_date", { ascending: false })
+        .limit(500);
+      if (noticeError) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch scholarship notices",
+          error: noticeError.message,
+        });
+      }
+      const language = req.language || "en";
+      return res.json({
+        success: true,
+        data: (notices || [])
+          .filter(isScholarshipNotice)
+          .map((row) => mapScholarshipNotice(row, language)),
+        metadata: { source: "notice", verifiedOnly: true },
       });
     }
 
@@ -1843,17 +1895,26 @@ const getNotifications = async (req, res) => {
 
 const getCourses = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("course")
-      .select("*")
-      .order("course_name", { ascending: true });
-    if (error)
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch courses",
-        error: error.message,
-      });
-    res.json({ success: true, data });
+    const rows = [];
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from("course")
+        .select("*")
+        .order("course_id", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch courses",
+          error: error.message,
+        });
+      }
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
+    rows.sort((a, b) => String(a.course_name).localeCompare(String(b.course_name)));
+    res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1895,15 +1956,80 @@ const getEnrollments = async (req, res) => {
         error: error.message,
       });
 
-    // Flat map course values
+    const courseNames = [...new Set((data || []).map((item) => item.course?.course_name).filter(Boolean))];
+    let duplicateCourses = [];
+    if (courseNames.length > 0) {
+      try {
+        const duplicateResult = await supabase
+          .from("course")
+          .select("course_id,course_name,course_name_en,official_course_number,major_id")
+          .in("course_name", courseNames);
+        if (!duplicateResult.error) duplicateCourses = duplicateResult.data || [];
+      } catch (_error) {
+        duplicateCourses = [];
+      }
+    }
+    const officialByName = new Map();
+    for (const candidate of duplicateCourses) {
+      if (!candidate.official_course_number) continue;
+      if (!officialByName.has(candidate.course_name)) {
+        officialByName.set(candidate.course_name, candidate);
+      }
+    }
+    const officialCourseIds = [...officialByName.values()].map((row) => row.course_id);
+    let offeringRows = [];
+    if (officialCourseIds.length > 0) {
+      try {
+        const offeringResult = await supabase
+          .from("course_offering")
+          .select("course_id,official_course_number,academic_year,semester,professor,schedule,classroom")
+          .in("course_id", officialCourseIds)
+          .order("academic_year", { ascending: false });
+        if (!offeringResult.error) offeringRows = offeringResult.data || [];
+      } catch (_error) {
+        offeringRows = [];
+      }
+    }
+    const offeringsByCourseId = new Map();
+    for (const offering of offeringRows) {
+      const key = String(offering.course_id);
+      if (!offeringsByCourseId.has(key)) offeringsByCourseId.set(key, []);
+      offeringsByCourseId.get(key).push(offering);
+    }
+
+    // Flat map course values and enrich legacy rows only with verified matches.
     const list = (data || []).map((item) => {
       const { course, ...rest } = item;
+      const officialMatch = officialByName.get(course?.course_name);
+      const termMatch = String(item.semester || "").match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/i);
+      const termSemester = termMatch
+        ? ({ spring: "1", summer: "SUMMER", fall: "2", winter: "WINTER" })[termMatch[2].toLowerCase()]
+        : null;
+      const offerings = offeringsByCourseId.get(String(officialMatch?.course_id)) || [];
+      const offering = offerings.find((row) =>
+        Number(row.academic_year) === Number(termMatch?.[1])
+        && String(row.semester).toUpperCase() === String(termSemester).toUpperCase(),
+      ) || offerings[0] || null;
+      const bilingual = String(course?.course_name || "").match(/^(.*?)\s*\(([^()]*)\)\s*$/);
       return {
         ...rest,
         course_name: course?.course_name ?? "Unknown Course",
+        course_name_en: course?.course_name_en ?? bilingual?.[1]?.trim() ?? null,
+        course_name_ko: bilingual?.[2]?.trim() ?? null,
+        official_course_number:
+          course?.official_course_number
+          ?? officialMatch?.official_course_number
+          ?? offering?.official_course_number
+          ?? null,
+        catalog_course_id: officialMatch?.course_id ?? course?.course_id ?? item.course_id,
         credit: course?.credit ?? 0,
         category: course?.category ?? "GEN_ED",
-        classroom: course?.classroom ?? "Main Campus",
+        professor: offering?.professor ?? null,
+        schedule: offering?.schedule ?? null,
+        classroom: offering?.classroom ?? course?.classroom ?? null,
+        day_of_week: course?.day_of_week ?? null,
+        start_time: course?.start_time ?? null,
+        end_time: course?.end_time ?? null,
       };
     });
 
@@ -1919,9 +2045,14 @@ const getEnrollments = async (req, res) => {
 
 const createEnrollment = async (req, res) => {
   try {
-    // Fallbacks for token and camelCase keys
-    const student_id = req.body.student_id || req.user?.student_id;
+    // Enrollment ownership always comes from the authenticated token.
+    const student_id = req.user?.student_id;
     const course_id = req.body.course_id || req.body.courseId;
+    const requestedStatus = String(req.body.status || "Enrolled");
+    const status = requestedStatus.toLowerCase() === "completed" ? "Completed" : "Enrolled";
+    const now = new Date();
+    const currentSemester = `${now.getFullYear()}-${now.getMonth() + 1 >= 7 ? "Fall" : "Spring"}`;
+    const semester = String(req.body.semester || currentSemester);
 
     if (!student_id || !course_id) {
       return res
@@ -1931,6 +2062,27 @@ const createEnrollment = async (req, res) => {
           message: `Missing student_id or course_id (Received student_id: ${student_id}, course_id: ${course_id})`,
           received: { student_id, course_id, body: req.body }
         });
+    }
+
+    if (!/^\d{4}-(Spring|Summer|Fall|Winter)$/.test(semester)) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester must use YYYY-Spring, YYYY-Summer, YYYY-Fall, or YYYY-Winter.",
+      });
+    }
+    if (status === "Completed") {
+      const [, yearText, termText] = semester.match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/);
+      const termOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4 };
+      const requestedRank = Number(yearText) * 10 + termOrder[termText];
+      const now = new Date();
+      const currentTerm = now.getMonth() + 1 >= 7 ? 3 : 1;
+      const currentRank = now.getFullYear() * 10 + currentTerm;
+      if (requestedRank >= currentRank) {
+        return res.status(400).json({
+          success: false,
+          message: "A past course must be from an earlier academic term.",
+        });
+      }
     }
 
     // Check if already enrolled
@@ -1960,35 +2112,36 @@ const createEnrollment = async (req, res) => {
       });
     }
 
-    // Fetch existing enrollments to check overlaps
-    const { data: currentEnrollments, error: enrollError } = await supabase
-      .from("enrollment")
-      .select(`
-        *,
-        course:course_id (
-          *
-        )
-      `)
-      .eq("student_id", student_id);
+    if (status === "Enrolled") {
+      // Official/current enrollment keeps the legacy schedule-conflict guard.
+      const { data: currentEnrollments, error: enrollError } = await supabase
+        .from("enrollment")
+        .select(`
+          *,
+          course:course_id (
+            *
+          )
+        `)
+        .eq("student_id", student_id);
 
-    if (enrollError) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to verify schedule conflicts",
-        error: enrollError.message,
-      });
-    }
+      if (enrollError) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to verify schedule conflicts",
+          error: enrollError.message,
+        });
+      }
 
-    // Verify schedule overlaps
-    if (targetCourse.day_of_week && targetCourse.start_time && targetCourse.end_time) {
-      for (const en of (currentEnrollments || [])) {
-        const c = en.course;
-        if (c && c.day_of_week === targetCourse.day_of_week) {
-          if (targetCourse.start_time < c.end_time && c.start_time < targetCourse.end_time) {
-            return res.status(400).json({
-              success: false,
-              message: `Schedule Conflict: Overlaps with ${c.course_name || "Enrolled Course"} (${c.day_of_week} ${c.start_time}-${c.end_time})`,
-            });
+      if (targetCourse.day_of_week && targetCourse.start_time && targetCourse.end_time) {
+        for (const en of (currentEnrollments || [])) {
+          const c = en.course;
+          if (c && c.day_of_week === targetCourse.day_of_week) {
+            if (targetCourse.start_time < c.end_time && c.start_time < targetCourse.end_time) {
+              return res.status(400).json({
+                success: false,
+                message: `Schedule Conflict: Overlaps with ${c.course_name || "Enrolled Course"} (${c.day_of_week} ${c.start_time}-${c.end_time})`,
+              });
+            }
           }
         }
       }
@@ -1997,10 +2150,10 @@ const createEnrollment = async (req, res) => {
     const { data, error } = await supabase
       .from("enrollment")
       .insert({
-        student_id: String(student_id),
+        student_id: Number(student_id),
         course_id: Number(course_id),
-        semester: "2026-Fall",
-        status: "Enrolled",
+        semester,
+        status,
       })
       .select()
       .single();
@@ -2025,10 +2178,25 @@ const createEnrollment = async (req, res) => {
 const deleteEnrollment = async (req, res) => {
   try {
     const { enrollment_id } = req.params;
+    const { data: enrollment, error: lookupError } = await supabase
+      .from("enrollment")
+      .select("enrollment_id,student_id")
+      .eq("enrollment_id", Number(enrollment_id))
+      .maybeSingle();
+    if (lookupError) {
+      return res.status(500).json({ success: false, message: "Failed to find course record" });
+    }
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Course record not found" });
+    }
+    if (String(enrollment.student_id) !== String(req.user?.student_id)) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
     const { error } = await supabase
       .from("enrollment")
       .delete()
-      .eq("enrollment_id", Number(enrollment_id));
+      .eq("enrollment_id", Number(enrollment_id))
+      .eq("student_id", Number(req.user.student_id));
     if (error)
       return res.status(500).json({
         success: false,

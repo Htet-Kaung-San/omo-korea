@@ -1,5 +1,4 @@
-import type { Enrollment } from '@/types/api'
-import { getCourseSchedule, type ScheduledSlot } from '@/data/courseSchedules'
+import type { Enrollment, TimetableEntry } from '@/types/api'
 
 export interface TimeSlot {
   day: number // 1: Mon, ..., 5: Fri
@@ -7,8 +6,15 @@ export interface TimeSlot {
   end: string // "10:30"
 }
 
+export interface ScheduledSlot extends TimeSlot {
+  dayLabel: string
+  classroom?: string | null
+}
+
+export type ScheduleItem = Enrollment | TimetableEntry
+
 export interface NextClassInfo {
-  enrollment: Enrollment
+  enrollment: ScheduleItem
   slot: ScheduledSlot
   startsInMinutes: number
   isToday: boolean
@@ -17,7 +23,7 @@ export interface NextClassInfo {
 export type ClassStatus = 'completed' | 'now' | 'upcoming'
 
 export interface DayClassItem {
-  enrollment: Enrollment
+  enrollment: ScheduleItem
   slot: ScheduledSlot
   status: ClassStatus
   startsInMinutes: number | null
@@ -39,6 +45,40 @@ export interface DaySummary {
 function parseMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m
+}
+
+const DAY_NUMBER: Record<string, number> = {
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+  Sun: 7,
+}
+
+const DAY_LABEL = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+export function getScheduleSlots(item: ScheduleItem): ScheduledSlot[] {
+  if ('slots' in item && Array.isArray(item.slots)) {
+    return item.slots.map((slot) => ({
+      day: slot.day,
+      dayLabel: DAY_LABEL[slot.day] || '',
+      start: slot.start,
+      end: slot.end,
+      classroom: slot.classroom ?? null,
+    }))
+  }
+  const enrollment = item as Enrollment
+  const day = enrollment.day_of_week ? DAY_NUMBER[enrollment.day_of_week] : null
+  if (!day || !enrollment.start_time || !enrollment.end_time) return []
+  return [{
+    day,
+    dayLabel: DAY_LABEL[day],
+    start: enrollment.start_time.slice(0, 5),
+    end: enrollment.end_time.slice(0, 5),
+    classroom: enrollment.classroom ?? null,
+  }]
 }
 
 /** JS getDay(): 0 Sun … 6 Sat → timetable day 1 Mon … 5 Fri (0 if weekend) */
@@ -105,7 +145,7 @@ export function getMonthGrid(year: number, month: number): MonthCell[] {
 
 /** Day-of-month numbers in this month that have at least one class. */
 export function getClassDayNumbers(
-  enrollments: Enrollment[],
+  enrollments: ScheduleItem[],
   year: number,
   month: number,
 ): Set<number> {
@@ -156,7 +196,7 @@ export function getClassStatus(
 
 /** Classes scheduled on a timetable day (1–5), sorted by start time. */
 export function getClassesForDay(
-  enrollments: Enrollment[],
+  enrollments: ScheduleItem[],
   day: number,
   selectedDate: Date,
   now = new Date(),
@@ -166,7 +206,7 @@ export function getClassesForDay(
   const currentMinutes = now.getHours() * 60 + now.getMinutes()
 
   for (const enrollment of enrollments) {
-    const slots = getCourseSchedule(enrollment.course_id)
+    const slots = getScheduleSlots(enrollment)
     for (const slot of slots) {
       if (slot.day !== day) continue
       const status = getClassStatus(slot, selectedDate, now)
@@ -214,7 +254,7 @@ export function slotsOverlap(s1: TimeSlot, s2: TimeSlot): boolean {
 /**
  * Find the next upcoming class from enrollments (today remaining, else soonest later this week).
  */
-export function getNextClass(enrollments: Enrollment[], now = new Date()): NextClassInfo | null {
+export function getNextClass(enrollments: ScheduleItem[], now = new Date()): NextClassInfo | null {
   if (enrollments.length === 0) return null
 
   const currentDay = toTimetableDay(now.getDay())
@@ -225,7 +265,7 @@ export function getNextClass(enrollments: Enrollment[], now = new Date()): NextC
   const candidates: Candidate[] = []
 
   for (const enrollment of enrollments) {
-    const slots = getCourseSchedule(enrollment.course_id)
+    const slots = getScheduleSlots(enrollment)
     for (const slot of slots) {
       let dayOffset: number
       if (currentDay === 0) {

@@ -1,8 +1,6 @@
-import type { Enrollment } from "@/types/api";
+import { getScheduleSlots, type ScheduleItem } from "@/utils/timetable";
 
-import { COURSE_SCHEDULES } from "@/data/courseSchedules";
-
-export function generateIcsString(enrollments: Enrollment[]): string {
+export function generateIcsString(enrollments: ScheduleItem[]): string {
   if (enrollments.length === 0) return "";
 
   const icsContent = [
@@ -14,8 +12,7 @@ export function generateIcsString(enrollments: Enrollment[]): string {
   ];
 
   enrollments.forEach((enrollment) => {
-    const courseId = Number(enrollment.course_id);
-    const slots = COURSE_SCHEDULES[courseId] || [];
+    const slots = getScheduleSlots(enrollment);
 
     slots.forEach((slot, index) => {
       // Mon = Sep 7, Tue = Sep 8, Wed = Sep 9, Thu = Sep 10, Fri = Sep 11, 2026
@@ -51,7 +48,7 @@ export function generateIcsString(enrollments: Enrollment[]): string {
   return icsContent.join("\r\n");
 }
 
-export function exportTimetableToIcs(enrollments: Enrollment[]): void {
+export function exportTimetableToIcs(enrollments: ScheduleItem[]): void {
   const content = generateIcsString(enrollments);
   if (!content) return;
 
