@@ -37,8 +37,15 @@ export function AddTimetableModal({
     course.offerings.length === 1 ? course.offerings[0].courseOfferingId : null,
   )
   const [manual, setManual] = useState(course.offerings.length === 0)
+  // Deliberately blank rather than a plausible-looking default. This editor is
+  // shown whenever a course has no offering to read a time from — which is every
+  // course for a major with no offerings this term — and accepting a prefilled
+  // "Mon 09:00-10:30" silently writes an invented meeting time that then renders
+  // indistinguishably from a real one. An empty field is rejected by
+  // normalizeSlot with "needs a valid start time before its end time", so the
+  // student is asked rather than guessed at.
   const [slots, setSlots] = useState<TimetableSlotInput[]>([
-    { day: 1, start: '09:00', end: '10:30', classroom: '' },
+    { day: 1, start: '', end: '', classroom: '' },
   ])
 
   const selectedOffering = useMemo(

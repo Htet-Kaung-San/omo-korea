@@ -138,6 +138,33 @@ async function listCourseCatalog(supabase, options = {}) {
     })
     : [];
   courses = filterCoursesByOffering(courses, offeringRows, options.offeredOnly === true);
+
+  // The catalog table holds the same course under more than one id — major 105
+  // has 32 rows covering only 16 distinct names. The name-based major fallback
+  // above then resolves both copies onto the same major, so the default
+  // "my major only" tab listed every course twice, adjacent, which reads as a
+  // broken query. Collapse by name, keeping the row whose major_id is real
+  // rather than inferred, and the lower id as a stable tie-break.
+  const byName = new Map();
+  for (const course of courses) {
+    const key = normalizeText(course.raw?.course_name || course.nameEn || course.nameKo);
+    if (!key) continue;
+    const existing = byName.get(key);
+    if (!existing) {
+      byName.set(key, course);
+      continue;
+    }
+    const existingIsExplicit = existing.raw?.major_id != null;
+    const candidateIsExplicit = course.raw?.major_id != null;
+    if (candidateIsExplicit && !existingIsExplicit) {
+      byName.set(key, course);
+    } else if (candidateIsExplicit === existingIsExplicit
+      && Number(course.id) < Number(existing.id)) {
+      byName.set(key, course);
+    }
+  }
+  courses = [...byName.values()];
+
   courses.sort((a, b) =>
     String(a.nameEn || a.nameKo).localeCompare(String(b.nameEn || b.nameKo))
     || Number(a.id) - Number(b.id));

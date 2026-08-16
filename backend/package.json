@@ -25,7 +25,7 @@
     "test:pnu-course-rollback:integration": "node scripts/test-pnu-course-rollback-integration.mjs",
     "test:live-api": "node scripts/run-live-api-tests.mjs",
     "validate:engineering-courses": "node scripts/validate-engineering-courses.mjs",
-    "dry-run:business-curriculum": "node scripts/apply-business-curriculum.mjs",
+    "apply:business-curriculum": "node scripts/apply-business-curriculum.mjs",
     "dry-run:business-course-offerings": "node scripts/dry-run-business-course-offerings.mjs",
     "apply:business-course-offerings": "node scripts/apply-business-course-offerings.mjs",
     "prescrape:cafeteria": "node scripts/prescrape-cafeteria.js",

@@ -96,7 +96,15 @@ function mapCourseMetadataRow(row) {
 
 function mapCourseRow(row, language = 'en') {
   const storedName = row.course_name || row.course_name_en || '';
-  const bilingual = String(storedName).match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  // "English (한국어)" splits into two names, but a trailing parenthetical is
+  // only the Korean half when it actually contains Hangul. 492 of the 1,924
+  // live course rows end in a sequence marker instead — 재무회계(I),
+  // 일반물리학(I), 종합설계과제(Capstone 2) — and splitting those blindly left
+  // nameKo as the literal string "I". Since the Korean UI renders nameKo as the
+  // card heading, a quarter of the catalog displayed as "I" / "II", and the
+  // recommendation engine canonicalised every one of them to the same token.
+  const bilingualMatch = String(storedName).match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  const bilingual = bilingualMatch && /[가-힣]/.test(bilingualMatch[2]) ? bilingualMatch : null;
   const nameKo = bilingual?.[2]?.trim() || row.course_name || row.course_name_en || '';
   const nameEn = row.course_name_en || bilingual?.[1]?.trim() || row.course_name || '';
   const title = String(language).toLowerCase().startsWith('ko') ? nameKo : nameEn;

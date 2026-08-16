@@ -2010,7 +2010,12 @@ const getEnrollments = async (req, res) => {
         Number(row.academic_year) === Number(termMatch?.[1])
         && String(row.semester).toUpperCase() === String(termSemester).toUpperCase(),
       ) || offerings[0] || null;
-      const bilingual = String(course?.course_name || "").match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+      // Same guard as mapCourseRow in ai/supabaseDataRepository.js: only treat a
+      // trailing parenthetical as the Korean name when it contains Hangul, or
+      // 재무회계(I) yields course_name_ko "I".
+      const bilingualMatch = String(course?.course_name || "").match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+      const bilingual =
+        bilingualMatch && /[가-힣]/.test(bilingualMatch[2]) ? bilingualMatch : null;
       return {
         ...rest,
         course_name: course?.course_name ?? "Unknown Course",

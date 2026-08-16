@@ -75,17 +75,40 @@ function parseOfferingSchedule(schedule, defaultClassroom = null) {
   const text = String(schedule || '').normalize('NFKC').trim();
   if (!text) return [];
   const slots = [];
-  const pattern = /(Mon|Tue|Wed|Thu|Fri|Sat|Sun|[월화수목금토일])\s*(\d{1,2}:\d{2})\s*\((\d{1,3})\)(?:\s*([^,;]+))?/gu;
+  // PNU publishes two schedule forms. The duration form "월 09:00(90) 514-313"
+  // was already handled; the range form "월 15:00-18:00 514-313" was not, so 16
+  // of the 104 live 2026-2 offerings parsed to zero slots and silently fell
+  // through to the manual editor — including AI비즈니스 and 외환관리론, two of
+  // the fifteen offerings this branch imports.
+  const DAY = '(Mon|Tue|Wed|Thu|Fri|Sat|Sun|[월화수목금토일])';
+  const pattern = new RegExp(
+    `${DAY}\\s*(\\d{1,2}:\\d{2})\\s*(?:\\((\\d{1,3})\\)|-\\s*(\\d{1,2}:\\d{2}))(?:\\s*([^,;]+))?`,
+    'gu',
+  );
   for (const match of text.matchAll(pattern)) {
     const day = DAY_NUMBERS[match[1]];
     const startMinutes = timeToMinutes(match[2]);
-    const duration = Number(match[3]);
-    if (!day || startMinutes === null || !Number.isInteger(duration) || duration <= 0) continue;
+    if (!day || startMinutes === null) continue;
+
+    let endMinutes = null;
+    if (match[3] !== undefined) {
+      const duration = Number(match[3]);
+      if (!Number.isInteger(duration) || duration <= 0) continue;
+      endMinutes = startMinutes + duration;
+    } else if (match[4] !== undefined) {
+      endMinutes = timeToMinutes(match[4]);
+      // A range that does not move forward is unusable; skip rather than emit a
+      // zero-length or inverted slot.
+      if (endMinutes === null || endMinutes <= startMinutes) continue;
+    } else {
+      continue;
+    }
+
     slots.push({
       day,
       start: minutesToTime(startMinutes),
-      end: minutesToTime(startMinutes + duration),
-      classroom: String(match[4] || defaultClassroom || '').trim() || null,
+      end: minutesToTime(endMinutes),
+      classroom: String(match[5] || defaultClassroom || '').trim() || null,
     });
   }
   return slots;
