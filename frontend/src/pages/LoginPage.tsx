@@ -119,7 +119,9 @@ export function LoginPage() {
       }
       setSelectedMajor('')
       setSelectedCollege('')
-      if (response.user?.major) {
+      // verifyLogin resolves to the signed-in user itself, so a student who
+      // already picked a major skips straight to the year step.
+      if (response?.major) {
         setStep('year')
       } else {
         setStep('major')

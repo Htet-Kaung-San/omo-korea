@@ -25,6 +25,7 @@ import type {
   HeyPnuApi,
   LoginChallengeResponse,
   LoginRequest,
+  MajorData,
   MajorRecommendationRequest,
   MajorRecommendationResponse,
   VerifyLoginRequest,
@@ -129,16 +130,16 @@ export const realApi: HeyPnuApi = {
     clearSessionUser()
   },
 
-  async getCampusFacilities(): Promise<CampusFacility[]> {
-    const res = await fetch(`${API_BASE}/students/campus-facilities`)
-    if (!res.ok) throw new Error('Failed to fetch campus facilities')
-    return res.json()
-  },
+  // getCampusFacilities already exists further down, written against
+  // backendFetch and the CampusFacilities response shape. The duplicate that
+  // used to sit here came in with #29 and called a bare fetch on an undefined
+  // API_BASE, which also skipped the Authorization header.
 
   async getMajors(): Promise<{ data: MajorData[] }> {
-    const res = await fetch(`${API_BASE}/students/majors`)
-    if (!res.ok) throw new Error('Failed to fetch majors')
-    return res.json()
+    // Routed through backendFetch like every other call: it resolves the base
+    // URL, attaches the bearer token and unwraps { success, data }.
+    const majors = await backendFetch<MajorData[]>('/students/majors')
+    return { data: majors }
   },
 
   async getMe(): Promise<User> {
