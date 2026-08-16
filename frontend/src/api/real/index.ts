@@ -402,8 +402,10 @@ export const realApi: HeyPnuApi = {
     }
   },
 
-  async getScholarships(): Promise<ScholarshipItem[]> {
-    const scholarships = await backendFetch<ScholarshipItem[]>('/students/scholarships')
+  async getScholarships(options = {}): Promise<ScholarshipItem[]> {
+    const scholarships = await backendFetch<ScholarshipItem[]>('/students/scholarships', {
+      suppressToast: options.suppressToast,
+    })
     return scholarships.map(mapScholarshipItem)
   },
 

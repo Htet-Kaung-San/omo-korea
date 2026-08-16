@@ -1,5 +1,6 @@
 import type { ApiError } from '@/types/api'
 import { emitToast } from '@/context/ToastContext'
+import { translateStatic } from '@/context/LanguageContext'
 import { getAcceptLanguage } from './headers'
 import { clearSessionUser } from './real/session'
 
@@ -65,8 +66,20 @@ export async function apiFetch<T>(
       headers,
     })
   } catch {
+    // Two audiences. The thrown error keeps the developer-facing wording for
+    // logs and for callers that inspect it; the toast gets something a student
+    // can act on. "Check that the API server is running" was being shown to
+    // users on any dropped connection.
     const message = 'Network error. Check that the API server is running.'
-    if (!suppressToast) emitToast(message, 'error')
+    if (!suppressToast) {
+      emitToast(
+        translateStatic(
+          'errors.network',
+          'Cannot reach the server. Check your connection and try again.',
+        ),
+        'error',
+      )
+    }
     throw new HttpError(message, 0, 'NETWORK_ERROR')
   }
 
@@ -88,7 +101,21 @@ export async function apiFetch<T>(
       window.dispatchEvent(new Event(AUTH_SESSION_CLEARED_EVENT))
     }
 
-    if (!suppressToast) emitToast(message, 'error')
+    if (!suppressToast) {
+      // 4xx messages are written for the person reading them ("Invalid
+      // verification code"), so they are shown as-is. 5xx messages describe the
+      // server's own failure ("Failed to fetch scholarships", "Could not find
+      // the table 'public.scholarship'") and mean nothing to a student.
+      emitToast(
+        response.status >= 500
+          ? translateStatic(
+              'errors.serverError',
+              'Something went wrong on our side. Please try again shortly.',
+            )
+          : message,
+        'error',
+      )
+    }
     throw new HttpError(message, response.status, code)
   }
 

@@ -560,7 +560,12 @@ export interface HeyPnuApi {
   getMapFacility(id: string): Promise<MapFacility>
   getAcademicRecords(): Promise<AcademicRecords>
   getAiDashboard(): Promise<AiDashboard>
-  getScholarships(): Promise<ScholarshipItem[]>
+  /**
+   * `suppressToast` is for screens that already degrade on failure. The toast
+   * is raised inside apiFetch, before the caller's `.catch()` runs, so a
+   * caller that handles the error still gets a banner unless it opts out here.
+   */
+  getScholarships(options?: { suppressToast?: boolean }): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>
   getProgramDetail(programId: string): Promise<ProgramItem | null>
   getMemory(): Promise<string>

@@ -46,7 +46,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       if (!trimmed) return
 
       const id = ++toastId
-      setToasts((current) => [...current, { id, message: trimmed, tone }])
+      setToasts((current) => {
+        // One broken endpoint routinely fails several times at once — a screen
+        // may fetch it more than once, and React re-runs effects in
+        // development. Stacking the identical banner each time buried the
+        // bottom navigation behind three copies of the same message.
+        if (current.some((toast) => toast.message === trimmed && toast.tone === tone)) {
+          return current
+        }
+        return [...current, { id, message: trimmed, tone }]
+      })
       window.setTimeout(() => dismissToast(id), 4500)
     },
     [dismissToast],
