@@ -10,7 +10,9 @@ export function ForgotPasswordPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const { t } = useLanguage()
 
-  const [studentId, setStudentId] = useState("202455474")
+  // Starts empty. This used to be pre-filled with a real-looking student ID,
+  // which reads as someone's actual account on a public deployment.
+  const [identifier, setIdentifier] = useState("")
   const [error, setError] = useState("")
   const [successMsg, setSuccessMsg] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -31,14 +33,14 @@ export function ForgotPasswordPage() {
     setError("")
     setSuccessMsg("")
 
-    if (!studentId.trim()) {
-      setError("Please enter your Student ID.")
+    if (!identifier.trim()) {
+      setError(t("auth.resetIdentifierRequired"))
       return
     }
 
     setSubmitting(true)
     try {
-      const res = await api.forgotPassword(studentId.trim())
+      const res = await api.forgotPassword(identifier.trim())
       setSuccessMsg(
         `A password reset link has been sent to your email:\n${res.maskedEmail}\n\nPlease check your inbox and click the link to continue.`
       )
@@ -92,8 +94,8 @@ export function ForgotPasswordPage() {
           </h1>
           <p className="text-[13.5px] text-pnu-muted text-center leading-snug max-w-[260px]">
             {step === 1
-              ? "Enter your Student ID to receive a password reset link."
-              : "Check your university email inbox."}
+              ? t("auth.resetSubtitle")
+              : t("auth.resetSentSubtitle")}
           </p>
         </div>
 
@@ -104,16 +106,21 @@ export function ForgotPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="block text-[13px] font-semibold text-pnu-blue">
-                    Student ID
+                    {t("auth.resetIdentifierLabel")}
                   </label>
                   <input
                     type="text"
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    placeholder="e.g. 202455474"
+                    inputMode="email"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder={t("auth.resetIdentifierPlaceholder")}
                     className={inputCls}
+                    autoComplete="username"
                     autoFocus
                   />
+                  <p className="text-[12px] text-pnu-muted">
+                    {t("auth.resetIdentifierHint")}
+                  </p>
                 </div>
 
                 {error && (

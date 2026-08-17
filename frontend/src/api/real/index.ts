@@ -522,14 +522,16 @@ export const realApi: HeyPnuApi = {
     });
   },
 
-  async forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }> {
+  async forgotPassword(identifier: string): Promise<{ maskedEmail: string; code: string }> {
     const response = await apiFetch<{
       success: true
       maskedEmail: string
       code: string
     }>('/students/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ student_id: studentId }),
+      // Sent as `identifier`, matching login. The backend routes on whether the
+      // value contains '@', so either a school email or a student ID works.
+      body: JSON.stringify({ identifier }),
       suppressToast: true,
     })
 
