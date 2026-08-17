@@ -53,18 +53,35 @@ function createApp() {
 const forgot = (body) =>
   request(createApp()).post('/api/students/forgot-password').send(body);
 
+/** Records which column the lookup filtered on, so a test can assert the branch. */
 function mockStudent(row) {
+  const calls = { ilike: null, eq: null };
+  const result = Promise.resolve({
+    data: row,
+    error: row ? null : { message: 'not found' },
+  });
   const query = {
     select: jest.fn(() => query),
-    eq: jest.fn(() => query),
-    single: jest.fn(() => Promise.resolve({ data: row, error: row ? null : { message: 'not found' } })),
+    ilike: jest.fn((col, value) => {
+      calls.ilike = { col, value };
+      return query;
+    }),
+    eq: jest.fn((col, value) => {
+      calls.eq = { col, value };
+      return query;
+    }),
+    maybeSingle: jest.fn(() => result),
+    single: jest.fn(() => result),
   };
   mockSupabase.from.mockImplementation(() => query);
+  return calls;
 }
+
+const STUDENT = { student_id: 202455474, email: '202455474@pusan.ac.kr' };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockStudent({ student_id: 202455474, email: '202455474@pusan.ac.kr' });
+  mockStudent(STUDENT);
   mockGenerateLink.mockResolvedValue({
     data: { properties: { action_link: ACTION_LINK } },
     error: null,
@@ -138,9 +155,55 @@ describe('POST /api/students/forgot-password', () => {
     expect(mockSendPasswordResetEmail).not.toHaveBeenCalled();
   });
 
-  test('a missing student_id is a 400', async () => {
+  test('a missing identifier is a 400', async () => {
     const res = await forgot({});
     expect(res.status).toBe(400);
     expect(mockGenerateLink).not.toHaveBeenCalled();
+  });
+});
+
+// Students sign in with their school email, so the reset screen asks for the
+// same thing. Student ID still works for anyone with the old habit.
+describe('identifying the account', () => {
+  test('accepts a school email and looks it up case-insensitively', async () => {
+    const calls = mockStudent(STUDENT);
+
+    const res = await forgot({ email: '202455474@PUSAN.AC.KR' });
+
+    expect(res.status).toBe(200);
+    expect(calls.ilike).toEqual({ col: 'email', value: '202455474@PUSAN.AC.KR' });
+    expect(calls.eq).toBeNull();
+  });
+
+  test('still accepts a student ID', async () => {
+    const calls = mockStudent(STUDENT);
+
+    const res = await forgot({ student_id: '202455474' });
+
+    expect(res.status).toBe(200);
+    expect(calls.eq).toEqual({ col: 'student_id', value: '202455474' });
+    expect(calls.ilike).toBeNull();
+  });
+
+  test('routes a single identifier field by whether it contains @', async () => {
+    const asEmail = mockStudent(STUDENT);
+    await forgot({ identifier: '202455474@pusan.ac.kr' });
+    expect(asEmail.ilike?.col).toBe('email');
+
+    const asId = mockStudent(STUDENT);
+    await forgot({ identifier: '202455474' });
+    expect(asId.eq?.col).toBe('student_id');
+  });
+
+  test('says which kind of identifier was not found', async () => {
+    mockStudent(null);
+    const byEmail = await forgot({ email: 'nobody@pusan.ac.kr' });
+    expect(byEmail.status).toBe(404);
+    expect(byEmail.body.message).toMatch(/email/i);
+
+    mockStudent(null);
+    const byId = await forgot({ student_id: '999999999' });
+    expect(byId.status).toBe(404);
+    expect(byId.body.message).toMatch(/student id/i);
   });
 });

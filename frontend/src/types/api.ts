@@ -684,7 +684,8 @@ export interface HeyPnuApi {
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>
-  forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }>
+  /** School email (preferred) or student ID — the backend detects which by '@'. */
+  forgotPassword(identifier: string): Promise<{ maskedEmail: string; code: string }>
   resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
   getRecommendedCourses(
     type?: CourseType | 'ALL',

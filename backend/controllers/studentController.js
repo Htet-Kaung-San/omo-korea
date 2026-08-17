@@ -1122,28 +1122,34 @@ const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:5173";
 
 const forgotPassword = async (req, res) => {
   try {
-    const { student_id } = req.body;
-    if (!student_id) {
+    // Accepts the same three shapes as loginStudent. Students sign in with
+    // their school email now, so asking for a student ID here was the one
+    // screen still demanding the old identifier. Older clients that still send
+    // student_id keep working.
+    const { student_id, email: suppliedEmail, identifier } = req.body;
+    const supplied = String(identifier ?? suppliedEmail ?? student_id ?? "").trim();
+
+    if (!supplied) {
       return res.status(400).json({
         success: false,
-        message: "Missing student_id",
+        message: "Enter your school email or student ID",
       });
     }
 
-    const { data, error } = await supabase
-      .from("student")
-      .select("email")
-      .eq("student_id", String(student_id))
-      .single();
+    const isEmail = supplied.includes("@");
+    const lookup = supabase.from("student").select("student_id, email");
+    const { data, error } = isEmail
+      ? await lookup.ilike("email", supplied).maybeSingle()
+      : await lookup.eq("student_id", supplied).maybeSingle();
 
     if (error || !data) {
       return res.status(404).json({
         success: false,
-        message: "Student ID not registered",
+        message: isEmail ? "Email not registered" : "Student ID not registered",
       });
     }
 
-    const email = data.email || `${student_id}@pusan.ac.kr`;
+    const email = data.email || `${data.student_id}@pusan.ac.kr`;
 
     // Supabase still mints the recovery token and owns the reset session — this
     // only takes over delivery. generateLink returns the link WITHOUT emailing
