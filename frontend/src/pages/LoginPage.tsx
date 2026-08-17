@@ -23,8 +23,11 @@ const LEGACY_REMEMBERED_ID_KEY = 'hey_pnu_remembered_student_id'
 function getRememberedEmail() {
   const email = localStorage.getItem(REMEMBERED_EMAIL_KEY)
   if (email) return email
-  const legacyId = localStorage.getItem(LEGACY_REMEMBERED_ID_KEY)
-  return legacyId ? `${legacyId}@pusan.ac.kr` : ''
+  // A remembered student ID is returned as-is rather than turned into
+  // "<id>@pusan.ac.kr". The backend accepts a student ID here, and guessing an
+  // address the student may not own is what put the profile email and the
+  // login credential out of step in the first place.
+  return localStorage.getItem(LEGACY_REMEMBERED_ID_KEY) || ''
 }
 
 export function LoginPage() {
