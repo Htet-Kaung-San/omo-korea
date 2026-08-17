@@ -68,6 +68,59 @@ function displayNameFromEmail(email) {
 }
 
 /**
+ * Domains PNU issues addresses on. pusan.ac.kr is the one almost everyone has;
+ * the rest are live aliases the university also hands out.
+ *
+ * Deliberately absent, and worth naming so nobody adds them back:
+ *   pusan.ac.kr.test-google-a.com — a Google Workspace verification artifact.
+ *     It is a .com owned by Google, not by PNU, and it is exactly why the check
+ *     below compares the domain rather than searching for a substring: an
+ *     address at that domain *contains* "pusan.ac.kr" and would sail through a
+ *     naive test, as would anything an attacker registers ending .evil.com.
+ *   pusan.myplug.kr — a third-party mail relay, not a university identity.
+ *
+ * Override with SIGNUP_ALLOWED_EMAIL_DOMAINS (comma separated) to widen this
+ * temporarily — for a demo from a personal address, say — without a code change.
+ */
+const DEFAULT_SCHOOL_EMAIL_DOMAINS = [
+  "pusan.ac.kr",
+  "pnu.ac.kr",
+  "pnu.edu",
+  "pnu.kr",
+  "bnu.ac.kr",
+  "bnu.kr",
+  "busan.ac.kr",
+];
+
+function schoolEmailDomains() {
+  const configured = String(process.env.SIGNUP_ALLOWED_EMAIL_DOMAINS || "").trim();
+  if (!configured) return DEFAULT_SCHOOL_EMAIL_DOMAINS;
+  return configured
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * True when the address sits on a university domain, or a subdomain of one.
+ *
+ * The domain is taken from the LAST "@" and compared whole — equal to an allowed
+ * domain, or ending in "." plus one. Substring matching would accept
+ * anything@pusan.ac.kr.attacker.com; a bare endsWith without the dot would
+ * accept anything@notpusan.ac.kr.
+ */
+function isSchoolEmail(email) {
+  const address = String(email ?? "").trim().toLowerCase();
+  const at = address.lastIndexOf("@");
+  if (at < 1 || at === address.length - 1) return false;
+
+  const domain = address.slice(at + 1);
+  return schoolEmailDomains().some(
+    (allowed) => domain === allowed || domain.endsWith(`.${allowed}`),
+  );
+}
+
+/**
  * PostgREST treats `%` and `_` as wildcards inside .ilike(), and a raw address
  * goes straight in. Real PNU local parts routinely contain underscores —
  * htet_kaung_san@pusan.ac.kr — so an unescaped lookup can match a row that is
@@ -871,6 +924,21 @@ const signupStudent = async (req, res) => {
         success: false,
         message: "An email address is required to create an account.",
         error: { status: 400, code: "EMAIL_REQUIRED" },
+      });
+    }
+
+    // Checked before the code is sent, so a personal address fails immediately
+    // rather than burning a send and leaving someone waiting on mail that could
+    // never let them in.
+    //
+    // Signup only — never on the login path. Accounts that predate this rule
+    // include one on gmail, and enforcing at login would lock that person out
+    // of an account they already have.
+    if (!isSchoolEmail(emailToUse)) {
+      return res.status(400).json({
+        success: false,
+        message: "Sign up with your PNU school email (for example, @pusan.ac.kr).",
+        error: { status: 400, code: "EMAIL_DOMAIN_NOT_ALLOWED" },
       });
     }
 
