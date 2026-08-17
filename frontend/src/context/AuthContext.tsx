@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import type {
+  CompleteSignupRequest,
   LoginChallengeResponse,
   LoginRequest,
   User,
@@ -29,6 +30,7 @@ interface AuthContextValue {
    * propagated yet at that point in the same tick.
    */
   verifyLogin: (data: VerifyLoginRequest) => Promise<User>
+  completeSignup: (data: CompleteSignupRequest) => Promise<User>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -80,6 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loggedInUser
   }, [])
 
+  const completeSignup = useCallback(async (data: CompleteSignupRequest) => {
+    const { token, user: signedUpUser } = await api.completeSignup(data)
+    setStoredToken(token)
+    setUser(signedUpUser)
+    return signedUpUser
+  }, [])
+
   const logout = useCallback(async () => {
     try {
       await api.logout()
@@ -97,10 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: false,
       requestLogin,
       verifyLogin,
+      completeSignup,
       logout,
       refreshUser,
     }),
-    [user, isLoading, requestLogin, verifyLogin, logout, refreshUser],
+    [user, isLoading, requestLogin, verifyLogin, completeSignup, logout, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

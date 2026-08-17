@@ -5,6 +5,8 @@ const {
   loginStudent,
   verifyLoginStudent,
   signupStudent,
+  verifySignupStudent,
+  completeSignupStudent,
   forgotPassword,
   resetPassword,
   getStudentChecklist,
@@ -84,6 +86,8 @@ router.get("/test", testConnection);
 router.post("/login", loginStudent);
 router.post("/verify-login", verifyLoginStudent);
 router.post("/signup", signupStudent);
+router.post("/verify-signup", verifySignupStudent);
+router.post("/complete-signup", completeSignupStudent);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/boards", getAllBoards);

@@ -6,6 +6,7 @@ import { ToastProvider } from '@/context/ToastContext'
 import { NoticeRefreshProvider } from '@/context/NoticeRefreshContext'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/LoginPage'
+import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
 import { HomePage } from '@/pages/HomePage'
@@ -69,6 +70,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route

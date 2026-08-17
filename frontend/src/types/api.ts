@@ -35,9 +35,27 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignupRequest {
+  email: string
+  password: string
+  languagePref?: string
+}
+
 export interface LoginChallengeResponse {
   challengeId: string
   maskedEmail: string
+}
+
+export interface SignupVerifyResponse {
+  signupToken: string
+}
+
+export interface CompleteSignupRequest {
+  signupToken: string
+  major: string
+  year: 1 | 2 | 3 | 4 | 'exchange' | string
+  nationality: string
+  languagePref?: string
 }
 
 export interface VerifyLoginRequest {
@@ -681,6 +699,9 @@ export interface GetCareerOpportunitiesParams {
 export interface HeyPnuApi {
   login(data: LoginRequest): Promise<LoginChallengeResponse>
   verifyLogin(data: VerifyLoginRequest): Promise<AuthResponse>
+  signup(data: SignupRequest): Promise<LoginChallengeResponse>
+  verifySignup(data: VerifyLoginRequest): Promise<SignupVerifyResponse>
+  completeSignup(data: CompleteSignupRequest): Promise<AuthResponse>
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>

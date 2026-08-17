@@ -19,6 +19,7 @@ const jwt = require('jsonwebtoken');
 const mockListUsers = jest.fn();
 const mockUpdateUserById = jest.fn();
 const mockCreateUser = jest.fn();
+const mockDeleteUser = jest.fn();
 const mockSupabase = { from: jest.fn() };
 
 jest.mock('../supabaseClient', () => mockSupabase);
@@ -28,6 +29,7 @@ jest.mock('../supabaseAuthClient', () => ({
       listUsers: (...a) => mockListUsers(...a),
       updateUserById: (...a) => mockUpdateUserById(...a),
       createUser: (...a) => mockCreateUser(...a),
+      deleteUser: (...a) => mockDeleteUser(...a),
     },
   },
 }));
@@ -94,6 +96,8 @@ beforeEach(() => {
     error: null,
   });
   mockUpdateUserById.mockResolvedValue({ data: {}, error: null });
+  mockDeleteUser.mockResolvedValue({ error: null });
+  mockCreateUser.mockResolvedValue({ error: null });
 });
 
 describe('changing a profile email moves the login credential with it', () => {
@@ -183,5 +187,91 @@ describe('no address is ever invented from a student ID', () => {
     expect(res.body.error.code).toBe('EMAIL_REQUIRED');
     // Nothing may be created at <student_id>@pusan.ac.kr.
     expect(mockCreateUser).not.toHaveBeenCalled();
+  });
+
+  test('signup only registers after onboarding, and clears leftover Auth first', async () => {
+    process.env.LOGIN_OTP_FIXED = '1';
+    try {
+      mockListUsers.mockResolvedValue({
+        data: {
+          users: [
+            { id: AUTH_ID, email: 'new.student@pusan.ac.kr', email_confirmed_at: null },
+          ],
+        },
+        error: null,
+      });
+
+      const studentQuery = {
+        select: jest.fn(() => studentQuery),
+        ilike: jest.fn(() => studentQuery),
+        eq: jest.fn(() => studentQuery),
+        delete: jest.fn(() => studentQuery),
+        maybeSingle: jest.fn(() => Promise.resolve({ data: null, error: null })),
+        insert: jest.fn(() => studentQuery),
+        single: jest.fn(() =>
+          Promise.resolve({
+            data: {
+              student_id: 202499001,
+              email: 'new.student@pusan.ac.kr',
+              nationality: 'Vietnamese',
+            },
+            error: null,
+          }),
+        ),
+      };
+      const majorQuery = {
+        select: jest.fn(() => majorQuery),
+        ilike: jest.fn(() => majorQuery),
+        maybeSingle: jest.fn(() =>
+          Promise.resolve({
+            data: { major_id: 8, major_name: 'Computer Science and Engineering' },
+            error: null,
+          }),
+        ),
+      };
+      mockSupabase.from.mockImplementation((table) =>
+        table === 'major' ? majorQuery : studentQuery,
+      );
+
+      const signup = await request(createApp())
+        .post('/api/students/signup')
+        .send({ email: 'new.student@pusan.ac.kr', password: 'password' });
+
+      expect(signup.status).toBe(200);
+      expect(signup.body.requiresVerification).toBe(true);
+      expect(mockCreateUser).not.toHaveBeenCalled();
+      expect(mockDeleteUser).toHaveBeenCalledWith(AUTH_ID);
+
+      const verified = await request(createApp())
+        .post('/api/students/verify-signup')
+        .send({
+          challengeId: signup.body.challengeId,
+          code: signup.body.debugCode,
+        });
+
+      expect(verified.status).toBe(200);
+      expect(verified.body.signupToken).toBeTruthy();
+      expect(verified.body.token).toBeUndefined();
+      expect(mockCreateUser).not.toHaveBeenCalled();
+
+      const completed = await request(createApp())
+        .post('/api/students/complete-signup')
+        .send({
+          signupToken: verified.body.signupToken,
+          major: 'Computer Science and Engineering',
+          year: '1',
+          nationality: 'Vietnamese',
+        });
+
+      expect(completed.status).toBe(200);
+      expect(completed.body.token).toBeTruthy();
+      expect(mockCreateUser).toHaveBeenCalledWith({
+        email: 'new.student@pusan.ac.kr',
+        password: 'password',
+        email_confirm: true,
+      });
+    } finally {
+      delete process.env.LOGIN_OTP_FIXED;
+    }
   });
 });

@@ -1,51 +1,29 @@
-import { useState, useEffect } from 'react'
-import { Navigate, Link } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { Link, Navigate } from 'react-router-dom'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { api } from '@/api'
+import { HttpError } from '@/api/client'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { LanguageSelect } from '@/components/layout/LanguageSelect'
+import { NATIONALITY_OPTIONS } from '@/data/options'
 import type { MajorData } from '@/types/api'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
-// PR #23 hid the demo button outside mock mode so a working credential is never
-// shown on a public deployment; this repo is public. The mock API is gone, so
-// gate on the dev build instead — reviewers running locally keep the shortcut,
-// a production build never renders it.
-const SHOW_DEMO_ACCOUNT = import.meta.env.DEV
+type SignupStep = 'form' | 'otp' | 'major' | 'year' | 'nationality'
 
-// Non-admin demo fixture, seeded by `npm run seed:test-fixtures`.
-const DEMO_EMAIL = '202612345@pusan.ac.kr'
-const DEMO_PASSWORD = 'password'
-const REMEMBERED_EMAIL_KEY = 'hey_pnu_remembered_email'
-const LEGACY_REMEMBERED_ID_KEY = 'hey_pnu_remembered_student_id'
+export function SignupPage() {
+  const { completeSignup, isAuthenticated, isLoading } = useAuth()
+  const { t, language } = useLanguage()
 
-function getRememberedEmail() {
-  const email = localStorage.getItem(REMEMBERED_EMAIL_KEY)
-  if (email) return email
-  // A remembered student ID is returned as-is rather than turned into
-  // "<id>@pusan.ac.kr". The backend accepts a student ID here, and guessing an
-  // address the student may not own is what put the profile email and the
-  // login credential out of step in the first place.
-  return localStorage.getItem(LEGACY_REMEMBERED_ID_KEY) || ''
-}
-
-export function LoginPage() {
-  const { requestLogin, verifyLogin, refreshUser, user, isAuthenticated, isLoading } =
-    useAuth()
-  const { t } = useLanguage()
-
-  const [email, setEmail] = useState(getRememberedEmail)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(() =>
-    Boolean(localStorage.getItem(REMEMBERED_EMAIL_KEY) || localStorage.getItem(LEGACY_REMEMBERED_ID_KEY)),
-  )
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  const [step, setStep] = useState<'credentials' | 'otp' | 'major' | 'year'>('credentials')
+  const [step, setStep] = useState<SignupStep>('form')
   const [challengeId, setChallengeId] = useState('')
+  const [signupToken, setSignupToken] = useState('')
   const [maskedEmail, setMaskedEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [majorsData, setMajorsData] = useState<MajorData[]>([])
@@ -53,15 +31,16 @@ export function LoginPage() {
   const [selectedMajor, setSelectedMajor] = useState('')
   const [loadingMajors, setLoadingMajors] = useState(false)
   const [selectedYear, setSelectedYear] = useState<'' | '1' | '2' | '3' | '4' | 'exchange'>('')
+  const [selectedNationality, setSelectedNationality] = useState('')
 
   useEffect(() => {
-    if (step === 'major') {
-      setLoadingMajors(true)
-      api.getMajors()
-        .then(res => setMajorsData(res.data || []))
-        .catch(err => console.error('Failed to load majors', err))
-        .finally(() => setLoadingMajors(false))
-    }
+    if (step !== 'major') return
+    setLoadingMajors(true)
+    api
+      .getMajors()
+      .then((res) => setMajorsData(res.data || []))
+      .catch((err) => console.error('Failed to load majors', err))
+      .finally(() => setLoadingMajors(false))
   }, [step])
 
   if (isLoading) {
@@ -72,29 +51,44 @@ export function LoginPage() {
     )
   }
 
-  // Stay on this page for major / year selection after OTP.
-  if (isAuthenticated && step !== 'major' && step !== 'year') {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
-  async function handleCredentialsSubmit(e: React.FormEvent) {
+
+  async function requestSignupChallenge() {
+    const challenge = await api.signup({
+      email: email.trim().toLowerCase(),
+      password,
+      languagePref: language,
+    })
+    setChallengeId(challenge.challengeId)
+    setMaskedEmail(challenge.maskedEmail)
+    setOtpCode('')
+    setSignupToken('')
+  }
+
+  async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!email.trim() || !password) {
-      setError(t('auth.loginRequired'))
+    const trimmedEmail = email.trim().toLowerCase()
+    if (!trimmedEmail || !trimmedEmail.includes('@') || !password) {
+      setError(t('auth.fillRequired'))
+      return
+    }
+    if (password.length < 6) {
+      setError(t('auth.passwordTooShort'))
       return
     }
     setSubmitting(true)
     try {
-      const challenge = await requestLogin({
-        email: email.trim().toLowerCase(),
-        password,
-      })
-      setChallengeId(challenge.challengeId)
-      setMaskedEmail(challenge.maskedEmail)
-      setOtpCode('')
+      await requestSignupChallenge()
       setStep('otp')
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.loginError'))
+      setError(
+        err instanceof HttpError || err instanceof Error
+          ? err.message
+          : t('auth.signupError'),
+      )
     } finally {
       setSubmitting(false)
     }
@@ -109,26 +103,14 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      const loggedInUser = await verifyLogin({
+      const verified = await api.verifySignup({
         challengeId,
         code: otpCode.trim(),
       })
-      if (rememberMe) {
-        localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim().toLowerCase())
-        localStorage.removeItem(LEGACY_REMEMBERED_ID_KEY)
-      } else {
-        localStorage.removeItem(REMEMBERED_EMAIL_KEY)
-        localStorage.removeItem(LEGACY_REMEMBERED_ID_KEY)
-      }
-      setSelectedMajor('')
+      setSignupToken(verified.signupToken)
       setSelectedCollege('')
-      // verifyLogin resolves to the signed-in user itself, so a student who
-      // already picked a major skips straight to the year step.
-      if (loggedInUser.major) {
-        setStep('year')
-      } else {
-        setStep('major')
-      }
+      setSelectedMajor('')
+      setStep('major')
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.otpError'))
     } finally {
@@ -145,17 +127,8 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      await api.updateProfile({
-        name: user?.name?.trim() || 'Student',
-        nationality: user?.nationality || '',
-        major: selectedMajor,
-        interests: user?.interests ?? [],
-      })
-      await refreshUser()
       setSelectedYear('')
       setStep('year')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.majorError'))
     } finally {
       setSubmitting(false)
     }
@@ -170,17 +143,32 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      await api.updateProfile({
-        name: user?.name?.trim() || 'Student',
-        nationality: user?.nationality || '',
-        major: selectedMajor || user?.major || '',
-        interests: user?.interests ?? [],
+      setSelectedNationality('')
+      setStep('nationality')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleNationalitySubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!selectedNationality) {
+      setError(t('auth.nationalityRequired'))
+      return
+    }
+    setSubmitting(true)
+    try {
+      await completeSignup({
+        signupToken,
+        major: selectedMajor,
         year: selectedYear,
+        nationality: selectedNationality,
+        languagePref: language,
       })
-      await refreshUser()
-      setStep('credentials')
+      localStorage.setItem('hey_pnu_remembered_email', email.trim().toLowerCase())
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.yearError'))
+      setError(err instanceof Error ? err.message : t('auth.nationalityError'))
     } finally {
       setSubmitting(false)
     }
@@ -190,15 +178,9 @@ export function LoginPage() {
     setError('')
     setSubmitting(true)
     try {
-      const challenge = await requestLogin({
-        email: email.trim().toLowerCase(),
-        password,
-      })
-      setChallengeId(challenge.challengeId)
-      setMaskedEmail(challenge.maskedEmail)
-      setOtpCode('')
+      await requestSignupChallenge()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('auth.loginError'))
+      setError(err instanceof Error ? err.message : t('auth.signupError'))
     } finally {
       setSubmitting(false)
     }
@@ -211,30 +193,52 @@ export function LoginPage() {
     <div className="min-h-screen bg-[#E8EEF5] flex items-center justify-center p-4">
       <div
         className="relative bg-pnu-surface w-full flex flex-col overflow-hidden"
-        style={{ maxWidth: 390, minHeight: 700, borderRadius: 40, boxShadow: '0 24px 80px rgba(0,61,130,0.18)' }}
+        style={{
+          maxWidth: 390,
+          minHeight: 700,
+          borderRadius: 40,
+          boxShadow: '0 24px 80px rgba(0,61,130,0.18)',
+        }}
       >
-        <div className="flex h-11 flex-shrink-0 items-center justify-end px-4 pt-1">
+        <div className="px-5 pt-3 pb-2 flex items-center justify-between flex-shrink-0">
+          {step === 'form' ? (
+            <Link
+              to="/login"
+              className="w-9 h-9 rounded-full bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center hover:bg-[#F1F5F9] transition-colors flex-shrink-0"
+              aria-label={t('auth.backToLogin')}
+            >
+              <ArrowLeft className="w-4 h-4 text-[#334155]" />
+            </Link>
+          ) : (
+            <span className="w-9 h-9" />
+          )}
           <LanguageSelect />
         </div>
 
-        <div className="flex flex-col items-center pt-4 pb-6 px-6">
+        <div className="flex flex-col items-center pt-2 pb-4 px-6">
           <img
             src={pnuSeal}
             alt="Pusan National University"
-            className="mb-5 h-20 w-20 object-contain"
+            className="mb-4 h-16 w-16 object-contain"
           />
-          <h1 className="text-[26px] font-bold tracking-tight text-pnu-blue leading-none mb-2">Hey! PNU</h1>
-          <p className="text-[14px] text-pnu-muted text-center leading-snug max-w-[220px]">{t('auth.tagline')}</p>
+          <h1 className="text-[22px] font-bold tracking-tight text-pnu-blue leading-none mb-2">
+            {t('auth.signupTitle')}
+          </h1>
+          <p className="text-[13px] text-pnu-muted text-center leading-snug max-w-[240px]">
+            {t('auth.signupSubtitle')}
+          </p>
         </div>
 
         <div className="flex-1 px-5 pb-6">
-          {step === 'credentials' ? (
+          {step === 'form' ? (
             <form
-              onSubmit={handleCredentialsSubmit}
+              onSubmit={handleFormSubmit}
               className="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(0,61,130,0.08)] p-6 space-y-4"
             >
               <div className="space-y-1.5">
-                <label className="block text-[13px] font-semibold text-pnu-blue">{t('auth.emailLabel')}</label>
+                <label className="block text-[13px] font-semibold text-pnu-blue">
+                  {t('auth.emailLabel')}
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -246,7 +250,9 @@ export function LoginPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[13px] font-semibold text-pnu-blue">{t('auth.passwordLabel')}</label>
+                <label className="block text-[13px] font-semibold text-pnu-blue">
+                  {t('auth.passwordLabel')}
+                </label>
                 <div className="relative">
                   <input
                     type={showPw ? 'text' : 'password'}
@@ -254,7 +260,7 @@ export function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t('auth.passwordPlaceholder')}
                     className={`${inputCls} pr-12`}
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -265,24 +271,6 @@ export function LoginPage() {
                     {showPw ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                   </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-1.5 cursor-pointer select-none text-[12px] font-semibold text-pnu-muted hover:text-pnu-blue transition-all">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded-[5px] border-pnu-border text-pnu-blue focus:ring-pnu-blue/20"
-                  />
-                  {t('auth.rememberMe')}
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[12px] font-semibold text-pnu-blue hover:text-pnu-blue-light transition-colors"
-                >
-                  {t('auth.forgot')}
-                </Link>
               </div>
 
               {error ? (
@@ -296,29 +284,15 @@ export function LoginPage() {
                 disabled={submitting}
                 className="w-full py-3.5 rounded-[14px] font-bold text-[15px] text-white transition-all active:scale-[0.98] disabled:opacity-60 mt-2 bg-gradient-to-br from-pnu-blue to-pnu-blue-light shadow-lg shadow-blue-900/25"
               >
-                {submitting ? t('auth.loggingIn') : t('auth.continue')}
+                {submitting ? t('auth.creatingAccount') : t('auth.createAccount')}
               </button>
 
-              <Link
-                to="/signup"
-                className="flex w-full items-center justify-center py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
-              >
-                {t('auth.signup')}
-              </Link>
-
-              {SHOW_DEMO_ACCOUNT ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail(DEMO_EMAIL)
-                    setPassword(DEMO_PASSWORD)
-                    setError('')
-                  }}
-                  className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
-                >
-                  {t('auth.useDemoAccount')}
-                </button>
-              ) : null}
+              <p className="text-center text-[12px] text-pnu-muted">
+                {t('auth.alreadyHave')}{' '}
+                <Link to="/login" className="font-semibold text-pnu-blue hover:text-pnu-blue-light">
+                  {t('auth.login')}
+                </Link>
+              </p>
             </form>
           ) : null}
 
@@ -332,15 +306,11 @@ export function LoginPage() {
                 <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">
                   {t('auth.otpHint', { email: maskedEmail })}
                 </p>
-                {email.trim().toLowerCase() === DEMO_EMAIL ? (
-                  <p className="mt-1 text-[12px] font-semibold text-pnu-blue">
-                    {t('auth.otpDemoHint')}
-                  </p>
-                ) : null}
               </div>
-
               <div className="space-y-1.5">
-                <label className="block text-[13px] font-semibold text-pnu-blue">{t('auth.otpLabel')}</label>
+                <label className="block text-[13px] font-semibold text-pnu-blue">
+                  {t('auth.otpLabel')}
+                </label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -352,13 +322,11 @@ export function LoginPage() {
                   className={`${inputCls} tracking-[0.35em] text-center font-semibold`}
                 />
               </div>
-
               {error ? (
                 <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
                   {error}
                 </p>
               ) : null}
-
               <button
                 type="submit"
                 disabled={submitting}
@@ -366,12 +334,11 @@ export function LoginPage() {
               >
                 {submitting ? t('auth.verifying') : t('auth.verifyAndLogin')}
               </button>
-
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    setStep('credentials')
+                    setStep('form')
                     setChallengeId('')
                     setOtpCode('')
                     setError('')
@@ -399,18 +366,17 @@ export function LoginPage() {
             >
               <div>
                 <h2 className="text-[16px] font-bold text-pnu-text">{t('auth.majorTitle')}</h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">
-                  {t('auth.majorHint')}
-                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">{t('auth.majorHint')}</p>
               </div>
-
               <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
                 {loadingMajors ? (
                   <p className="text-sm text-pnu-muted text-center py-4">{t('common.loading')}</p>
                 ) : (
                   <>
                     <div className="space-y-1.5">
-                      <label className="block text-[13px] font-semibold text-pnu-blue">Select College</label>
+                      <label className="block text-[13px] font-semibold text-pnu-blue">
+                        {t('auth.majorTitle')}
+                      </label>
                       <select
                         value={selectedCollege}
                         onChange={(e) => {
@@ -419,7 +385,7 @@ export function LoginPage() {
                         }}
                         className={inputCls}
                       >
-                        <option value="">-- Choose College --</option>
+                        <option value="">--</option>
                         {Array.from(new Set(majorsData.map((m) => m.department)))
                           .filter(Boolean)
                           .sort()
@@ -430,16 +396,14 @@ export function LoginPage() {
                           ))}
                       </select>
                     </div>
-
-                    {selectedCollege && (
+                    {selectedCollege ? (
                       <div className="space-y-1.5">
-                        <label className="block text-[13px] font-semibold text-pnu-blue">Select Major</label>
                         <select
                           value={selectedMajor}
                           onChange={(e) => setSelectedMajor(e.target.value)}
                           className={inputCls}
                         >
-                          <option value="">-- Choose Major --</option>
+                          <option value="">--</option>
                           {majorsData
                             .filter((m) => m.department === selectedCollege)
                             .sort((a, b) => a.major_name.localeCompare(b.major_name))
@@ -450,17 +414,15 @@ export function LoginPage() {
                             ))}
                         </select>
                       </div>
-                    )}
+                    ) : null}
                   </>
                 )}
               </div>
-
               {error ? (
                 <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
                   {error}
                 </p>
               ) : null}
-
               <button
                 type="submit"
                 disabled={submitting || !selectedMajor}
@@ -478,11 +440,8 @@ export function LoginPage() {
             >
               <div>
                 <h2 className="text-[16px] font-bold text-pnu-text">{t('auth.yearTitle')}</h2>
-                <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">
-                  {t('auth.yearHint')}
-                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">{t('auth.yearHint')}</p>
               </div>
-
               <div className="space-y-1.5">
                 {(
                   [
@@ -499,31 +458,66 @@ export function LoginPage() {
                       key={value}
                       type="button"
                       onClick={() => setSelectedYear(value)}
-                      className={[
-                        'w-full rounded-[14px] border px-3.5 py-3 text-left text-[13px] font-semibold transition',
+                      className={`w-full rounded-[14px] border px-4 py-3 text-left text-[14px] font-semibold transition-all ${
                         active
-                          ? 'border-pnu-blue bg-[#EEF4FF] text-pnu-blue'
-                          : 'border-pnu-border bg-white text-pnu-text hover:border-pnu-blue-light',
-                      ].join(' ')}
+                          ? 'border-pnu-blue bg-pnu-blue/5 text-pnu-blue'
+                          : 'border-pnu-border bg-pnu-surface text-pnu-text'
+                      }`}
                     >
                       {t(labelKey)}
                     </button>
                   )
                 })}
               </div>
-
               {error ? (
                 <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
                   {error}
                 </p>
               ) : null}
-
               <button
                 type="submit"
                 disabled={submitting || !selectedYear}
                 className="w-full py-3.5 rounded-[14px] font-bold text-[15px] text-white transition-all active:scale-[0.98] disabled:opacity-60 bg-gradient-to-br from-pnu-blue to-pnu-blue-light shadow-lg shadow-blue-900/25"
               >
                 {submitting ? t('auth.savingYear') : t('auth.confirmYear')}
+              </button>
+            </form>
+          ) : null}
+
+          {step === 'nationality' ? (
+            <form
+              onSubmit={handleNationalitySubmit}
+              className="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(0,61,130,0.08)] p-6 space-y-4"
+            >
+              <div>
+                <h2 className="text-[16px] font-bold text-pnu-text">{t('auth.nationalityTitle')}</h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-pnu-muted">
+                  {t('auth.nationalityHint')}
+                </p>
+              </div>
+              <select
+                value={selectedNationality}
+                onChange={(e) => setSelectedNationality(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">{t('auth.nationalityPlaceholder')}</option>
+                {NATIONALITY_OPTIONS.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+              {error ? (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
+                  {error}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={submitting || !selectedNationality || !signupToken}
+                className="w-full py-3.5 rounded-[14px] font-bold text-[15px] text-white transition-all active:scale-[0.98] disabled:opacity-60 bg-gradient-to-br from-pnu-blue to-pnu-blue-light shadow-lg shadow-blue-900/25"
+              >
+                {submitting ? t('auth.savingNationality') : t('auth.confirmNationality')}
               </button>
             </form>
           ) : null}

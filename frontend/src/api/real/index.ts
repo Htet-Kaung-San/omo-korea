@@ -28,6 +28,9 @@ import type {
   HeyPnuApi,
   LoginChallengeResponse,
   LoginRequest,
+  SignupRequest,
+  SignupVerifyResponse,
+  CompleteSignupRequest,
   MajorData,
   MajorRecommendationRequest,
   MajorRecommendationResponse,
@@ -108,6 +111,57 @@ export const realApi: HeyPnuApi = {
     return {
       challengeId: response.challengeId,
       maskedEmail: response.maskedEmail,
+    }
+  },
+
+  async signup(data: SignupRequest): Promise<LoginChallengeResponse> {
+    const response = await apiFetch<BackendLoginChallengeResponse>('/students/signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        language_pref: data.languagePref,
+      }),
+      suppressToast: true,
+    })
+
+    return {
+      challengeId: response.challengeId,
+      maskedEmail: response.maskedEmail,
+    }
+  },
+
+  async verifySignup(data: VerifyLoginRequest): Promise<SignupVerifyResponse> {
+    const response = await apiFetch<{ signupToken: string }>('/students/verify-signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        challengeId: data.challengeId,
+        code: data.code.trim(),
+      }),
+      suppressToast: true,
+    })
+    return { signupToken: response.signupToken }
+  },
+
+  async completeSignup(data: CompleteSignupRequest): Promise<AuthResponse> {
+    const response = await apiFetch<BackendAuthResponse>('/students/complete-signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        signupToken: data.signupToken,
+        major: data.major,
+        year: data.year,
+        nationality: data.nationality,
+        language_pref: data.languagePref,
+      }),
+      suppressToast: true,
+    })
+
+    const user = mapBackendStudent(response.data)
+    setSessionUser(user)
+
+    return {
+      token: response.token,
+      user,
     }
   },
 
