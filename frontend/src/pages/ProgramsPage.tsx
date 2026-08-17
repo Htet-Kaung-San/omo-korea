@@ -100,17 +100,22 @@ function FeaturedTopPickCard({
   program: AiProgramItem
   t: (key: string) => string
 }) {
-  const matchPct = Math.min(98, Math.max(82, program.score || 94))
-
   return (
     <div
       className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-pnu-blue p-4 text-white transition active:scale-[0.99]"
       style={{ boxShadow: '0 12px 32px rgba(124,58,237,0.25)' }}
     >
       <div className="flex items-center justify-between gap-2">
+        {/* No percentage. This read "{n}% Match", but the number was invented:
+            the value was clamped into 80-98 and fell back to a literal when
+            absent, so every card showed the same figure — 82% for all seven
+            live programs, whose real engine score is 10 out of 100. A number
+            that does not vary carries no information and invites a question
+            with no honest answer. The ranking itself is real, so the card says
+            that instead. */}
         <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
           <Sparkles className="h-3.5 w-3.5 text-yellow-300" strokeWidth={2.2} />
-          {matchPct}% Match
+          {t('programs.recommendedForYou')}
         </span>
         <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-100">
           Top AI Recommendation
@@ -265,7 +270,6 @@ export function ProgramsPage() {
     const Icon = getProgramIconForItem(program)
     const isRecommended = Boolean(program.aiRecommended)
     const isSaved = savedIds.has(String(program.id))
-    const matchPct = Math.min(98, Math.max(80, program.score || 90))
 
     return (
       <Link
@@ -314,7 +318,7 @@ export function ProgramsPage() {
             <StatusPill dateStr={program.date} t={t} />
             {isRecommended ? (
               <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
-                ✨ {matchPct}% Match
+                ✨ {t('programs.recommended')}
               </span>
             ) : null}
             {program.date ? (
