@@ -122,12 +122,24 @@ export function LoginPage() {
       }
       setSelectedMajor('')
       setSelectedCollege('')
-      // verifyLogin resolves to the signed-in user itself, so a student who
-      // already picked a major skips straight to the year step.
-      if (loggedInUser.major) {
-        setStep('year')
-      } else {
+
+      // Onboarding is asked for once, not on every sign-in. Previously this
+      // branched only between the two steps — a student with a major went to
+      // the year step and one without went to the major step — so there was no
+      // path that skipped both, and a fully onboarded student was asked their
+      // year again at every login.
+      //
+      // grade 0 is a real answer (exchange student), so the check is for
+      // "not set" rather than falsiness. When neither step is needed the step
+      // stays 'otp' and the isAuthenticated guard above redirects home.
+      const needsMajor = !loggedInUser.major
+      const needsYear =
+        loggedInUser.grade === null || loggedInUser.grade === undefined
+
+      if (needsMajor) {
         setStep('major')
+      } else if (needsYear) {
+        setStep('year')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.otpError'))
