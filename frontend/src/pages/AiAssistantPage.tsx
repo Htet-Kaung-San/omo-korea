@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CheckCheck,
+  FileText,
   Copy,
   Mic,
   MoreHorizontal,
@@ -9,6 +10,7 @@ import {
   Send,
   ThumbsDown,
   ThumbsUp,
+  X,
 } from 'lucide-react'
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
@@ -33,6 +35,17 @@ const DEFAULT_SUGGESTIONS = [
 
 /** Turns kept as context. Enough to follow a thread, short enough to stay cheap. */
 const HISTORY_TURNS = 6
+
+/**
+ * Longer than this and a paste collapses to a chip rather than filling the box.
+ * Roughly a short paragraph — below it the text still reads fine inline, above
+ * it the caret ends up stranded far off-screen. A pasted PNU notice is usually
+ * well over a thousand characters.
+ */
+const PASTE_CHIP_THRESHOLD = 300
+
+/** Composer height ceiling, in lines, before it scrolls instead of growing. */
+const MAX_COMPOSER_ROWS = 5
 
 /**
  * Fold the rendered transcript into the {question, answer} pairs the backend
@@ -71,8 +84,41 @@ export function AiAssistantPage() {
   const [threads, setThreads] = useState<ChatThread[]>(() => loadChatThreads())
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [pastes, setPastes] = useState<{ id: string; text: string }[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const activeThreadIdRef = useRef<string | null>(null)
+
+  // Grow with the text up to a ceiling, then scroll. Measured off scrollHeight
+  // rather than counting newlines, so wrapped long lines are accounted for too.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 20
+    const max = lineHeight * MAX_COMPOSER_ROWS
+    el.style.height = `${Math.min(el.scrollHeight, max)}px`
+    el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden'
+  }, [input])
+
+  function handlePaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const text = event.clipboardData.getData('text')
+    if (text.length <= PASTE_CHIP_THRESHOLD) return
+    // Kept out of the box entirely: it goes to the model on send, but the
+    // student keeps a composer they can still see and type in.
+    event.preventDefault()
+    setPastes((prev) => [...prev, { id: crypto.randomUUID(), text }])
+  }
+
+  /** Pasted blocks lead, the typed question follows, so the model reads the source first. */
+  async function submitMessage() {
+    const typed = input.trim()
+    const blocks = pastes.map((p) => p.text)
+    if (!typed && blocks.length === 0) return
+    const composed = [...blocks, typed].filter(Boolean).join('\n\n')
+    setPastes([])
+    await sendMessage(composed)
+  }
 
   useEffect(() => {
     api
@@ -403,28 +449,70 @@ export function AiAssistantPage() {
         className="shrink-0 px-3 pb-2 pt-1"
         onSubmit={(event) => {
           event.preventDefault()
-          sendMessage(input)
+          void submitMessage()
         }}
       >
-        <div className="flex items-center gap-2">
-          <div className="flex min-h-11 flex-1 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 shadow-sm">
+        {/* A pasted notice is usually far longer than the box, so it collapses
+            to a chip instead of burying the caret at the end of one line. */}
+        {pastes.length > 0 ? (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {pastes.map((paste) => (
+              <div
+                key={paste.id}
+                className="flex max-w-full items-start gap-2 rounded-[14px] border border-black/10 bg-white px-2.5 py-2 shadow-sm"
+              >
+                <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pnu-muted" />
+                <div className="min-w-0">
+                  <p className="line-clamp-2 text-[11px] leading-snug text-pnu-muted">
+                    {paste.text.slice(0, 120)}
+                  </p>
+                  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-pnu-blue">
+                    {t('chat.pasted')} · {paste.text.length.toLocaleString(locale)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPastes((prev) => prev.filter((p) => p.id !== paste.id))}
+                  className="shrink-0 rounded-full p-0.5 text-pnu-muted transition hover:text-pnu-text"
+                  aria-label={t('chat.removePaste')}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex items-end gap-2">
+          <div className="flex min-h-11 flex-1 items-end gap-1.5 rounded-[22px] border border-black/10 bg-white px-3 shadow-sm">
             <button
               type="button"
-              className="shrink-0 p-1 text-pnu-muted"
+              className="shrink-0 p-1 pb-2.5 text-pnu-muted"
               aria-label={t('chat.attach')}
               disabled
             >
               <Paperclip className="h-4 w-4" />
             </button>
-            <input
+            <textarea
+              ref={inputRef}
+              rows={1}
               value={input}
               onChange={(event) => setInput(event.target.value)}
+              onPaste={handlePaste}
+              onKeyDown={(event) => {
+                // Enter sends; Shift+Enter starts a new line. Without this a
+                // textarea would only ever add newlines and never submit.
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
+                  void submitMessage()
+                }
+              }}
               placeholder={t('chat.askAnything')}
-              className="min-w-0 flex-1 bg-transparent py-2 text-[14px] text-pnu-text outline-none placeholder:text-pnu-muted"
+              className="min-w-0 flex-1 resize-none bg-transparent py-2.5 text-[14px] leading-snug text-pnu-text outline-none placeholder:text-pnu-muted"
             />
             <button
               type="button"
-              className="shrink-0 p-1 text-pnu-muted"
+              className="shrink-0 p-1 pb-2.5 text-pnu-muted"
               aria-label={t('chat.voice')}
               disabled
             >
@@ -433,7 +521,7 @@ export function AiAssistantPage() {
           </div>
           <button
             type="submit"
-            disabled={sending || !input.trim()}
+            disabled={sending || (!input.trim() && pastes.length === 0)}
             aria-label={t('chat.send')}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pnu-blue text-white shadow-sm transition active:scale-95 disabled:opacity-40"
           >

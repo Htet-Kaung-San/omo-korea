@@ -379,6 +379,8 @@ const messages: MessageDictionary = {
   'chat.typing': "Sanjini is typing…",
   'chat.placeholder': "Type your question…",
   'chat.askAnything': "Ask anything...",
+  'chat.pasted': "Pasted",
+  'chat.removePaste': "Remove pasted text",
   'chat.send': "Send message",
   'chat.attach': "Attach file",
   'chat.voice': "Voice input",
