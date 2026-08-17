@@ -728,7 +728,20 @@ const signupStudent = async (req, res) => {
 
     // Create the account in Supabase Auth. The student row stores a marker
     // rather than a hash, so credentials live in exactly one place.
-    const emailToUse = email || `${student_id}@pusan.ac.kr`;
+    // No fabricated address. Deriving one from the student ID created an
+    // account at an inbox nobody had proven they owned, and it is what put the
+    // profile email and the login email out of step — the profile later held a
+    // real address while the credential stayed on the invented one, leaving the
+    // student unable to sign in or reset.
+    const emailToUse = String(email || "").trim();
+    if (!emailToUse) {
+      return res.status(400).json({
+        success: false,
+        message: "An email address is required to create an account.",
+        error: { status: 400, code: "EMAIL_REQUIRED" },
+      });
+    }
+
     const { error: authError } = await supabaseAuth.auth.admin.createUser({
       email: emailToUse,
       password: password,
@@ -914,6 +927,63 @@ const getStudentProfile = async (req, res) => {
   }
 };
 
+/**
+ * Move a student's Supabase Auth login address to match their profile email.
+ *
+ * The app keeps two user stores: public.student holds the profile, auth.users
+ * holds the credential. Login and password reset both look up auth.users by the
+ * PROFILE email, so the moment the two disagree the account can neither sign in
+ * nor reset — silently, because the lookup simply finds nothing. One real
+ * account was locked out of both this way.
+ *
+ * @returns {Promise<{ok: true} | {ok: false, reason: string, message: string}>}
+ */
+async function syncAuthEmail({ currentEmail, nextEmail }) {
+  const from = normalizeEmail(currentEmail);
+  const to = normalizeEmail(nextEmail);
+  if (!to || from === to) return { ok: true };
+
+  const { data: list, error: listError } = await supabaseAuth.auth.admin.listUsers();
+  if (listError) {
+    return {
+      ok: false,
+      reason: "AUTH_LOOKUP_FAILED",
+      message: "Could not reach the account service. Your email was not changed.",
+    };
+  }
+
+  const users = list?.users || [];
+  if (users.some((user) => normalizeEmail(user.email) === to)) {
+    return {
+      ok: false,
+      reason: "EMAIL_TAKEN",
+      message: "That email is already used by another account.",
+    };
+  }
+
+  const authUser = users.find((user) => normalizeEmail(user.email) === from);
+  if (!authUser) {
+    // Nothing to move. Left alone deliberately rather than created here: a
+    // missing auth user means this profile predates the fix or was repaired by
+    // hand, and inventing a credential is how the drift started.
+    return { ok: true };
+  }
+
+  const { error: updateError } = await supabaseAuth.auth.admin.updateUserById(
+    authUser.id,
+    { email: to, email_confirm: true },
+  );
+  if (updateError) {
+    return {
+      ok: false,
+      reason: "AUTH_UPDATE_FAILED",
+      message: "Could not update your sign-in email. Nothing was changed.",
+    };
+  }
+
+  return { ok: true };
+}
+
 const updateStudentProfile = async (req, res) => {
   try {
     // PUT /profile uses JWT; PATCH /:student_id uses route param
@@ -983,7 +1053,32 @@ const updateStudentProfile = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (nationality !== undefined) updateData.nationality = nationality;
     if (major_id !== undefined) updateData.major_id = major_id;
-    if (email !== undefined) updateData.email = email;
+    if (email !== undefined) {
+      // Move the credential before the profile. If this fails the two stores
+      // stay consistent and the student keeps the login they had; writing the
+      // profile first is what allowed them to drift apart.
+      const { data: existing } = await supabase
+        .from("student")
+        .select("email")
+        .eq("student_id", String(student_id))
+        .maybeSingle();
+
+      const synced = await syncAuthEmail({
+        currentEmail: existing?.email,
+        nextEmail: email,
+      });
+      if (!synced.ok) {
+        return res.status(synced.reason === "EMAIL_TAKEN" ? 409 : 502).json({
+          success: false,
+          message: synced.message,
+          error: {
+            status: synced.reason === "EMAIL_TAKEN" ? 409 : 502,
+            code: synced.reason,
+          },
+        });
+      }
+      updateData.email = email;
+    }
     if (phone !== undefined) updateData.phone = phone;
     if (visa_status !== undefined) updateData.visa_status = visa_status;
     if (language_pref !== undefined) {
@@ -1149,7 +1244,17 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const email = data.email || `${data.student_id}@pusan.ac.kr`;
+    // No fallback to a derived address. Sending a reset link to an inbox the
+    // student never confirmed is worse than telling them we cannot.
+    const email = String(data.email || "").trim();
+    if (!email) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This account has no email address on file, so a reset link cannot be sent. Please contact support.",
+        error: { status: 409, code: "NO_EMAIL_ON_FILE" },
+      });
+    }
 
     // Supabase still mints the recovery token and owns the reset session — this
     // only takes over delivery. generateLink returns the link WITHOUT emailing
