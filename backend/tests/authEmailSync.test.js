@@ -240,7 +240,11 @@ describe('no address is ever invented from a student ID', () => {
       expect(signup.status).toBe(200);
       expect(signup.body.requiresVerification).toBe(true);
       expect(mockCreateUser).not.toHaveBeenCalled();
-      expect(mockDeleteUser).toHaveBeenCalledWith(AUTH_ID);
+      // Nothing is deleted at step 1. /signup is public and runs before a code
+      // is sent, so whoever typed the address has proved nothing about owning
+      // it. Reclaiming a leftover account happens at completion instead, once
+      // the OTP has established ownership.
+      expect(mockDeleteUser).not.toHaveBeenCalled();
 
       const verified = await request(createApp())
         .post('/api/students/verify-signup')
