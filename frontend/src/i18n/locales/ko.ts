@@ -454,6 +454,8 @@ const messages: MessageDictionary = {
   'academic.year': "{{year}}학년",
   'academic.creditsCompleted': "취득 학점",
   'academic.programs': "비교과 프로그램",
+  'programs.recommendedForYou': "맞춤 추천",
+  'programs.recommended': "추천",
   'academic.programsSubtitle': "정규 교과 외 프로그램 및 활동",
   'academic.noPrograms': "비교과 프로그램이 없습니다.",
   'academic.viewAnnouncement': "공지 보기",
