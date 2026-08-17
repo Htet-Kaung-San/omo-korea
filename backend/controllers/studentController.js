@@ -35,6 +35,7 @@ const {
   createLoginChallenge,
   consumeLoginChallenge,
 } = require("../services/loginChallengeService");
+const { sendPasswordResetEmail } = require("../services/otpEmailService");
 const { translateCareers } = require("../services/geminiService");
 const {
   buildGraduationProgress,
@@ -1144,16 +1145,44 @@ const forgotPassword = async (req, res) => {
 
     const email = data.email || `${student_id}@pusan.ac.kr`;
 
-    const { error: resetError } = await supabaseAuth.auth.resetPasswordForEmail(
-      email,
-      { redirectTo: `${APP_BASE_URL}/update-password` },
-    );
+    // Supabase still mints the recovery token and owns the reset session — this
+    // only takes over delivery. generateLink returns the link WITHOUT emailing
+    // it, so nothing about the security model changes; the app simply stops
+    // depending on Supabase's built-in mailer, which is rate limited to a
+    // handful of messages an hour and is not intended for production. One
+    // provider now sends every user-facing email.
+    const { data: linkData, error: linkError } =
+      await supabaseAuth.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo: `${APP_BASE_URL}/update-password` },
+      });
 
-    if (resetError) {
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error(
+        "[password-reset] could not generate recovery link:",
+        linkError?.message || "no action_link returned",
+      );
       return res.status(500).json({
         success: false,
-        message: "Failed to send recovery email",
-        error: resetError.message,
+        message: "We could not start the password reset. Please try again.",
+        error: { status: 500, code: "RESET_LINK_FAILED" },
+      });
+    }
+
+    try {
+      await sendPasswordResetEmail({
+        to: email,
+        actionLink: linkData.properties.action_link,
+      });
+    } catch (deliveryError) {
+      // The link exists but never reached the student, so say so rather than
+      // reporting success and leaving them waiting for mail that is not coming.
+      console.error("[password-reset] delivery failed:", deliveryError.message);
+      return res.status(502).json({
+        success: false,
+        message: "We could not send the reset email. Please try again in a moment.",
+        error: { status: 502, code: "RESET_EMAIL_DELIVERY_FAILED" },
       });
     }
 
