@@ -8,6 +8,10 @@ const require = createRequire(import.meta.url)
 const ts = require('typescript')
 const frontendRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
+function readSource(relativePath) {
+  return readFileSync(join(frontendRoot, relativePath), 'utf8')
+}
+
 function loadTypeScriptModule(relativePath) {
   const source = readFileSync(join(frontendRoot, relativePath), 'utf8')
   const output = ts.transpileModule(source, {
@@ -95,6 +99,9 @@ for (const field of [
   assert.equal(unknown[field], null, `${field} must preserve unknown as null`)
 }
 assert.equal(mapRecommendedCourse({ ...base, isEnglishTaught: false }).isEnglishTaught, false)
+assert.equal(mapRecommendedCourse({ ...base, isOfferedThisTerm: true }).isOfferedThisTerm, true)
+assert.equal(mapRecommendedCourse({ ...base, isOfferedThisTerm: false }).isOfferedThisTerm, false)
+assert.equal(unknown.isOfferedThisTerm, null)
 
 const fixtureDisplays = [
   { ...base, id: 'english', isEnglishTaught: true, originalLanguageCode: 'E', teachingLanguage: 'ENGLISH' },
@@ -185,4 +192,31 @@ const explicitPresentationNone = getVerifiedCourseOfferingDisplay(mapRecommended
 }))
 assert.equal(explicitPresentationNone.presentationRequirementKey, null)
 
-console.log('Course offering and metadata frontend tests passed: 48 assertions')
+const courseDetailSource = readSource('src/pages/CourseDetailPage.tsx')
+assert.match(courseDetailSource, /getCourseCatalog\(\{ courseId, pageSize: 1, academicYear, semester \}\)/)
+
+const recommendationSource = readSource('src/pages/RecommendedCoursesPage.tsx')
+assert.match(recommendationSource, /courseId: course\.id,[\s\S]*academicYear,[\s\S]*semester,/)
+
+const dashboardSource = readSource('src/pages/CoursesDashboardPage.tsx')
+assert.match(dashboardSource, /api\.createEnrollment\(user\.studentId, courseId\)/)
+assert.match(dashboardSource, /api\.deleteEnrollment\(Number\(enrollment\.enrollment_id\)\)/)
+assert.match(dashboardSource, /catalogTotal\.toLocaleString\(\)/)
+assert.match(dashboardSource, /catalogHasMore/)
+assert.match(dashboardSource, /recommendedYear/)
+assert.match(dashboardSource, /myMajor: myMajorOnly/)
+assert.match(dashboardSource, /Add to My Courses|courses\.addCurrent/)
+assert.match(dashboardSource, /id: 'offered', labelKey: 'courseCatalog\.offeredThisTerm'/)
+assert.match(dashboardSource, /offeredOnly: tab === 'offered'/)
+assert.match(dashboardSource, /academicYear,[\s\S]*semester,[\s\S]*offeredOnly: tab === 'offered'/)
+
+const academicSource = readSource('src/pages/AcademicPage.tsx')
+assert.match(academicSource, /timetableCredits/)
+assert.match(academicSource, /schedule\.plannedCredits/)
+
+assert.match(recommendationSource, /offeredOnly/)
+assert.match(recommendationSource, /course\.isOfferedThisTerm === true/)
+assert.match(recommendationSource, /getRecommendedCourses\('ALL', \{ academicYear, semester, offeredOnly \}\)/)
+assert.match(readSource('src/pages/ScholarshipsPage.tsx'), /scholarships\.noticeSourceDisclosure/)
+
+console.log('Course, timetable, recommendation, scholarship, and metadata frontend checks passed: 61 assertions')

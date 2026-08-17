@@ -70,6 +70,13 @@ const {
   getStudentNotifications,
 } = require("../controllers/aiController");
 
+const {
+  createTimetableEntry,
+  getCourseCatalog,
+  getTimetable,
+  removeTimetableEntry,
+} = require("../controllers/courseController");
+
 const router = express.Router();
 
 // Public routes
@@ -126,6 +133,14 @@ router.post("/scholarships/apply", authenticateToken, applyForScholarship);
 router.get("/dashboard-summary", authenticateToken, getDashboardSummary);
 router.post("/major-gap-analysis", authenticateToken, runMajorGapAnalysis);
 router.get("/course-recommendations", authenticateToken, getCourseRecommendations);
+router.get("/course-catalog", authenticateToken, getCourseCatalog);
+router.get("/timetable", authenticateToken, getTimetable);
+router.post("/timetable", authenticateToken, createTimetableEntry);
+router.delete(
+  "/timetable/:timetable_entry_id",
+  authenticateToken,
+  removeTimetableEntry,
+);
 router.get(
   "/academic-records/:student_id",
   authenticateToken,

@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const mockSupabase = { from: jest.fn() };
 const mockFetchAllCourses = jest.fn();
 const mockFetchStudentCourseHistory = jest.fn();
+const mockFetchCourseCurriculum = jest.fn();
+const mockAttachCourseCurriculum = jest.fn();
 const mockFetchAllNotices = jest.fn();
 const mockFetchDashboardCatalogs = jest.fn();
 
@@ -12,6 +14,8 @@ jest.mock('../supabaseClient', () => mockSupabase);
 jest.mock('../ai/supabaseDataRepository', () => ({
   fetchAllCourses: mockFetchAllCourses,
   fetchStudentCourseHistory: mockFetchStudentCourseHistory,
+  fetchCourseCurriculum: mockFetchCourseCurriculum,
+  attachCourseCurriculum: mockAttachCourseCurriculum,
   fetchAllNotices: mockFetchAllNotices,
   fetchDashboardCatalogs: mockFetchDashboardCatalogs,
 }));
@@ -88,6 +92,8 @@ describe('GET /api/students/course-recommendations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchStudentCourseHistory.mockResolvedValue([]);
+    mockFetchCourseCurriculum.mockResolvedValue([]);
+    mockAttachCourseCurriculum.mockImplementation((courses) => courses);
     process.env.ENABLE_COURSE_OFFERINGS = 'false';
     delete process.env.COURSE_OFFERING_ACADEMIC_YEAR;
     delete process.env.COURSE_OFFERING_SEMESTER;
@@ -144,6 +150,14 @@ describe('GET /api/students/course-recommendations', () => {
     expect(mockFetchStudentCourseHistory).toHaveBeenCalledWith(
       mockSupabase,
       'student-1',
+    );
+    expect(mockFetchCourseCurriculum).toHaveBeenCalledWith(mockSupabase, {
+      majorId: 10,
+    });
+    expect(mockAttachCourseCurriculum).toHaveBeenCalledWith(
+      expect.any(Array),
+      [],
+      { curriculumYear: undefined },
     );
     expect(mockFetchAllNotices).not.toHaveBeenCalled();
     expect(mockFetchDashboardCatalogs).not.toHaveBeenCalled();
@@ -253,5 +267,40 @@ describe('GET /api/students/course-recommendations', () => {
       assignmentRequirement: 'REQUIRED',
       examInformation: 'Midterm 40%; Final exam 40%; Final project 15%',
     });
+  });
+
+  test('a requested term loads offerings without requiring the environment flag', async () => {
+    const studentQuery = createStudentQuery({
+      student_id: 'student-1',
+      major_id: 10,
+      major: { major_name: 'Computer Science' },
+      completed_course_ids: [],
+    });
+    mockSupabase.from.mockImplementation((tableName) => {
+      if (tableName === 'student') return studentQuery;
+      throw new Error(`Unexpected table: ${tableName}`);
+    });
+    mockFetchAllCourses.mockResolvedValue([
+      course({ id: 'CS102', isOfferedThisTerm: true }),
+      course({ id: 'CS103', isOfferedThisTerm: false }),
+    ]);
+
+    const response = await request(createApp())
+      .get('/api/students/course-recommendations?academicYear=2026&semester=2&offeredOnly=true')
+      .set('Authorization', `Bearer ${tokenFor('student-1')}`)
+      .expect(200);
+
+    expect(mockFetchAllCourses).toHaveBeenCalledWith(mockSupabase, {
+      language: 'en',
+      includeOfferings: true,
+      offeringAcademicYear: 2026,
+      offeringSemester: '2',
+      offeringSection: null,
+    });
+    expect(response.body.data[0]).toMatchObject({
+      id: 'CS102',
+      isOfferedThisTerm: true,
+    });
+    expect(response.body.data.map((item) => item.id)).not.toContain('CS103');
   });
 });

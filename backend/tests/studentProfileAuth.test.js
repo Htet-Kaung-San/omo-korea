@@ -31,6 +31,7 @@ function tokenFor(studentId) {
 
 function createApp() {
   const app = express();
+  app.use(express.json());
   app.use('/api/students', studentRoutes);
   return app;
 }
@@ -152,5 +153,25 @@ describe('GET /api/students/enrollments/:student_id', () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].course_name).toBe('Data Structures');
+  });
+});
+
+describe('POST /api/students/enrollments past-course guard', () => {
+  test('rejects a current term before attempting a database write', async () => {
+    const now = new Date();
+    const currentSemester = `${now.getFullYear()}-${now.getMonth() + 1 >= 7 ? 'Fall' : 'Spring'}`;
+    const res = await request(createApp())
+      .post('/api/students/enrollments')
+      .set('Authorization', `Bearer ${tokenFor(OWNER_ID)}`)
+      .send({
+        student_id: OTHER_ID,
+        course_id: 101,
+        status: 'Completed',
+        semester: currentSemester,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/past course/i);
+    expect(mockSupabase.from).not.toHaveBeenCalled();
   });
 });

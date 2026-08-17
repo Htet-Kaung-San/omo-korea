@@ -18,10 +18,10 @@ const { authenticateToken, requireAdmin } = require("../middlewares/auth");
 const router = express.Router();
 
 router.post("/recommend-major", recommendMajor);
-router.post("/chat", handleChat);
+router.post("/chat", authenticateToken, handleChat);
 router.post("/chat-stream", authenticateToken, handleChatStream);
-router.get("/chat/history/:student_id", getChatHistory);
-router.delete("/chat/history/:student_id", clearChatHistory);
+router.get("/chat/history/:student_id", authenticateToken, getChatHistory);
+router.delete("/chat/history/:student_id", authenticateToken, clearChatHistory);
 router.post("/translate-announcement", translateAnnouncement);
 
 // RAG Knowledge Base Document Management Endpoints (admin-only for mutations)

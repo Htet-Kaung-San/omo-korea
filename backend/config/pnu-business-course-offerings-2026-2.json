@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "academicYear": 2026,
+  "semester": "2",
+  "department": {
+    "majorId": 73,
+    "name": "Business Administration"
+  },
+  "sourceUrl": "https://onestop.pusan.ac.kr/page?menuCD=000000000000335",
+  "retrievedAt": "2026-08-16T18:43:25.228Z",
+  "expectedCourseCount": 10,
+  "expectedOfferingCount": 15,
+  "offerings": [
+    { "courseId": 6152, "courseName": "AI비즈니스", "officialCourseNumber": "DB2003066", "section": "091", "professor": "홍태호", "yearLevel": "3", "credits": 3, "schedule": "월 15:00-18:00 514-313", "classroom": "514-313", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6153, "courseName": "외환관리론", "officialCourseNumber": "DB3000773", "section": "091", "professor": "유승훈", "yearLevel": "2", "credits": 3, "schedule": "금 15:00-18:00 514-107", "classroom": "514-107", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6154, "courseName": "글로벌시장조사론", "officialCourseNumber": "DB3000786", "section": "091", "professor": "이정아", "yearLevel": "3", "credits": 3, "schedule": "화 16:30(75) 514-106, 목 16:30(75) 514-106", "classroom": "514-106", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6157, "courseName": "재무회계(II)", "officialCourseNumber": "DB3000929", "section": "091", "professor": "김정애", "yearLevel": "2", "credits": 3, "schedule": "월 13:30(75) 514-216-1, 수 13:30(75) 514-216-1", "classroom": "514-216-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6157, "courseName": "재무회계(II)", "officialCourseNumber": "DB3000929", "section": "092", "professor": "서민근", "yearLevel": "2", "credits": 3, "schedule": "월 15:00(75) 514-213, 수 15:00(75) 514-213", "classroom": "514-213", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6161, "courseName": "경영과학", "officialCourseNumber": "DB3000990", "section": "091", "professor": "이행주", "yearLevel": "2", "credits": 3, "schedule": "화 15:00(75) 514-216-1, 목 15:00(75) 514-216-1", "classroom": "514-216-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6161, "courseName": "경영과학", "officialCourseNumber": "DB3000990", "section": "092", "professor": "이행주", "yearLevel": "2", "credits": 3, "schedule": "화 16:30(75) 514-216-1, 목 16:30(75) 514-216-1", "classroom": "514-216-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6162, "courseName": "금융시장론", "officialCourseNumber": "DB3000992", "section": "091", "professor": "강상훈", "yearLevel": "2", "credits": 3, "schedule": "월 12:00(75) 514-213-1, 수 12:00(75) 514-213-1", "classroom": "514-213-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6162, "courseName": "금융시장론", "officialCourseNumber": "DB3000992", "section": "092", "professor": "김소명", "yearLevel": "2", "credits": 3, "schedule": "월 10:30(75) 514-108, 수 10:30(75) 514-108", "classroom": "514-108", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6166, "courseName": "국제재무관리", "officialCourseNumber": "DB3100012", "section": "091", "professor": "고광수", "yearLevel": "2", "credits": 3, "schedule": "화 10:30(75) 514-213, 목 10:30(75) 514-213", "classroom": "514-213", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6167, "courseName": "재무분석", "officialCourseNumber": "DB3100016", "section": "091", "professor": "서민근", "yearLevel": "4", "credits": 3, "schedule": "월 16:30(75) 514-213, 수 16:30(75) 514-213", "classroom": "514-213", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6169, "courseName": "광고론", "officialCourseNumber": "DB3100018", "section": "091", "professor": "김영희", "yearLevel": "3", "credits": 3, "schedule": "월 10:30(75) 514-313-1, 수 10:30(75) 514-313-1", "classroom": "514-313-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6169, "courseName": "광고론", "officialCourseNumber": "DB3100018", "section": "092", "professor": "문민경", "yearLevel": "3", "credits": 3, "schedule": "월 15:00(75) 514-216-1, 수 15:00(75) 514-216-1", "classroom": "514-216-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6170, "courseName": "유통관리론", "officialCourseNumber": "DB3100021", "section": "091", "professor": "신종국", "yearLevel": "2", "credits": 3, "schedule": "월 13:30(75) 514-214, 수 13:30(75) 514-214", "classroom": "514-214", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null },
+    { "courseId": 6170, "courseName": "유통관리론", "officialCourseNumber": "DB3100021", "section": "092", "professor": "문민경", "yearLevel": "2", "credits": 3, "schedule": "월 12:00(75) 514-216-1, 수 12:00(75) 514-216-1", "classroom": "514-216-1", "remoteCourseStatus": "NOT_REMOTE", "originalLanguageCode": null, "teachingLanguage": null }
+  ]
+}

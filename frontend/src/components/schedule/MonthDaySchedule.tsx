@@ -110,10 +110,10 @@ export function MonthDaySchedule({
                           {enrollment.category}
                         </p>
                       ) : null}
-                      {enrollment.classroom ? (
+                      {(slot.classroom || enrollment.classroom) ? (
                         <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-pnu-muted">
                           <MapPin className="h-3 w-3" />
-                          {enrollment.classroom}
+                          {slot.classroom || enrollment.classroom}
                         </p>
                       ) : null}
                     </div>

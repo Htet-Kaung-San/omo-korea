@@ -31,6 +31,7 @@ import { useSavedNotices } from '@/utils/savedNotices'
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 
 type FeedTab = 'latest' | 'important'
+type ChannelFilter = 'all' | NoticeChannel
 
 type DisplayNotice = Notification & {
   channel: NoticeChannel
@@ -179,6 +180,8 @@ export function NotificationsPage() {
   } = useNoticeRefresh()
   const [scholarships, setScholarships] = useState<ScholarshipItem[]>([])
   const [feedTab, setFeedTab] = useState<FeedTab>('latest')
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const { toggle: toggleSavedNotice, isSaved: isNoticeSaved } = useSavedNotices()
   const navigate = useNavigate()
@@ -216,15 +219,24 @@ export function NotificationsPage() {
   )
 
   const feedItems = useMemo(() => {
-    let list = [...catalog]
+    let list = [...catalog].sort(
+      (a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime(),
+    )
     if (feedTab === 'important') list = list.filter((n) => n.priority === 'HIGH')
+    if (channelFilter !== 'all') list = list.filter((n) => n.channel === channelFilter)
     return list
-    return list.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime())
-  }, [catalog, feedTab])
+  }, [catalog, channelFilter, feedTab])
 
   const feedTabs: { id: FeedTab; labelKey: string; icon: LucideIcon }[] = [
     { id: 'latest', labelKey: 'notices.tabLatest', icon: Clock3 },
     { id: 'important', labelKey: 'notices.tabImportant', icon: Star },
+  ]
+  const channelFilters: { id: ChannelFilter; labelKey: string }[] = [
+    { id: 'all', labelKey: 'notices.filterAll' },
+    { id: 'department', labelKey: 'notices.channelDepartment' },
+    { id: 'international', labelKey: 'notices.channelInternational' },
+    { id: 'scholarship', labelKey: 'notices.channelScholarship' },
+    { id: 'general', labelKey: 'notices.channelGeneral' },
   ]
 
   function toggleBookmark(notice: Notification) {
@@ -276,7 +288,11 @@ export function NotificationsPage() {
               </h2>
               <button
                 type="button"
-                onClick={() => setFeedTab('latest')}
+                onClick={() => {
+                  setFeedTab('latest')
+                  setChannelFilter('all')
+                  setFilterOpen(false)
+                }}
                 className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#7C3AED]"
               >
                 {t('common.viewAll')}
@@ -308,12 +324,29 @@ export function NotificationsPage() {
               </div>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-pnu-muted ring-1 ring-black/8"
+                onClick={() => setFilterOpen((open) => !open)}
+                aria-expanded={filterOpen}
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${filterOpen || channelFilter !== 'all' ? 'bg-[#F3E8FF] text-[#7C3AED] ring-[#7C3AED]/30' : 'bg-white text-pnu-muted ring-black/8'}`}
               >
                 <Filter className="h-3 w-3" strokeWidth={2} />
                 {t('notices.filter')}
               </button>
             </div>
+
+            {filterOpen ? (
+              <div className="mb-3 flex flex-wrap gap-1.5 rounded-xl bg-white p-2.5 ring-1 ring-black/8">
+                {channelFilters.map(({ id, labelKey }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setChannelFilter(id)}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${channelFilter === id ? 'bg-[#7C3AED] text-white' : 'bg-pnu-surface text-pnu-muted'}`}
+                  >
+                    {t(labelKey)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
 
             {feedItems.length === 0 ? (
               <p
@@ -395,9 +428,6 @@ export function NotificationsPage() {
                               {formatDate(item.date, locale)}
                             </span>
                           ) : null}
-                          <span className="text-[10px] font-medium text-pnu-muted">
-                            {formatDate(item.date ?? '', locale)}
-                          </span>
                           <div className="flex items-center gap-1">
                             <ChevronRight
                               className="h-3.5 w-3.5 text-pnu-muted opacity-40"

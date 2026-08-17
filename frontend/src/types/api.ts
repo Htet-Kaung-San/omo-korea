@@ -121,6 +121,7 @@ export interface ScholarshipItem {
   category?: ScholarshipCategory | null
   tag?: string | null
   deadlineAt?: string | null
+  sourceUrl?: string | null
 }
 
 export interface EmergencyQuickAccess {
@@ -321,6 +322,10 @@ export interface Course {
   credits: number
   department: string
   tags: string[]
+  majorId?: string | null
+  majorName?: string | null
+  collegeId?: number | null
+  recommendedYear?: number | null
 }
 
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
@@ -350,6 +355,64 @@ export interface CourseOfferingInformation {
 export interface RecommendedCourse extends Course, CourseOfferingInformation {
   score: number
   matchHint?: string
+  isOfferedThisTerm: boolean | null
+}
+
+export interface CourseCurriculumInformation {
+  curriculumYear: number
+  sourceCourseCode: string | null
+  category: CourseType | null
+  recommendedYear: number | null
+  gradeSemester: string | null
+  sourceDepartment: string | null
+}
+
+export interface CourseOfferingOption {
+  courseOfferingId: number
+  officialCourseNumber: string | null
+  academicYear: number
+  semester: string
+  section: string | null
+  professor: string | null
+  schedule: string | null
+  classroom: string | null
+  teachingLanguage: TeachingLanguage | null
+  remoteCourseStatus: RemoteCourseStatus | null
+  slots: TimetableSlotInput[]
+  presentationRequirement: CourseMetadataRequirement | null
+  groupProjectRequirement: CourseMetadataRequirement | null
+  assignmentRequirement: CourseMetadataRequirement | null
+  examInformation: string | null
+}
+
+export interface CourseCatalogItem extends RecommendedCourse {
+  curriculumYears: number[]
+  curriculum: CourseCurriculumInformation | null
+  offerings: CourseOfferingOption[]
+}
+
+export interface CourseCatalogPage {
+  items: CourseCatalogItem[]
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasMore: boolean
+}
+
+export interface CourseCatalogParams {
+  page?: number
+  pageSize?: number
+  search?: string
+  myMajor?: boolean
+  majorId?: number
+  category?: CourseType | 'ALL'
+  recommendedYear?: number
+  curriculumYear?: number
+  academicYear?: number
+  semester?: '1' | '2' | 'SUMMER' | 'WINTER'
+  offeredOnly?: boolean
+  courseId?: string | number
 }
 
 export interface RecommendedMajor {
@@ -391,6 +454,58 @@ export interface Enrollment {
   credit?: number;
   category?: string;
   classroom?: string;
+  course_name_en?: string | null;
+  course_name_ko?: string | null;
+  official_course_number?: string | null;
+  /** Canonical catalog row used for details when a legacy enrollment was matched by exact name. */
+  catalog_course_id?: number | null;
+  professor?: string | null;
+  schedule?: string | null;
+  day_of_week?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+}
+
+export interface TimetableSlotInput {
+  day: number
+  start: string
+  end: string
+  classroom?: string | null
+}
+
+export interface TimetableSlot extends TimetableSlotInput {
+  slotId: number
+}
+
+export interface TimetableEntry {
+  timetableEntryId: number
+  enrollment_id: number
+  student_id: string
+  course_id: number
+  courseOfferingId: number | null
+  academicYear: number
+  semester: string
+  status: 'Planned'
+  source: 'OFFERING' | 'MANUAL'
+  color: string | null
+  course_name: string
+  courseNameEn: string | null
+  officialCourseNumber: string | null
+  credit: number
+  category: string
+  professor: string | null
+  section: string | null
+  classroom?: string | null
+  slots: TimetableSlot[]
+}
+
+export interface CreateTimetableEntryInput {
+  courseId: number
+  courseOfferingId?: number | null
+  academicYear: number
+  semester: '1' | '2' | 'SUMMER' | 'WINTER'
+  color?: string | null
+  slots?: TimetableSlotInput[]
 }
 
 export interface GradeSummary {
@@ -571,7 +686,21 @@ export interface HeyPnuApi {
   updateProfile(data: UpdateProfileRequest): Promise<User>
   forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }>
   resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
-  getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
+  getRecommendedCourses(
+    type?: CourseType | 'ALL',
+    term?: {
+      academicYear: number
+      semester: '1' | '2' | 'SUMMER' | 'WINTER'
+      offeredOnly?: boolean
+    },
+  ): Promise<RecommendedCourse[]>
+  getCourseCatalog(params?: CourseCatalogParams): Promise<CourseCatalogPage>
+  getTimetable(params?: {
+    academicYear?: number
+    semester?: '1' | '2' | 'SUMMER' | 'WINTER'
+  }): Promise<TimetableEntry[]>
+  createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry>
+  deleteTimetableEntry(timetableEntryId: number): Promise<void>
   getGraduationProgress(): Promise<GraduationProgress>
   updateGraduationRequirement(
     requirementId: string,
@@ -625,6 +754,7 @@ export interface HeyPnuApi {
   getCourses(campus?: string): Promise<Course[]>
   getEnrollments(studentId: string): Promise<Enrollment[]>
   createEnrollment(studentId: string, courseId: number): Promise<Enrollment>
+  addPastCourse(courseId: number, semester: string): Promise<Enrollment>
   deleteEnrollment(enrollmentId: number): Promise<void>
   requestAccountDeletion(studentId: string): Promise<void>
   updateLanguagePreference(studentId: string, languagePref: string): Promise<void>

@@ -1,4 +1,5 @@
 import { ChevronRight, ClipboardList } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useLanguage } from '@/context/LanguageContext'
 
 /** Assignments block for the daily schedule card; empty until assignment APIs exist. */
@@ -14,10 +15,10 @@ export function AssignmentsExamsRow({ embedded = false }: { embedded?: boolean }
             {t('schedule.assignments')}
           </h3>
         </div>
-        <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-pnu-blue">
+        <Link to="/schedule/assignments" className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-pnu-blue">
           {t('common.viewAll')}
           <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.2} />
-        </span>
+        </Link>
       </div>
       <div className="flex flex-col items-center gap-1.5 py-4 text-center">
         <ClipboardList className="h-5 w-5 text-pnu-muted/45" />
