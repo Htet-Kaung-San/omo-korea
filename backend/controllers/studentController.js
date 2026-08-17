@@ -67,6 +67,24 @@ function displayNameFromEmail(email) {
   return local.replace(/[._]+/g, " ").trim() || "Student";
 }
 
+/**
+ * PostgREST treats `%` and `_` as wildcards inside .ilike(), and a raw address
+ * goes straight in. Real PNU local parts routinely contain underscores —
+ * htet_kaung_san@pusan.ac.kr — so an unescaped lookup can match a row that is
+ * not the one asked for, and a pattern like "%@pusan.ac.kr" matches many, which
+ * .maybeSingle() reports as an error the callers discard. The duplicate-account
+ * guard then fails open.
+ */
+function escapeLikePattern(value) {
+  return String(value ?? "").replace(/([\\%_])/g, "\\$1");
+}
+
+/** An account that never reached the nationality step, so it can be reclaimed. */
+function isUnfinishedSignup(row) {
+  const nationality = String(row?.nationality ?? "").trim().toLowerCase();
+  return !nationality || nationality === "unknown";
+}
+
 function studentIdFromEmail(email) {
   const local = String(email).split("@")[0] || "";
   if (/^\d{8,9}$/.test(local)) {
@@ -85,7 +103,13 @@ function studentIdFromEmail(email) {
 async function reserveUnusedStudentId(email) {
   const candidates = [studentIdFromEmail(email)];
   for (let i = 1; i <= 8; i += 1) {
-    candidates.push(studentIdFromEmail(`${email}:${i}`));
+    // The salt goes BEFORE the address. studentIdFromEmail returns the local
+    // part verbatim when it is 8-9 digits, and appending ":1" after the domain
+    // leaves that local part unchanged — so every retry produced the same id and
+    // the loop could never find a free one. Any student whose address is
+    // <studentnumber>@pusan.ac.kr, which is the ordinary PNU format, hit a 500
+    // the moment that id was already taken.
+    candidates.push(studentIdFromEmail(`${i}:${email}`));
   }
   for (const candidate of candidates) {
     const { data } = await supabase
@@ -868,37 +892,26 @@ const signupStudent = async (req, res) => {
       });
     }
 
+    // Nothing is deleted here. This endpoint is public and unauthenticated, and
+    // it runs before any code is sent, so whoever typed the address has proved
+    // nothing about owning it. Clearing an existing account at this point let
+    // anyone destroy a stranger's profile — and, because every foreign key to
+    // student cascades, their checklist, records, timetable and posts with it —
+    // simply by typing their address into the signup form.
+    //
+    // A half-finished signup is still restartable: the cleanup moved to
+    // completeSignupStudent, which only runs once the OTP has proved ownership.
     const { data: existingEmail } = await supabase
       .from("student")
       .select("student_id, nationality")
-      .ilike("email", emailToUse)
+      .ilike("email", escapeLikePattern(emailToUse))
       .maybeSingle();
 
-    if (existingEmail) {
-      const unfinished =
-        !existingEmail.nationality ||
-        String(existingEmail.nationality).trim().toLowerCase() === "unknown";
-      if (!unfinished) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already registered. Please log in instead.",
-        });
-      }
-      await supabase
-        .from("student")
-        .delete()
-        .eq("student_id", existingEmail.student_id);
-    }
-
-    const leftoverAuth = await findAuthUserByEmail(emailToUse);
-    if (leftoverAuth) {
-      const removed = await deleteAuthUserByEmail(emailToUse);
-      if (!removed.ok) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already registered. Please log in instead.",
-        });
-      }
+    if (existingEmail && !isUnfinishedSignup(existingEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered. Please log in instead.",
+      });
     }
 
     let resolvedStudentId;
@@ -1101,16 +1114,34 @@ const completeSignupStudent = async (req, res) => {
       });
     }
 
+    // The OTP has proved ownership by this point, so clearing an abandoned
+    // attempt at this address is safe — this is where /signup used to do it,
+    // before anyone had proved anything.
     const { data: existingEmail } = await supabase
       .from("student")
-      .select("student_id")
-      .ilike("email", pending.email)
+      .select("student_id, nationality")
+      .ilike("email", escapeLikePattern(pending.email))
       .maybeSingle();
+
     if (existingEmail) {
-      return res.status(400).json({
-        success: false,
-        message: "Email already registered. Please log in instead.",
-      });
+      if (!isUnfinishedSignup(existingEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already registered. Please log in instead.",
+        });
+      }
+      const { error: cleanupError } = await supabase
+        .from("student")
+        .delete()
+        .eq("student_id", existingEmail.student_id);
+      if (cleanupError) {
+        // Left unchecked, a failed delete fell through to an insert that could
+        // only collide, so the student saw a 500 with no way forward.
+        return res.status(500).json({
+          success: false,
+          message: "Could not clear the previous signup attempt. Please try again.",
+        });
+      }
     }
 
     const { data: matchedMajor } = await supabase
