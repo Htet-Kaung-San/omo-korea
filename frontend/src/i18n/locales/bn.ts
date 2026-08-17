@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "বিজ্ঞপ্তি লোড করতে ব্যর্থ।",
   'notifications.loading': "বিজ্ঞপ্তি লোড হচ্ছে…",
   'campusLife.title': "ক্যাম্পাস জীবন",
-  'campusLife.subtitle': "ক্যাম্পাস জীবনের বৈশিষ্ট্য শীঘ্রই আসছে",
   'campusLife.placeholder': "এই পৃষ্ঠাটি মানচিত্র, সেবা ও স্থানীয় জীবন গাইডের জন্য প্লেসহোল্ডার।",
   'campusLife.oneStopGuide': "ওয়ান-স্টপ গাইড",
   'campusLife.libraryGuide': "লাইব্রেরি গাইড",

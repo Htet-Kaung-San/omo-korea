@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Bildirimler yüklenemedi.",
   'notifications.loading': "Bildirimler yükleniyor…",
   'campusLife.title': "Kampüs Yaşamı",
-  'campusLife.subtitle': "Kampüs yaşamı özellikleri yakında",
   'campusLife.placeholder': "Bu sayfa haritalar, hizmetler ve yerel yaşam rehberleri için bir yer tutucudur.",
   'campusLife.oneStopGuide': "Tek Nokta Rehberi",
   'campusLife.libraryGuide': "Kütüphane Rehberi",

@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Bildirishnomalar yuklanmadi.",
   'notifications.loading': "Bildirishnomalar yuklanmoqda…",
   'campusLife.title': "Kampus hayoti",
-  'campusLife.subtitle': "Kampus hayoti funksiyalari tez orada",
   'campusLife.placeholder': "Bu sahifa xaritalar, xizmatlar va mahalliy hayot qo'llanmalari uchun placeholder.",
   'campusLife.oneStopGuide': "Yagona qo'llanma",
   'campusLife.libraryGuide': "Kutubxona qo'llanmasi",

@@ -170,7 +170,7 @@ const messages: MessageDictionary = {
   'notices.aiBannerBody': "AI가 중요한 업데이트를 정리해 드려요. AI 요약과 알림을 켜 보세요.",
   'notices.enableAiAlerts': "AI 알림 켜기",
   'campusLife.title': "캠퍼스 라이프",
-  'campusLife.subtitle': "캠퍼스 라이프 기능은 준비 중입니다",
+  'campusLife.subtitle': "학교 생활 가이드, 학식, 캠퍼스 시설을 한곳에서.",
   'campusLife.placeholder': "지도, 서비스, 생활 가이드를 위한 임시 페이지입니다.",
   'campusLife.oneStopGuide': "원스톱 이용 가이드",
   'campusLife.libraryGuide': "도서관 이용 가이드",

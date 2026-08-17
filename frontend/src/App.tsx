@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -157,14 +158,24 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <LanguageProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </ToastProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    // Outermost, so it catches a failure in any provider as well as in a page.
+    // A render error below this used to unmount everything and leave a white
+    // screen with no route and no way back.
+    <ErrorBoundary>
+      <BrowserRouter>
+        <LanguageProvider>
+          <ToastProvider>
+            <AuthProvider>
+              {/* A second boundary inside the providers keeps a broken page
+                  from taking the shell with it: language, toasts and session
+                  survive, so "Go home" lands somewhere usable. */}
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
+            </AuthProvider>
+          </ToastProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

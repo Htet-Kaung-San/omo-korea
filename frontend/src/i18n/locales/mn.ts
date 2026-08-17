@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Мэдэгдлийг ачаалж чадсангүй.",
   'notifications.loading': "Мэдэгдэл ачаалж байна…",
   'campusLife.title': "Кампусын амьдрал",
-  'campusLife.subtitle': "Кампусын амьдралын функц удахгүй",
   'campusLife.placeholder': "Энэ хуудас газрын зураг, үйлчилгээ, орон нутгийн амьдралын гарын авлага зориулсан placeholder.",
   'campusLife.oneStopGuide': "Нэг цэгийн гарын авлага",
   'campusLife.libraryGuide': "Номын сан гарын авлага",

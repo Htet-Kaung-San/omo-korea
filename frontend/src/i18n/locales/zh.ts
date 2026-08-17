@@ -170,7 +170,7 @@ const messages: MessageDictionary = {
   'notices.aiBannerBody': "让 AI 帮你跟进重要更新。开启 AI 摘要与通知。",
   'notices.enableAiAlerts': "开启 AI 提醒",
   'campusLife.title': "校园生活",
-  'campusLife.subtitle': "校园生活功能即将推出",
+  'campusLife.subtitle': "校园指南、餐饮与设施，尽在一处。",
   'campusLife.placeholder': "此页面用于地图、服务和生活指南功能占位。",
   'campusLife.oneStopGuide': "一站式使用指南",
   'campusLife.libraryGuide': "图书馆使用指南",

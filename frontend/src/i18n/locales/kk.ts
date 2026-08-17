@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Хабарландыруларды жүктеу сәтсіз аяқталды.",
   'notifications.loading': "Хабарландырулар жүктелуде…",
   'campusLife.title': "Кампус өмірі",
-  'campusLife.subtitle': "Кампус өмірі функциялары жақында",
   'campusLife.placeholder': "Бұл бет карталар, қызметтер және жергілікті өмір нұсқаулықтары үшін placeholder.",
   'campusLife.oneStopGuide': "Бір орыннан нұсқаулық",
   'campusLife.libraryGuide': "Кітапхана нұсқаулығы",

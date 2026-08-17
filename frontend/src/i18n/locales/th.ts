@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "โหลดการแจ้งเตือนไม่สำเร็จ",
   'notifications.loading': "กำลังโหลดการแจ้งเตือน…",
   'campusLife.title': "ชีวิตในมหาวิทยาลัย",
-  'campusLife.subtitle': "ฟีเจอร์ชีวิตในมหาวิทยาลัยกำลังจะมาเร็วๆ นี้",
   'campusLife.placeholder': "หน้านี้เป็นตัวอย่างสำหรับแผนที่ บริการ และคู่มือชีวิตในท้องถิ่น",
   'campusLife.oneStopGuide': "คู่มือครบวงจร",
   'campusLife.libraryGuide': "คู่มือห้องสมุด",

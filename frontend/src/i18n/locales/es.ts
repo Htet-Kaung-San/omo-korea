@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Error al cargar las notificaciones.",
   'notifications.loading': "Cargando notificaciones…",
   'campusLife.title': "Vida universitaria",
-  'campusLife.subtitle': "Las funciones de vida universitaria llegarán pronto",
   'campusLife.placeholder': "Esta página es un marcador para mapas, servicios y guías de vida local.",
   'campusLife.oneStopGuide': "Guía integral",
   'campusLife.libraryGuide': "Guía de biblioteca",
