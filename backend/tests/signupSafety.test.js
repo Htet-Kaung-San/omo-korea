@@ -203,3 +203,58 @@ describe('student ID allocation', () => {
     expect(new Set(candidates).size).toBe(1);
   });
 });
+
+describe('signup requires a PNU school email', () => {
+  // Every domain here came from the alternate-address list PNU actually issues.
+  // pusan.ac.kr is the one nearly everyone has; the rest are live aliases.
+  test.each([
+    'student@pusan.ac.kr',
+    'student@pnu.ac.kr',
+    'student@pnu.edu',
+    'student@pnu.kr',
+    'student@bnu.ac.kr',
+    'student@bnu.kr',
+    'student@busan.ac.kr',
+    'STUDENT@PUSAN.AC.KR',
+    'student@mail.pusan.ac.kr',
+  ])('accepts %s', async (email) => {
+    mockStudentTable(null);
+    const res = await signup({ email, password: 'password' });
+    expect(res.status).toBe(200);
+  });
+
+  test.each([
+    'student@gmail.com',
+    'student@naver.com',
+    // Domain-confusion: these all CONTAIN a university domain but are not one.
+    // The first is real — Google Workspace creates it during verification, and
+    // it is a .com owned by Google. A substring check would accept all three.
+    'student@pusan.ac.kr.test-google-a.com',
+    'student@pusan.ac.kr.attacker.com',
+    'student@notpusan.ac.kr',
+  ])('rejects %s', async (email) => {
+    mockStudentTable(null);
+    const res = await signup({ email, password: 'password' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('EMAIL_DOMAIN_NOT_ALLOWED');
+  });
+
+  test('a rejected domain never triggers an email', async () => {
+    mockStudentTable(null);
+    await signup({ email: 'student@gmail.com', password: 'password' });
+    const { sendOtpEmail } = require('../services/otpEmailService');
+    expect(sendOtpEmail).not.toHaveBeenCalled();
+  });
+
+  test('SIGNUP_ALLOWED_EMAIL_DOMAINS overrides the list', async () => {
+    process.env.SIGNUP_ALLOWED_EMAIL_DOMAINS = 'example.com';
+    try {
+      mockStudentTable(null);
+      expect((await signup({ email: 'a@example.com', password: 'password' })).status).toBe(200);
+      mockStudentTable(null);
+      expect((await signup({ email: 'a@pusan.ac.kr', password: 'password' })).status).toBe(400);
+    } finally {
+      delete process.env.SIGNUP_ALLOWED_EMAIL_DOMAINS;
+    }
+  });
+});
