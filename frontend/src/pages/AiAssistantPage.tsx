@@ -301,12 +301,30 @@ export function AiAssistantPage() {
               />
               <div className="max-w-[82%]">
                 <div className="whitespace-pre-wrap rounded-[18px] rounded-bl-md border border-black/8 bg-white px-3.5 py-2.5 text-[14px] leading-relaxed text-pnu-text shadow-sm">
-                  {message.text}
+                  {message.text ? (
+                    message.text
+                  ) : (
+                    // The reply streams in, so this bubble exists before its
+                    // first token. Showing the dots here — rather than an empty
+                    // box plus a separate "typing" row — keeps one element per
+                    // reply, in the place the answer is about to appear.
+                    <span className="flex items-center gap-1 py-1" aria-label={t('chat.typing')}>
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-pnu-muted [animation-delay:-0.3s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-pnu-muted [animation-delay:-0.15s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-pnu-muted" />
+                    </span>
+                  )}
                 </div>
-                <p className="mt-1 px-1 text-[10px] font-medium text-pnu-muted">
-                  {formatTime(message.at, locale)}
-                </p>
-                <div className="mt-1.5 flex items-center gap-1.5 px-0.5">
+                {/* Timestamp and the rating / copy controls only make sense once
+                    there is an answer to time-stamp, rate or copy. */}
+                {message.text ? (
+                  <p className="mt-1 px-1 text-[10px] font-medium text-pnu-muted">
+                    {formatTime(message.at, locale)}
+                  </p>
+                ) : null}
+                <div
+                  className={`mt-1.5 flex items-center gap-1.5 px-0.5 ${message.text ? '' : 'hidden'}`}
+                >
                   <button
                     type="button"
                     className="rounded-full border border-black/10 p-1.5 text-pnu-muted transition hover:text-pnu-blue"
@@ -340,7 +358,9 @@ export function AiAssistantPage() {
           ),
         )}
 
-        {sending ? (
+        {/* Only shown when no streaming bubble is standing in for it — otherwise
+            one pending reply drew two indicators at once. */}
+        {sending && !messages.some((m) => m.role === 'assistant' && !m.text) ? (
           <div className="flex items-center gap-2 text-[13px] text-pnu-muted">
             <img
               src={sanjini}
