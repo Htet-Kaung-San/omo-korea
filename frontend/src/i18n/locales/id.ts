@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Gagal memuat notifikasi.",
   'notifications.loading': "Memuat notifikasi…",
   'campusLife.title': "Kehidupan Kampus",
-  'campusLife.subtitle': "Fitur kehidupan kampus segera hadir",
   'campusLife.placeholder': "Halaman ini adalah placeholder untuk peta, layanan, dan panduan kehidupan lokal.",
   'campusLife.oneStopGuide': "Panduan Satu Pintu",
   'campusLife.libraryGuide': "Panduan Perpustakaan",

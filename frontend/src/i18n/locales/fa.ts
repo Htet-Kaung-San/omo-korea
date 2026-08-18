@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "بارگذاری اعلان‌ها ناموفق بود.",
   'notifications.loading': "در حال بارگذاری اعلان‌ها…",
   'campusLife.title': "زندگی دانشگاه",
-  'campusLife.subtitle': "ویژگی‌های زندگی دانشگاه به‌زودی",
   'campusLife.placeholder': "این صفحه جایگزین برای نقشه‌ها، خدمات و راهنمای زندگی محلی است.",
   'campusLife.oneStopGuide': "راهنمای یک‌جا",
   'campusLife.libraryGuide': "راهنمای کتابخانه",

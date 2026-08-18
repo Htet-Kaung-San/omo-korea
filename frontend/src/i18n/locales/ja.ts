@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "通知の読み込みに失敗しました。",
   'notifications.loading': "通知を読み込み中…",
   'campusLife.title': "キャンパスライフ",
-  'campusLife.subtitle': "キャンパスライフ機能は近日公開",
   'campusLife.placeholder': "このページは地図、サービス、地域生活ガイドのプレースホルダーです。",
   'campusLife.oneStopGuide': "ワンストップガイド",
   'campusLife.libraryGuide': "図書館ガイド",

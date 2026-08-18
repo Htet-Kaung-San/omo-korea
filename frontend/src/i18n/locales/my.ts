@@ -178,7 +178,7 @@ const messages: MessageDictionary = {
   'notices.aiBannerBody': "AI က အရေးကြီး update များကို ကူညီ စောင့်ကြည့်ပေးပါမည်။",
   'notices.enableAiAlerts': "AI Alerts ဖွင့်ရန်",
   'campusLife.title': "ကျောင်းပရဝဏ်",
-  'campusLife.subtitle': "Campus life features မကြာမီ ရောက်ရှိလာမည်",
+  'campusLife.subtitle': "လမ်းညွှန်များ၊ စားသောက်ဆိုင်နှင့် ကျောင်းဝင်းအဆောက်အအုံများ တစ်နေရာတည်းတွင်။",
   'campusLife.placeholder': "ဤစာမျက်နှာသည် မြေပုံ၊ ဝန်ဆောင်မှုများနှင့် ဒေသတွင်း လမ်းညွှန်များအတွက် placeholder ဖြစ်သည်။",
   'campusLife.oneStopGuide': "One-Stop အသုံးပြုနည်း",
   'campusLife.libraryGuide': "စာကြည့်တိုက် လမ်းညွှန်",

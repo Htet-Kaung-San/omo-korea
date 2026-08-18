@@ -208,7 +208,10 @@ const messages: MessageDictionary = {
   'notices.aiBannerBody': "Let AI help you stay on top of important updates. Enable AI Summaries and notifications.",
   'notices.enableAiAlerts': "Enable AI Alerts",
   'campusLife.title': "Campus Life",
-  'campusLife.subtitle': "Campus life features are coming soon",
+  // Was "Campus life features are coming soon", printed directly above four
+  // built and working entries — One-Stop Guide, Library Guide, Cafeteria Info
+  // and Campus Map.
+  'campusLife.subtitle': "Guides, dining and campus facilities in one place.",
   'campusLife.placeholder': "This page is a placeholder for maps, services, and local life guides.",
   'campusLife.oneStopGuide': "One-Stop Guide",
   'campusLife.libraryGuide': "Library Guide",

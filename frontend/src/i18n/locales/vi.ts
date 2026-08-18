@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Không thể tải thông báo.",
   'notifications.loading': "Đang tải thông báo…",
   'campusLife.title': "Đời sống campus",
-  'campusLife.subtitle': "Tính năng đời sống campus sắp ra mắt",
   'campusLife.placeholder': "Trang này là bản nháp cho bản đồ, dịch vụ và hướng dẫn cuộc sống địa phương.",
   'campusLife.oneStopGuide': "Hướng dẫn một cửa",
   'campusLife.libraryGuide': "Hướng dẫn thư viện",
