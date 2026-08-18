@@ -25,12 +25,23 @@ import {
   Settings,
 } from "lucide-react";
 
+/**
+ * True only for a real PNU student number, whose first four digits are the
+ * intake year. Signup hashes any other email local part into a 10-digit id
+ * (1e9 + digest % 1_147_483_647), so slicing four digits off one of those
+ * produced "Intake Year: 1830" and "6th Year" on a screen headed
+ * "read-only official records". Length separates the two exactly; a year-range
+ * check does not, because hashed ids beginning 2000-2147 look plausible.
+ */
+function intakeYearFromStudentId(studentId?: string): number | null {
+  if (!studentId || !/^\d{8,9}$/.test(studentId)) return null;
+  const year = Number(studentId.slice(0, 4));
+  return Number.isFinite(year) && year >= 2000 ? year : null;
+}
+
 function yearLabelFromStudentId(studentId?: string, studentType?: string): string {
-  if (!studentId || studentId.length < 4) {
-    return studentType === "Freshman" ? "1st Year" : "Student";
-  }
-  const intakeYear = Number(studentId.slice(0, 4));
-  if (!Number.isFinite(intakeYear)) {
+  const intakeYear = intakeYearFromStudentId(studentId);
+  if (intakeYear === null) {
     return studentType === "Freshman" ? "1st Year" : "Student";
   }
   const now = new Date();
@@ -566,7 +577,8 @@ export function ProfilePage() {
   }
 
   // ── VIEW 4: Personal Information (read-only official records) ─────────────
-  const intakeYear = user?.studentId?.slice(0, 4) || "";
+  // Blank rather than a fabricated year when the id is not a PNU number.
+  const intakeYear = String(intakeYearFromStudentId(user?.studentId) ?? "");
   const intakeTermLabel =
     user?.intake_term === "September"
       ? t("profile.intakeFall")

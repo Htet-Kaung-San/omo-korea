@@ -42,6 +42,7 @@ const {
   requestStudentDeletion,
   hardDeleteStudent,
   getAllStudents,
+  submitFeedback,
   getCareerOpportunities,
   getCareerRecommendations,
   getMyCommunityGroupHandler,
@@ -111,6 +112,7 @@ router.get("/courses", getCourses);
 
 // Protected / named routes (before /:student_id)
 router.get("/", authenticateToken, requireAdmin, getAllStudents);
+router.post("/feedback", authenticateToken, submitFeedback);
 router.post(
   "/notices/sync",
   authenticateToken,

@@ -387,10 +387,28 @@ export const realApi: HeyPnuApi = {
           if (Array.isArray(followUps)) {
             handlers.onFollowUps?.(followUps.filter((f): f is string => typeof f === 'string'))
           }
+          const sources = metadata.ragSources
+          handlers.onGrounding?.({
+            grounded: metadata.ragUsed === true,
+            status: typeof metadata.ragStatus === 'string' ? metadata.ragStatus : 'not-used',
+            sources: Array.isArray(sources)
+              ? sources.filter((s): s is string => typeof s === 'string')
+              : [],
+          })
         },
         signal: handlers.signal,
       },
     )
+  },
+
+  async submitFeedback(data) {
+    // apiFetch throws on any non-ok response, so a resolved call means the row
+    // was written. The forms rely on that — they show success only here.
+    await apiFetch('/students/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      suppressToast: true,
+    })
   },
 
   async getChatSuggestions(): Promise<string[]> {

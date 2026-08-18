@@ -3229,6 +3229,59 @@ const reportPost = async (req, res) => {
   }
 };
 
+const FEEDBACK_KINDS = new Set(["feedback", "app-support"]);
+const MAX_FEEDBACK_LENGTH = 4000;
+
+/**
+ * Records in-app feedback.
+ *
+ * Both forms that reach here previously flipped a local `sent` flag and threw
+ * the text away. This endpoint either stores the report or fails loudly — it
+ * must never answer 200 for a message it did not save, which is the whole
+ * point of the change.
+ */
+const submitFeedback = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const message = String(req.body?.message ?? "").trim();
+
+    if (!message) {
+      return res.status(400).json({ success: false, message: "Message is required" });
+    }
+    if (message.length > MAX_FEEDBACK_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        message: `Message must be ${MAX_FEEDBACK_LENGTH} characters or fewer`,
+      });
+    }
+
+    const kind = FEEDBACK_KINDS.has(req.body?.kind) ? req.body.kind : "feedback";
+    const languagePref = String(req.body?.language_pref ?? "").slice(0, 5) || null;
+
+    const { error } = await supabase.from("app_feedback").insert({
+      student_id: studentId ?? null,
+      kind,
+      message,
+      language_pref: languagePref,
+    });
+
+    if (error) {
+      // Most likely cause is that supabase/feedback.sql has not been applied.
+      // Say so in the log; the student just sees that it did not send.
+      console.error("Failed to store feedback:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Could not save your message. Please try again later.",
+      });
+    }
+
+    res.json({ success: true, data: { received: true } });
+  } catch (err) {
+    console.error("Failed to store feedback:", err.message);
+    res.status(500).json({ success: false, message: "Unexpected server error" });
+  }
+};
+
 const getAllStudents = async (req, res) => {
   try {
     const { data: students, error } = await supabase
@@ -3576,6 +3629,7 @@ const deleteCommunityPostHandler = async (req, res) => {
 module.exports = {
   getAllMajors,
   getAllStudents,
+  submitFeedback,
   requestStudentDeletion,
   hardDeleteStudent,
   testConnection,

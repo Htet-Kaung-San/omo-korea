@@ -2,6 +2,8 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "ဖတ်နေသည်…",
+  'common.sending': "ပို့နေသည်…",
+  'support.sendFailed': "မက်ဆေ့ဂျ် ပို့၍ မရပါ။ အင်တာနက် ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။",
   'common.viewAll': "အားလုံးကြည့်ရန်",
   'common.viewMore': "ပိုကြည့်ရန်",
   'common.viewLess': "လျှော့ပြရန်",
@@ -314,7 +316,7 @@ const messages: MessageDictionary = {
   'support.app.messageLabel': "ပြဿနာ ဖော်ပြရန်",
   'support.app.messagePlaceholder': "ဘာဖြစ်သလဲ? စာမျက်နှာနှင့် ကြိုးစားခဲ့သည်များကို ရေးပါ…",
   'support.app.submit': "Report ပို့ရန်",
-  'support.app.sent': "ကျေးဇူးတင်ပါသည် — demo အတွက် မှတ်တမ်းတင်ပြီးပါပြီ။",
+  'support.app.sent': "ကျေးဇူးတင်ပါသည် — သင့်အစီရင်ခံချက်ကို အဖွဲ့ထံ ပေးပို့ပြီးပါပြီ။",
   'support.app.hint': "အရေးပေါ် campus ပြဿနာများအတွက် Emergency သုံးပါ။",
   'support.feedback.placeholder': "ကြိုက်သည်များ သို့မဟုတ် တိုးတက်စေလိုသည်များကို ပြောပြပါ…",
   'support.feedback.submit': "Feedback ပို့ရန်",
@@ -344,6 +346,8 @@ const messages: MessageDictionary = {
   'chat.welcome': "မင်္ဂလာပါ! ကျွန်ုပ်သည် Sanjini ဖြစ်ပါတယ်။ Visa, courses, scholarships, campus life အကြောင်း မေးနိုင်ပါတယ်။",
   'chat.emptyHint': "Course registration, credits, housing သို့မဟုတ် campus services အကြောင်း မေးပါ။",
   'chat.typing': "Sanjini ရိုက်နေသည်…",
+  'chat.groundedIn': "အခြေခံသည့် စာရွက်စာတမ်း -",
+  'chat.ungroundedNotice': "ဤအဖြေသည် ယေဘုယျ လမ်းညွှန်ချက်ဖြစ်ပြီး PNU ၏ တရားဝင် စာရွက်စာတမ်းများမှ မဟုတ်ပါ။ ဗီဇာ၊ အလုပ် သို့မဟုတ် ဘွဲ့နှင့်ပတ်သက်သည့် ဆုံးဖြတ်ချက်များအတွက် နိုင်ငံတကာရေးရာဌာန (국제처) သို့ ဆက်သွယ်ပါ သို့မဟုတ် 1345 ကို ဖုန်းဆက်ပါ။",
   'chat.placeholder': "မေးခွန်းရေးပါ…",
   'chat.askAnything': "ဘာမဆို မေးပါ...",
   'chat.send': "Message ပို့ရန်",

@@ -636,10 +636,29 @@ export interface ChatStreamRequest {
   history: ChatHistoryTurn[]
 }
 
+/**
+ * Whether an answer actually rested on PNU documents.
+ *
+ * The backend has always computed this and sent it in the stream's final
+ * metadata frame; nothing read it. That mattered because the assistant answers
+ * visa and work-permit questions, and when retrieval returns nothing it still
+ * answers — fluently, from a general-purpose model, in a bubble that looks
+ * exactly like a sourced one.
+ */
+export interface ChatGrounding {
+  /** True when knowledge-base context was retrieved and fed to the model. */
+  grounded: boolean
+  /** 'used' | 'not-used' | 'failed' — 'failed' means retrieval itself errored. */
+  status: string
+  /** Titles of the documents the answer drew on. Empty when ungrounded. */
+  sources: string[]
+}
+
 export interface ChatStreamHandlers {
   onText: (chunk: string) => void
   /** Follow-up prompts grounded in the knowledge-base documents that matched. */
   onFollowUps?: (followUps: string[]) => void
+  onGrounding?: (grounding: ChatGrounding) => void
   signal?: AbortSignal
 }
 
@@ -647,6 +666,8 @@ export interface ApiError {
   message: string
   status?: number
 }
+
+export type FeedbackKind = 'feedback' | 'app-support'
 
 export type CareerJobType = 'internship' | 'part-time' | 'full-time' | 'volunteer'
 
@@ -738,6 +759,11 @@ export interface HeyPnuApi {
     handlers: ChatStreamHandlers,
   ): Promise<void>
   getChatSuggestions(): Promise<string[]>
+  /**
+   * Records in-app feedback. Rejects rather than resolving when the message
+   * was not stored — the forms used to claim success unconditionally.
+   */
+  submitFeedback(data: { message: string; kind: FeedbackKind }): Promise<void>
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
   /**
    * AI hook-point: personalized internship/job recommendations.

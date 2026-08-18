@@ -2,6 +2,8 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "加载中…",
+  'common.sending': "发送中…",
+  'support.sendFailed': "消息发送失败。请检查网络连接后重试。",
   'common.viewAll': "查看全部",
   'common.viewMore': "查看更多",
   'common.viewLess': "收起",
@@ -306,7 +308,7 @@ const messages: MessageDictionary = {
   'support.app.messageLabel': "描述问题",
   'support.app.messagePlaceholder': "出了什么问题？请写明页面和你尝试过的操作…",
   'support.app.submit': "提交报告",
-  'support.app.sent': "谢谢，演示模式下已记录你的反馈。",
+  'support.app.sent': "谢谢，你的反馈已发送给我们的团队。",
   'support.app.hint': "紧急校园问题请使用“紧急情况”。",
   'support.feedback.placeholder': "告诉我们你喜欢什么，或我们应改进什么…",
   'support.feedback.submit': "发送反馈",
@@ -336,6 +338,8 @@ const messages: MessageDictionary = {
   'chat.welcome': "你好！我是 Sanjini，你的 PNU 校园助手。可以向我询问签证、课程、奖学金、校园生活等。",
   'chat.emptyHint': "可咨询选课、学分、宿舍或校园服务。",
   'chat.typing': "Sanjini 正在输入…",
+  'chat.groundedIn': "依据：",
+  'chat.ungroundedNotice': "此为一般性建议，并非来自釜山大学官方文件。涉及签证、打工或毕业的决定，请向国际处确认或拨打 1345。",
   'chat.placeholder': "请输入你的问题…",
   'chat.askAnything': "随便问...",
   'chat.send': "发送消息",
