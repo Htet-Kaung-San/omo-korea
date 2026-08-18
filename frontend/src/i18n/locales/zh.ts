@@ -2,6 +2,7 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "加载中…",
+  'common.save': "保存",
   'common.sending': "发送中…",
   'support.sendFailed': "消息发送失败。请检查网络连接后重试。",
   'common.viewAll': "查看全部",

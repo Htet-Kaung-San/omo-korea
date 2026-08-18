@@ -641,20 +641,45 @@ export const realApi: HeyPnuApi = {
     return backendFetch<Enrollment[]>(`/students/enrollments/${encodeURIComponent(studentId)}`)
   },
 
-  async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
+  async createEnrollment(studentId: string, courseId: number, semester?: string): Promise<Enrollment> {
     return backendFetch<Enrollment>('/students/enrollments', {
       method: 'POST',
       body: JSON.stringify({
         student_id: studentId,
         course_id: courseId,
+        ...(semester ? { semester } : {}),
       }),
     })
   },
 
-  async addPastCourse(courseId: number, semester: string): Promise<Enrollment> {
+  async addPastCourse(
+    courseId: number,
+    semester: string,
+    details: { finalGrade?: string | null; creditsEarned?: number | null } = {},
+  ): Promise<Enrollment> {
     return backendFetch<Enrollment>('/students/enrollments', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId, semester, status: 'Completed' }),
+      body: JSON.stringify({
+        course_id: courseId,
+        semester,
+        status: 'Completed',
+        final_grade: details.finalGrade ?? null,
+        credits_earned: details.creditsEarned ?? null,
+      }),
+    })
+  },
+
+  async updateEnrollment(
+    enrollmentId: number,
+    details: { semester: string; finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment> {
+    return backendFetch<Enrollment>(`/students/enrollments/${enrollmentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        semester: details.semester,
+        final_grade: details.finalGrade ?? null,
+        credits_earned: details.creditsEarned ?? null,
+      }),
     })
   },
 

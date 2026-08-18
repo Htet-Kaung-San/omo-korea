@@ -76,4 +76,22 @@ describe('timetableService', () => {
     expect(sql).toContain("raise exception 'timetable conflict with an existing course'");
     expect(sql).toContain('to service_role');
   });
+
+  test('follow-up migration prevents deleting referenced catalog courses', () => {
+    const sql = readFileSync(
+      join(__dirname, '..', 'supabase', 'timetable_course_delete_restrict.sql'),
+      'utf8',
+    );
+    expect(sql).toMatch(/foreign key \(course_id\)[\s\S]*on delete restrict/i);
+  });
+
+  test('history migration supports retakes and atomic plan removal', () => {
+    const sql = readFileSync(
+      join(__dirname, '..', 'supabase', 'enrollment_course_history.sql'),
+      'utf8',
+    );
+    expect(sql).toContain('enrollment_student_course_term_key');
+    expect(sql).toContain('create or replace function public.drop_student_course_plan');
+    expect(sql).toMatch(/delete from public\.student_timetable_entry[\s\S]*delete from public\.enrollment/i);
+  });
 });

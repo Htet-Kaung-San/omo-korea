@@ -2,7 +2,7 @@ const express = require('express');
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
-const mockSupabase = { from: jest.fn() };
+const mockSupabase = { from: jest.fn(), rpc: jest.fn() };
 
 jest.mock('../supabaseClient', () => mockSupabase);
 jest.mock('../ai/supabaseDataRepository', () => ({
@@ -173,5 +173,30 @@ describe('POST /api/students/enrollments past-course guard', () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/past course/i);
     expect(mockSupabase.from).not.toHaveBeenCalled();
+  });
+});
+
+describe('DELETE /api/students/enrollments/:enrollment_id', () => {
+  test('uses the atomic course-plan removal function for the owner', async () => {
+    const query = {
+      select: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      maybeSingle: jest.fn(() => Promise.resolve({
+        data: { enrollment_id: 7, student_id: OWNER_ID },
+        error: null,
+      })),
+    };
+    mockSupabase.from.mockImplementation(() => query);
+    mockSupabase.rpc.mockResolvedValue({ data: { enrollmentId: 7 }, error: null });
+
+    const res = await request(createApp())
+      .delete('/api/students/enrollments/7')
+      .set('Authorization', `Bearer ${tokenFor(OWNER_ID)}`);
+
+    expect(res.status).toBe(200);
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('drop_student_course_plan', {
+      p_student_id: OWNER_ID,
+      p_enrollment_id: 7,
+    });
   });
 });

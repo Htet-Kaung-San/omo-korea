@@ -8,12 +8,16 @@ import { AddTimetableModal } from '@/components/schedule/AddTimetableModal'
 import { useLanguage } from '@/context/LanguageContext'
 import { useToast } from '@/context/ToastContext'
 import { CourseTypeBadge } from '@/components/ui/Badge'
+import { CourseTermSelector } from '@/components/courses/CourseTermSelector'
+import { useAuth } from '@/context/AuthContext'
+import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/courseTerm'
 import {
   getVerifiedCourseOfferingDisplay,
 } from '@/utils/courseOfferingDisplay'
 
 export function RecommendedCoursesPage() {
   const { language, t } = useLanguage()
+  const { user } = useAuth()
   const { showToast } = useToast()
   const [courses, setCourses] = useState<RecommendedCourse[]>([])
   const [selectedCourse, setSelectedCourse] = useState<CourseCatalogItem | null>(null)
@@ -23,26 +27,28 @@ export function RecommendedCoursesPage() {
   const [error, setError] = useState('')
   const [typeFilter, setTypeFilter] = useState<CourseType | 'ALL'>('ALL')
   const [offeredOnly, setOfferedOnly] = useState(false)
+  const [term, setTerm] = useState<CourseTerm>(() => currentCourseTerm())
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set())
+
+  const academicYear = term.academicYear
+  const semester = term.semester
 
   useEffect(() => {
-    const now = new Date()
-    const academicYear = now.getFullYear()
-    const semester = now.getMonth() + 1 >= 7 ? '2' : '1'
     Promise.all([
       api.getRecommendedCourses('ALL', { academicYear, semester, offeredOnly }),
       api.getTimetable({ academicYear, semester }),
+      user ? api.getEnrollments(user.studentId) : Promise.resolve([]),
     ])
-      .then(([items, timetable]) => {
+      .then(([items, timetable, enrollments]) => {
         setCourses(items)
         setAddedCourseIds(new Set(timetable.map((entry) => Number(entry.course_id))))
+        setEnrolledCourseIds(new Set(enrollments
+          .filter((entry) => entry.status !== 'Completed' && entry.semester === enrollmentSemester({ academicYear, semester }))
+          .map((entry) => Number(entry.catalog_course_id || entry.course_id))))
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [language, offeredOnly, t])
-
-  const now = new Date()
-  const academicYear = now.getFullYear()
-  const semester = (now.getMonth() + 1 >= 7 ? '2' : '1') as '1' | '2'
+  }, [academicYear, language, offeredOnly, semester, t, user])
 
   async function openTimetableModal(course: RecommendedCourse) {
     setActionCourseId(Number(course.id))
@@ -66,9 +72,20 @@ export function RecommendedCoursesPage() {
 
   async function addToTimetable(data: CreateTimetableEntryInput) {
     setActionCourseId(data.courseId)
+    let createdEnrollmentId: number | null = null
     try {
-      await api.createTimetableEntry(data)
+      if (user && !enrolledCourseIds.has(data.courseId)) {
+        const enrollment = await api.createEnrollment(user.studentId, data.courseId, enrollmentSemester(term))
+        createdEnrollmentId = enrollment.enrollment_id
+      }
+      try {
+        await api.createTimetableEntry(data)
+      } catch (reason) {
+        if (createdEnrollmentId != null) await api.deleteEnrollment(createdEnrollmentId).catch(() => undefined)
+        throw reason
+      }
       setAddedCourseIds((current) => new Set(current).add(data.courseId))
+      setEnrolledCourseIds((current) => new Set(current).add(data.courseId))
       setSelectedCourse(null)
       showToast(t('timetable.added'), 'success')
     } catch (reason) {
@@ -89,6 +106,7 @@ export function RecommendedCoursesPage() {
       <PageHeader title={t('academic.recommendedCourses')} subtitle={t('academic.recommendationHint')} back />
 
       <div className="space-y-3 px-5 py-5">
+        <CourseTermSelector value={term} onChange={setTerm} />
         <div className="grid grid-cols-2 gap-2">
           <select
             value={typeFilter}

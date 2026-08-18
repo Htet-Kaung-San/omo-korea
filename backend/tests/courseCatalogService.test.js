@@ -1,6 +1,7 @@
 const {
   filterCourses,
   filterCoursesByOffering,
+  mapOffering,
 } = require('../services/courseCatalogService');
 const {
   attachCourseCurriculum,
@@ -86,5 +87,29 @@ describe('course catalog curriculum mapping', () => {
     const rows = [course(), course({ id: '11', nameEn: 'Marketing Management' })];
     expect(filterCoursesByOffering(rows, [{ course_id: 11 }], true)).toEqual([rows[1]]);
     expect(filterCoursesByOffering(rows, [{ course_id: 11 }], false)).toEqual(rows);
+  });
+
+  test('preserves verified offering capacity, remarks, and restrictions', () => {
+    const offering = mapOffering({
+      course_offering_id: 44,
+      academic_year: 2026,
+      semester: '2',
+      enrollment_limit: 40,
+      team_teaching_status: 'TEAM_TAUGHT',
+      general_education_area: null,
+      remarks: 'International students may request permission.',
+      schedule: null,
+    }, null, [{
+      course_offering_restriction_id: 7,
+      source_kind: 'RESTRICTION',
+      permission: 'PROHIBITED',
+      department_condition: 'Other departments',
+    }]);
+    expect(offering).toMatchObject({
+      enrollmentLimit: 40,
+      teamTeachingStatus: 'TEAM_TAUGHT',
+      remarks: 'International students may request permission.',
+      restrictions: [{ id: 7, permission: 'PROHIBITED', departmentCondition: 'Other departments' }],
+    });
   });
 });

@@ -396,6 +396,11 @@ export interface CourseOfferingOption {
   classroom: string | null
   teachingLanguage: TeachingLanguage | null
   remoteCourseStatus: RemoteCourseStatus | null
+  enrollmentLimit: number | null
+  teamTeachingStatus: 'TEAM_TAUGHT' | 'NOT_TEAM_TAUGHT' | null
+  generalEducationArea: string | null
+  remarks: string | null
+  restrictions: CourseOfferingRestriction[]
   slots: TimetableSlotInput[]
   presentationRequirement: CourseMetadataRequirement | null
   groupProjectRequirement: CourseMetadataRequirement | null
@@ -403,10 +408,44 @@ export interface CourseOfferingOption {
   examInformation: string | null
 }
 
+export interface CourseOfferingRestriction {
+  id: number
+  kind: 'RESTRICTION' | 'EXCEPTION'
+  ruleType: string | null
+  permission: 'ALLOWED' | 'PROHIBITED' | null
+  departmentCondition: string | null
+  yearLevelCondition: string | null
+  domesticForeignCondition: string | null
+  nationalityCondition: string | null
+  curriculumYearCondition: string | null
+  completedSemestersCondition: string | null
+  academicStatusCondition: string | null
+  degreeProgramCondition: string | null
+  reason: string | null
+  exceptionText: string | null
+}
+
+export interface CoursePrerequisite {
+  id: number
+  courseId: number | null
+  officialCourseNumber: string | null
+  nameKo: string | null
+  nameEn: string | null
+  requirementText: string | null
+  sourceUrl: string | null
+  sourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS'
+}
+
 export interface CourseCatalogItem extends RecommendedCourse {
   curriculumYears: number[]
   curriculum: CourseCurriculumInformation | null
   offerings: CourseOfferingOption[]
+  descriptionKo: string | null
+  descriptionEn: string | null
+  descriptionSourceUrl: string | null
+  syllabusUrl: string | null
+  detailSourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS' | null
+  prerequisites: CoursePrerequisite[]
 }
 
 export interface CourseCatalogPage {
@@ -482,6 +521,8 @@ export interface Enrollment {
   day_of_week?: string | null;
   start_time?: string | null;
   end_time?: string | null;
+  final_grade?: string | null;
+  credits_earned?: number | null;
 }
 
 export interface TimetableSlotInput {
@@ -801,8 +842,16 @@ export interface HeyPnuApi {
   recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>
   getCourses(campus?: string): Promise<Course[]>
   getEnrollments(studentId: string): Promise<Enrollment[]>
-  createEnrollment(studentId: string, courseId: number): Promise<Enrollment>
-  addPastCourse(courseId: number, semester: string): Promise<Enrollment>
+  createEnrollment(studentId: string, courseId: number, semester?: string): Promise<Enrollment>
+  addPastCourse(
+    courseId: number,
+    semester: string,
+    details?: { finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment>
+  updateEnrollment(
+    enrollmentId: number,
+    details: { semester: string; finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment>
   deleteEnrollment(enrollmentId: number): Promise<void>
   requestAccountDeletion(studentId: string): Promise<void>
   updateLanguagePreference(studentId: string, languagePref: string): Promise<void>
