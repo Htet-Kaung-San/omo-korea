@@ -29,21 +29,32 @@ function createMemorySupabase(initialRows = [], options = {}) {
   const from = jest.fn((tableName) => {
     expect(tableName).toBe('notice');
     return {
-      select: jest.fn(() => ({
-        eq: jest.fn((_column, sourceUrl) => ({
+      select: jest.fn(() => {
+        const filters = new Map();
+        const query = {
+          eq: jest.fn((column, value) => {
+            filters.set(column, value);
+            return query;
+          }),
+          order: jest.fn(() => query),
+          limit: jest.fn(() => query),
           maybeSingle: jest.fn(async () => {
             if (options.lookupError) {
               return { data: null, error: options.lookupError };
             }
+            const match = [...rows.values()]
+              .sort((a, b) => a.notice_id - b.notice_id)
+              .find((row) =>
+                [...filters].every(([column, value]) => row[column] === value),
+              );
             return {
-              data: rows.has(sourceUrl)
-                ? { ...rows.get(sourceUrl) }
-                : null,
+              data: match ? { ...match } : null,
               error: null,
             };
           }),
-        })),
-      })),
+        };
+        return query;
+      }),
       update: jest.fn((values) => ({
         eq: jest.fn(async (_column, noticeId) => {
           const entry = [...rows.entries()].find(
@@ -72,7 +83,14 @@ function createMemorySupabase(initialRows = [], options = {}) {
             error: { code: '23505', message: 'duplicate source_url' },
           };
         }
-        if (rows.has(values.source_url)) {
+        const identityExists = [...rows.values()].some(
+          (row) =>
+            values.source &&
+            values.external_id &&
+            row.source === values.source &&
+            row.external_id === values.external_id,
+        );
+        if (rows.has(values.source_url) || identityExists) {
           return {
             error: { code: '23505', message: 'duplicate source_url' },
           };
@@ -147,6 +165,28 @@ describe('notice synchronization persistence', () => {
       content: existing.content,
       scraped_at: existing.scraped_at,
     });
+  });
+
+  test('matches the same source and external id when a paginated source URL changes', async () => {
+    const existing = scrapedNotice({
+      source: 'pnu-main',
+      source_url: 'https://www.pusan.ac.kr/notice?board_seq=1&page=1',
+      external_id: '1',
+    });
+    const { client, rows } = createMemorySupabase([existing]);
+
+    await expect(
+      persistScrapedNotices(client, [
+        scrapedNotice({
+          source: 'pnu-main',
+          source_url: 'https://www.pusan.ac.kr/notice?board_seq=1&page=2',
+          external_id: '1',
+        }),
+      ]),
+    ).resolves.toEqual({ inserted: 0, updated: 0, unchanged: 1 });
+
+    expect(rows.size).toBe(1);
+    expect(rows.get(existing.source_url)).toBeDefined();
   });
 
   test('preserves richer text while applying a genuine metadata correction', async () => {

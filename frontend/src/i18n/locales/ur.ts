@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "اطلاعات لوڈ نہیں ہو سکیں۔",
   'notifications.loading': "اطلاعات لوڈ ہو رہی ہیں…",
   'campusLife.title': "کیمپس لائف",
-  'campusLife.subtitle': "کیمپس لائف کی خصوصیات جلد آ رہی ہیں",
   'campusLife.placeholder': "یہ صفحہ نقشے، خدمات اور مقامی زندگی کی گائیڈز کے لیے placeholder ہے۔",
   'campusLife.oneStopGuide': "ون اسٹاپ گائیڈ",
   'campusLife.libraryGuide': "لائبریری گائیڈ",

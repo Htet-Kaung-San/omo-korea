@@ -1,0 +1,85 @@
+curriculum_years,major_name,학과,category,course_code,course_name_ko,course_name_en,credit,grade_semester
+"2023, 2024, 2026",Business Administration,경영학과,전공기초,DB1600346,경영학원론,Principles Of Management,3,1-1
+"2023, 2024, 2026",Business Administration,경영학과,전공기초,DB1600351,경영통계학,Business Statistics,3,1-2
+"2023, 2024, 2026",Business Administration,경영학과,전공기초,DB1600357,경제학원론,Principles Of Economics,3,1-1
+"2023, 2024, 2026",Business Administration,경영학과,전공기초,DB1600358,회계학원리,Principles Of Accounting,3,1-2
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000711,재무회계(I),Financial Accounting (I),3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000924,투자론,Investment,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000927,관리회계,Management Accounting,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000928,마케팅관리,Marketing Management,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000932,재무관리,Financial Management,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000933,인적자원관리,Human Resource Management,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3000934,국제경영학,International Business,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3100231,경영정보시스템,Management Information Systems,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공필수,DB3400701,오퍼레이션스 매니지먼트,Operations Management,3,2-1
+2026,Business Administration,경영학과,전공선택,DB2001022,재무회계연습,Financial Accounting Exercise,3,3-2
+2026,Business Administration,경영학과,전공선택,DB2001260,금융데이터마이닝,Financial Data Mining,3,3-2
+"2024, 2026",Business Administration,경영학과,전공선택,DB2001261,경영의세계사,Business History,3,2-1
+2026,Business Administration,경영학과,전공선택,DB2001278,금융빅데이터분석,Financial Big Data Analysis,3,4-1
+2026,Business Administration,경영학과,전공선택,DB2001475,회계빅데이터분석,Accounting Big-Data Analysis,3,4-1
+2026,Business Administration,경영학과,전공선택,DB2001476,재무관리특강,Seminar in Financial Management,3,4-1
+"2024, 2026",Business Administration,경영학과,전공선택,DB2001800,회계관리,Accounting Management,3,2-여름도약
+2026,Business Administration,경영학과,전공선택,DB2001869,비즈니스모델링,Business Decision Modeling,3,3-2
+"2024, 2026",Business Administration,경영학과,전공선택,DB2002279,고객관계관리와인공지능,Customer Relationship Management And AI,3,3-1
+2026,Business Administration,경영학과,전공선택,DB2002531,자산관리캡스톤디자인,Asset Management Capstone Design,3,3-2
+2026,Business Administration,경영학과,전공선택,DB2003064,빅테크기업과인공지능,Big Tech and AI,3,3-1
+2026,Business Administration,경영학과,전공선택,DB2003066,AI비즈니스,AI Business,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000708,다국적기업관리론,Multinational Corporation Management,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000773,외환관리론,Foreign Exchange Management,3,2-2
+2026,Business Administration,경영학과,전공선택,DB3000786,글로벌시장조사론,Global Market Research,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3000788,프로젝트관리,Project Management,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000789,기업윤리와 사회적책임,Corporate Ethics & Social Responsibility,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000929,재무회계(II),Financial Accounting (II),3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000966,상법,Commercial Law,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000967,증권시장론,Securities Market,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000968,원가회계,Cost Accounting,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000990,경영과학,Management Science,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000991,경영정보처리,Business Information Processing,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000992,금융시장론,Financial Markets,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000994,전략경영론,Strategic Management,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000997,조직관리론,Organization Management,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3000999,마케팅조사론,Marketing Research,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3100001,계량경영학,Quantitative Methods For Management,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3100006,옵션이론,Option Theory,3,4-1
+2023,Business Administration,경영학과,전공선택,DB3100007,고객관계관리와 정보기술,CRM & Information Technology,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3100008,소비자행동론,Consumer Behavior,3,2-1
+2026,Business Administration,경영학과,전공선택,DB3100009,리스크관리론,Risk Management,3,4-1
+"2024, 2026",Business Administration,경영학과,전공선택,DB3100010,회계감사,Auditing,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3100011,세법,Tax Law,3,3-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3100012,국제재무관리,International Financial Management,3,2-2
+2026,Business Administration,경영학과,전공선택,DB3100014,국제비교경영론,Cross-Cultural Management,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3100016,재무분석,Financial Statement Analysis,3,4-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3100017,데이터베이스관리,Database Management,3,2-2
+2026,Business Administration,경영학과,전공선택,DB3100018,광고론,Advertising,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3100021,유통관리론,Marketing Channels,3,2-2
+2026,Business Administration,경영학과,전공선택,DB3100022,금융통계학,Financial Statistics,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100023,파생상품론,Derivatives Markets,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100027,시스템분석및설계,System Analysis And Design,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100028,회계정보시스템,Accounting Information System,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100029,국제마케팅,Global Marketing Management,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100030,조직행위론,Organizational Behavior,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100031,세무회계,Tax Accounting,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3100032,국제경영특강,Seminar in International Business,3,4-2
+2026,Business Administration,경영학과,전공선택,DB3100034,전자상거래,Electronic Commerce,3,4-2
+2026,Business Administration,경영학과,전공선택,DB3100035,금융기관경영론,Management Of Financial Institutions,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3100038,노사관계론,Union-Relations Management,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3100039,마케팅특강,Seminar in Marketing,3,4-2
+2026,Business Administration,경영학과,전공선택,DB3100040,인사조직특강,Seminar in Personnel/Organization Management,3,4-2
+2026,Business Administration,경영학과,전공선택,DB3100041,고급회계,Advanced Accounting,3,4-2
+2023,Business Administration,경영학과,전공선택,DB3200983,경영학사,Business History,3,2-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3300806,글로벌 물류관리,Global Logistics Management,3,2-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3300949,국제경영환경,Global Business Environment,3,2-1 / 2-2
+2026,Business Administration,경영학과,전공선택,DB3400446,서비스마케팅,Service Marketing,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3400702,기술경영,Management Of Technology,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3400703,품질경영,Quality Management,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3400705,서비스 오퍼레이션스 매니지먼트,Service Operations Management,3,2-2
+2026,Business Administration,경영학과,전공선택,DB3400862,국제아웃소싱전략,Global Outsourcing Strategy,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3500307,오퍼레이션스매니지먼트특강,Seminar in Operations Management,3,4-1
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3500352,비즈니스애널리틱스,Business Analytics,3,2-2 / 2-1
+2026,Business Administration,경영학과,전공선택,DB3500353,행동재무론,Behavioral Finance,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3500354,마케팅애널리틱스,Marketing Analytics,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3500367,4차산업혁명시대의 OM응용,Applications of Operations Management in the Era of the 4th Industrial Revolution,3,3-2
+2026,Business Administration,경영학과,전공선택,DB3500689,인공지능과금융,AI And Finance,3,3-2
+"2023, 2024, 2026",Business Administration,경영학과,전공선택,DB3500969,국제경영전략,International Business Strategy,3,2-1
+2026,Business Administration,경영학과,전공선택,DB3600453,디지털금융,Digital Finance,3,3-1
+2026,Business Administration,경영학과,전공선택,DB3600563,디지털회계및세무,Digital Accounting & Taxation,3,4-1

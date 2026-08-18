@@ -8,6 +8,12 @@ import { LanguageSelect } from '@/components/layout/LanguageSelect'
 import type { MajorData } from '@/types/api'
 import pnuSeal from '@/assets/pnu-seal.svg'
 
+// PR #23 hid the demo button outside mock mode so a working credential is never
+// shown on a public deployment; this repo is public. The mock API is gone, so
+// gate on the dev build instead — reviewers running locally keep the shortcut,
+// a production build never renders it.
+const SHOW_DEMO_ACCOUNT = import.meta.env.DEV
+
 // Non-admin demo fixture, seeded by `npm run seed:test-fixtures`.
 const DEMO_EMAIL = '202612345@pusan.ac.kr'
 const DEMO_PASSWORD = 'password'
@@ -17,8 +23,11 @@ const LEGACY_REMEMBERED_ID_KEY = 'hey_pnu_remembered_student_id'
 function getRememberedEmail() {
   const email = localStorage.getItem(REMEMBERED_EMAIL_KEY)
   if (email) return email
-  const legacyId = localStorage.getItem(LEGACY_REMEMBERED_ID_KEY)
-  return legacyId ? `${legacyId}@pusan.ac.kr` : ''
+  // A remembered student ID is returned as-is rather than turned into
+  // "<id>@pusan.ac.kr". The backend accepts a student ID here, and guessing an
+  // address the student may not own is what put the profile email and the
+  // login credential out of step in the first place.
+  return localStorage.getItem(LEGACY_REMEMBERED_ID_KEY) || ''
 }
 
 export function LoginPage() {
@@ -114,7 +123,7 @@ export function LoginPage() {
     }
     setSubmitting(true)
     try {
-      const response = await verifyLogin({
+      const loggedInUser = await verifyLogin({
         challengeId,
         code: otpCode.trim(),
       })
@@ -127,10 +136,24 @@ export function LoginPage() {
       }
       setSelectedMajor('')
       setSelectedCollege('')
-      if (response.user?.major) {
-        setStep('year')
-      } else {
+
+      // Onboarding is asked for once, not on every sign-in. Previously this
+      // branched only between the two steps — a student with a major went to
+      // the year step and one without went to the major step — so there was no
+      // path that skipped both, and a fully onboarded student was asked their
+      // year again at every login.
+      //
+      // grade 0 is a real answer (exchange student), so the check is for
+      // "not set" rather than falsiness. When neither step is needed the step
+      // stays 'otp' and the isAuthenticated guard above redirects home.
+      const needsMajor = !loggedInUser.major
+      const needsYear =
+        loggedInUser.grade === null || loggedInUser.grade === undefined
+
+      if (needsMajor) {
         setStep('major')
+      } else if (needsYear) {
+        setStep('year')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.otpError'))
@@ -302,17 +325,26 @@ export function LoginPage() {
                 {submitting ? t('auth.loggingIn') : t('auth.continue')}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail(DEMO_EMAIL)
-                  setPassword(DEMO_PASSWORD)
-                  setError('')
-                }}
-                className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
+              <Link
+                to="/signup"
+                className="flex w-full items-center justify-center py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
               >
-                {t('auth.useDemoAccount')}
-              </button>
+                {t('auth.signup')}
+              </Link>
+
+              {SHOW_DEMO_ACCOUNT ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail(DEMO_EMAIL)
+                    setPassword(DEMO_PASSWORD)
+                    setError('')
+                  }}
+                  className="w-full py-2.5 rounded-[14px] font-semibold text-[13px] text-pnu-blue border border-pnu-border bg-pnu-surface hover:border-pnu-blue-light transition-all active:scale-[0.98]"
+                >
+                  {t('auth.useDemoAccount')}
+                </button>
+              ) : null}
             </form>
           ) : null}
 

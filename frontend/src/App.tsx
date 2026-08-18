@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -6,10 +7,12 @@ import { ToastProvider } from '@/context/ToastContext'
 import { NoticeRefreshProvider } from '@/context/NoticeRefreshContext'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/pages/LoginPage'
+import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage'
 import { HomePage } from '@/pages/HomePage'
 import { AcademicPage } from '@/pages/AcademicPage'
+import { AssignmentsPage } from '@/pages/AssignmentsPage'
 import { CoursesDashboardPage } from '@/pages/CoursesDashboardPage'
 import { CreditsPage } from '@/pages/CreditsPage'
 import { ChecklistPage } from '@/pages/ChecklistPage'
@@ -68,6 +71,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route
@@ -81,6 +85,7 @@ function AppRoutes() {
       >
         <Route index element={<HomePage />} />
         <Route path="schedule" element={<AcademicPage />} />
+        <Route path="schedule/assignments" element={<AssignmentsPage />} />
         <Route path="ai" element={<AiAssistantPage />} />
         <Route path="map" element={<CampusMapPage />} />
         <Route path="map/:facilityId" element={<FacilityDetailPage />} />
@@ -153,14 +158,24 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <LanguageProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </ToastProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    // Outermost, so it catches a failure in any provider as well as in a page.
+    // A render error below this used to unmount everything and leave a white
+    // screen with no route and no way back.
+    <ErrorBoundary>
+      <BrowserRouter>
+        <LanguageProvider>
+          <ToastProvider>
+            <AuthProvider>
+              {/* A second boundary inside the providers keeps a broken page
+                  from taking the shell with it: language, toasts and session
+                  survive, so "Go home" lands somewhere usable. */}
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
+            </AuthProvider>
+          </ToastProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

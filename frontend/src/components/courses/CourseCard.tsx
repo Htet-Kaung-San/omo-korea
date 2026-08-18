@@ -12,18 +12,25 @@ export function CourseCard({
   action?: React.ReactNode;
 }) {
   const { t } = useLanguage();
-  const matchScore = course.score || 90;
+  const showMatch = Number.isFinite(course.score) && course.score > 0;
 
   return (
     <Card className="hover:-translate-y-0.5 hover:shadow-md transition-all active:scale-[0.99] duration-200 border-l-4 border-l-pnu-blue">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] font-bold text-pnu-blue bg-pnu-blue/10 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-              <Sparkles className="h-2.5 w-2.5 text-pnu-blue" />
-              {matchScore}% Match
-            </span>
+            {showMatch ? (
+              <span className="text-[10px] font-bold text-pnu-blue bg-pnu-blue/10 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                <Sparkles className="h-2.5 w-2.5 text-pnu-blue" />
+                {course.score}% Match
+              </span>
+            ) : null}
             <CourseTypeBadge type={course.type} />
+            {course.officialCourseNumber ? (
+              <span className="rounded-md bg-pnu-surface px-1.5 py-0.5 text-[10px] font-bold text-pnu-muted">
+                {course.officialCourseNumber}
+              </span>
+            ) : null}
           </div>
           <h4 className="mt-2 text-base font-bold text-pnu-text tracking-tight leading-tight">
             {course.nameKo}
@@ -54,7 +61,7 @@ export function CourseCard({
           <span>{t("course.credits", { count: course.credits })}</span>
         </div>
         <span className="truncate max-w-[60%] font-medium">
-          {course.department}
+          {course.majorName || course.department}
         </span>
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import {
@@ -25,12 +25,23 @@ import {
   Settings,
 } from "lucide-react";
 
+/**
+ * True only for a real PNU student number, whose first four digits are the
+ * intake year. Signup hashes any other email local part into a 10-digit id
+ * (1e9 + digest % 1_147_483_647), so slicing four digits off one of those
+ * produced "Intake Year: 1830" and "6th Year" on a screen headed
+ * "read-only official records". Length separates the two exactly; a year-range
+ * check does not, because hashed ids beginning 2000-2147 look plausible.
+ */
+function intakeYearFromStudentId(studentId?: string): number | null {
+  if (!studentId || !/^\d{8,9}$/.test(studentId)) return null;
+  const year = Number(studentId.slice(0, 4));
+  return Number.isFinite(year) && year >= 2000 ? year : null;
+}
+
 function yearLabelFromStudentId(studentId?: string, studentType?: string): string {
-  if (!studentId || studentId.length < 4) {
-    return studentType === "Freshman" ? "1st Year" : "Student";
-  }
-  const intakeYear = Number(studentId.slice(0, 4));
-  if (!Number.isFinite(intakeYear)) {
+  const intakeYear = intakeYearFromStudentId(studentId);
+  if (intakeYear === null) {
     return studentType === "Freshman" ? "1st Year" : "Student";
   }
   const now = new Date();
@@ -77,6 +88,28 @@ function ProfileInfoSection({
   );
 }
 
+// Bounded scan over ACADEMIC_HIERARCHY, a module constant. This was a useMemo,
+// but React Compiler compiles the memo away as cheap enough to recompute, and
+// react-hooks/preserve-manual-memoization then errors on the mismatch. The
+// result is only read for two string fields in JSX and is never a dependency,
+// so recomputing per render is free and the compiler still memoizes the
+// component itself.
+function findAcademicPlacement(major?: string | null) {
+  if (!major) {
+    return { college: "", department: "" };
+  }
+
+  for (const college of ACADEMIC_HIERARCHY) {
+    for (const dept of college.departments) {
+      if (dept.majors.includes(major)) {
+        return { college: college.name, department: dept.name };
+      }
+    }
+  }
+
+  return { college: "", department: "" };
+}
+
 export function ProfilePage() {
   const { user, logout, refreshUser, isAdmin } = useAuth();
   const { t, language, setLanguage, options, localeLoading } = useLanguage();
@@ -108,21 +141,7 @@ export function ProfilePage() {
     setDeletionRequested(user.deletion_requested || false);
   }, [user]);
 
-  const academicPlacement = useMemo(() => {
-    if (!user?.major) {
-      return { college: "", department: "" };
-    }
-
-    for (const college of ACADEMIC_HIERARCHY) {
-      for (const dept of college.departments) {
-        if (dept.majors.includes(user.major)) {
-          return { college: college.name, department: dept.name };
-        }
-      }
-    }
-
-    return { college: "", department: "" };
-  }, [user?.major]);
+  const academicPlacement = findAcademicPlacement(user?.major);
 
   async function handleRequestDeletion() {
     if (!user) return;
@@ -558,7 +577,8 @@ export function ProfilePage() {
   }
 
   // ── VIEW 4: Personal Information (read-only official records) ─────────────
-  const intakeYear = user?.studentId?.slice(0, 4) || "";
+  // Blank rather than a fabricated year when the id is not a PNU number.
+  const intakeYear = String(intakeYearFromStudentId(user?.studentId) ?? "");
   const intakeTermLabel =
     user?.intake_term === "September"
       ? t("profile.intakeFall")

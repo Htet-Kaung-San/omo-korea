@@ -103,6 +103,7 @@ describe('Phase 5 feature-flag and local end-to-end safety', () => {
     });
 
     expect(rows[0]).toMatchObject({
+      isOfferedThisTerm: true,
       isEnglishTaught: true,
       remoteCourseStatus: 'REMOTE',
       professor: 'Professor Kim',
@@ -118,7 +119,12 @@ describe('Phase 5 feature-flag and local end-to-end safety', () => {
       isEnglishTaught: null,
     });
     expect(rows[3]).toMatchObject({ section: null, isEnglishTaught: null });
-    expect(rows[4]).toMatchObject({ section: null, isEnglishTaught: null });
+    expect(rows[3]).toMatchObject({ isOfferedThisTerm: false });
+    expect(rows[4]).toMatchObject({
+      isOfferedThisTerm: true,
+      section: null,
+      isEnglishTaught: null,
+    });
 
     const profile = { majorId: '46', interests: [] };
     const baseOrder = recommendCourses(

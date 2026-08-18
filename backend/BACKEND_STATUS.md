@@ -39,7 +39,6 @@ Last updated: 2026-07-13
 - Work-permit / legal-info API (needs human/legal review)
 
 ## Known issues / tech debt
-- `middleware/authMiddleware.js` (`verifyToken`) is unused; live auth is `middlewares/auth.js`
 - Local stash `temporary stash before merging partner branch` may still exist — drop manually if obsolete
 - `scratch/` scripts are local utilities, not part of the API
 

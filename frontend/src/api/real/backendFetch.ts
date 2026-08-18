@@ -10,7 +10,10 @@ interface BackendListSuccess<T> {
   data: T
 }
 
-export async function backendFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function backendFetch<T>(
+  path: string,
+  options: RequestInit & { suppressToast?: boolean } = {},
+): Promise<T> {
   const body = await apiFetch<BackendSuccess<T> | BackendListSuccess<T>>(path, options)
 
   if (!body || typeof body !== 'object' || !('data' in body)) {

@@ -139,7 +139,7 @@ export const helpMoreItems: HelpMoreItem[] = [
   },
 ]
 
-/** Kept for WorkPermit / RelatedLaws / Emergency static fallbacks */
+/** Kept for RelatedLaws / Emergency static fallbacks */
 export const supportCards = [
   {
     id: 'emergency',
@@ -187,22 +187,6 @@ export const nearestHelp = [
 
 export const emergencyGuide = {
   text: "Stay calm. Say: '저 다쳤어요 (I'm hurt)' or '도와주세요 (Please help).' Share your location and student ID if possible.",
-}
-
-export const workPermit = {
-  intro: 'Required before you start any part-time job on a student visa.',
-  eligibility: [
-    'D-2 visa, min. 1 semester done',
-    'TOPIK 3+ or equivalent',
-    'Max 25 hrs/week during semester',
-    'Unlimited during vacation',
-  ],
-  steps: [
-    'Get consent form from your department.',
-    'Apply at Hi Korea or Immigration office.',
-    'Receive permit sticker in passport.',
-    'Register job with International Center.',
-  ],
 }
 
 export const lawCategories = ['Visa', 'Labor', 'Housing', 'Rights']

@@ -1,39 +1,132 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
+import { CalendarPlus, Check, Sparkles } from 'lucide-react'
 import { api } from '@/api'
-import type { RecommendedCourse } from '@/types/api'
+import type { CourseCatalogItem, CourseType, CreateTimetableEntryInput, RecommendedCourse } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { AddTimetableModal } from '@/components/schedule/AddTimetableModal'
 import { useLanguage } from '@/context/LanguageContext'
+import { useToast } from '@/context/ToastContext'
 import { CourseTypeBadge } from '@/components/ui/Badge'
+import { CourseTermSelector } from '@/components/courses/CourseTermSelector'
+import { useAuth } from '@/context/AuthContext'
+import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/courseTerm'
 import {
   getVerifiedCourseOfferingDisplay,
 } from '@/utils/courseOfferingDisplay'
 
 export function RecommendedCoursesPage() {
   const { language, t } = useLanguage()
+  const { user } = useAuth()
+  const { showToast } = useToast()
   const [courses, setCourses] = useState<RecommendedCourse[]>([])
+  const [selectedCourse, setSelectedCourse] = useState<CourseCatalogItem | null>(null)
+  const [addedCourseIds, setAddedCourseIds] = useState<Set<number>>(new Set())
+  const [actionCourseId, setActionCourseId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [typeFilter, setTypeFilter] = useState<CourseType | 'ALL'>('ALL')
+  const [offeredOnly, setOfferedOnly] = useState(false)
+  const [term, setTerm] = useState<CourseTerm>(() => currentCourseTerm())
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set())
+
+  const academicYear = term.academicYear
+  const semester = term.semester
 
   useEffect(() => {
-    api
-      .getRecommendedCourses('ALL')
-      .then(setCourses)
+    Promise.all([
+      api.getRecommendedCourses('ALL', { academicYear, semester, offeredOnly }),
+      api.getTimetable({ academicYear, semester }),
+      user ? api.getEnrollments(user.studentId) : Promise.resolve([]),
+    ])
+      .then(([items, timetable, enrollments]) => {
+        setCourses(items)
+        setAddedCourseIds(new Set(timetable.map((entry) => Number(entry.course_id))))
+        setEnrolledCourseIds(new Set(enrollments
+          .filter((entry) => entry.status !== 'Completed' && entry.semester === enrollmentSemester({ academicYear, semester }))
+          .map((entry) => Number(entry.catalog_course_id || entry.course_id))))
+      })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [language, t])
+  }, [academicYear, language, offeredOnly, semester, t, user])
 
-  const recommendedCourses = useMemo(
-    () => courses.filter((course) => course.score > 0),
-    [courses],
-  )
+  async function openTimetableModal(course: RecommendedCourse) {
+    setActionCourseId(Number(course.id))
+    setError('')
+    try {
+      const detail = await api.getCourseCatalog({
+        courseId: course.id,
+        pageSize: 1,
+        academicYear,
+        semester,
+      })
+      const catalogCourse = detail.items[0]
+      if (!catalogCourse) throw new Error(t('academic.loadError'))
+      setSelectedCourse(catalogCourse)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : t('academic.loadError'))
+    } finally {
+      setActionCourseId(null)
+    }
+  }
+
+  async function addToTimetable(data: CreateTimetableEntryInput) {
+    setActionCourseId(data.courseId)
+    let createdEnrollmentId: number | null = null
+    try {
+      if (user && !enrolledCourseIds.has(data.courseId)) {
+        const enrollment = await api.createEnrollment(user.studentId, data.courseId, enrollmentSemester(term))
+        createdEnrollmentId = enrollment.enrollment_id
+      }
+      try {
+        await api.createTimetableEntry(data)
+      } catch (reason) {
+        if (createdEnrollmentId != null) await api.deleteEnrollment(createdEnrollmentId).catch(() => undefined)
+        throw reason
+      }
+      setAddedCourseIds((current) => new Set(current).add(data.courseId))
+      setEnrolledCourseIds((current) => new Set(current).add(data.courseId))
+      setSelectedCourse(null)
+      showToast(t('timetable.added'), 'success')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : t('academic.loadError'))
+    } finally {
+      setActionCourseId(null)
+    }
+  }
+
+  const recommendedCourses = courses.filter((course) => (
+    course.score > 0
+    && (typeFilter === 'ALL' || course.type === typeFilter)
+    && (!offeredOnly || course.isOfferedThisTerm === true)
+  ))
 
   return (
     <div>
       <PageHeader title={t('academic.recommendedCourses')} subtitle={t('academic.recommendationHint')} back />
 
       <div className="space-y-3 px-5 py-5">
+        <CourseTermSelector value={term} onChange={setTerm} />
+        <div className="grid grid-cols-2 gap-2">
+          <select
+            value={typeFilter}
+            onChange={(event) => setTypeFilter(event.target.value as CourseType | 'ALL')}
+            className="rounded-xl border border-pnu-border bg-white px-3 py-2 text-xs text-pnu-text"
+            aria-label={t('courseCatalog.categoryFilter')}
+          >
+            <option value="ALL">{t('courseFilter.all')}</option>
+            <option value="REQUIRED">{t('courseFilter.required')}</option>
+            <option value="ELECTIVE">{t('courseFilter.elective')}</option>
+            <option value="GEN_ED">{t('courseFilter.genEd')}</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => setOfferedOnly((current) => !current)}
+            className={`rounded-xl px-3 py-2 text-xs font-bold ${offeredOnly ? 'bg-pnu-blue text-white' : 'border border-pnu-border bg-white text-pnu-muted'}`}
+          >
+            {t('courseCatalog.offeredThisTerm')}
+          </button>
+        </div>
         {error ? (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
         ) : null}
@@ -125,10 +218,29 @@ export function RecommendedCoursesPage() {
             {course.matchHint ? (
               <p className="mt-3 text-sm text-pnu-muted">{course.matchHint}</p>
             ) : null}
+            <button
+              type="button"
+              onClick={() => openTimetableModal(course)}
+              disabled={addedCourseIds.has(Number(course.id)) || actionCourseId === Number(course.id)}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pnu-blue px-3 py-2.5 text-sm font-bold text-white transition active:scale-[0.99] disabled:bg-emerald-50 disabled:text-emerald-700"
+            >
+              {addedCourseIds.has(Number(course.id)) ? <Check className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
+              {addedCourseIds.has(Number(course.id)) ? t('timetable.added') : actionCourseId === Number(course.id) ? t('common.loading') : t('academic.addToTimetable')}
+            </button>
           </article>
           )
         })}
       </div>
+      {selectedCourse ? (
+        <AddTimetableModal
+          course={selectedCourse}
+          academicYear={academicYear}
+          semester={semester}
+          submitting={actionCourseId === Number(selectedCourse.id)}
+          onClose={() => setSelectedCourse(null)}
+          onSubmit={addToTimetable}
+        />
+      ) : null}
     </div>
   )
 }

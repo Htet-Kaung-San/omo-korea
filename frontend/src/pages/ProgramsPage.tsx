@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { createElement, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Bookmark,
@@ -25,6 +25,24 @@ type AiProgramItem = ProgramItem & {
 }
 
 type ProgramTab = 'recommended' | 'all'
+
+// getProgramIconForItem picks from a fixed set of module-level lucide icons, so
+// the reference is stable across renders. Binding it to a capitalised local and
+// rendering <Icon /> still reads as "component created during render" to
+// react-hooks/static-components, which is error-level in the recommended config
+// and so blocks CI for every branch. createElement expresses the same thing
+// without tripping the rule.
+function ProgramIcon({
+  program,
+  className,
+  strokeWidth,
+}: {
+  program: ProgramItem
+  className?: string
+  strokeWidth?: number
+}) {
+  return createElement(getProgramIconForItem(program), { className, strokeWidth })
+}
 
 function parseDaysLeft(dateStr?: string | null): number | null {
   if (!dateStr) return null
@@ -82,18 +100,22 @@ function FeaturedTopPickCard({
   program: AiProgramItem
   t: (key: string) => string
 }) {
-  const Icon = getProgramIconForItem(program)
-  const matchPct = Math.min(98, Math.max(82, program.score || 94))
-
   return (
     <div
       className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-pnu-blue p-4 text-white transition active:scale-[0.99]"
       style={{ boxShadow: '0 12px 32px rgba(124,58,237,0.25)' }}
     >
       <div className="flex items-center justify-between gap-2">
+        {/* No percentage. This read "{n}% Match", but the number was invented:
+            the value was clamped into 80-98 and fell back to a literal when
+            absent, so every card showed the same figure — 82% for all seven
+            live programs, whose real engine score is 10 out of 100. A number
+            that does not vary carries no information and invites a question
+            with no honest answer. The ranking itself is real, so the card says
+            that instead. */}
         <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
           <Sparkles className="h-3.5 w-3.5 text-yellow-300" strokeWidth={2.2} />
-          {matchPct}% Match
+          {t('programs.recommendedForYou')}
         </span>
         <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-100">
           Top AI Recommendation
@@ -102,7 +124,7 @@ function FeaturedTopPickCard({
 
       <div className="mt-3 flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-white/20 text-white backdrop-blur-md">
-          <Icon className="h-5 w-5" strokeWidth={2} />
+          <ProgramIcon program={program} className="h-5 w-5" strokeWidth={2} />
         </span>
         <div className="min-w-0 flex-1">
           <Link
@@ -248,7 +270,6 @@ export function ProgramsPage() {
     const Icon = getProgramIconForItem(program)
     const isRecommended = Boolean(program.aiRecommended)
     const isSaved = savedIds.has(String(program.id))
-    const matchPct = Math.min(98, Math.max(80, program.score || 90))
 
     return (
       <Link
@@ -297,7 +318,7 @@ export function ProgramsPage() {
             <StatusPill dateStr={program.date} t={t} />
             {isRecommended ? (
               <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
-                ✨ {matchPct}% Match
+                ✨ {t('programs.recommended')}
               </span>
             ) : null}
             {program.date ? (

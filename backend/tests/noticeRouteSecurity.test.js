@@ -72,6 +72,8 @@ function createStudentQuery(row) {
     select: jest.fn(() => query),
     eq: jest.fn(() => query),
     single: jest.fn(() => Promise.resolve({ data: row, error: null })),
+    // The controller also reads `grade` off the student row via .maybeSingle().
+    maybeSingle: jest.fn(() => Promise.resolve({ data: row, error: null })),
   };
   return query;
 }

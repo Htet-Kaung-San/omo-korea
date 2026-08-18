@@ -2,7 +2,7 @@ const express = require('express');
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
-const mockSupabase = { from: jest.fn() };
+const mockSupabase = { from: jest.fn(), rpc: jest.fn() };
 
 jest.mock('../supabaseClient', () => mockSupabase);
 jest.mock('../ai/supabaseDataRepository', () => ({
@@ -31,6 +31,7 @@ function tokenFor(studentId) {
 
 function createApp() {
   const app = express();
+  app.use(express.json());
   app.use('/api/students', studentRoutes);
   return app;
 }
@@ -152,5 +153,50 @@ describe('GET /api/students/enrollments/:student_id', () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].course_name).toBe('Data Structures');
+  });
+});
+
+describe('POST /api/students/enrollments past-course guard', () => {
+  test('rejects a current term before attempting a database write', async () => {
+    const now = new Date();
+    const currentSemester = `${now.getFullYear()}-${now.getMonth() + 1 >= 7 ? 'Fall' : 'Spring'}`;
+    const res = await request(createApp())
+      .post('/api/students/enrollments')
+      .set('Authorization', `Bearer ${tokenFor(OWNER_ID)}`)
+      .send({
+        student_id: OTHER_ID,
+        course_id: 101,
+        status: 'Completed',
+        semester: currentSemester,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/past course/i);
+    expect(mockSupabase.from).not.toHaveBeenCalled();
+  });
+});
+
+describe('DELETE /api/students/enrollments/:enrollment_id', () => {
+  test('uses the atomic course-plan removal function for the owner', async () => {
+    const query = {
+      select: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      maybeSingle: jest.fn(() => Promise.resolve({
+        data: { enrollment_id: 7, student_id: OWNER_ID },
+        error: null,
+      })),
+    };
+    mockSupabase.from.mockImplementation(() => query);
+    mockSupabase.rpc.mockResolvedValue({ data: { enrollmentId: 7 }, error: null });
+
+    const res = await request(createApp())
+      .delete('/api/students/enrollments/7')
+      .set('Authorization', `Bearer ${tokenFor(OWNER_ID)}`);
+
+    expect(res.status).toBe(200);
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('drop_student_course_plan', {
+      p_student_id: OWNER_ID,
+      p_enrollment_id: 7,
+    });
   });
 });

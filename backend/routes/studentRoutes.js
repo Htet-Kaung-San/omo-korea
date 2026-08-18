@@ -5,6 +5,8 @@ const {
   loginStudent,
   verifyLoginStudent,
   signupStudent,
+  verifySignupStudent,
+  completeSignupStudent,
   forgotPassword,
   resetPassword,
   getStudentChecklist,
@@ -31,6 +33,7 @@ const {
   getCourses,
   getEnrollments,
   createEnrollment,
+  updateEnrollment,
   deleteEnrollment,
   getPostComments,
   createComment,
@@ -40,6 +43,7 @@ const {
   requestStudentDeletion,
   hardDeleteStudent,
   getAllStudents,
+  submitFeedback,
   getCareerOpportunities,
   getCareerRecommendations,
   getMyCommunityGroupHandler,
@@ -70,6 +74,13 @@ const {
   getStudentNotifications,
 } = require("../controllers/aiController");
 
+const {
+  createTimetableEntry,
+  getCourseCatalog,
+  getTimetable,
+  removeTimetableEntry,
+} = require("../controllers/courseController");
+
 const router = express.Router();
 
 // Public routes
@@ -77,6 +88,8 @@ router.get("/test", testConnection);
 router.post("/login", loginStudent);
 router.post("/verify-login", verifyLoginStudent);
 router.post("/signup", signupStudent);
+router.post("/verify-signup", verifySignupStudent);
+router.post("/complete-signup", completeSignupStudent);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/boards", getAllBoards);
@@ -100,6 +113,7 @@ router.get("/courses", getCourses);
 
 // Protected / named routes (before /:student_id)
 router.get("/", authenticateToken, requireAdmin, getAllStudents);
+router.post("/feedback", authenticateToken, submitFeedback);
 router.post(
   "/notices/sync",
   authenticateToken,
@@ -121,11 +135,20 @@ router.put(
 );
 router.get("/enrollments/:student_id", authenticateToken, getEnrollments);
 router.post("/enrollments", authenticateToken, createEnrollment);
+router.patch("/enrollments/:enrollment_id", authenticateToken, updateEnrollment);
 router.delete("/enrollments/:enrollment_id", authenticateToken, deleteEnrollment);
 router.post("/scholarships/apply", authenticateToken, applyForScholarship);
 router.get("/dashboard-summary", authenticateToken, getDashboardSummary);
 router.post("/major-gap-analysis", authenticateToken, runMajorGapAnalysis);
 router.get("/course-recommendations", authenticateToken, getCourseRecommendations);
+router.get("/course-catalog", authenticateToken, getCourseCatalog);
+router.get("/timetable", authenticateToken, getTimetable);
+router.post("/timetable", authenticateToken, createTimetableEntry);
+router.delete(
+  "/timetable/:timetable_entry_id",
+  authenticateToken,
+  removeTimetableEntry,
+);
 router.get(
   "/academic-records/:student_id",
   authenticateToken,

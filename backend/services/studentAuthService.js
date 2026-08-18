@@ -169,10 +169,40 @@ async function setStudentPassword({ email, newPassword }) {
   return SUPABASE_AUTH_MARKER;
 }
 
+async function confirmAuthEmail(email) {
+  const user = await findAuthUserByEmail(email);
+  if (!user) return { ok: false, alreadyConfirmed: false };
+  if (user.email_confirmed_at) {
+    return { ok: true, alreadyConfirmed: true };
+  }
+
+  const { error } = await supabaseAuth.auth.admin.updateUserById(user.id, {
+    email_confirm: true,
+  });
+  if (error) {
+    console.warn("[auth] confirmAuthEmail failed:", error.message);
+    return { ok: false, alreadyConfirmed: false };
+  }
+  return { ok: true, alreadyConfirmed: false };
+}
+
+async function deleteAuthUserByEmail(email) {
+  const user = await findAuthUserByEmail(email);
+  if (!user) return { ok: true, deleted: false };
+  const { error } = await supabaseAuth.auth.admin.deleteUser(user.id);
+  if (error) {
+    console.warn("[auth] deleteAuthUserByEmail failed:", error.message);
+    return { ok: false, deleted: false };
+  }
+  return { ok: true, deleted: true };
+}
+
 module.exports = {
   SUPABASE_AUTH_MARKER,
   isLegacyBcryptHash,
   findAuthUserByEmail,
+  confirmAuthEmail,
+  deleteAuthUserByEmail,
   verifyStudentPassword,
   setStudentPassword,
 };

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronRight, Sparkles } from 'lucide-react'
 import type { Notification } from '@/types/api'
 import { useLanguage } from '@/context/LanguageContext'
@@ -36,6 +36,7 @@ export function LatestNoticeCarousel({
   showHeader = true,
 }: LatestNoticeCarouselProps) {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const slides = useMemo(
     () =>
       notices
@@ -96,13 +97,15 @@ export function LatestNoticeCarousel({
               {t('home.latestNoticeSubtitle')}
             </p>
           </div>
-          <Link
-            to="/notifications"
-            className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-pnu-blue transition active:scale-[0.98]"
+          <button
+            type="button"
+            onClick={() => navigate('/notifications')}
+            className="relative z-10 -mb-2 -mr-2 inline-flex min-h-11 items-center gap-0.5 rounded-xl px-2 text-[11px] font-semibold text-pnu-blue transition active:scale-[0.98]"
+            aria-label={t('notices.viewAllNotices')}
           >
             {t('common.viewAll')}
             <ChevronRight className="h-3.5 w-3.5" />
-          </Link>
+          </button>
         </div>
       ) : null}
 

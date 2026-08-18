@@ -10,7 +10,10 @@ import type {
   ChecklistItem,
   ChecklistPayload,
   Course,
+  CourseCatalogPage,
+  CourseCatalogParams,
   CourseType,
+  CreateTimetableEntryInput,
   EmergencyGuide,
   Enrollment,
   FaqItem,
@@ -25,6 +28,10 @@ import type {
   HeyPnuApi,
   LoginChallengeResponse,
   LoginRequest,
+  SignupRequest,
+  SignupVerifyResponse,
+  CompleteSignupRequest,
+  MajorData,
   MajorRecommendationRequest,
   MajorRecommendationResponse,
   VerifyLoginRequest,
@@ -33,10 +40,11 @@ import type {
   PnuContact,
   RecommendedCourse,
   ScholarshipItem,
+  TimetableEntry,
   UpdateProfileRequest,
   User,
 } from '@/types/api'
-import { apiFetch, clearStoredToken } from '../client'
+import { apiFetch, apiStream, clearStoredToken } from '../client'
 import { backendFetch } from './backendFetch'
 import {
   mapCommunityGroup,
@@ -46,6 +54,7 @@ import {
   mapBackendStudent,
   mapChecklistItem,
   mapChecklistPayload,
+  mapCourseCatalogItem,
   mapNotice,
   mapAcademicRecords,
   mapFaqItem,
@@ -105,6 +114,57 @@ export const realApi: HeyPnuApi = {
     }
   },
 
+  async signup(data: SignupRequest): Promise<LoginChallengeResponse> {
+    const response = await apiFetch<BackendLoginChallengeResponse>('/students/signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        language_pref: data.languagePref,
+      }),
+      suppressToast: true,
+    })
+
+    return {
+      challengeId: response.challengeId,
+      maskedEmail: response.maskedEmail,
+    }
+  },
+
+  async verifySignup(data: VerifyLoginRequest): Promise<SignupVerifyResponse> {
+    const response = await apiFetch<{ signupToken: string }>('/students/verify-signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        challengeId: data.challengeId,
+        code: data.code.trim(),
+      }),
+      suppressToast: true,
+    })
+    return { signupToken: response.signupToken }
+  },
+
+  async completeSignup(data: CompleteSignupRequest): Promise<AuthResponse> {
+    const response = await apiFetch<BackendAuthResponse>('/students/complete-signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        signupToken: data.signupToken,
+        major: data.major,
+        year: data.year,
+        nationality: data.nationality,
+        language_pref: data.languagePref,
+      }),
+      suppressToast: true,
+    })
+
+    const user = mapBackendStudent(response.data)
+    setSessionUser(user)
+
+    return {
+      token: response.token,
+      user,
+    }
+  },
+
   async verifyLogin(data: VerifyLoginRequest): Promise<AuthResponse> {
     const response = await apiFetch<BackendAuthResponse>('/students/verify-login', {
       method: 'POST',
@@ -129,12 +189,16 @@ export const realApi: HeyPnuApi = {
     clearSessionUser()
   },
 
-  async getCampusFacilities(): Promise<CampusFacility[]> {
-    return apiFetch<CampusFacility[]>('/students/campus-facilities')
-  },
+  // getCampusFacilities already exists further down, written against
+  // backendFetch and the CampusFacilities response shape. The duplicate that
+  // used to sit here came in with #29 and called a bare fetch on an undefined
+  // API_BASE, which also skipped the Authorization header.
 
   async getMajors(): Promise<{ data: MajorData[] }> {
-    return apiFetch<{ data: MajorData[] }>('/students/majors')
+    // Routed through backendFetch like every other call: it resolves the base
+    // URL, attaches the bearer token and unwraps { success, data }.
+    const majors = await backendFetch<MajorData[]>('/students/majors')
+    return { data: majors }
   },
 
   async getMe(): Promise<User> {
@@ -169,15 +233,68 @@ export const realApi: HeyPnuApi = {
   },
   async getRecommendedCourses(
     type?: CourseType | 'ALL',
+    term?: {
+      academicYear: number
+      semester: '1' | '2' | 'SUMMER' | 'WINTER'
+      offeredOnly?: boolean
+    },
   ): Promise<RecommendedCourse[]> {
+    const query = new URLSearchParams()
+    if (term) {
+      query.set('academicYear', String(term.academicYear))
+      query.set('semester', term.semester)
+      if (term.offeredOnly) query.set('offeredOnly', 'true')
+    }
+    const suffix = query.size ? `?${query.toString()}` : ''
     const courses = await backendFetch<Parameters<typeof mapRecommendedCourse>[0][]>(
-      '/students/course-recommendations',
+      `/students/course-recommendations${suffix}`,
     )
     const mappedCourses = courses.map(mapRecommendedCourse)
 
     return type && type !== 'ALL'
       ? mappedCourses.filter((course) => course.type === type)
       : mappedCourses
+  },
+
+  async getCourseCatalog(params: CourseCatalogParams = {}): Promise<CourseCatalogPage> {
+    const query = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value))
+      }
+    }
+    const suffix = query.size ? `?${query.toString()}` : ''
+    const page = await backendFetch<{
+      items: Parameters<typeof mapCourseCatalogItem>[0][]
+      page: number
+      pageSize: number
+      total: number
+      totalPages: number
+      hasMore: boolean
+    }>(`/students/course-catalog${suffix}`)
+    return { ...page, items: page.items.map(mapCourseCatalogItem) }
+  },
+
+  async getTimetable(params = {}): Promise<TimetableEntry[]> {
+    const query = new URLSearchParams()
+    if (params.academicYear) query.set('academicYear', String(params.academicYear))
+    if (params.semester) query.set('semester', params.semester)
+    const suffix = query.size ? `?${query.toString()}` : ''
+    return backendFetch<TimetableEntry[]>(`/students/timetable${suffix}`)
+  },
+
+  async createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry> {
+    return backendFetch<TimetableEntry>('/students/timetable', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async deleteTimetableEntry(timetableEntryId: number): Promise<void> {
+    await backendFetch<{ timetableEntryId: number }>(
+      `/students/timetable/${timetableEntryId}`,
+      { method: 'DELETE' },
+    )
   },
 
   async getGraduationProgress(): Promise<GraduationProgress> {
@@ -257,6 +374,41 @@ export const realApi: HeyPnuApi = {
     })
 
     return { reply: response.reply }
+  },
+
+  async streamChatMessage(data, handlers) {
+    await apiStream(
+      '/ai/chat-stream',
+      { message: data.message, history: data.history },
+      {
+        onText: handlers.onText,
+        onMetadata: (metadata) => {
+          const followUps = metadata.followUps
+          if (Array.isArray(followUps)) {
+            handlers.onFollowUps?.(followUps.filter((f): f is string => typeof f === 'string'))
+          }
+          const sources = metadata.ragSources
+          handlers.onGrounding?.({
+            grounded: metadata.ragUsed === true,
+            status: typeof metadata.ragStatus === 'string' ? metadata.ragStatus : 'not-used',
+            sources: Array.isArray(sources)
+              ? sources.filter((s): s is string => typeof s === 'string')
+              : [],
+          })
+        },
+        signal: handlers.signal,
+      },
+    )
+  },
+
+  async submitFeedback(data) {
+    // apiFetch throws on any non-ok response, so a resolved call means the row
+    // was written. The forms rely on that — they show success only here.
+    await apiFetch('/students/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      suppressToast: true,
+    })
   },
 
   async getChatSuggestions(): Promise<string[]> {
@@ -390,10 +542,11 @@ export const realApi: HeyPnuApi = {
     if (!studentId) {
       throw new Error('Student ID is required to fetch academic records')
     }
-    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0]>(
+    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0] | null>(
       `/students/academic-records/${encodeURIComponent(studentId)}`,
     )
-    return mapAcademicRecords(records)
+    // null means "no transcript yet" — the page shows its empty state.
+    return records ? mapAcademicRecords(records) : null
   },
 
   async getAiDashboard(): Promise<AiDashboard> {
@@ -410,8 +563,10 @@ export const realApi: HeyPnuApi = {
     }
   },
 
-  async getScholarships(): Promise<ScholarshipItem[]> {
-    const scholarships = await backendFetch<ScholarshipItem[]>('/students/scholarships')
+  async getScholarships(options = {}): Promise<ScholarshipItem[]> {
+    const scholarships = await backendFetch<ScholarshipItem[]>('/students/scholarships', {
+      suppressToast: options.suppressToast,
+    })
     return scholarships.map(mapScholarshipItem)
   },
 
@@ -440,14 +595,16 @@ export const realApi: HeyPnuApi = {
     });
   },
 
-  async forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }> {
+  async forgotPassword(identifier: string): Promise<{ maskedEmail: string; code: string }> {
     const response = await apiFetch<{
       success: true
       maskedEmail: string
       code: string
     }>('/students/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ student_id: studentId }),
+      // Sent as `identifier`, matching login. The backend routes on whether the
+      // value contains '@', so either a school email or a student ID works.
+      body: JSON.stringify({ identifier }),
       suppressToast: true,
     })
 
@@ -484,12 +641,44 @@ export const realApi: HeyPnuApi = {
     return backendFetch<Enrollment[]>(`/students/enrollments/${encodeURIComponent(studentId)}`)
   },
 
-  async createEnrollment(studentId: string, courseId: number): Promise<Enrollment> {
+  async createEnrollment(studentId: string, courseId: number, semester?: string): Promise<Enrollment> {
     return backendFetch<Enrollment>('/students/enrollments', {
       method: 'POST',
       body: JSON.stringify({
         student_id: studentId,
         course_id: courseId,
+        ...(semester ? { semester } : {}),
+      }),
+    })
+  },
+
+  async addPastCourse(
+    courseId: number,
+    semester: string,
+    details: { finalGrade?: string | null; creditsEarned?: number | null } = {},
+  ): Promise<Enrollment> {
+    return backendFetch<Enrollment>('/students/enrollments', {
+      method: 'POST',
+      body: JSON.stringify({
+        course_id: courseId,
+        semester,
+        status: 'Completed',
+        final_grade: details.finalGrade ?? null,
+        credits_earned: details.creditsEarned ?? null,
+      }),
+    })
+  },
+
+  async updateEnrollment(
+    enrollmentId: number,
+    details: { semester: string; finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment> {
+    return backendFetch<Enrollment>(`/students/enrollments/${enrollmentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        semester: details.semester,
+        final_grade: details.finalGrade ?? null,
+        credits_earned: details.creditsEarned ?? null,
       }),
     })
   },

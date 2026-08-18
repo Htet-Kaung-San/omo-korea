@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { api } from '@/api'
 import type {
   CourseType,
+  CourseCatalogItem,
   GraduationProgress,
-  RecommendedCourse,
-  Enrollment,
+  TimetableEntry,
+  CreateTimetableEntryInput,
 } from '@/types/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
@@ -15,21 +16,27 @@ import { GraduationCard } from '@/components/graduation/GraduationCard'
 import { DateStrip } from '@/components/schedule/DateStrip'
 import { DayClassList } from '@/components/schedule/DayClassList'
 import { AssignmentsExamsRow } from '@/components/schedule/AssignmentsExamsRow'
+import { AddTimetableModal } from '@/components/schedule/AddTimetableModal'
 import { MonthCalendar } from '@/components/schedule/MonthCalendar'
 import { MonthDaySchedule } from '@/components/schedule/MonthDaySchedule'
+import { WeeklyTimetableGrid } from '@/components/schedule/WeeklyTimetableGrid'
 import {
   AlertTriangle,
   CalendarDays,
+  CalendarRange,
   Check,
   ChevronRight,
   Info,
+  List,
   Plus,
   RefreshCw,
+  Search,
+  Sparkles,
 } from 'lucide-react'
-import { COURSE_SCHEDULES } from '@/data/courseSchedules'
 import {
   getClassDayNumbers,
   getClassesForDay,
+  getScheduleSlots,
   getWeekdayOptions,
   slotsOverlap,
   toTimetableDay,
@@ -42,16 +49,26 @@ export function AcademicPage() {
   const { locale, t } = useLanguage()
   const [viewTab, setViewTab] = useState<'CURRICULUM' | 'TIMETABLE'>('TIMETABLE')
   const [allFilter, setAllFilter] = useState<CourseType | 'ALL'>('ALL')
-  const [allCourses, setAllCourses] = useState<RecommendedCourse[]>([])
+  const [allCourses, setAllCourses] = useState<CourseCatalogItem[]>([])
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
+  const [enrollments, setEnrollments] = useState<TimetableEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [catalogLoading, setCatalogLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [collisionError, setCollisionError] = useState<string | null>(null)
   const [now] = useState(() => new Date())
   const [anchorDate, setAnchorDate] = useState(() => new Date())
   const [monthView, setMonthView] = useState(false)
+  const [scheduleLayout, setScheduleLayout] = useState<'DAILY' | 'GRID'>('DAILY')
+  const [search, setSearch] = useState('')
+  const [myMajorOnly, setMyMajorOnly] = useState(true)
+  const [catalogPage, setCatalogPage] = useState(1)
+  const [catalogTotal, setCatalogTotal] = useState(0)
+  const [catalogHasMore, setCatalogHasMore] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState<CourseCatalogItem | null>(null)
+  const academicYear = now.getFullYear()
+  const semester = (now.getMonth() + 1 >= 7 ? '2' : '1') as '1' | '2'
 
   const weekDays = useMemo(() => getWeekdayOptions(anchorDate), [anchorDate])
 
@@ -91,12 +108,10 @@ export function AcademicPage() {
     setLoading(true)
     setError('')
     try {
-      const [courses, graduation, timetable] = await Promise.all([
-        api.getRecommendedCourses('ALL'),
+      const [graduation, timetable] = await Promise.all([
         api.getGraduationProgress(),
-        api.getEnrollments(user.studentId),
+        api.getTimetable({ academicYear, semester }),
       ])
-      setAllCourses(courses)
       setProgress(graduation)
       setEnrollments(timetable)
     } catch (err: unknown) {
@@ -112,10 +127,32 @@ export function AcademicPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  const filteredAllCourses = useMemo(() => {
-    if (allFilter === 'ALL') return allCourses
-    return allCourses.filter((course) => course.type === allFilter)
-  }, [allCourses, allFilter])
+  useEffect(() => {
+    if (!user) return
+    const timer = window.setTimeout(async () => {
+      setCatalogLoading(true)
+      try {
+        const result = await api.getCourseCatalog({
+          page: 1,
+          pageSize: 50,
+          search,
+          myMajor: myMajorOnly,
+          category: allFilter,
+          academicYear,
+          semester,
+        })
+        setAllCourses(result.items)
+        setCatalogPage(result.page)
+        setCatalogTotal(result.total)
+        setCatalogHasMore(result.hasMore)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : t('academic.loadError'))
+      } finally {
+        setCatalogLoading(false)
+      }
+    }, 250)
+    return () => window.clearTimeout(timer)
+  }, [user, search, myMajorOnly, allFilter, academicYear, semester, t])
 
   const selectedDate = useMemo(() => {
     const d = new Date(anchorDate)
@@ -132,46 +169,35 @@ export function AcademicPage() {
         : getClassesForDay(enrollments, timetableDay, selectedDate, now),
     [enrollments, timetableDay, selectedDate, now],
   )
+  const timetableCredits = useMemo(
+    () => enrollments.reduce((total, entry) => total + (Number(entry.credit) || 0), 0),
+    [enrollments],
+  )
 
-  const handleAddToTimetable = async (course: RecommendedCourse) => {
+  const handleAddToTimetable = async (data: CreateTimetableEntryInput) => {
     if (!user) return
     setCollisionError(null)
-    setSubmittingId(Number(course.id))
+    setSubmittingId(data.courseId)
 
-    const newSlots = COURSE_SCHEDULES[Number(course.id)] || []
-    let conflictFound = false
-    let conflictingCourseName = ''
-
-    for (const enrollment of enrollments) {
-      const existingSlots = COURSE_SCHEDULES[Number(enrollment.course_id)] || []
-      for (const newSlot of newSlots) {
-        for (const existingSlot of existingSlots) {
-          if (slotsOverlap(newSlot, existingSlot)) {
-            conflictFound = true
-            conflictingCourseName = enrollment.course_name || 'Enrolled Course'
-            break
-          }
-        }
-        if (conflictFound) break
-      }
-      if (conflictFound) break
-    }
-
-    if (conflictFound) {
-      setCollisionError(
-        `${t('academic.conflictMessage')} (Overlaps with: ${conflictingCourseName})`,
-      )
+    const selectedOfferingSlots = selectedCourse?.offerings.find(
+      (offering) => offering.courseOfferingId === data.courseOfferingId,
+    )?.slots || []
+    const proposedSlots = data.slots?.length ? data.slots : selectedOfferingSlots
+    const conflict = enrollments.find((entry) =>
+      getScheduleSlots(entry).some((existingSlot) =>
+        proposedSlots.some((proposedSlot) => slotsOverlap(existingSlot, proposedSlot)),
+      ),
+    )
+    if (conflict) {
+      setCollisionError(`${t('academic.conflictMessage')} (${conflict.course_name})`)
       setSubmittingId(null)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
 
     try {
-      const newEnrollment = await api.createEnrollment(
-        user.studentId,
-        Number(course.id),
-      )
+      const newEnrollment = await api.createTimetableEntry(data)
       setEnrollments((prev) => [...prev, newEnrollment])
+      setSelectedCourse(null)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to add course.'
       setCollisionError(message)
@@ -184,7 +210,7 @@ export function AcademicPage() {
     if (!window.confirm(t('academic.confirmDrop'))) return
     setLoading(true)
     try {
-      await api.deleteEnrollment(enrollmentId)
+      await api.deleteTimetableEntry(enrollmentId)
       setEnrollments((prev) =>
         prev.filter((e) => e.enrollment_id !== enrollmentId),
       )
@@ -205,6 +231,29 @@ export function AcademicPage() {
     month: 'long',
     day: 'numeric',
   })
+
+  async function loadMoreCourses() {
+    const nextPage = catalogPage + 1
+    setCatalogLoading(true)
+    try {
+      const result = await api.getCourseCatalog({
+        page: nextPage,
+        pageSize: 50,
+        search,
+        myMajor: myMajorOnly,
+        category: allFilter,
+        academicYear,
+        semester,
+      })
+      setAllCourses((current) => [...current, ...result.items])
+      setCatalogPage(result.page)
+      setCatalogHasMore(result.hasMore)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('academic.loadError'))
+    } finally {
+      setCatalogLoading(false)
+    }
+  }
 
   return (
     <div className="pb-8">
@@ -245,7 +294,66 @@ export function AcademicPage() {
         </div>
       )}
 
+      <div className="mx-4 mt-3 grid grid-cols-3 gap-1 rounded-xl bg-white p-1 ring-1 ring-black/5">
+        <button
+          type="button"
+          onClick={() => setViewTab('TIMETABLE')}
+          className={`rounded-lg px-2 py-2 text-[11px] font-bold ${viewTab === 'TIMETABLE' ? 'bg-pnu-blue text-white' : 'text-pnu-muted'}`}
+        >
+          {t('schedule.title')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewTab('CURRICULUM')}
+          className={`rounded-lg px-2 py-2 text-[11px] font-bold ${viewTab === 'CURRICULUM' ? 'bg-pnu-blue text-white' : 'text-pnu-muted'}`}
+        >
+          {t('academic.allCourses')}
+        </button>
+        <Link
+          to="/academic/recommended-courses"
+          className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-center text-[11px] font-bold text-pnu-muted"
+        >
+          <Sparkles className="h-3 w-3" />
+          AI
+        </Link>
+      </div>
+
       <div className="space-y-4 px-4 py-4">
+        {viewTab === 'TIMETABLE' ? (
+          <div className="space-y-2">
+          <div className="grid grid-cols-2 rounded-xl bg-white p-1 ring-1 ring-black/5">
+            <button
+              type="button"
+              onClick={() => setScheduleLayout('DAILY')}
+              className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold ${scheduleLayout === 'DAILY' ? 'bg-pnu-blue text-white' : 'text-pnu-muted'}`}
+            >
+              <List className="h-3.5 w-3.5" />
+              {t('schedule.dailyView')}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMonthView(false)
+                setScheduleLayout('GRID')
+              }}
+              className={`flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold ${scheduleLayout === 'GRID' ? 'bg-pnu-blue text-white' : 'text-pnu-muted'}`}
+            >
+              <CalendarRange className="h-3.5 w-3.5" />
+              {t('schedule.weeklyView')}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-black/5">
+              <p className="text-[10px] font-semibold text-pnu-muted">{t('schedule.plannedCourses')}</p>
+              <p className="text-lg font-bold text-pnu-text">{enrollments.length}</p>
+            </div>
+            <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-black/5">
+              <p className="text-[10px] font-semibold text-pnu-muted">{t('schedule.plannedCredits')}</p>
+              <p className="text-lg font-bold text-pnu-text">{timetableCredits}</p>
+            </div>
+          </div>
+          </div>
+        ) : null}
         {profileIncomplete ? (
           <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
@@ -279,7 +387,7 @@ export function AcademicPage() {
           </div>
         ) : null}
 
-        {loading ? (
+        {loading || (viewTab === 'CURRICULUM' && catalogLoading && allCourses.length === 0) ? (
           <div className="flex flex-col items-center justify-center gap-2 p-8 text-pnu-muted">
             <RefreshCw className="h-6 w-6 animate-spin text-pnu-blue" />
             <p className="text-sm font-medium">{t('academic.loading')}</p>
@@ -298,17 +406,38 @@ export function AcademicPage() {
             ) : null}
 
             <section className="space-y-4">
-              <h3 className="text-base font-bold tracking-tight text-pnu-text">
-                {t('academic.allCourses')}
-              </h3>
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold tracking-tight text-pnu-text">
+                    {t('academic.allCourses')}
+                  </h3>
+                  <p className="text-xs text-pnu-muted">{t('courseCatalog.total', { count: catalogTotal })}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMyMajorOnly((value) => !value)}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-bold ${myMajorOnly ? 'bg-pnu-blue text-white' : 'bg-pnu-surface text-pnu-muted'}`}
+                >
+                  {t(myMajorOnly ? 'courseCatalog.myMajorOnly' : 'courseCatalog.allMajors')}
+                </button>
+              </div>
+              <label className="flex items-center gap-2 rounded-xl border border-pnu-border bg-white px-3 py-2.5">
+                <Search className="h-4 w-4 text-pnu-muted" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={t('courseCatalog.searchPlaceholder')}
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                />
+              </label>
               <CourseFilters value={allFilter} onChange={setAllFilter} />
 
-              {filteredAllCourses.length === 0 ? (
+              {allCourses.length === 0 ? (
                 <p className="py-4 text-sm text-pnu-muted">{t('academic.noCourses')}</p>
               ) : null}
 
               <div className="space-y-3.5">
-                {filteredAllCourses.map((course) => {
+                {allCourses.map((course) => {
                   const enrollment = enrollmentForCourse(course.id)
                   return (
                     <CourseCard
@@ -324,12 +453,12 @@ export function AcademicPage() {
                             className="inline-flex items-center gap-1 rounded-xl border border-emerald-100/60 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-600"
                           >
                             <Check className="h-3.5 w-3.5 stroke-[3]" />
-                            {t('academic.enrolled')}
+                            {t('timetable.added')}
                           </button>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleAddToTimetable(course)}
+                            onClick={() => setSelectedCourse(course)}
                             disabled={submittingId === Number(course.id)}
                             className="flex items-center justify-center gap-1 rounded-xl bg-pnu-blue p-2 text-xs font-bold text-white shadow-md transition-all hover:bg-pnu-blue-light active:scale-95 disabled:opacity-50"
                           >
@@ -342,11 +471,21 @@ export function AcademicPage() {
                   )
                 })}
               </div>
+              {catalogHasMore ? (
+                <button
+                  type="button"
+                  onClick={loadMoreCourses}
+                  disabled={catalogLoading}
+                  className="w-full rounded-xl border border-pnu-blue py-3 text-sm font-bold text-pnu-blue disabled:opacity-50"
+                >
+                  {catalogLoading ? t('common.loading') : t('courseCatalog.loadMore')}
+                </button>
+              ) : null}
             </section>
           </div>
         ) : null}
 
-        {!loading && viewTab === 'TIMETABLE' ? (
+        {!loading && viewTab === 'TIMETABLE' && scheduleLayout === 'DAILY' ? (
           <div className="space-y-3.5">
             <DateStrip
               days={weekDays}
@@ -393,7 +532,24 @@ export function AcademicPage() {
             )}
           </div>
         ) : null}
+
+        {!loading && viewTab === 'TIMETABLE' && scheduleLayout === 'GRID' ? (
+          <WeeklyTimetableGrid
+            entries={enrollments}
+            locale={locale}
+          />
+        ) : null}
       </div>
+      {selectedCourse ? (
+        <AddTimetableModal
+          course={selectedCourse}
+          academicYear={academicYear}
+          semester={semester}
+          submitting={submittingId === Number(selectedCourse.id)}
+          onClose={() => setSelectedCourse(null)}
+          onSubmit={handleAddToTimetable}
+        />
+      ) : null}
     </div>
   )
 }

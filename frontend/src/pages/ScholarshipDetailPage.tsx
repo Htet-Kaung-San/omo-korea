@@ -4,6 +4,7 @@ import { api } from '@/api'
 import type { ScholarshipItem } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
+import { ExternalLink } from 'lucide-react'
 
 export function ScholarshipDetailPage() {
   const { scholarshipId } = useParams()
@@ -34,7 +35,7 @@ export function ScholarshipDetailPage() {
             <div className="mb-3 flex items-start justify-between gap-3">
               <h1 className="text-lg font-bold text-pnu-text">{scholarship.title}</h1>
               <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
-                {scholarship.deadline}
+                {scholarship.deadline || t('scholarships.deadlineUnknown')}
               </span>
             </div>
             <p className="text-sm leading-relaxed text-pnu-muted">{scholarship.description}</p>
@@ -42,6 +43,11 @@ export function ScholarshipDetailPage() {
               <p className="text-xs font-semibold text-pnu-text">{t('academic.eligibility')}</p>
               <p className="mt-1 text-sm leading-relaxed text-pnu-muted">{scholarship.eligibility}</p>
             </div>
+            {scholarship.sourceUrl ? (
+              <a href={scholarship.sourceUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-pnu-blue px-3 py-2 text-sm font-bold text-white">
+                {t('common.viewSource')} <ExternalLink className="h-4 w-4" />
+              </a>
+            ) : null}
           </article>
         ) : null}
 

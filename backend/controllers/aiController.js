@@ -25,12 +25,36 @@ const {
   getChecklistForStudent,
   normalizeGrade,
 } = require("../services/semesterChecklistService");
-async function getAcademicPromptContext(studentId, supabaseClient) {
-  if (!studentId) return "";
+function selectGroundingCourses(courses, message, targetYear, limit = 24) {
+  const queryTokens = String(message || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .match(/[\p{L}\p{N}]{2,}/gu) || [];
+  return [...(courses || [])]
+    .map((course) => {
+      const text = [course.course_name, course.course_name_en, course.official_course_number]
+        .filter(Boolean).join(' ').normalize('NFKC').toLowerCase();
+      const queryScore = queryTokens.reduce(
+        (score, token) => score + (text.includes(token) ? 20 : 0),
+        0,
+      );
+      const yearScore = Number(course.recommended_year) === Number(targetYear) ? 10 : 0;
+      const requiredScore = course.category === 'REQUIRED' ? 4 : 0;
+      return { course, score: queryScore + yearScore + requiredScore };
+    })
+    .sort((a, b) => b.score - a.score
+      || String(a.course.course_name_en || a.course.course_name)
+        .localeCompare(String(b.course.course_name_en || b.course.course_name)))
+    .slice(0, limit)
+    .map(({ course }) => course);
+}
+
+async function getAcademicPromptContext(studentId, supabaseClient, message = '') {
+  if (!studentId) return { context: '', queryExpansion: '' };
   try {
     const { data: student } = await supabaseClient
       .from("student")
-      .select("student_id, student_type, completed_courses, intake_term, major:major_id(major_name)")
+      .select("student_id, student_type, completed_courses, intake_term, grade, major_id, major:major_id(major_id,major_name)")
       .eq("student_id", studentId)
       .single();
     if (student) {
@@ -38,13 +62,57 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
       const studentType = student.student_type || "Current";
       const completedList = student.completed_courses || [];
       const studentIdStr = String(student.student_id || studentId);
-      const intakeYear = parseInt(studentIdStr.substring(0, 4)) || 2024;
       const intakeTerm = student.intake_term || "March";
-      
-      // Calculate semesters completed dynamically compared to current date
-      const currentDate = new Date(); // Will resolve to July 2026 system date
+
+      const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonth = currentDate.getMonth() + 1; // 1-indexed
+
+      // Work from the recorded academic year, not the student id.
+      //
+      // The id is only an intake year when the email local part is the PNU
+      // student number. Signup hashes every other local part into
+      // [1e9, 2^31), so `htet_kaung_san@pusan.ac.kr` became id 1830…, and
+      // parsing its first four digits told the model the student enrolled in
+      // March 1830 and had completed several hundred semesters — which then
+      // drove the "recommend 4th year courses" instruction below. The bug is
+      // invisible in demos, because seeded accounts have numeric ids.
+      //
+      // A real PNU student number is 8-9 digits and its first four are the
+      // intake year; studentIdFromEmail returns it verbatim in that case. Every
+      // hashed id is exactly 10 digits, because the hash is
+      // 1_000_000_000 + (digest % 1_147_483_647). Length alone separates the
+      // two populations exactly — a year-range test does not, since hashed ids
+      // starting 2000-2147 look like plausible years.
+      //
+      // The id wins over `grade` when it is usable: it is immutable and stays
+      // correct as the student progresses, while `grade` is captured once at
+      // onboarding and never advances. They have already drifted in the live
+      // data — see scripts/backfill-student-grade.mjs, which treats the id as
+      // the source of truth for exactly this reason, and note that ProfilePage
+      // shows the student a year label derived from the id. Preferring `grade`
+      // would make the assistant contradict the profile screen.
+      const isRealPnuStudentNumber = /^\d{8,9}$/.test(studentIdStr);
+      const idPrefixYear = parseInt(studentIdStr.substring(0, 4), 10);
+      const idIsUsableIntakeYear =
+        isRealPnuStudentNumber &&
+        Number.isInteger(idPrefixYear) &&
+        idPrefixYear >= 2000 &&
+        idPrefixYear <= currentYear + 1;
+
+      // The Korean academic year turns over in March, not in January, so
+      // deriving an intake year from `grade` has to use the academic year —
+      // otherwise every student is placed a year late for all of Jan/Feb.
+      const academicYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+      const gradeValue = Number(student.grade);
+      const hasKnownGrade =
+        Number.isInteger(gradeValue) && gradeValue >= 1 && gradeValue <= 4;
+
+      const intakeYear = idIsUsableIntakeYear
+        ? idPrefixYear
+        : hasKnownGrade
+          ? academicYear - (gradeValue - 1)
+          : currentYear;
 
       let semestersCompleted = 0;
       let iterYear = intakeYear;
@@ -88,6 +156,46 @@ async function getAcademicPromptContext(studentId, supabaseClient) {
         context += `- Note: Recommend only standard starting 1st semester courses.\n`;
       } else {
         context += `- Completed Courses (Taken already): ${completedList.length > 0 ? completedList.join(", ") : "None recorded"}. IMPORTANT: DO NOT recommend any courses listed as completed! Only recommend courses they have not taken yet.\n`;
+      }
+      if (student.major_id) {
+        const { data: liveCourses, error: courseError } = await supabaseClient
+          .from('course')
+          .select('course_id,course_name,course_name_en,official_course_number,category,recommended_year,credit')
+          .eq('major_id', Number(student.major_id))
+          .order('course_id', { ascending: true });
+        if (!courseError && Array.isArray(liveCourses) && liveCourses.length > 0) {
+          let verifiedCodeByName = new Map();
+          try {
+            const names = [...new Set(liveCourses.map((course) => course.course_name).filter(Boolean))];
+            const { data: identityMatches, error: identityError } = await supabaseClient
+              .from('course')
+              .select('course_name,official_course_number')
+              .in('course_name', names)
+              .not('official_course_number', 'is', null);
+            if (!identityError) {
+              verifiedCodeByName = new Map(
+                (identityMatches || []).map((course) => [course.course_name, course.official_course_number]),
+              );
+            }
+          } catch (_error) {
+            verifiedCodeByName = new Map();
+          }
+          const enrichedLiveCourses = liveCourses.map((course) => ({
+            ...course,
+            official_course_number:
+              course.official_course_number || verifiedCodeByName.get(course.course_name) || null,
+          }));
+          const grounded = selectGroundingCourses(
+            enrichedLiveCourses,
+            message,
+            student.grade || enteringYearNum,
+          );
+          context += `\nLIVE SUPABASE COURSE CATALOG (authoritative for course identity):\n`;
+          context += grounded.map((course) =>
+            `- ${course.official_course_number || 'code unavailable'} | ${course.course_name_en || course.course_name} | ${course.course_name} | ${course.category || 'category unavailable'} | recommended year ${course.recommended_year ?? 'unavailable'} | ${course.credit ?? 'unknown'} credits`
+          ).join('\n');
+          context += `\n- Only name a course when it appears in this live catalog. Do not invent course codes, professors, sections, or schedules. If schedule/offering data is absent, say it is unavailable.\n`;
+        }
       }
       return {
         context: context,
@@ -243,18 +351,8 @@ async function handleChat(req, res) {
         .json({ success: false, message: "Message is required" });
     }
 
-    let studentId = req.body.studentId;
-
-    // Extract studentId from Bearer token in Authorization header
-    if (!studentId && req.headers && req.headers.authorization) {
-      const parts = req.headers.authorization.split(" ");
-      if (parts.length === 2 && parts[0] === "Bearer") {
-        const token = parts[1];
-        if (token.startsWith("mock-jwt-token-")) {
-          studentId = token.replace("mock-jwt-token-", "");
-        }
-      }
-    }
+    // Identity must come from verified authentication, never a request body.
+    const studentId = req.user?.student_id ?? null;
 
     // Prioritize history turns passed in the request body (supports client-side multi-session)
     let history = [];
@@ -311,7 +409,7 @@ async function handleChat(req, res) {
       }
     }
 
-    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase);
+    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase, message);
 
     let ragUsed = false;
     let ragStatus = "not-used";
@@ -483,6 +581,9 @@ async function getChatHistory(req, res) {
         .status(400)
         .json({ success: false, message: "Student ID is required" });
     }
+    if (String(req.user?.student_id) !== String(student_id)) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
 
     const supabase = require("../supabaseClient");
 
@@ -517,6 +618,9 @@ async function clearChatHistory(req, res) {
       return res
         .status(400)
         .json({ success: false, message: "Student ID is required" });
+    }
+    if (String(req.user?.student_id) !== String(student_id)) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
     const supabase = require("../supabaseClient");
@@ -627,15 +731,18 @@ async function handleChatStream(req, res) {
       }
     }
 
-    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase);
+    const { context: academicPromptContext, queryExpansion } = await getAcademicPromptContext(studentId, supabase, message);
 
     // Retrieve grounding context from Vector RAG system
     let context = "";
+    let ragSources = [];
     let ragUsed = false;
     let ragStatus = "not-used";
     try {
       const augmentedQuery = queryExpansion ? `${queryExpansion} ${message}` : message;
-      context = await ragService.retrieveContext(augmentedQuery, filters, 3);
+      const retrieved = await ragService.retrieveContextWithSources(augmentedQuery, filters, 3);
+      context = retrieved.context;
+      ragSources = retrieved.sources;
       if (context) {
         ragUsed = true;
         ragStatus = "used";
@@ -645,10 +752,97 @@ async function handleChatStream(req, res) {
       console.error("RAG context retrieval failed for stream:", ragErr.message);
     }
 
+    // Follow-up prompts are built from documents that actually matched, so every
+    // suggestion is one the knowledge base can answer.
+    //
+    // Curriculum documents are excluded. They are machine-generated per-major,
+    // per-year recommendation payloads titled like "Computer Engineering - 2nd
+    // Year - 1st Semester Recommendations" — useful as model context, but not
+    // something to invite a student to read. They also surface constantly
+    // regardless of topic, because the retrieval query is expanded with the
+    // student's academic background, so an immigration question reliably pulls
+    // them in too. Every other category is a human-written guide and makes a
+    // sensible chip. When nothing qualifies we send none and the client keeps
+    // its own defaults.
+    const MACHINE_GENERATED_CATEGORIES = new Set(["Curriculum"]);
+    const priorTurns = Array.isArray(req.body.history) ? req.body.history : [];
+    const askedAlready = new Set(
+      priorTurns
+        .map((turn) => String(turn?.question ?? "").toLowerCase().trim())
+        .concat(String(message).toLowerCase().trim()),
+    );
+
+    const followUps = ragSources
+      .filter((source) => !MACHINE_GENERATED_CATEGORIES.has(source.category))
+      .map((source) => `Tell me more about ${source.title}`)
+      .filter((prompt) => !askedAlready.has(prompt.toLowerCase().trim()))
+      .slice(0, 3);
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
+
+    // Mirror every token we stream so the finished answer can be logged. The
+    // non-streaming /ai/chat writes to chatbot_log; this handler did not, so a
+    // client on the streaming endpoint left no history behind — which also
+    // starved this endpoint's own DB fallback for callers that send no history.
+    let fullReply = "";
+    const emitText = (text) => {
+      if (!text) return;
+      fullReply += text;
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
+    };
+
+    const finish = async (provider) => {
+      if (studentId && fullReply.trim()) {
+        try {
+          const { error: insertError } = await supabase.from("chatbot_log").insert({
+            student_id: studentId,
+            question: message,
+            answer: fullReply,
+            timestamp: new Date().toISOString(),
+          });
+          if (insertError) {
+            console.error("Failed to save streamed chatbot log:", insertError.message);
+          }
+        } catch (logErr) {
+          console.error("Failed to save streamed chatbot log:", logErr.message);
+        }
+      }
+      res.write(
+        `data: ${JSON.stringify({
+          metadata: {
+            provider,
+            isFallback: false,
+            ragUsed,
+            ragStatus,
+            followUps,
+            // Named so the client can show WHICH documents an answer rests on.
+            // Without this the UI cannot tell a grounded answer from one the
+            // model produced from general knowledge, and neither can the
+            // student — on a screen whose subject is visa and work-permit law.
+            //
+            // Machine-generated curriculum payloads are excluded for the same
+            // reason they are excluded from followUps above: the retrieval
+            // query is expanded with the student's major and year, so they
+            // match constantly regardless of topic. Citing one under a visa
+            // answer would be a false provenance claim — the exact failure
+            // this metadata exists to prevent.
+            //
+            // ragUsed is deliberately NOT derived from this filtered list.
+            // Curriculum documents are real grounding for a course question,
+            // and treating them as no grounding would put "confirm with
+            // immigration" under correct course advice.
+            ragSources: ragSources
+              .filter((source) => !MACHINE_GENERATED_CATEGORIES.has(source.category))
+              .map((source) => source.title),
+          },
+        })}\n\n`,
+      );
+      res.write("data: [DONE]\n\n");
+      res.end();
+    };
 
     if (isOpenRouterConfigured()) {
       let augmentedMsg = "";
@@ -699,10 +893,7 @@ async function handleChatStream(req, res) {
             const rawJson = trimmed.slice(6);
             try {
               const parsed = JSON.parse(rawJson);
-              const content = parsed.choices?.[0]?.delta?.content || "";
-              if (content) {
-                res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
-              }
+              emitText(parsed.choices?.[0]?.delta?.content || "");
             } catch {
               // ignore partial line parsing issues
             }
@@ -714,16 +905,11 @@ async function handleChatStream(req, res) {
         const rawJson = buffer.trim().slice(6);
         try {
           const parsed = JSON.parse(rawJson);
-          const content = parsed.choices?.[0]?.delta?.content || "";
-          if (content) {
-            res.write(`data: ${JSON.stringify({ text: content })}\n\n`);
-          }
+          emitText(parsed.choices?.[0]?.delta?.content || "");
         } catch {}
       }
 
-      res.write(`data: ${JSON.stringify({ metadata: { provider: "openrouter", isFallback: false, ragUsed, ragStatus } })}\n\n`);
-      res.write("data: [DONE]\n\n");
-      res.end();
+      await finish("openrouter");
     } else {
       let geminiMsg = message;
       if (academicPromptContext) {
@@ -741,7 +927,7 @@ async function handleChatStream(req, res) {
           const rawText = match[1];
           try {
             const cleanText = JSON.parse(`"${rawText}"`);
-            res.write(`data: ${JSON.stringify({ text: cleanText })}\n\n`);
+            emitText(cleanText);
           } catch {
             // ignore parsing error
           }
@@ -749,9 +935,7 @@ async function handleChatStream(req, res) {
         buffer = buffer.slice(-100);
       }
 
-      res.write(`data: ${JSON.stringify({ metadata: { provider: "gemini", isFallback: false, ragUsed, ragStatus } })}\n\n`);
-      res.write("data: [DONE]\n\n");
-      res.end();
+      await finish("gemini");
     }
   } catch (err) {
     console.error("AI Streaming error:", err);
@@ -908,7 +1092,9 @@ const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const {
+  attachCourseCurriculum,
   fetchAllCourses,
+  fetchCourseCurriculum,
   fetchStudentCourseHistory,
   fetchAllNotices,
   fetchDashboardCatalogs,
@@ -1122,7 +1308,7 @@ async function getCourseRecommendations(req, res, next) {
     const limit =
       Number.isInteger(requestedLimit) && requestedLimit > 0
         ? requestedLimit
-        : 5;
+        : 20;
 
     const context = await fetchStudentContext(req.user.student_id);
     if (!context) {
@@ -1132,18 +1318,41 @@ async function getCourseRecommendations(req, res, next) {
     }
 
     const courseOptions = { language: req.language || 'en' };
-    if (String(process.env.ENABLE_COURSE_OFFERINGS).toLowerCase() === 'true') {
+    const requestedAcademicYear = Number(req.query.academicYear);
+    const requestedSemester = String(req.query.semester || '').trim();
+    const hasRequestedTerm = Number.isInteger(requestedAcademicYear)
+      && ['1', '2', 'SUMMER', 'WINTER'].includes(requestedSemester);
+    if (hasRequestedTerm) {
+      courseOptions.includeOfferings = true;
+      courseOptions.offeringAcademicYear = requestedAcademicYear;
+      courseOptions.offeringSemester = requestedSemester;
+      courseOptions.offeringSection = null;
+    } else if (String(process.env.ENABLE_COURSE_OFFERINGS).toLowerCase() === 'true') {
       courseOptions.includeOfferings = true;
       courseOptions.offeringAcademicYear =
         process.env.COURSE_OFFERING_ACADEMIC_YEAR ?? null;
       courseOptions.offeringSemester = process.env.COURSE_OFFERING_SEMESTER ?? null;
       courseOptions.offeringSection = process.env.COURSE_OFFERING_SECTION ?? null;
     }
-    const [courseCatalog, enrollmentHistory] = await Promise.all([
+    const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const preferredCurriculumYear = /^\d{4}/.test(String(req.user.student_id))
+      ? Number(String(req.user.student_id).slice(0, 4))
+      : undefined;
+    const [loadedCourseCatalog, enrollmentHistory, curriculumRows] = await Promise.all([
       fetchAllCourses(supabase, courseOptions),
       fetchStudentCourseHistory(supabase, req.user.student_id),
+      adaptedProfile.recommendationProfile.majorId
+        ? fetchCourseCurriculum(supabase, {
+          majorId: adaptedProfile.recommendationProfile.majorId,
+        })
+        : Promise.resolve([]),
     ]);
-    const adaptedProfile = adaptStudentProfile(context.rawStudentInput);
+    const baseCourseCatalog = req.query.offeredOnly === 'true' && hasRequestedTerm
+      ? loadedCourseCatalog.filter((course) => course.isOfferedThisTerm === true)
+      : loadedCourseCatalog;
+    const courseCatalog = attachCourseCurriculum(baseCourseCatalog, curriculumRows, {
+      curriculumYear: preferredCurriculumYear,
+    });
     const recommendations = recommendCourses(
       adaptedProfile.recommendationProfile,
       courseCatalog,
@@ -1176,6 +1385,7 @@ function mapRecommendedScholarship(scholarship) {
     eligibility: scholarship.eligibility ?? scholarship.provider ?? "",
     amount: scholarship.amount ?? null,
     provider: scholarship.provider ?? null,
+    sourceUrl: scholarship.sourceUrl ?? null,
     score: scholarship.score,
     matchHint: scholarship.matchHint,
   };

@@ -25,16 +25,22 @@ const {
   fetchAllNotices,
 } = require("../ai/supabaseDataRepository");
 const supabaseAuth = require("../supabaseAuthClient");
+const crypto = require("crypto");
 const {
   verifyStudentPassword,
   setStudentPassword,
+  findAuthUserByEmail,
+  deleteAuthUserByEmail,
   SUPABASE_AUTH_MARKER,
 } = require("../services/studentAuthService");
 const {
   normalizeEmail,
   createLoginChallenge,
   consumeLoginChallenge,
+  createPendingSignup,
+  consumePendingSignup,
 } = require("../services/loginChallengeService");
+const { sendPasswordResetEmail } = require("../services/otpEmailService");
 const { translateCareers } = require("../services/geminiService");
 const {
   buildGraduationProgress,
@@ -55,6 +61,203 @@ const {
 } = require("../services/semesterChecklistService");
 
 const { JWT_SECRET } = require("../jwtConfig");
+
+function displayNameFromEmail(email) {
+  const local = String(email).split("@")[0] || "Student";
+  return local.replace(/[._]+/g, " ").trim() || "Student";
+}
+
+/**
+ * Domains PNU issues addresses on. pusan.ac.kr is the one almost everyone has;
+ * the rest are live aliases the university also hands out.
+ *
+ * Deliberately absent, and worth naming so nobody adds them back:
+ *   pusan.ac.kr.test-google-a.com — a Google Workspace verification artifact.
+ *     It is a .com owned by Google, not by PNU, and it is exactly why the check
+ *     below compares the domain rather than searching for a substring: an
+ *     address at that domain *contains* "pusan.ac.kr" and would sail through a
+ *     naive test, as would anything an attacker registers ending .evil.com.
+ *   pusan.myplug.kr — a third-party mail relay, not a university identity.
+ *
+ * Override with SIGNUP_ALLOWED_EMAIL_DOMAINS (comma separated) to widen this
+ * temporarily — for a demo from a personal address, say — without a code change.
+ */
+const DEFAULT_SCHOOL_EMAIL_DOMAINS = [
+  "pusan.ac.kr",
+  "pnu.ac.kr",
+  "pnu.edu",
+  "pnu.kr",
+  "bnu.ac.kr",
+  "bnu.kr",
+  "busan.ac.kr",
+];
+
+function schoolEmailDomains() {
+  const configured = String(process.env.SIGNUP_ALLOWED_EMAIL_DOMAINS || "").trim();
+  if (!configured) return DEFAULT_SCHOOL_EMAIL_DOMAINS;
+  return configured
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/**
+ * True when the address sits on a university domain, or a subdomain of one.
+ *
+ * The domain is taken from the LAST "@" and compared whole — equal to an allowed
+ * domain, or ending in "." plus one. Substring matching would accept
+ * anything@pusan.ac.kr.attacker.com; a bare endsWith without the dot would
+ * accept anything@notpusan.ac.kr.
+ */
+function isSchoolEmail(email) {
+  const address = String(email ?? "").trim().toLowerCase();
+  const at = address.lastIndexOf("@");
+  if (at < 1 || at === address.length - 1) return false;
+
+  const domain = address.slice(at + 1);
+  return schoolEmailDomains().some(
+    (allowed) => domain === allowed || domain.endsWith(`.${allowed}`),
+  );
+}
+
+/**
+ * PostgREST treats `%` and `_` as wildcards inside .ilike(), and a raw address
+ * goes straight in. Real PNU local parts routinely contain underscores —
+ * htet_kaung_san@pusan.ac.kr — so an unescaped lookup can match a row that is
+ * not the one asked for, and a pattern like "%@pusan.ac.kr" matches many, which
+ * .maybeSingle() reports as an error the callers discard. The duplicate-account
+ * guard then fails open.
+ */
+function escapeLikePattern(value) {
+  return String(value ?? "").replace(/([\\%_])/g, "\\$1");
+}
+
+/** An account that never reached the nationality step, so it can be reclaimed. */
+function isUnfinishedSignup(row) {
+  const nationality = String(row?.nationality ?? "").trim().toLowerCase();
+  return !nationality || nationality === "unknown";
+}
+
+function studentIdFromEmail(email) {
+  const local = String(email).split("@")[0] || "";
+  if (/^\d{8,9}$/.test(local)) {
+    const asNumber = Number(local);
+    if (Number.isSafeInteger(asNumber) && asNumber <= 2147483647) {
+      return String(asNumber);
+    }
+  }
+  const digest = crypto
+    .createHash("sha256")
+    .update(normalizeEmail(email))
+    .digest();
+  return String(1_000_000_000 + (digest.readUInt32BE(0) % 1_147_483_647));
+}
+
+async function reserveUnusedStudentId(email) {
+  const candidates = [studentIdFromEmail(email)];
+  for (let i = 1; i <= 8; i += 1) {
+    // The salt goes BEFORE the address. studentIdFromEmail returns the local
+    // part verbatim when it is 8-9 digits, and appending ":1" after the domain
+    // leaves that local part unchanged — so every retry produced the same id and
+    // the loop could never find a free one. Any student whose address is
+    // <studentnumber>@pusan.ac.kr, which is the ordinary PNU format, hit a 500
+    // the moment that id was already taken.
+    candidates.push(studentIdFromEmail(`${i}:${email}`));
+  }
+  for (const candidate of candidates) {
+    const { data } = await supabase
+      .from("student")
+      .select("student_id")
+      .eq("student_id", candidate)
+      .maybeSingle();
+    if (!data) return candidate;
+  }
+  throw new Error("Could not allocate a student ID");
+}
+
+async function insertStudentAfterSignup({
+  studentId,
+  email,
+  name,
+  languagePref,
+  nationality,
+  majorId,
+  grade,
+  studentType,
+}) {
+  const insertPayload = {
+    student_id: String(studentId),
+    name: name || displayNameFromEmail(email),
+    nationality: nationality || "Unknown",
+    major_id: majorId || 1,
+    student_type: studentType || "Current",
+    visa_status: "None",
+    password: SUPABASE_AUTH_MARKER,
+    language_pref: languagePref || "en",
+    is_in_korea: true,
+    email,
+    phone: "010-0000-0000",
+    completed_courses: [],
+    intake_term: "March",
+  };
+  if (grade !== undefined && grade !== null) {
+    insertPayload.grade = grade;
+  }
+
+  const firstTry = await supabase
+    .from("student")
+    .insert(insertPayload)
+    .select(
+      `
+        *,
+        major:major_id (
+          major_name,
+          department
+        )
+      `,
+    )
+    .single();
+
+  if (!firstTry.error) {
+    return firstTry;
+  }
+
+  const errMsg = firstTry.error.message || "";
+  const isColumnErr =
+    errMsg.includes("is_in_korea") ||
+    errMsg.includes("completed_courses") ||
+    errMsg.includes("intake_term") ||
+    firstTry.error.code === "42703";
+
+  if (!isColumnErr) {
+    return firstTry;
+  }
+
+  return supabase
+    .from("student")
+    .insert({
+      student_id: String(studentId),
+      name: name || displayNameFromEmail(email),
+      nationality: nationality || "Unknown",
+      major_id: majorId || 1,
+      student_type: studentType || "Current",
+      visa_status: "None",
+      password: SUPABASE_AUTH_MARKER,
+      language_pref: languagePref || "en",
+      email,
+      phone: "010-0000-0000",
+    })
+    .select(
+      `
+        *,
+        major:major_id (
+          major_name,
+          department
+        )
+      `,
+    )
+    .single();
+}
 
 function buildAuthResponse(data) {
   const { major, password: _storedPassword, ...studentProfile } = data;
@@ -141,7 +344,34 @@ function mapScholarshipRow(row, language = "en") {
     category: row.category ?? null,
     tag: row.tag ?? null,
     deadlineAt: row.deadline_at ?? row.deadlineAt ?? null,
+    sourceUrl: row.source_url ?? row.sourceUrl ?? null,
   };
+}
+
+function isMissingTableError(error) {
+  return error?.code === "PGRST205" || /could not find the table/i.test(error?.message || "");
+}
+
+function isScholarshipNotice(row) {
+  return /장학|scholarship|학자금|등록금\s*지원/i.test(
+    `${row?.title || ""} ${row?.content || ""}`,
+  );
+}
+
+function mapScholarshipNotice(row, language = "en") {
+  const localized = localizeRow(row, language, ["title", "content"]);
+  return mapScholarshipRow(
+    {
+      id: `notice-${row.notice_id}`,
+      title: localized.title || row.title,
+      content: localized.content || row.content || "",
+      provider: noticeSourceLabel(row.source) || "PNU",
+      eligibility: "See the official notice for eligibility and application requirements.",
+      category: row.source === "cse" ? "department" : "other",
+      source_url: row.source_url,
+    },
+    language,
+  );
 }
 
 function normalizeSearchText(value) {
@@ -317,10 +547,26 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    const challenge = createLoginChallenge({
-      studentId: data.student_id,
-      email: data.email,
-    });
+    let challenge;
+    try {
+      challenge = await createLoginChallenge({
+        studentId: data.student_id,
+        email: data.email,
+      });
+    } catch (challengeError) {
+      if (challengeError.code === "OTP_DELIVERY_FAILED") {
+        // Surfaced rather than swallowed. Returning a challengeId for a code
+        // that was never sent puts the student on a verification screen that
+        // can never succeed, with no way to tell why.
+        console.error("[login-otp] delivery failed:", challengeError.message);
+        return res.status(502).json({
+          success: false,
+          message: "We could not send your verification code. Please try again in a moment.",
+          error: { status: 502, code: "OTP_DELIVERY_FAILED" },
+        });
+      }
+      throw challengeError;
+    }
 
     const payload = {
       success: true,
@@ -376,14 +622,35 @@ const verifyLoginStudent = async (req, res) => {
       });
     }
 
-    const { data, error } = await fetchStudentAuthRow({
+    if (result.purpose === "signup") {
+      return res.status(400).json({
+        success: false,
+        message: "Verification challenge invalid or expired",
+      });
+    }
+
+    let { data, error } = await fetchStudentAuthRow({
       studentId: result.studentId,
     });
 
-    if (error || !data) {
+    if (!data && result.email) {
+      const byEmail = await fetchStudentAuthRow({ email: result.email });
+      data = byEmail.data;
+      error = byEmail.error;
+    }
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch student profile",
+        error: error.message,
+      });
+    }
+
+    if (!data) {
       return res.status(404).json({
         success: false,
-        message: "Student not found",
+        message: "Email not registered",
       });
     }
 
@@ -550,11 +817,36 @@ const getAllScholarships = async (req, res) => {
       .select("*")
       .order("deadline", { ascending: true });
 
-    if (error) {
+    if (error && !isMissingTableError(error)) {
       return res.status(500).json({
         success: false,
         message: "Failed to fetch scholarships",
         error: error.message,
+      });
+    }
+
+    // Some deployments have the legacy table but no rows. In that case the
+    // verified PNU scholarship notices are still the best available source.
+    if (isMissingTableError(error) || !Array.isArray(data) || data.length === 0) {
+      const { data: notices, error: noticeError } = await supabase
+        .from("notice")
+        .select("notice_id,title,content,posted_date,source,source_url")
+        .order("posted_date", { ascending: false })
+        .limit(500);
+      if (noticeError) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch scholarship notices",
+          error: noticeError.message,
+        });
+      }
+      const language = req.language || "en";
+      return res.json({
+        success: true,
+        data: (notices || [])
+          .filter(isScholarshipNotice)
+          .map((row) => mapScholarshipNotice(row, language)),
+        metadata: { source: "notice", verifiedOnly: true },
       });
     }
 
@@ -626,55 +918,96 @@ const signupStudent = async (req, res) => {
       email,
     } = req.body;
 
-    if (!student_id || !name || !password) {
+    const emailToUse = normalizeEmail(email);
+    if (!emailToUse || !emailToUse.includes("@")) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: student_id, name, password",
+        message: "An email address is required to create an account.",
+        error: { status: 400, code: "EMAIL_REQUIRED" },
       });
     }
 
-    const { data: existingStudent } = await supabase
+    // Checked before the code is sent, so a personal address fails immediately
+    // rather than burning a send and leaving someone waiting on mail that could
+    // never let them in.
+    //
+    // Signup only — never on the login path. Accounts that predate this rule
+    // include one on gmail, and enforcing at login would lock that person out
+    // of an account they already have.
+    if (!isSchoolEmail(emailToUse)) {
+      return res.status(400).json({
+        success: false,
+        message: "Sign up with your PNU school email (for example, @pusan.ac.kr).",
+        error: { status: 400, code: "EMAIL_DOMAIN_NOT_ALLOWED" },
+      });
+    }
+
+    if (!password || String(password).length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const resolvedName = name
+      ? String(name).trim()
+      : displayNameFromEmail(emailToUse);
+
+    if (!resolvedName) {
+      return res.status(400).json({
+        success: false,
+        message: "Could not create an account from this email",
+      });
+    }
+
+    // Nothing is deleted here. This endpoint is public and unauthenticated, and
+    // it runs before any code is sent, so whoever typed the address has proved
+    // nothing about owning it. Clearing an existing account at this point let
+    // anyone destroy a stranger's profile — and, because every foreign key to
+    // student cascades, their checklist, records, timetable and posts with it —
+    // simply by typing their address into the signup form.
+    //
+    // A half-finished signup is still restartable: the cleanup moved to
+    // completeSignupStudent, which only runs once the OTP has proved ownership.
+    const { data: existingEmail } = await supabase
       .from("student")
-      .select("*")
-      .eq("student_id", String(student_id))
-      .single();
+      .select("student_id, nationality")
+      .ilike("email", escapeLikePattern(emailToUse))
+      .maybeSingle();
 
-    if (existingStudent) {
+    if (existingEmail && !isUnfinishedSignup(existingEmail)) {
       return res.status(400).json({
         success: false,
-        message: "Student ID already registered",
+        message: "Email already registered. Please log in instead.",
       });
     }
 
-    let major_id = 1;
-    if (major_name) {
-      const { data: majors } = await supabase.from("major").select("*");
-      const matchedMajor = majors?.find(
-        (m) => m.major_name.toLowerCase() === major_name.toLowerCase(),
-      );
-      if (matchedMajor) {
-        major_id = matchedMajor.major_id;
+    let resolvedStudentId;
+    try {
+      resolvedStudentId = student_id
+        ? String(student_id).trim()
+        : await reserveUnusedStudentId(emailToUse);
+    } catch (allocateError) {
+      return res.status(500).json({
+        success: false,
+        message: allocateError.message,
+      });
+    }
+
+    if (student_id) {
+      const { data: existingStudent } = await supabase
+        .from("student")
+        .select("student_id")
+        .eq("student_id", resolvedStudentId)
+        .maybeSingle();
+
+      if (existingStudent) {
+        return res.status(400).json({
+          success: false,
+          message: "Student ID already registered",
+        });
       }
     }
-
-    // Create the account in Supabase Auth. The student row stores a marker
-    // rather than a hash, so credentials live in exactly one place.
-    const emailToUse = email || `${student_id}@pusan.ac.kr`;
-    const { error: authError } = await supabaseAuth.auth.admin.createUser({
-      email: emailToUse,
-      password: password,
-      email_confirm: true,
-    });
-
-    if (authError) {
-      return res.status(400).json({
-        success: false,
-        message: "Failed to register user in Supabase Auth",
-        error: authError.message,
-      });
-    }
-
-    const hashedPassword = SUPABASE_AUTH_MARKER;
 
     let resolvedSignupLanguage = "en";
     if (language_pref) {
@@ -689,90 +1022,258 @@ const signupStudent = async (req, res) => {
       resolvedSignupLanguage = resolved;
     }
 
-    const insertPayload = {
-      student_id: String(student_id),
-      name,
-      nationality: nationality || "Unknown",
-      major_id,
-      student_type: student_type || "Current",
-      visa_status: visa_status || "None",
-      password: hashedPassword,
-      language_pref: resolvedSignupLanguage,
-      is_in_korea: is_in_korea !== undefined ? is_in_korea : true,
-      mbti: mbti || null,
-      d2_semester: d2_semester || null,
-      email: emailToUse,
-      phone: "010-0000-0000",
-      completed_courses: completed_courses || [],
-      intake_term: intake_term || "March",
-    };
-
-    let newStudent;
-    let insertError;
-
-    const firstTry = await supabase
-      .from("student")
-      .insert(insertPayload)
-      .select()
-      .single();
-
-    newStudent = firstTry.data;
-    insertError = firstTry.error;
-
-    if (insertError) {
-      const errMsg = insertError.message || "";
-      const isColumnErr =
-        errMsg.includes("is_in_korea") ||
-        errMsg.includes("mbti") ||
-        errMsg.includes("d2_semester") ||
-        errMsg.includes("completed_courses") ||
-        errMsg.includes("intake_term") ||
-        insertError.code === "42703"; // postgres undefined_column code
-
-      if (isColumnErr) {
-        console.warn("New onboarding columns are missing in database. Retrying signup without them...");
-        const fallbackPayload = {
-          student_id: String(student_id),
-          name,
-          nationality: nationality || "Unknown",
-          major_id,
-          student_type: student_type || "Current",
-          visa_status: visa_status || "None",
-          password: hashedPassword,
-          language_pref: resolvedSignupLanguage,
-          email: emailToUse,
-          phone: "010-0000-0000",
-        };
-
-        const retry = await supabase
-          .from("student")
-          .insert(fallbackPayload)
-          .select()
-          .single();
-
-        newStudent = retry.data;
-        insertError = retry.error;
+    let challenge;
+    try {
+      challenge = await createLoginChallenge({
+        studentId: resolvedStudentId,
+        email: emailToUse,
+        languagePref: resolvedSignupLanguage,
+        purpose: "signup",
+        password: String(password),
+      });
+    } catch (challengeError) {
+      if (challengeError.code === "OTP_DELIVERY_FAILED") {
+        console.error("[signup-otp] delivery failed:", challengeError.message);
+        return res.status(502).json({
+          success: false,
+          message: "We could not send your verification code. Please try again in a moment.",
+          error: { status: 502, code: "OTP_DELIVERY_FAILED" },
+        });
       }
+      throw challengeError;
     }
 
-    if (insertError) {
-      console.error("Signup insert error final:", insertError);
-      return res.status(500).json({
+    const payload = {
+      success: true,
+      requiresVerification: true,
+      challengeId: challenge.challengeId,
+      maskedEmail: challenge.maskedEmail,
+      message: "Verification code sent",
+    };
+
+    if (process.env.NODE_ENV === "test" || process.env.LOGIN_OTP_IN_RESPONSE === "1") {
+      payload.debugCode = challenge.debugCode;
+    }
+
+    return res.json(payload);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+const verifySignupStudent = async (req, res) => {
+  try {
+    const { challengeId, code } = req.body;
+
+    if (!challengeId || !code) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to register student",
-        error: insertError.message,
+        message: "Missing challengeId or code",
       });
     }
 
-    // Checklist definitions are shared (checklist_item catalog).
-    // Per-student status is created lazily in student_checklist_status
-    // when a year-1 / exchange student opens the checklist.
+    const result = consumeLoginChallenge({ challengeId, code });
+    if (!result.ok || result.purpose !== "signup") {
+      const status =
+        result.reason === "too_many_attempts"
+          ? 429
+          : result.reason === "invalid_code"
+            ? 401
+            : 400;
+      const message =
+        result.reason === "too_many_attempts"
+          ? "Too many verification attempts"
+          : result.reason === "invalid_code"
+            ? "Invalid verification code"
+            : "Verification challenge invalid or expired";
 
-    res.status(201).json({
-      success: true,
-      message: "Student registered successfully",
-      data: newStudent,
+      return res.status(status).json({
+        success: false,
+        message,
+      });
+    }
+
+    const signupToken = createPendingSignup({
+      email: result.email,
+      password: result.password,
+      studentId: result.studentId,
+      languagePref: result.languagePref,
     });
+
+    return res.json({
+      success: true,
+      requiresOnboarding: true,
+      signupToken,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unexpected server error",
+      error: err.message,
+    });
+  }
+};
+
+async function createConfirmedAuthUser(email, password) {
+  const { error } = await supabaseAuth.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (!error) return { ok: true };
+
+  const already = /already been registered|already registered|already exists|duplicate/i.test(
+    error.message || "",
+  );
+  if (!already) {
+    return {
+      ok: false,
+      message: error.message || "Failed to register user in Supabase Auth",
+    };
+  }
+
+  const removed = await deleteAuthUserByEmail(email);
+  if (!removed.ok) {
+    return {
+      ok: false,
+      message: "Email already registered. Please log in instead.",
+    };
+  }
+
+  const retry = await supabaseAuth.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+  if (retry.error) {
+    return {
+      ok: false,
+      message: retry.error.message || "Failed to register user in Supabase Auth",
+    };
+  }
+  return { ok: true };
+}
+
+const completeSignupStudent = async (req, res) => {
+  try {
+    const { signupToken, major, year, nationality, language_pref } = req.body;
+    if (!signupToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing signupToken",
+      });
+    }
+    if (!major || !year || !nationality) {
+      return res.status(400).json({
+        success: false,
+        message: "Major, year, and nationality are required",
+      });
+    }
+
+    const pending = consumePendingSignup(signupToken);
+    if (!pending) {
+      return res.status(400).json({
+        success: false,
+        message: "Signup session invalid or expired. Please start again.",
+      });
+    }
+
+    // The OTP has proved ownership by this point, so clearing an abandoned
+    // attempt at this address is safe — this is where /signup used to do it,
+    // before anyone had proved anything.
+    const { data: existingEmail } = await supabase
+      .from("student")
+      .select("student_id, nationality")
+      .ilike("email", escapeLikePattern(pending.email))
+      .maybeSingle();
+
+    if (existingEmail) {
+      if (!isUnfinishedSignup(existingEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already registered. Please log in instead.",
+        });
+      }
+      const { error: cleanupError } = await supabase
+        .from("student")
+        .delete()
+        .eq("student_id", existingEmail.student_id);
+      if (cleanupError) {
+        // Left unchecked, a failed delete fell through to an insert that could
+        // only collide, so the student saw a 500 with no way forward.
+        return res.status(500).json({
+          success: false,
+          message: "Could not clear the previous signup attempt. Please try again.",
+        });
+      }
+    }
+
+    const { data: matchedMajor } = await supabase
+      .from("major")
+      .select("major_id, major_name")
+      .ilike("major_name", String(major).trim())
+      .maybeSingle();
+    if (!matchedMajor) {
+      return res.status(400).json({
+        success: false,
+        message: "Unknown major",
+      });
+    }
+
+    const resolvedGrade = gradeFromYearChoice(year);
+    if (resolvedGrade === null) {
+      return res.status(400).json({
+        success: false,
+        message: "year must be 1, 2, 3, 4, or exchange",
+      });
+    }
+
+    let resolvedLanguage = pending.languagePref || "en";
+    if (language_pref) {
+      const resolved = resolveLanguagePref(language_pref);
+      if (!resolved) {
+        return res.status(400).json({
+          success: false,
+          message: `Unsupported language_pref. Use one of: ${SUPPORTED_LANGUAGE_PREFS.join(", ")}`,
+          error: { status: 400, code: "UNSUPPORTED_LANGUAGE" },
+        });
+      }
+      resolvedLanguage = resolved;
+    }
+
+    const createdAuth = await createConfirmedAuthUser(
+      pending.email,
+      pending.password,
+    );
+    if (!createdAuth.ok) {
+      return res.status(400).json({
+        success: false,
+        message: createdAuth.message,
+      });
+    }
+
+    const created = await insertStudentAfterSignup({
+      studentId: pending.studentId,
+      email: pending.email,
+      languagePref: resolvedLanguage,
+      nationality: String(nationality).trim(),
+      majorId: matchedMajor.major_id,
+      grade: resolvedGrade,
+      studentType: studentTypeFromGrade(resolvedGrade),
+    });
+    if (created.error || !created.data) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to register student after verification",
+        error: created.error?.message,
+      });
+    }
+
+    return res.json(buildAuthResponse(created.data));
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -845,6 +1346,63 @@ const getStudentProfile = async (req, res) => {
   }
 };
 
+/**
+ * Move a student's Supabase Auth login address to match their profile email.
+ *
+ * The app keeps two user stores: public.student holds the profile, auth.users
+ * holds the credential. Login and password reset both look up auth.users by the
+ * PROFILE email, so the moment the two disagree the account can neither sign in
+ * nor reset — silently, because the lookup simply finds nothing. One real
+ * account was locked out of both this way.
+ *
+ * @returns {Promise<{ok: true} | {ok: false, reason: string, message: string}>}
+ */
+async function syncAuthEmail({ currentEmail, nextEmail }) {
+  const from = normalizeEmail(currentEmail);
+  const to = normalizeEmail(nextEmail);
+  if (!to || from === to) return { ok: true };
+
+  const { data: list, error: listError } = await supabaseAuth.auth.admin.listUsers();
+  if (listError) {
+    return {
+      ok: false,
+      reason: "AUTH_LOOKUP_FAILED",
+      message: "Could not reach the account service. Your email was not changed.",
+    };
+  }
+
+  const users = list?.users || [];
+  if (users.some((user) => normalizeEmail(user.email) === to)) {
+    return {
+      ok: false,
+      reason: "EMAIL_TAKEN",
+      message: "That email is already used by another account.",
+    };
+  }
+
+  const authUser = users.find((user) => normalizeEmail(user.email) === from);
+  if (!authUser) {
+    // Nothing to move. Left alone deliberately rather than created here: a
+    // missing auth user means this profile predates the fix or was repaired by
+    // hand, and inventing a credential is how the drift started.
+    return { ok: true };
+  }
+
+  const { error: updateError } = await supabaseAuth.auth.admin.updateUserById(
+    authUser.id,
+    { email: to, email_confirm: true },
+  );
+  if (updateError) {
+    return {
+      ok: false,
+      reason: "AUTH_UPDATE_FAILED",
+      message: "Could not update your sign-in email. Nothing was changed.",
+    };
+  }
+
+  return { ok: true };
+}
+
 const updateStudentProfile = async (req, res) => {
   try {
     // PUT /profile uses JWT; PATCH /:student_id uses route param
@@ -914,7 +1472,32 @@ const updateStudentProfile = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (nationality !== undefined) updateData.nationality = nationality;
     if (major_id !== undefined) updateData.major_id = major_id;
-    if (email !== undefined) updateData.email = email;
+    if (email !== undefined) {
+      // Move the credential before the profile. If this fails the two stores
+      // stay consistent and the student keeps the login they had; writing the
+      // profile first is what allowed them to drift apart.
+      const { data: existing } = await supabase
+        .from("student")
+        .select("email")
+        .eq("student_id", String(student_id))
+        .maybeSingle();
+
+      const synced = await syncAuthEmail({
+        currentEmail: existing?.email,
+        nextEmail: email,
+      });
+      if (!synced.ok) {
+        return res.status(synced.reason === "EMAIL_TAKEN" ? 409 : 502).json({
+          success: false,
+          message: synced.message,
+          error: {
+            status: synced.reason === "EMAIL_TAKEN" ? 409 : 502,
+            code: synced.reason,
+          },
+        });
+      }
+      updateData.email = email;
+    }
     if (phone !== undefined) updateData.phone = phone;
     if (visa_status !== undefined) updateData.visa_status = visa_status;
     if (language_pref !== undefined) {
@@ -1053,39 +1636,83 @@ const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:5173";
 
 const forgotPassword = async (req, res) => {
   try {
-    const { student_id } = req.body;
-    if (!student_id) {
+    // Accepts the same three shapes as loginStudent. Students sign in with
+    // their school email now, so asking for a student ID here was the one
+    // screen still demanding the old identifier. Older clients that still send
+    // student_id keep working.
+    const { student_id, email: suppliedEmail, identifier } = req.body;
+    const supplied = String(identifier ?? suppliedEmail ?? student_id ?? "").trim();
+
+    if (!supplied) {
       return res.status(400).json({
         success: false,
-        message: "Missing student_id",
+        message: "Enter your school email or student ID",
       });
     }
 
-    const { data, error } = await supabase
-      .from("student")
-      .select("email")
-      .eq("student_id", String(student_id))
-      .single();
+    const isEmail = supplied.includes("@");
+    const lookup = supabase.from("student").select("student_id, email");
+    const { data, error } = isEmail
+      ? await lookup.ilike("email", supplied).maybeSingle()
+      : await lookup.eq("student_id", supplied).maybeSingle();
 
     if (error || !data) {
       return res.status(404).json({
         success: false,
-        message: "Student ID not registered",
+        message: isEmail ? "Email not registered" : "Student ID not registered",
       });
     }
 
-    const email = data.email || `${student_id}@pusan.ac.kr`;
+    // No fallback to a derived address. Sending a reset link to an inbox the
+    // student never confirmed is worse than telling them we cannot.
+    const email = String(data.email || "").trim();
+    if (!email) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This account has no email address on file, so a reset link cannot be sent. Please contact support.",
+        error: { status: 409, code: "NO_EMAIL_ON_FILE" },
+      });
+    }
 
-    const { error: resetError } = await supabaseAuth.auth.resetPasswordForEmail(
-      email,
-      { redirectTo: `${APP_BASE_URL}/update-password` },
-    );
+    // Supabase still mints the recovery token and owns the reset session — this
+    // only takes over delivery. generateLink returns the link WITHOUT emailing
+    // it, so nothing about the security model changes; the app simply stops
+    // depending on Supabase's built-in mailer, which is rate limited to a
+    // handful of messages an hour and is not intended for production. One
+    // provider now sends every user-facing email.
+    const { data: linkData, error: linkError } =
+      await supabaseAuth.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo: `${APP_BASE_URL}/update-password` },
+      });
 
-    if (resetError) {
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error(
+        "[password-reset] could not generate recovery link:",
+        linkError?.message || "no action_link returned",
+      );
       return res.status(500).json({
         success: false,
-        message: "Failed to send recovery email",
-        error: resetError.message,
+        message: "We could not start the password reset. Please try again.",
+        error: { status: 500, code: "RESET_LINK_FAILED" },
+      });
+    }
+
+    try {
+      await sendPasswordResetEmail({
+        to: email,
+        actionLink: linkData.properties.action_link,
+      });
+    } catch (deliveryError) {
+      // The link exists but never reached the student, so say so rather than
+      // reporting success and leaving them waiting for mail that is not coming.
+      console.error("[password-reset] delivery failed:", deliveryError.message);
+      return res.status(502).json({
+        success: false,
+        message: "We could not send the reset email. Please try again in a moment.",
+        error: { status: 502, code: "RESET_EMAIL_DELIVERY_FAILED" },
       });
     }
 
@@ -1436,10 +2063,10 @@ const getAcademicRecords = async (req, res) => {
 
     const summary = (rows || []).find((row) => row.record_type === "summary");
     if (!summary) {
-      return res.status(404).json({
-        success: false,
-        message: "Academic records not found for this student",
-      });
+      // A student with no transcript yet is an ordinary empty state, not an
+      // error. The 404 this replaced made the client raise a red error toast
+      // and print raw English on a screen that has a translated message ready.
+      return res.json({ success: true, data: null });
     }
 
     const semesters = (rows || []).filter((row) => row.record_type === "semester");
@@ -1859,17 +2486,26 @@ const getNotifications = async (req, res) => {
 
 const getCourses = async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("course")
-      .select("*")
-      .order("course_name", { ascending: true });
-    if (error)
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch courses",
-        error: error.message,
-      });
-    res.json({ success: true, data });
+    const rows = [];
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from("course")
+        .select("*")
+        .order("course_id", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch courses",
+          error: error.message,
+        });
+      }
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
+    rows.sort((a, b) => String(a.course_name).localeCompare(String(b.course_name)));
+    res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1911,15 +2547,87 @@ const getEnrollments = async (req, res) => {
         error: error.message,
       });
 
-    // Flat map course values
+    const courseNames = [...new Set((data || []).map((item) => item.course?.course_name).filter(Boolean))];
+    let duplicateCourses = [];
+    if (courseNames.length > 0) {
+      try {
+        const duplicateResult = await supabase
+          .from("course")
+          .select("course_id,course_name,course_name_en,official_course_number,major_id")
+          .in("course_name", courseNames);
+        if (!duplicateResult.error) duplicateCourses = duplicateResult.data || [];
+      } catch (_error) {
+        duplicateCourses = [];
+      }
+    }
+    const officialByName = new Map();
+    for (const candidate of duplicateCourses) {
+      if (!candidate.official_course_number) continue;
+      if (!officialByName.has(candidate.course_name)) {
+        officialByName.set(candidate.course_name, candidate);
+      }
+    }
+    const officialCourseIds = [...officialByName.values()].map((row) => row.course_id);
+    let offeringRows = [];
+    if (officialCourseIds.length > 0) {
+      try {
+        const offeringResult = await supabase
+          .from("course_offering")
+          .select("course_id,official_course_number,academic_year,semester,professor,schedule,classroom")
+          .in("course_id", officialCourseIds)
+          .order("academic_year", { ascending: false });
+        if (!offeringResult.error) offeringRows = offeringResult.data || [];
+      } catch (_error) {
+        offeringRows = [];
+      }
+    }
+    const offeringsByCourseId = new Map();
+    for (const offering of offeringRows) {
+      const key = String(offering.course_id);
+      if (!offeringsByCourseId.has(key)) offeringsByCourseId.set(key, []);
+      offeringsByCourseId.get(key).push(offering);
+    }
+
+    // Flat map course values and enrich legacy rows only with verified matches.
     const list = (data || []).map((item) => {
       const { course, ...rest } = item;
+      const officialMatch = officialByName.get(course?.course_name);
+      const termMatch = String(item.semester || "").match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/i);
+      const termSemester = termMatch
+        ? ({ spring: "1", summer: "SUMMER", fall: "2", winter: "WINTER" })[termMatch[2].toLowerCase()]
+        : null;
+      const offerings = offeringsByCourseId.get(String(officialMatch?.course_id)) || [];
+      const offering = offerings.find((row) =>
+        Number(row.academic_year) === Number(termMatch?.[1])
+        && String(row.semester).toUpperCase() === String(termSemester).toUpperCase(),
+      ) || offerings[0] || null;
+      // Same guard as mapCourseRow in ai/supabaseDataRepository.js: only treat a
+      // trailing parenthetical as the Korean name when it contains Hangul, or
+      // 재무회계(I) yields course_name_ko "I".
+      const bilingualMatch = String(course?.course_name || "").match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+      const bilingual =
+        bilingualMatch && /[가-힣]/.test(bilingualMatch[2]) ? bilingualMatch : null;
       return {
         ...rest,
         course_name: course?.course_name ?? "Unknown Course",
+        course_name_en: course?.course_name_en ?? bilingual?.[1]?.trim() ?? null,
+        course_name_ko: bilingual?.[2]?.trim() ?? null,
+        official_course_number:
+          course?.official_course_number
+          ?? officialMatch?.official_course_number
+          ?? offering?.official_course_number
+          ?? null,
+        catalog_course_id: officialMatch?.course_id ?? course?.course_id ?? item.course_id,
         credit: course?.credit ?? 0,
         category: course?.category ?? "GEN_ED",
-        classroom: course?.classroom ?? "Main Campus",
+        professor: offering?.professor ?? null,
+        schedule: offering?.schedule ?? null,
+        classroom: offering?.classroom ?? course?.classroom ?? null,
+        day_of_week: course?.day_of_week ?? null,
+        start_time: course?.start_time ?? null,
+        end_time: course?.end_time ?? null,
+        final_grade: item.final_grade ?? null,
+        credits_earned: item.credits_earned == null ? null : Number(item.credits_earned),
       };
     });
 
@@ -1935,9 +2643,22 @@ const getEnrollments = async (req, res) => {
 
 const createEnrollment = async (req, res) => {
   try {
-    // Fallbacks for token and camelCase keys
-    const student_id = req.body.student_id || req.user?.student_id;
+    // Enrollment ownership always comes from the authenticated token.
+    const student_id = req.user?.student_id;
     const course_id = req.body.course_id || req.body.courseId;
+    const requestedStatus = String(req.body.status || "Enrolled");
+    const status = requestedStatus.toLowerCase() === "completed" ? "Completed" : "Enrolled";
+    const now = new Date();
+    const currentSemester = `${now.getFullYear()}-${now.getMonth() + 1 >= 7 ? "Fall" : "Spring"}`;
+    const semester = String(req.body.semester || currentSemester);
+    const finalGradeValue = req.body.final_grade ?? req.body.finalGrade;
+    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
+    const finalGrade = finalGradeValue == null || String(finalGradeValue).trim() === ""
+      ? null
+      : String(finalGradeValue).trim().toUpperCase();
+    const creditsEarned = creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
+      ? null
+      : Number(creditsEarnedValue);
 
     if (!student_id || !course_id) {
       return res
@@ -1949,12 +2670,40 @@ const createEnrollment = async (req, res) => {
         });
     }
 
+    if (!/^\d{4}-(Spring|Summer|Fall|Winter)$/.test(semester)) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester must use YYYY-Spring, YYYY-Summer, YYYY-Fall, or YYYY-Winter.",
+      });
+    }
+    if (status === "Completed") {
+      const [, yearText, termText] = semester.match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/);
+      const termOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4 };
+      const requestedRank = Number(yearText) * 10 + termOrder[termText];
+      const now = new Date();
+      const currentTerm = now.getMonth() + 1 >= 7 ? 3 : 1;
+      const currentRank = now.getFullYear() * 10 + currentTerm;
+      if (requestedRank >= currentRank) {
+        return res.status(400).json({
+          success: false,
+          message: "A past course must be from an earlier academic term.",
+        });
+      }
+      if (finalGrade && !/^(A\+|A0|B\+|B0|C\+|C0|D\+|D0|F|P|NP|S|U)$/.test(finalGrade)) {
+        return res.status(400).json({ success: false, message: "Unsupported final grade." });
+      }
+      if (creditsEarned !== null && (!Number.isFinite(creditsEarned) || creditsEarned < 0)) {
+        return res.status(400).json({ success: false, message: "Credits earned must be zero or greater." });
+      }
+    }
+
     // Check if already enrolled
     const { data: existing } = await supabase
       .from("enrollment")
       .select("*")
       .eq("student_id", student_id)
-      .eq("course_id", Number(course_id));
+      .eq("course_id", Number(course_id))
+      .eq("semester", semester);
 
     if (existing && existing.length > 0) {
       return res
@@ -1975,49 +2724,60 @@ const createEnrollment = async (req, res) => {
         message: "Course not found",
       });
     }
-
-    // Fetch existing enrollments to check overlaps
-    const { data: currentEnrollments, error: enrollError } = await supabase
-      .from("enrollment")
-      .select(`
-        *,
-        course:course_id (
-          *
-        )
-      `)
-      .eq("student_id", student_id);
-
-    if (enrollError) {
-      return res.status(500).json({
+    if (creditsEarned !== null && creditsEarned > Number(targetCourse.credit || 0)) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to verify schedule conflicts",
-        error: enrollError.message,
+        message: "Credits earned cannot exceed the course credits.",
       });
     }
 
-    // Verify schedule overlaps
-    if (targetCourse.day_of_week && targetCourse.start_time && targetCourse.end_time) {
-      for (const en of (currentEnrollments || [])) {
-        const c = en.course;
-        if (c && c.day_of_week === targetCourse.day_of_week) {
-          if (targetCourse.start_time < c.end_time && c.start_time < targetCourse.end_time) {
-            return res.status(400).json({
-              success: false,
-              message: `Schedule Conflict: Overlaps with ${c.course_name || "Enrolled Course"} (${c.day_of_week} ${c.start_time}-${c.end_time})`,
-            });
+    if (status === "Enrolled") {
+      // Official/current enrollment keeps the legacy schedule-conflict guard.
+      const { data: currentEnrollments, error: enrollError } = await supabase
+        .from("enrollment")
+        .select(`
+          *,
+          course:course_id (
+            *
+          )
+        `)
+        .eq("student_id", student_id);
+
+      if (enrollError) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to verify schedule conflicts",
+          error: enrollError.message,
+        });
+      }
+
+      if (targetCourse.day_of_week && targetCourse.start_time && targetCourse.end_time) {
+        for (const en of (currentEnrollments || [])) {
+          const c = en.course;
+          if (c && c.day_of_week === targetCourse.day_of_week) {
+            if (targetCourse.start_time < c.end_time && c.start_time < targetCourse.end_time) {
+              return res.status(400).json({
+                success: false,
+                message: `Schedule Conflict: Overlaps with ${c.course_name || "Enrolled Course"} (${c.day_of_week} ${c.start_time}-${c.end_time})`,
+              });
+            }
           }
         }
       }
     }
 
+    const enrollmentInsert = {
+      student_id: Number(student_id),
+      course_id: Number(course_id),
+      semester,
+      status,
+    };
+    if (status === "Completed" && finalGrade !== null) enrollmentInsert.final_grade = finalGrade;
+    if (status === "Completed" && creditsEarned !== null) enrollmentInsert.credits_earned = creditsEarned;
+
     const { data, error } = await supabase
       .from("enrollment")
-      .insert({
-        student_id: String(student_id),
-        course_id: Number(course_id),
-        semester: "2026-Fall",
-        status: "Enrolled",
-      })
+      .insert(enrollmentInsert)
       .select()
       .single();
 
@@ -2038,13 +2798,99 @@ const createEnrollment = async (req, res) => {
   }
 };
 
+const updateEnrollment = async (req, res) => {
+  try {
+    const enrollmentId = Number(req.params.enrollment_id);
+    const studentId = Number(req.user?.student_id);
+    if (!Number.isInteger(enrollmentId) || !Number.isInteger(studentId)) {
+      return res.status(400).json({ success: false, message: "Invalid enrollment." });
+    }
+    const { data: existing, error: lookupError } = await supabase
+      .from("enrollment")
+      .select("enrollment_id,student_id,course_id,status,semester")
+      .eq("enrollment_id", enrollmentId)
+      .maybeSingle();
+    if (lookupError) return res.status(500).json({ success: false, message: "Failed to find course record" });
+    if (!existing) return res.status(404).json({ success: false, message: "Course record not found" });
+    if (Number(existing.student_id) !== studentId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const semester = String(req.body.semester || existing.semester);
+    if (!/^\d{4}-(Spring|Summer|Fall|Winter)$/.test(semester)) {
+      return res.status(400).json({ success: false, message: "Invalid semester." });
+    }
+    const [, yearText, termText] = semester.match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/);
+    const termOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4 };
+    const requestedRank = Number(yearText) * 10 + termOrder[termText];
+    const now = new Date();
+    const currentRank = now.getFullYear() * 10 + (now.getMonth() + 1 >= 7 ? 3 : 1);
+    if (requestedRank >= currentRank) {
+      return res.status(400).json({ success: false, message: "A past course must be from an earlier academic term." });
+    }
+
+    const finalGradeValue = req.body.final_grade ?? req.body.finalGrade;
+    const finalGrade = finalGradeValue == null || String(finalGradeValue).trim() === ""
+      ? null
+      : String(finalGradeValue).trim().toUpperCase();
+    if (finalGrade && !/^(A\+|A0|B\+|B0|C\+|C0|D\+|D0|F|P|NP|S|U)$/.test(finalGrade)) {
+      return res.status(400).json({ success: false, message: "Unsupported final grade." });
+    }
+    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
+    const creditsEarned = creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
+      ? null
+      : Number(creditsEarnedValue);
+    const { data: course, error: courseError } = await supabase
+      .from("course")
+      .select("credit")
+      .eq("course_id", Number(existing.course_id))
+      .single();
+    if (courseError || !course) return res.status(404).json({ success: false, message: "Course not found" });
+    if (creditsEarned !== null && (!Number.isFinite(creditsEarned)
+      || creditsEarned < 0 || creditsEarned > Number(course.credit || 0))) {
+      return res.status(400).json({ success: false, message: "Invalid credits earned." });
+    }
+
+    const { data, error } = await supabase
+      .from("enrollment")
+      .update({
+        semester,
+        status: "Completed",
+        final_grade: finalGrade,
+        credits_earned: creditsEarned,
+      })
+      .eq("enrollment_id", enrollmentId)
+      .eq("student_id", studentId)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ success: false, message: "Failed to update course history", error: error.message });
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Unexpected server error", error: err.message });
+  }
+};
+
 const deleteEnrollment = async (req, res) => {
   try {
     const { enrollment_id } = req.params;
-    const { error } = await supabase
+    const { data: enrollment, error: lookupError } = await supabase
       .from("enrollment")
-      .delete()
-      .eq("enrollment_id", Number(enrollment_id));
+      .select("enrollment_id,student_id")
+      .eq("enrollment_id", Number(enrollment_id))
+      .maybeSingle();
+    if (lookupError) {
+      return res.status(500).json({ success: false, message: "Failed to find course record" });
+    }
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Course record not found" });
+    }
+    if (String(enrollment.student_id) !== String(req.user?.student_id)) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+    const { error } = await supabase.rpc("drop_student_course_plan", {
+      p_student_id: Number(req.user.student_id),
+      p_enrollment_id: Number(enrollment_id),
+    });
     if (error)
       return res.status(500).json({
         success: false,
@@ -2194,7 +3040,9 @@ const updateLanguagePreference = async (req, res) => {
         error: error.message,
       });
 
-    res.json({ success: true, data });
+    // A bare .select() expands to "*", so this row still holds the password.
+    const { password, ...safeStudent } = data ?? {};
+    res.json({ success: true, data: safeStudent });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -2495,12 +3343,69 @@ const reportPost = async (req, res) => {
   }
 };
 
+const FEEDBACK_KINDS = new Set(["feedback", "app-support"]);
+const MAX_FEEDBACK_LENGTH = 4000;
+
+/**
+ * Records in-app feedback.
+ *
+ * Both forms that reach here previously flipped a local `sent` flag and threw
+ * the text away. This endpoint either stores the report or fails loudly — it
+ * must never answer 200 for a message it did not save, which is the whole
+ * point of the change.
+ */
+const submitFeedback = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const message = String(req.body?.message ?? "").trim();
+
+    if (!message) {
+      return res.status(400).json({ success: false, message: "Message is required" });
+    }
+    if (message.length > MAX_FEEDBACK_LENGTH) {
+      return res.status(400).json({
+        success: false,
+        message: `Message must be ${MAX_FEEDBACK_LENGTH} characters or fewer`,
+      });
+    }
+
+    const kind = FEEDBACK_KINDS.has(req.body?.kind) ? req.body.kind : "feedback";
+    const languagePref = String(req.body?.language_pref ?? "").slice(0, 5) || null;
+
+    const { error } = await supabase.from("app_feedback").insert({
+      student_id: studentId ?? null,
+      kind,
+      message,
+      language_pref: languagePref,
+    });
+
+    if (error) {
+      // Most likely cause is that supabase/feedback.sql has not been applied.
+      // Say so in the log; the student just sees that it did not send.
+      console.error("Failed to store feedback:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Could not save your message. Please try again later.",
+      });
+    }
+
+    res.json({ success: true, data: { received: true } });
+  } catch (err) {
+    console.error("Failed to store feedback:", err.message);
+    res.status(500).json({ success: false, message: "Unexpected server error" });
+  }
+};
+
 const getAllStudents = async (req, res) => {
   try {
     const { data: students, error } = await supabase
       .from("student")
       .select("*, major:major_id(major_name)")
       .order("name", { ascending: true });
+
+    // The select is "*" so it carries the password column. Strip it per row —
+    // `major` is deliberately kept, since the join above exists only to add it.
+    const safeStudents = (students ?? []).map(({ password, ...rest }) => rest);
 
     if (error) {
       return res.status(500).json({
@@ -2512,7 +3417,7 @@ const getAllStudents = async (req, res) => {
 
     res.json({
       success: true,
-      data: students,
+      data: safeStudents,
     });
   } catch (err) {
     res.status(500).json({
@@ -2550,10 +3455,12 @@ const requestStudentDeletion = async (req, res) => {
       });
     }
 
+    // Same bare .select() as above — never echo the password back.
+    const { password, ...safeStudent } = data ?? {};
     res.json({
       success: true,
       message: "Account deletion requested successfully. The administrator will review and delete your account shortly.",
-      data,
+      data: safeStudent,
     });
   } catch (err) {
     res.status(500).json({
@@ -2836,18 +3743,21 @@ const deleteCommunityPostHandler = async (req, res) => {
 module.exports = {
   getAllMajors,
   getAllStudents,
+  submitFeedback,
   requestStudentDeletion,
   hardDeleteStudent,
   testConnection,
   loginStudent,
   verifyLoginStudent,
+  signupStudent,
+  verifySignupStudent,
+  completeSignupStudent,
   getGraduationProgress,
   updateGraduationRequirement,
   getStudentChecklist,
   updateChecklistItem,
   getAllScholarships,
   applyForScholarship,
-  signupStudent,
   getStudentProfile,
   updateStudentProfile,
   forgotPassword,
@@ -2868,6 +3778,7 @@ module.exports = {
   getCourses,
   getEnrollments,
   createEnrollment,
+  updateEnrollment,
   deleteEnrollment,
   getPostComments,
   createComment,

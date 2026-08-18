@@ -35,9 +35,27 @@ export interface LoginRequest {
   password: string
 }
 
+export interface SignupRequest {
+  email: string
+  password: string
+  languagePref?: string
+}
+
 export interface LoginChallengeResponse {
   challengeId: string
   maskedEmail: string
+}
+
+export interface SignupVerifyResponse {
+  signupToken: string
+}
+
+export interface CompleteSignupRequest {
+  signupToken: string
+  major: string
+  year: 1 | 2 | 3 | 4 | 'exchange' | string
+  nationality: string
+  languagePref?: string
 }
 
 export interface VerifyLoginRequest {
@@ -121,6 +139,7 @@ export interface ScholarshipItem {
   category?: ScholarshipCategory | null
   tag?: string | null
   deadlineAt?: string | null
+  sourceUrl?: string | null
 }
 
 export interface EmergencyQuickAccess {
@@ -321,6 +340,10 @@ export interface Course {
   credits: number
   department: string
   tags: string[]
+  majorId?: string | null
+  majorName?: string | null
+  collegeId?: number | null
+  recommendedYear?: number | null
 }
 
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
@@ -350,6 +373,103 @@ export interface CourseOfferingInformation {
 export interface RecommendedCourse extends Course, CourseOfferingInformation {
   score: number
   matchHint?: string
+  isOfferedThisTerm: boolean | null
+}
+
+export interface CourseCurriculumInformation {
+  curriculumYear: number
+  sourceCourseCode: string | null
+  category: CourseType | null
+  recommendedYear: number | null
+  gradeSemester: string | null
+  sourceDepartment: string | null
+}
+
+export interface CourseOfferingOption {
+  courseOfferingId: number
+  officialCourseNumber: string | null
+  academicYear: number
+  semester: string
+  section: string | null
+  professor: string | null
+  schedule: string | null
+  classroom: string | null
+  teachingLanguage: TeachingLanguage | null
+  remoteCourseStatus: RemoteCourseStatus | null
+  enrollmentLimit: number | null
+  teamTeachingStatus: 'TEAM_TAUGHT' | 'NOT_TEAM_TAUGHT' | null
+  generalEducationArea: string | null
+  remarks: string | null
+  restrictions: CourseOfferingRestriction[]
+  slots: TimetableSlotInput[]
+  presentationRequirement: CourseMetadataRequirement | null
+  groupProjectRequirement: CourseMetadataRequirement | null
+  assignmentRequirement: CourseMetadataRequirement | null
+  examInformation: string | null
+}
+
+export interface CourseOfferingRestriction {
+  id: number
+  kind: 'RESTRICTION' | 'EXCEPTION'
+  ruleType: string | null
+  permission: 'ALLOWED' | 'PROHIBITED' | null
+  departmentCondition: string | null
+  yearLevelCondition: string | null
+  domesticForeignCondition: string | null
+  nationalityCondition: string | null
+  curriculumYearCondition: string | null
+  completedSemestersCondition: string | null
+  academicStatusCondition: string | null
+  degreeProgramCondition: string | null
+  reason: string | null
+  exceptionText: string | null
+}
+
+export interface CoursePrerequisite {
+  id: number
+  courseId: number | null
+  officialCourseNumber: string | null
+  nameKo: string | null
+  nameEn: string | null
+  requirementText: string | null
+  sourceUrl: string | null
+  sourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS'
+}
+
+export interface CourseCatalogItem extends RecommendedCourse {
+  curriculumYears: number[]
+  curriculum: CourseCurriculumInformation | null
+  offerings: CourseOfferingOption[]
+  descriptionKo: string | null
+  descriptionEn: string | null
+  descriptionSourceUrl: string | null
+  syllabusUrl: string | null
+  detailSourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS' | null
+  prerequisites: CoursePrerequisite[]
+}
+
+export interface CourseCatalogPage {
+  items: CourseCatalogItem[]
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasMore: boolean
+}
+
+export interface CourseCatalogParams {
+  page?: number
+  pageSize?: number
+  search?: string
+  myMajor?: boolean
+  majorId?: number
+  category?: CourseType | 'ALL'
+  recommendedYear?: number
+  curriculumYear?: number
+  academicYear?: number
+  semester?: '1' | '2' | 'SUMMER' | 'WINTER'
+  offeredOnly?: boolean
+  courseId?: string | number
 }
 
 export interface RecommendedMajor {
@@ -391,6 +511,60 @@ export interface Enrollment {
   credit?: number;
   category?: string;
   classroom?: string;
+  course_name_en?: string | null;
+  course_name_ko?: string | null;
+  official_course_number?: string | null;
+  /** Canonical catalog row used for details when a legacy enrollment was matched by exact name. */
+  catalog_course_id?: number | null;
+  professor?: string | null;
+  schedule?: string | null;
+  day_of_week?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  final_grade?: string | null;
+  credits_earned?: number | null;
+}
+
+export interface TimetableSlotInput {
+  day: number
+  start: string
+  end: string
+  classroom?: string | null
+}
+
+export interface TimetableSlot extends TimetableSlotInput {
+  slotId: number
+}
+
+export interface TimetableEntry {
+  timetableEntryId: number
+  enrollment_id: number
+  student_id: string
+  course_id: number
+  courseOfferingId: number | null
+  academicYear: number
+  semester: string
+  status: 'Planned'
+  source: 'OFFERING' | 'MANUAL'
+  color: string | null
+  course_name: string
+  courseNameEn: string | null
+  officialCourseNumber: string | null
+  credit: number
+  category: string
+  professor: string | null
+  section: string | null
+  classroom?: string | null
+  slots: TimetableSlot[]
+}
+
+export interface CreateTimetableEntryInput {
+  courseId: number
+  courseOfferingId?: number | null
+  academicYear: number
+  semester: '1' | '2' | 'SUMMER' | 'WINTER'
+  color?: string | null
+  slots?: TimetableSlotInput[]
 }
 
 export interface GradeSummary {
@@ -490,10 +664,54 @@ export interface ChatMessageResponse {
   intentId?: string
 }
 
+/**
+ * One completed exchange. The backend expects {question, answer} pairs rather
+ * than the OpenAI-style {role, content} — see generateOpenRouterChatStream,
+ * which reads turn.question / turn.answer. Sending the wrong shape yields
+ * undefined content and the model silently loses the thread.
+ */
+export interface ChatHistoryTurn {
+  question: string
+  answer: string
+}
+
+export interface ChatStreamRequest {
+  message: string
+  history: ChatHistoryTurn[]
+}
+
+/**
+ * Whether an answer actually rested on PNU documents.
+ *
+ * The backend has always computed this and sent it in the stream's final
+ * metadata frame; nothing read it. That mattered because the assistant answers
+ * visa and work-permit questions, and when retrieval returns nothing it still
+ * answers — fluently, from a general-purpose model, in a bubble that looks
+ * exactly like a sourced one.
+ */
+export interface ChatGrounding {
+  /** True when knowledge-base context was retrieved and fed to the model. */
+  grounded: boolean
+  /** 'used' | 'not-used' | 'failed' — 'failed' means retrieval itself errored. */
+  status: string
+  /** Titles of the documents the answer drew on. Empty when ungrounded. */
+  sources: string[]
+}
+
+export interface ChatStreamHandlers {
+  onText: (chunk: string) => void
+  /** Follow-up prompts grounded in the knowledge-base documents that matched. */
+  onFollowUps?: (followUps: string[]) => void
+  onGrounding?: (grounding: ChatGrounding) => void
+  signal?: AbortSignal
+}
+
 export interface ApiError {
   message: string
   status?: number
 }
+
+export type FeedbackKind = 'feedback' | 'app-support'
 
 export type CareerJobType = 'internship' | 'part-time' | 'full-time' | 'volunteer'
 
@@ -546,12 +764,30 @@ export interface GetCareerOpportunitiesParams {
 export interface HeyPnuApi {
   login(data: LoginRequest): Promise<LoginChallengeResponse>
   verifyLogin(data: VerifyLoginRequest): Promise<AuthResponse>
+  signup(data: SignupRequest): Promise<LoginChallengeResponse>
+  verifySignup(data: VerifyLoginRequest): Promise<SignupVerifyResponse>
+  completeSignup(data: CompleteSignupRequest): Promise<AuthResponse>
   logout(): Promise<void>
   getMe(): Promise<User>
   updateProfile(data: UpdateProfileRequest): Promise<User>
-  forgotPassword(studentId: string): Promise<{ maskedEmail: string; code: string }>
+  /** School email (preferred) or student ID — the backend detects which by '@'. */
+  forgotPassword(identifier: string): Promise<{ maskedEmail: string; code: string }>
   resetPassword(studentId: string, code: string, newPassword: string): Promise<void>
-  getRecommendedCourses(type?: CourseType | 'ALL'): Promise<RecommendedCourse[]>
+  getRecommendedCourses(
+    type?: CourseType | 'ALL',
+    term?: {
+      academicYear: number
+      semester: '1' | '2' | 'SUMMER' | 'WINTER'
+      offeredOnly?: boolean
+    },
+  ): Promise<RecommendedCourse[]>
+  getCourseCatalog(params?: CourseCatalogParams): Promise<CourseCatalogPage>
+  getTimetable(params?: {
+    academicYear?: number
+    semester?: '1' | '2' | 'SUMMER' | 'WINTER'
+  }): Promise<TimetableEntry[]>
+  createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry>
+  deleteTimetableEntry(timetableEntryId: number): Promise<void>
   getGraduationProgress(): Promise<GraduationProgress>
   updateGraduationRequirement(
     requirementId: string,
@@ -562,7 +798,16 @@ export interface HeyPnuApi {
   getChecklist(): Promise<ChecklistPayload>
   updateChecklistItem(itemId: string, completed: boolean): Promise<ChecklistItem>
   sendChatMessage(data: ChatMessageRequest): Promise<ChatMessageResponse>
+  streamChatMessage(
+    data: ChatStreamRequest,
+    handlers: ChatStreamHandlers,
+  ): Promise<void>
   getChatSuggestions(): Promise<string[]>
+  /**
+   * Records in-app feedback. Rejects rather than resolving when the message
+   * was not stored — the forms used to claim success unconditionally.
+   */
+  submitFeedback(data: { message: string; kind: FeedbackKind }): Promise<void>
   getCareerOpportunities(params?: GetCareerOpportunitiesParams): Promise<CareerOpportunitiesResponse>
   /**
    * AI hook-point: personalized internship/job recommendations.
@@ -582,13 +827,17 @@ export interface HeyPnuApi {
   likeCommunityPost(postId: string): Promise<{ id: string; likes: number }>
   deleteCommunityPost(postId: string): Promise<{ id: string }>
   getCampusFacilities(params?: GetCampusFacilitiesParams): Promise<CampusFacilities>
-  getCampusFacilities(): Promise<CampusFacility[]>
   getMajors(): Promise<{ data: MajorData[] }>
   getMapFacilities(): Promise<MapFacility[]>
   getMapFacility(id: string): Promise<MapFacility>
-  getAcademicRecords(): Promise<AcademicRecords>
+  getAcademicRecords(): Promise<AcademicRecords | null>
   getAiDashboard(): Promise<AiDashboard>
-  getScholarships(): Promise<ScholarshipItem[]>
+  /**
+   * `suppressToast` is for screens that already degrade on failure. The toast
+   * is raised inside apiFetch, before the caller's `.catch()` runs, so a
+   * caller that handles the error still gets a banner unless it opts out here.
+   */
+  getScholarships(options?: { suppressToast?: boolean }): Promise<ScholarshipItem[]>
   getPrograms(): Promise<ProgramItem[]>
   getProgramDetail(programId: string): Promise<ProgramItem | null>
   getMemory(): Promise<string>
@@ -596,7 +845,16 @@ export interface HeyPnuApi {
   recommendMajor(data: MajorRecommendationRequest): Promise<MajorRecommendationResponse>
   getCourses(campus?: string): Promise<Course[]>
   getEnrollments(studentId: string): Promise<Enrollment[]>
-  createEnrollment(studentId: string, courseId: number): Promise<Enrollment>
+  createEnrollment(studentId: string, courseId: number, semester?: string): Promise<Enrollment>
+  addPastCourse(
+    courseId: number,
+    semester: string,
+    details?: { finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment>
+  updateEnrollment(
+    enrollmentId: number,
+    details: { semester: string; finalGrade?: string | null; creditsEarned?: number | null },
+  ): Promise<Enrollment>
   deleteEnrollment(enrollmentId: number): Promise<void>
   requestAccountDeletion(studentId: string): Promise<void>
   updateLanguagePreference(studentId: string, languagePref: string): Promise<void>

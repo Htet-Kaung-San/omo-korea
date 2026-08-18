@@ -3,6 +3,7 @@ import type {
   ChecklistItem,
   ChecklistPayload,
   ChecklistVariant,
+  CourseCatalogItem,
   CourseType,
   CourseMetadataRequirement,
   GraduationProgress,
@@ -114,6 +115,20 @@ interface BackendCourse {
   groupProjectRequirement?: CourseMetadataRequirement | null
   assignmentRequirement?: CourseMetadataRequirement | null
   examInformation?: string | null
+  majorId?: string | number | null
+  majorName?: string | null
+  collegeId?: number | null
+  year?: number | null
+  curriculumYears?: number[]
+  curriculum?: CourseCatalogItem['curriculum']
+  offerings?: CourseCatalogItem['offerings']
+  descriptionKo?: string | null
+  descriptionEn?: string | null
+  descriptionSourceUrl?: string | null
+  syllabusUrl?: string | null
+  detailSourceKind?: CourseCatalogItem['detailSourceKind']
+  prerequisites?: CourseCatalogItem['prerequisites']
+  isOfferedThisTerm?: boolean | null
 }
 
 function getAdmissionYear(studentId: string): number | null {
@@ -319,9 +334,19 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     type: course.type,
     credits: course.credits,
     department: course.department ?? '',
+    majorId: course.majorId == null ? null : String(course.majorId),
+    majorName: course.majorName ?? null,
+    collegeId: course.collegeId ?? null,
+    recommendedYear: course.year ?? null,
     tags: course.tags ?? [],
     score: course.score,
     matchHint: course.matchHint,
+    isOfferedThisTerm:
+      course.isOfferedThisTerm === true
+        ? true
+        : course.isOfferedThisTerm === false
+          ? false
+          : null,
     officialCourseNumber: course.officialCourseNumber ?? null,
     academicYear: course.academicYear ?? null,
     semester: course.semester ?? null,
@@ -346,6 +371,23 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
   }
 }
 
+export function mapCourseCatalogItem(course: BackendCourse): CourseCatalogItem {
+  return {
+    ...mapRecommendedCourse(course),
+    curriculumYears: Array.isArray(course.curriculumYears)
+      ? course.curriculumYears.filter(Number.isInteger)
+      : [],
+    curriculum: course.curriculum ?? null,
+    offerings: Array.isArray(course.offerings) ? course.offerings : [],
+    descriptionKo: course.descriptionKo ?? null,
+    descriptionEn: course.descriptionEn ?? null,
+    descriptionSourceUrl: course.descriptionSourceUrl ?? null,
+    syllabusUrl: course.syllabusUrl ?? null,
+    detailSourceKind: course.detailSourceKind ?? null,
+    prerequisites: Array.isArray(course.prerequisites) ? course.prerequisites : [],
+  }
+}
+
 export function mapScholarshipItem(scholarship: ScholarshipItem): ScholarshipItem {
   return {
     id: String(scholarship.id),
@@ -358,6 +400,7 @@ export function mapScholarshipItem(scholarship: ScholarshipItem): ScholarshipIte
     category: scholarship.category ?? null,
     tag: scholarship.tag ?? null,
     deadlineAt: scholarship.deadlineAt ?? null,
+    sourceUrl: scholarship.sourceUrl ?? null,
   }
 }
 

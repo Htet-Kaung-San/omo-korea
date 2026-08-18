@@ -49,6 +49,10 @@ function emptyCourseOffering() {
     isEnglishTaught: null,
     theoryHours: null,
     practicalHours: null,
+    enrollmentLimit: null,
+    teamTeachingStatus: null,
+    generalEducationArea: null,
+    remarks: null,
     presentationRequirement: null,
     groupProjectRequirement: null,
     assignmentRequirement: null,
@@ -81,6 +85,10 @@ function mapCourseOfferingRow(row) {
     isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
     theoryHours: normalizeNullableNumber(row?.theory_hours),
     practicalHours: normalizeNullableNumber(row?.practical_hours),
+    enrollmentLimit: normalizeNullableNumber(row?.enrollment_limit),
+    teamTeachingStatus: normalizeNullableText(row?.team_teaching_status),
+    generalEducationArea: normalizeNullableText(row?.general_education_area),
+    remarks: normalizeNullableText(row?.remarks),
     year: normalizeCourseYearLevel(row?.year_level),
   };
 }
@@ -95,9 +103,20 @@ function mapCourseMetadataRow(row) {
 }
 
 function mapCourseRow(row, language = 'en') {
-  const localized = localizeRow(row, language, ['course_name', 'course_name_en']);
-  const title = localized.course_name_en || localized.course_name || localized.title || '';
-  const name = localized.course_name || localized.course_name_en || title || '';
+  const storedName = row.course_name || row.course_name_en || '';
+  // "English (한국어)" splits into two names, but a trailing parenthetical is
+  // only the Korean half when it actually contains Hangul. 492 of the 1,924
+  // live course rows end in a sequence marker instead — 재무회계(I),
+  // 일반물리학(I), 종합설계과제(Capstone 2) — and splitting those blindly left
+  // nameKo as the literal string "I". Since the Korean UI renders nameKo as the
+  // card heading, a quarter of the catalog displayed as "I" / "II", and the
+  // recommendation engine canonicalised every one of them to the same token.
+  const bilingualMatch = String(storedName).match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  const bilingual = bilingualMatch && /[가-힣]/.test(bilingualMatch[2]) ? bilingualMatch : null;
+  const nameKo = bilingual?.[2]?.trim() || row.course_name || row.course_name_en || '';
+  const nameEn = row.course_name_en || bilingual?.[1]?.trim() || row.course_name || '';
+  const title = String(language).toLowerCase().startsWith('ko') ? nameKo : nameEn;
+  const name = title || nameKo || nameEn;
 
   const type = String(
   row.category ||
@@ -110,8 +129,8 @@ return {
   id: normalizeId(row.course_id ?? row.id),
   title,
   name,
-  nameKo: localized.course_name || name,
-  nameEn: localized.course_name_en || title,
+  nameKo,
+  nameEn,
 
   officialCourseNumber: normalizeNullableText(row.official_course_number),
   ...emptyCourseOffering(),
@@ -179,7 +198,7 @@ async function fetchCourseOfferings(supabaseClient, options) {
     const result = await supabaseClient
       .from('course_offering')
       .select(
-        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,classroom,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours,enrollment_limit,team_teaching_status,general_education_area,remarks'
       )
       .eq('academic_year', options.academicYear)
       .eq('semester', options.semester)
@@ -229,6 +248,7 @@ function mapScholarshipRow(row, language = 'en') {
     eligibility: localized.eligibility || row.eligibility || row.provider || '',
     amount: row.amount || null,
     provider: row.provider || null,
+    sourceUrl: row.source_url || row.sourceUrl || null,
     eligibleMajors: normalizeArray(row.eligible_majors || row.eligibleMajors || []),
     eligibleNationalities: normalizeArray(row.eligible_nationalities || row.eligibleNationalities || []),
     minGpa: row.min_gpa ?? row.minGpa ?? null,
@@ -370,14 +390,18 @@ async function fetchAllCourses(supabaseClient, options = {}) {
       : 1000;
   const courses = [];
   let pageStart = 0;
+  const exactCourseId = Number(options.courseId);
 
   while (true) {
     const pageEnd = pageStart + pageSize - 1;
-    const result = await supabaseClient
+    let query = supabaseClient
       .from('course')
       .select('*')
-      .order('course_id', { ascending: true })
-      .range(pageStart, pageEnd);
+      .order('course_id', { ascending: true });
+    if (Number.isInteger(exactCourseId) && exactCourseId > 0) {
+      query = query.eq('course_id', exactCourseId);
+    }
+    const result = await query.range(pageStart, pageEnd);
 
     if (result.error) {
       const error = new Error(
@@ -439,11 +463,101 @@ async function fetchAllCourses(supabaseClient, options = {}) {
     metadataRows.map((row) => [String(row.course_offering_id), row]),
   );
   return courses.map((course) => {
+    const isOfferedThisTerm = byCourseId.has(course.id);
     const offering = selectedByCourseId.get(course.id);
     const metadata = offering
       ? metadataByOfferingId.get(String(offering.course_offering_id)) || null
       : null;
-    return attachCourseOffering(course, offering, metadata);
+    return attachCourseOffering(
+      { ...course, isOfferedThisTerm },
+      offering,
+      metadata,
+    );
+  });
+}
+
+async function fetchCourseCurriculum(supabaseClient, options = {}) {
+  const pageSize = Number.isInteger(options.pageSize) && options.pageSize > 0
+    ? options.pageSize
+    : 1000;
+  const rows = [];
+  let pageStart = 0;
+
+  while (true) {
+    const pageEnd = pageStart + pageSize - 1;
+    let query = supabaseClient
+      .from('course_curriculum')
+      .select(
+        'course_curriculum_id,course_id,major_id,curriculum_year,source_course_code,category,recommended_year,grade_semester,source_department'
+      )
+      .order('course_curriculum_id', { ascending: true })
+      .range(pageStart, pageEnd);
+    if (options.majorId !== null && options.majorId !== undefined) {
+      query = query.eq('major_id', Number(options.majorId));
+    }
+    const result = await query;
+    if (result.error) {
+      const error = new Error(
+        `Failed to fetch course curriculum from Supabase: ${result.error.message}`
+      );
+      error.statusCode = 502;
+      error.code = 'SUPABASE_COURSE_CURRICULUM_QUERY_FAILED';
+      error.cause = result.error;
+      throw error;
+    }
+    const pageRows = Array.isArray(result.data) ? result.data : [];
+    rows.push(...pageRows);
+    if (pageRows.length < pageSize) break;
+    pageStart += pageSize;
+  }
+  return rows;
+}
+
+function chooseCurriculumRow(rows, preferredYear) {
+  const candidates = Array.isArray(rows) ? [...rows] : [];
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => Number(a.curriculum_year) - Number(b.curriculum_year));
+  const requested = Number(preferredYear);
+  if (Number.isInteger(requested)) {
+    const exact = candidates.find((row) => Number(row.curriculum_year) === requested);
+    if (exact) return exact;
+    const earlier = candidates.filter((row) => Number(row.curriculum_year) <= requested);
+    if (earlier.length) return earlier[earlier.length - 1];
+  }
+  return candidates[candidates.length - 1];
+}
+
+function attachCourseCurriculum(courses, curriculumRows, options = {}) {
+  const byCourseId = new Map();
+  for (const row of Array.isArray(curriculumRows) ? curriculumRows : []) {
+    const key = normalizeId(row.course_id);
+    if (!byCourseId.has(key)) byCourseId.set(key, []);
+    byCourseId.get(key).push(row);
+  }
+  return (Array.isArray(courses) ? courses : []).map((course) => {
+    const rows = byCourseId.get(String(course.id)) || [];
+    const selected = chooseCurriculumRow(rows, options.curriculumYear);
+    if (!selected) return { ...course, curriculumYears: [], curriculum: null };
+    return {
+      ...course,
+      type: String(selected.category || course.type || 'ELECTIVE').toUpperCase(),
+      category: String(selected.category || course.category || 'ELECTIVE').toUpperCase(),
+      year: selected.recommended_year ?? course.year ?? null,
+      officialCourseNumber:
+        course.officialCourseNumber || selected.source_course_code || null,
+      curriculumYears: rows
+        .map((row) => Number(row.curriculum_year))
+        .filter(Number.isInteger)
+        .sort((a, b) => a - b),
+      curriculum: {
+        curriculumYear: Number(selected.curriculum_year),
+        sourceCourseCode: selected.source_course_code || null,
+        category: selected.category || null,
+        recommendedYear: selected.recommended_year ?? null,
+        gradeSemester: selected.grade_semester || null,
+        sourceDepartment: selected.source_department || null,
+      },
+    };
   });
 }
 
@@ -489,16 +603,34 @@ async function fetchStudentCourseHistory(supabaseClient, studentId, options = {}
 async function fetchDashboardCatalogs(supabaseClient, options = {}) {
   const language = options.language || 'en';
 
-  const [coursesResult, scholarshipsResult, programsResult, noticeRows, majorsResult] = await Promise.all([
-    supabaseClient.from('course').select('*'),
+  const [courseRows, scholarshipsResult, programsResult, noticeRows, majorsResult] = await Promise.all([
+    fetchAllCourses(supabaseClient, { language }),
     supabaseClient.from('scholarship').select('*'),
     supabaseClient.from('extracurricular_program').select('*'),
     fetchAllNotices(supabaseClient, { language }),
     supabaseClient.from('major').select('*'),
   ]);
 
-  const courseRows = (coursesResult.data || []).map((row) => mapCourseRow(row, language));
-  const scholarshipRows = (scholarshipsResult.data || []).map((row) => mapScholarshipRow(row, language));
+  const scholarshipRows = scholarshipsResult.error?.code === 'PGRST205'
+    ? noticeRows
+      .filter((row) => /장학|scholarship|학자금|등록금\s*지원/i.test(`${row.title} ${row.body}`))
+      .map((row) => ({
+        id: `notice-${row.id}`,
+        title: row.title,
+        description: row.body,
+        deadline: '',
+        eligibility: 'See the official notice for eligibility and application requirements.',
+        amount: null,
+        provider: row.source || 'PNU',
+        sourceUrl: row.sourceUrl || null,
+        eligibleMajors: [],
+        eligibleNationalities: [],
+        minGpa: null,
+        minTopikLevel: null,
+        minYear: null,
+        maxYear: null,
+      }))
+    : (scholarshipsResult.data || []).map((row) => mapScholarshipRow(row, language));
   const programRows = (programsResult.data || []).map((row) => mapProgramRow(row, language));
   const majorRows = (majorsResult.data || []).map((row) => mapMajorRow(row));
 
@@ -527,6 +659,9 @@ module.exports = {
   emptyCourseOffering,
   explicitEnglishStatus,
   fetchAllCourses,
+  fetchCourseCurriculum,
+  attachCourseCurriculum,
+  chooseCurriculumRow,
   fetchStudentCourseHistory,
   fetchCourseMetadata,
   fetchCourseOfferings,

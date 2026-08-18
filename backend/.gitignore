@@ -27,6 +27,8 @@ data/local/pnu-course-application/
 data/local/pnu-course-application-results/
 data/local/pnu-course-production-backups/
 data/local/pnu-course-metadata-dry-run/
+data/local/business-course-offerings-dry-run/
+data/local/business-course-offerings-application-results/
 
 # Official syllabus evidence remains local. Only the reviewed checksum manifest
 # is tracked.

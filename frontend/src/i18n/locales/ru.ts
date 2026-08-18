@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "Не удалось загрузить уведомления.",
   'notifications.loading': "Загрузка уведомлений…",
   'campusLife.title': "Жизнь кампуса",
-  'campusLife.subtitle': "Функции кампуса скоро появятся",
   'campusLife.placeholder': "Эта страница — заглушка для карт, сервисов и местных гидов.",
   'campusLife.oneStopGuide': "Единое руководство",
   'campusLife.libraryGuide': "Справочник библиотеки",

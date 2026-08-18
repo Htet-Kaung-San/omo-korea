@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import type {
+  CompleteSignupRequest,
   LoginChallengeResponse,
   LoginRequest,
   User,
@@ -22,7 +23,14 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isAdmin: boolean
   requestLogin: (data: LoginRequest) => Promise<LoginChallengeResponse>
-  verifyLogin: (data: VerifyLoginRequest) => Promise<{ user: User }>
+  /**
+   * Returns the signed-in user so the caller can branch on it immediately.
+   * LoginPage needs to know whether a major is already set to decide between
+   * the major and year onboarding steps, and the context `user` state has not
+   * propagated yet at that point in the same tick.
+   */
+  verifyLogin: (data: VerifyLoginRequest) => Promise<User>
+  completeSignup: (data: CompleteSignupRequest) => Promise<User>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -71,7 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user: loggedInUser } = await api.verifyLogin(data)
     setStoredToken(token)
     setUser(loggedInUser)
-    return { user: loggedInUser }
+    return loggedInUser
+  }, [])
+
+  const completeSignup = useCallback(async (data: CompleteSignupRequest) => {
+    const { token, user: signedUpUser } = await api.completeSignup(data)
+    setStoredToken(token)
+    setUser(signedUpUser)
+    return signedUpUser
   }, [])
 
   const logout = useCallback(async () => {
@@ -91,10 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: false,
       requestLogin,
       verifyLogin,
+      completeSignup,
       logout,
       refreshUser,
     }),
-    [user, isLoading, requestLogin, verifyLogin, logout, refreshUser],
+    [user, isLoading, requestLogin, verifyLogin, completeSignup, logout, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

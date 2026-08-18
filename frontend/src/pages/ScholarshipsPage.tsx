@@ -309,7 +309,9 @@ export function ScholarshipsPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      api.getScholarships().catch(() => []),
+      // This page renders its own empty state (scholarships.empty), so a
+      // failure does not also need a toast on top of it.
+      api.getScholarships({ suppressToast: true }).catch(() => []),
       api.getAiDashboard().catch(() => null),
     ])
       .then(([items, dashboard]) => {
@@ -328,13 +330,14 @@ export function ScholarshipsPage() {
                 ? better.title
                 : item.title,
             provider: item.provider || better.provider || 'PNU Scholarship Office',
-            deadline: item.deadline || better.deadline || t('scholarships.open'),
+            deadline: item.deadline || better.deadline || t('scholarships.deadlineUnknown'),
             description: item.description || better.description,
             eligibility: item.eligibility || better.eligibility,
             amount: item.amount || better.amount,
             category: item.category || better.category,
             tag: item.tag || better.tag,
             deadlineAt: item.deadlineAt || better.deadlineAt,
+            sourceUrl: item.sourceUrl || better.sourceUrl,
           }
         })
 
@@ -345,7 +348,7 @@ export function ScholarshipsPage() {
         const realItems = [...merged, ...dashboardOnly].map((item) => ({
           ...item,
           provider: item.provider || 'PNU Scholarship Office',
-          deadline: item.deadline || t('scholarships.open'),
+          deadline: item.deadline || t('scholarships.deadlineUnknown'),
         }))
 
         setScholarships(realItems)
@@ -355,6 +358,10 @@ export function ScholarshipsPage() {
   }, [language, t])
 
   const catalog = useMemo(() => scholarships.map(toDisplay), [scholarships])
+  const usesVerifiedNoticeSource = useMemo(
+    () => scholarships.some((item) => String(item.id).startsWith('notice-')),
+    [scholarships],
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -512,6 +519,11 @@ export function ScholarshipsPage() {
         ) : null}
         {loading ? (
           <p className="py-8 text-center text-[13px] text-pnu-muted">{t('academic.loading')}</p>
+        ) : null}
+        {!loading && usesVerifiedNoticeSource ? (
+          <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-800">
+            {t('scholarships.noticeSourceDisclosure')}
+          </p>
         ) : null}
 
         {!loading && filtered.length === 0 ? (

@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "ማሳወቂያዎች መጫን አልተሳካም።",
   'notifications.loading': "ማሳወቂያዎች በመጫን ላይ…",
   'campusLife.title': "የካምፓስ ሕይወት",
-  'campusLife.subtitle': "የካምፓስ ሕይወት ባህሪያት በቅርቡ",
   'campusLife.placeholder': "ይህ ገጽ ለካርታዎች፣ አገልግሎቶች እና የአካባቢ ሕይወት መመሪያዎች placeholder ነው።",
   'campusLife.oneStopGuide': "አንድ ቦታ መመሪያ",
   'campusLife.libraryGuide': "የቤተ-መጽሐፍት መመሪያ",

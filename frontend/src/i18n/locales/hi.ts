@@ -39,7 +39,6 @@ const messages: MessageDictionary = {
   'notifications.loadError': "सूचनाएँ लोड करने में विफल।",
   'notifications.loading': "सूचनाएँ लोड हो रही हैं…",
   'campusLife.title': "कैंपस जीवन",
-  'campusLife.subtitle': "कैंपस जीवन सुविधाएँ जल्द आ रही हैं",
   'campusLife.placeholder': "यह पृष्ठ मानचित्र, सेवाओं और स्थानीय जीवन गाइड के लिए प्लेसहोल्डर है।",
   'campusLife.oneStopGuide': "वन-स्टॉप गाइड",
   'campusLife.libraryGuide': "पुस्तकालय गाइड",

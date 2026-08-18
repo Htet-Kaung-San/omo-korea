@@ -113,6 +113,32 @@ async function findFullNoticeBySourceUrl(supabaseClient, sourceUrl) {
   return data || null;
 }
 
+async function findFullNoticeByExternalIdentity(supabaseClient, row) {
+  if (!row?.source || !row?.external_id) return null;
+
+  const { data, error } = await supabaseClient
+    .from('notice')
+    .select(NOTICE_SELECT_FIELDS)
+    .eq('source', row.source)
+    .eq('external_id', row.external_id)
+    .order('notice_id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || null;
+}
+
+async function findFullNotice(supabaseClient, row) {
+  const identityMatch = await findFullNoticeByExternalIdentity(
+    supabaseClient,
+    row,
+  );
+  if (identityMatch) return identityMatch;
+
+  return findFullNoticeBySourceUrl(supabaseClient, row.source_url);
+}
+
 async function persistScrapedNotices(supabaseClient, rows) {
   let inserted = 0;
   let updated = 0;
@@ -126,10 +152,7 @@ async function persistScrapedNotices(supabaseClient, rows) {
       throw error;
     }
 
-    const existing = await findFullNoticeBySourceUrl(
-      supabaseClient,
-      row.source_url,
-    );
+    const existing = await findFullNotice(supabaseClient, row);
 
     if (existing?.notice_id) {
       const merged = mergeNoticeValues(existing, row);
@@ -154,10 +177,7 @@ async function persistScrapedNotices(supabaseClient, rows) {
     // Another synchronization may have inserted the same source URL after
     // our lookup. Respect the unique index and converge by updating that row.
     if (insertError.code === "23505") {
-      const concurrentRow = await findFullNoticeBySourceUrl(
-        supabaseClient,
-        row.source_url,
-      );
+      const concurrentRow = await findFullNotice(supabaseClient, row);
 
       if (concurrentRow?.notice_id) {
         const merged = mergeNoticeValues(concurrentRow, row);

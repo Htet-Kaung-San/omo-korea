@@ -275,6 +275,9 @@ export function CreditsPage() {
                   <GraduationCap className="h-4 w-4 text-[#7C3AED]" strokeWidth={2} />
                 </div>
               </div>
+              <p className="mt-3 text-[10px] leading-relaxed text-pnu-muted">{t('credits.officialGradeNotice')}</p>
+              <a href="https://onestop.pusan.ac.kr/page?menuCD=000000000000093" target="_blank" rel="noreferrer" className="mt-2 inline-flex text-[10px] font-bold text-pnu-blue underline">{t('credits.openOfficialGrades')}</a>
+            </section>
 
               {/* Arc + labels */}
               <div className="flex flex-col items-center">
