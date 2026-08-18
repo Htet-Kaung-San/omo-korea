@@ -2,6 +2,8 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "Loading…",
+  'common.sending': "Sending…",
+  'support.sendFailed': "Could not send your message. Please check your connection and try again.",
   'common.viewAll': "View all",
   'common.viewMore': "View more",
   'common.viewLess': "Show less",
@@ -350,7 +352,7 @@ const messages: MessageDictionary = {
   'support.app.messageLabel': "Describe the issue",
   'support.app.messagePlaceholder': "What went wrong? Include the page and what you tried…",
   'support.app.submit': "Submit report",
-  'support.app.sent': "Thanks — your report was recorded for the demo.",
+  'support.app.sent': "Thanks — your report has been sent to the team.",
   'support.app.hint': "For urgent campus issues, use Emergency instead.",
   'support.feedback.placeholder': "Tell us what you like or what we should improve…",
   'support.feedback.submit': "Send feedback",
@@ -380,6 +382,8 @@ const messages: MessageDictionary = {
   'chat.welcome': "Hi! I'm Sanjini, your PNU campus assistant. Ask me about visas, courses, scholarships, campus life, and more.",
   'chat.emptyHint': "Ask about course registration, credits, housing, or campus services.",
   'chat.typing': "Sanjini is typing…",
+  'chat.groundedIn': "Based on:",
+  'chat.ungroundedNotice': "General guidance — not from official PNU documents. For visa, work or graduation decisions, confirm with the International Affairs Office (국제처) or call 1345.",
   'chat.placeholder': "Type your question…",
   'chat.askAnything': "Ask anything...",
   'chat.send': "Send message",

@@ -62,13 +62,57 @@ async function getAcademicPromptContext(studentId, supabaseClient, message = '')
       const studentType = student.student_type || "Current";
       const completedList = student.completed_courses || [];
       const studentIdStr = String(student.student_id || studentId);
-      const intakeYear = parseInt(studentIdStr.substring(0, 4)) || 2024;
       const intakeTerm = student.intake_term || "March";
-      
-      // Calculate semesters completed dynamically compared to current date
-      const currentDate = new Date(); // Will resolve to July 2026 system date
+
+      const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const currentMonth = currentDate.getMonth() + 1; // 1-indexed
+
+      // Work from the recorded academic year, not the student id.
+      //
+      // The id is only an intake year when the email local part is the PNU
+      // student number. Signup hashes every other local part into
+      // [1e9, 2^31), so `htet_kaung_san@pusan.ac.kr` became id 1830…, and
+      // parsing its first four digits told the model the student enrolled in
+      // March 1830 and had completed several hundred semesters — which then
+      // drove the "recommend 4th year courses" instruction below. The bug is
+      // invisible in demos, because seeded accounts have numeric ids.
+      //
+      // A real PNU student number is 8-9 digits and its first four are the
+      // intake year; studentIdFromEmail returns it verbatim in that case. Every
+      // hashed id is exactly 10 digits, because the hash is
+      // 1_000_000_000 + (digest % 1_147_483_647). Length alone separates the
+      // two populations exactly — a year-range test does not, since hashed ids
+      // starting 2000-2147 look like plausible years.
+      //
+      // The id wins over `grade` when it is usable: it is immutable and stays
+      // correct as the student progresses, while `grade` is captured once at
+      // onboarding and never advances. They have already drifted in the live
+      // data — see scripts/backfill-student-grade.mjs, which treats the id as
+      // the source of truth for exactly this reason, and note that ProfilePage
+      // shows the student a year label derived from the id. Preferring `grade`
+      // would make the assistant contradict the profile screen.
+      const isRealPnuStudentNumber = /^\d{8,9}$/.test(studentIdStr);
+      const idPrefixYear = parseInt(studentIdStr.substring(0, 4), 10);
+      const idIsUsableIntakeYear =
+        isRealPnuStudentNumber &&
+        Number.isInteger(idPrefixYear) &&
+        idPrefixYear >= 2000 &&
+        idPrefixYear <= currentYear + 1;
+
+      // The Korean academic year turns over in March, not in January, so
+      // deriving an intake year from `grade` has to use the academic year —
+      // otherwise every student is placed a year late for all of Jan/Feb.
+      const academicYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+      const gradeValue = Number(student.grade);
+      const hasKnownGrade =
+        Number.isInteger(gradeValue) && gradeValue >= 1 && gradeValue <= 4;
+
+      const intakeYear = idIsUsableIntakeYear
+        ? idPrefixYear
+        : hasKnownGrade
+          ? academicYear - (gradeValue - 1)
+          : currentYear;
 
       let semestersCompleted = 0;
       let iterYear = intakeYear;
@@ -768,7 +812,32 @@ async function handleChatStream(req, res) {
       }
       res.write(
         `data: ${JSON.stringify({
-          metadata: { provider, isFallback: false, ragUsed, ragStatus, followUps },
+          metadata: {
+            provider,
+            isFallback: false,
+            ragUsed,
+            ragStatus,
+            followUps,
+            // Named so the client can show WHICH documents an answer rests on.
+            // Without this the UI cannot tell a grounded answer from one the
+            // model produced from general knowledge, and neither can the
+            // student — on a screen whose subject is visa and work-permit law.
+            //
+            // Machine-generated curriculum payloads are excluded for the same
+            // reason they are excluded from followUps above: the retrieval
+            // query is expanded with the student's major and year, so they
+            // match constantly regardless of topic. Citing one under a visa
+            // answer would be a false provenance claim — the exact failure
+            // this metadata exists to prevent.
+            //
+            // ragUsed is deliberately NOT derived from this filtered list.
+            // Curriculum documents are real grounding for a course question,
+            // and treating them as no grounding would put "confirm with
+            // immigration" under correct course advice.
+            ragSources: ragSources
+              .filter((source) => !MACHINE_GENERATED_CATEGORIES.has(source.category))
+              .map((source) => source.title),
+          },
         })}\n\n`,
       );
       res.write("data: [DONE]\n\n");

@@ -60,6 +60,16 @@ function formatTime(ts: number, locale: string) {
   })
 }
 
+/**
+ * Questions where a wrong answer has a real cost — a visa refused, a job that
+ * breaches a permit, a graduation missed. The ungrounded caution is shown only
+ * for these. Without the gate it fires on "hi" and "where is the cafeteria",
+ * which trains students to dismiss it exactly where it matters, and adds a
+ * legal-sounding warning to a greeting.
+ */
+const CONSEQUENTIAL_TOPIC =
+  /visa|d-?2|immigration|alien|arc|residence|permit|work|job|part.?time|employ|insurance|tax|graduat|credit|scholarship|tuition|deport|extend|extension/i
+
 export function AiAssistantPage() {
   const { locale, t } = useLanguage()
   const [messages, setMessages] = useState<Message[]>([])
@@ -71,6 +81,7 @@ export function AiAssistantPage() {
   const [threads, setThreads] = useState<ChatThread[]>(() => loadChatThreads())
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [ratedIds, setRatedIds] = useState<Record<string, 'up' | 'down'>>({})
   const bottomRef = useRef<HTMLDivElement>(null)
   const activeThreadIdRef = useRef<string | null>(null)
 
@@ -133,6 +144,7 @@ export function AiAssistantPage() {
     setSending(true)
 
     const replyId = crypto.randomUUID()
+    const consequential = CONSEQUENTIAL_TOPIC.test(trimmed)
     let streamed = ''
 
     try {
@@ -154,6 +166,15 @@ export function AiAssistantPage() {
           },
           onFollowUps: (followUps) => {
             if (followUps.length > 0) setSuggestions(followUps)
+          },
+          onGrounding: (grounding) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === replyId
+                  ? { ...m, grounding: { ...grounding, consequential } }
+                  : m,
+              ),
+            )
           },
         },
       )
@@ -179,6 +200,35 @@ export function AiAssistantPage() {
       ])
     } finally {
       setSending(false)
+    }
+  }
+
+  /**
+   * Rates an answer. These two buttons were decorative — styled, labelled and
+   * inert — on the one surface where "this visa answer is wrong" is the most
+   * valuable thing a student can tell us. A thumbs-down now files a real
+   * report against the question and the answer it applies to.
+   */
+  async function rateAnswer(message: ChatMessage, helpful: boolean) {
+    if (ratedIds[message.id]) return
+    setRatedIds((prev) => ({ ...prev, [message.id]: helpful ? 'up' : 'down' }))
+
+    const asked = [...messages].reverse().find((m) => m.role === 'user' && m.at <= message.at)
+    try {
+      await api.submitFeedback({
+        kind: 'feedback',
+        message: [
+          `Assistant answer rated ${helpful ? 'helpful' : 'NOT helpful'}.`,
+          asked ? `Question: ${asked.text}` : null,
+          `Answer: ${message.text}`,
+        ]
+          .filter(Boolean)
+          .join('\n\n')
+          .slice(0, 4000),
+      })
+    } catch {
+      // A rating is not worth an error banner over the conversation; the
+      // button stays marked so the student is not asked to repeat it.
     }
   }
 
@@ -315,6 +365,34 @@ export function AiAssistantPage() {
                     </span>
                   )}
                 </div>
+                {/* Says what the answer rests on. An ungrounded reply to a visa
+                    question is the app's worst failure mode — it reads exactly
+                    like a sourced one — so the caution is stated on the answer
+                    itself rather than in a footer nobody reads.
+                    
+                    The caution keys off "no citable source", not off ragUsed.
+                    Measured against the live index, a health-insurance question
+                    retrieves three machine-generated curriculum payloads and
+                    nothing else: ragUsed is true, yet the answer rests on
+                    nothing relevant to what was asked. Keying off ragUsed would
+                    stay silent there. The topic gate is what keeps this off
+                    greetings and ordinary course questions — those retrieve
+                    curriculum too, but being wrong about them costs nothing. */}
+                {message.text && message.grounding ? (
+                  message.grounding.sources.length > 0 ? (
+                    <p className="mt-1 px-1 text-[10px] leading-relaxed text-pnu-muted">
+                      {t('chat.groundedIn')}{' '}
+                      <span className="font-medium">
+                        {message.grounding.sources.join(' · ')}
+                      </span>
+                    </p>
+                  ) : message.grounding.consequential ? (
+                    <p className="mt-1.5 rounded-[12px] bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 ring-1 ring-amber-100">
+                      {t('chat.ungroundedNotice')}
+                    </p>
+                  ) : null
+                ) : null}
+
                 {/* Timestamp and the rating / copy controls only make sense once
                     there is an answer to time-stamp, rate or copy. */}
                 {message.text ? (
@@ -327,14 +405,22 @@ export function AiAssistantPage() {
                 >
                   <button
                     type="button"
-                    className="rounded-full border border-black/10 p-1.5 text-pnu-muted transition hover:text-pnu-blue"
+                    onClick={() => rateAnswer(message, true)}
+                    disabled={Boolean(ratedIds[message.id])}
+                    className={`rounded-full border border-black/10 p-1.5 transition hover:text-pnu-blue disabled:opacity-40 ${
+                      ratedIds[message.id] === 'up' ? 'text-pnu-blue' : 'text-pnu-muted'
+                    }`}
                     aria-label={t('chat.feedbackUp')}
                   >
                     <ThumbsUp className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
-                    className="rounded-full border border-black/10 p-1.5 text-pnu-muted transition hover:text-pnu-blue"
+                    onClick={() => rateAnswer(message, false)}
+                    disabled={Boolean(ratedIds[message.id])}
+                    className={`rounded-full border border-black/10 p-1.5 transition hover:text-pnu-blue disabled:opacity-40 ${
+                      ratedIds[message.id] === 'down' ? 'text-pnu-blue' : 'text-pnu-muted'
+                    }`}
                     aria-label={t('chat.feedbackDown')}
                   >
                     <ThumbsDown className="h-3.5 w-3.5" />

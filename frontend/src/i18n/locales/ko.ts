@@ -2,6 +2,8 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "불러오는 중…",
+  'common.sending': "전송 중…",
+  'support.sendFailed': "메시지를 보내지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.",
   'common.viewAll': "전체보기",
   'common.viewMore': "더보기",
   'common.viewLess': "접기",
@@ -309,7 +311,7 @@ const messages: MessageDictionary = {
   'support.app.messageLabel': "문제 설명",
   'support.app.messagePlaceholder': "어떤 문제가 있었나요? 페이지와 시도한 내용을 적어 주세요…",
   'support.app.submit': "제보하기",
-  'support.app.sent': "감사합니다. 데모용으로 제보가 기록되었습니다.",
+  'support.app.sent': "감사합니다. 제보가 팀에 전달되었습니다.",
   'support.app.hint': "긴급한 캠퍼스 문제는 Emergency를 이용해 주세요.",
   'support.feedback.placeholder': "좋았던 점이나 개선할 점을 알려 주세요…",
   'support.feedback.submit': "피드백 보내기",
@@ -339,6 +341,8 @@ const messages: MessageDictionary = {
   'chat.welcome': "안녕하세요! 저는 산지니예요. 비자, 수업, 장학금, 캠퍼스 생활 등 무엇이든 물어보세요.",
   'chat.emptyHint': "수강신청, 학점, 기숙사, 캠퍼스 서비스에 대해 물어보세요.",
   'chat.typing': "산지니가 입력 중…",
+  'chat.groundedIn': "출처:",
+  'chat.ungroundedNotice': "일반적인 안내이며 부산대 공식 문서에 근거한 답변이 아닙니다. 비자·근로·졸업 관련 결정은 국제처에 확인하거나 1345로 문의하세요.",
   'chat.placeholder': "질문을 입력하세요…",
   'chat.askAnything': "무엇이든 물어보세요...",
   'chat.send': "메시지 보내기",

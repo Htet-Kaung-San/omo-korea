@@ -3,6 +3,20 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   text: string
   at: number
+  /**
+   * Present on assistant turns once the stream reports whether the answer
+   * rested on PNU documents. Absent on older stored threads, which is why it
+   * is optional — an undefined value means "we don't know", and the UI stays
+   * quiet rather than claiming either way.
+   */
+  grounding?: {
+    grounded: boolean
+    status: string
+    /** Citable document titles — machine-generated curriculum payloads excluded. */
+    sources: string[]
+    /** Whether the question was one where a wrong answer has a real cost. */
+    consequential?: boolean
+  }
 }
 
 export type ChatCategory = 'all' | 'pinned' | 'courses' | 'visa' | 'campus'
