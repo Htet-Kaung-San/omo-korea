@@ -3,8 +3,6 @@
  * status from `student_graduation_requirement`. Never store these in checklist_item.
  */
 
-const MILESTONE_TYPES = new Set(["PASS_FAIL", "SCORE"]);
-
 /** CS checklist_item task names that must be migrated out of checklist_item. */
 const LEGACY_CHECKLIST_TASK_NAMES = new Set([
   "TOPIK Level 4 or higher",
@@ -17,9 +15,6 @@ function isCsGraduationTaskName(taskName) {
   return LEGACY_CHECKLIST_TASK_NAMES.has(String(taskName || "").trim());
 }
 
-function isMilestoneRequirement(row) {
-  return MILESTONE_TYPES.has(String(row?.requirement_type || "").toUpperCase());
-}
 
 function mapRequirementForApi(catalogRow, statusRow) {
   const status = statusRow?.status || "Not Started";
@@ -91,7 +86,7 @@ async function ensureGraduationRequirements(supabase, studentId, majorId) {
     throw err;
   }
 
-  const milestones = (catalog || []).filter(isMilestoneRequirement);
+  const milestones = (catalog || []);
   if (milestones.length === 0) return [];
 
   let { data: statusRows, error: statusError } = await supabase

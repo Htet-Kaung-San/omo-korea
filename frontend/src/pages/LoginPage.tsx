@@ -63,9 +63,23 @@ export function LoginPage() {
     )
   }
 
+  useEffect(() => {
+    if (isAuthenticated && !user?.major && step !== 'major' && step !== 'year') {
+      setStep('major')
+    }
+  }, [isAuthenticated, user?.major, step])
+
   // Stay on this page for major / year selection after OTP.
-  if (isAuthenticated && step !== 'major' && step !== 'year') {
+  if (isAuthenticated && user?.major && step !== 'major' && step !== 'year') {
     return <Navigate to="/" replace />
+  }
+
+  if (isAuthenticated && !user?.major && step !== 'major' && step !== 'year') {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-[#EEF2F7]">
+        <p className="text-sm text-pnu-muted">{t('common.loading')}</p>
+      </div>
+    )
   }
   async function handleCredentialsSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -199,6 +199,9 @@ export function mapGraduationRequirementItem(row: {
   requirement_name?: string
   description?: string | null
   status?: string
+  requirement_type?: string
+  requirement_code?: string
+  target_value?: number
 }): GraduationRequirementItem {
   const status = String(row.status || '').toLowerCase()
   return {
@@ -206,6 +209,9 @@ export function mapGraduationRequirementItem(row: {
     title: row.title || row.task_name || row.requirement_name || '',
     description: row.description || '',
     completed: status === 'completed' || status === 'done',
+    requirementType: row.requirement_type,
+    requirementCode: row.requirement_code,
+    targetValue: row.target_value,
   }
 }
 

@@ -22,7 +22,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isAdmin: boolean
   requestLogin: (data: LoginRequest) => Promise<LoginChallengeResponse>
-  verifyLogin: (data: VerifyLoginRequest) => Promise<void>
+  verifyLogin: (data: VerifyLoginRequest) => Promise<{ user: User }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user: loggedInUser } = await api.verifyLogin(data)
     setStoredToken(token)
     setUser(loggedInUser)
+    return { user: loggedInUser }
   }, [])
 
   const logout = useCallback(async () => {

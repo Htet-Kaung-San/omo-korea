@@ -145,6 +145,7 @@ function buildGraduationProgress({
   enrollments = [],
   academicSummary = null,
   semesters = [],
+  catalogRequired = 0,
 } = {}) {
   const breakdown = emptyBreakdown();
 
@@ -165,11 +166,10 @@ function buildGraduationProgress({
   );
 
   const summaryCompleted = Number(academicSummary?.completed_credits);
-  const summaryRequired = Number(academicSummary?.required_credits);
-  const totalRequired =
-    Number.isFinite(summaryRequired) && summaryRequired > 0
-      ? summaryRequired
-      : requirementsTotal;
+
+  // totalRequired is always derived from the graduation_requirement catalog.
+  // Falls back to the breakdown bucket sum only if no catalog exists yet.
+  const totalRequired = catalogRequired > 0 ? catalogRequired : requirementsTotal;
 
   if (
     totalCompleted === 0 &&

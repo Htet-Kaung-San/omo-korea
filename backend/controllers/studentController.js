@@ -1550,13 +1550,29 @@ const getGraduationProgress = async (req, res) => {
       };
     });
 
+    // Sum target_value of CREDIT requirements for this major to get the
+    // authoritative total required credits.
+    const majorId = studentError ? null : studentRow?.major_id;
+    let catalogRequired = 0;
+    if (majorId) {
+      const { data: catalogRows } = await supabase
+        .from("graduation_requirement")
+        .select("target_value, requirement_type")
+        .eq("major_id", majorId)
+        .eq("requirement_type", "CREDIT");
+      catalogRequired = (catalogRows || []).reduce(
+        (sum, row) => sum + (Number(row.target_value) || 0),
+        0,
+      );
+    }
+
     const progress = buildGraduationProgress({
       enrollments,
       academicSummary: summary,
       semesters,
+      catalogRequired,
     });
 
-    const majorId = studentError ? null : studentRow?.major_id;
     let requirements = [];
     try {
       requirements = await ensureGraduationRequirements(

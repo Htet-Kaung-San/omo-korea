@@ -408,6 +408,9 @@ export interface GraduationRequirementItem {
   title: string
   description: string
   completed: boolean
+  requirementType?: string
+  requirementCode?: string
+  targetValue?: number
 }
 
 export interface GraduationProgress {
