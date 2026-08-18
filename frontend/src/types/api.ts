@@ -760,7 +760,7 @@ export interface HeyPnuApi {
   getMajors(): Promise<{ data: MajorData[] }>
   getMapFacilities(): Promise<MapFacility[]>
   getMapFacility(id: string): Promise<MapFacility>
-  getAcademicRecords(): Promise<AcademicRecords>
+  getAcademicRecords(): Promise<AcademicRecords | null>
   getAiDashboard(): Promise<AiDashboard>
   /**
    * `suppressToast` is for screens that already degrade on failure. The toast

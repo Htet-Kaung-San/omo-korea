@@ -2063,10 +2063,10 @@ const getAcademicRecords = async (req, res) => {
 
     const summary = (rows || []).find((row) => row.record_type === "summary");
     if (!summary) {
-      return res.status(404).json({
-        success: false,
-        message: "Academic records not found for this student",
-      });
+      // A student with no transcript yet is an ordinary empty state, not an
+      // error. The 404 this replaced made the client raise a red error toast
+      // and print raw English on a screen that has a translated message ready.
+      return res.json({ success: true, data: null });
     }
 
     const semesters = (rows || []).filter((row) => row.record_type === "semester");
@@ -2926,7 +2926,9 @@ const updateLanguagePreference = async (req, res) => {
         error: error.message,
       });
 
-    res.json({ success: true, data });
+    // A bare .select() expands to "*", so this row still holds the password.
+    const { password, ...safeStudent } = data ?? {};
+    res.json({ success: true, data: safeStudent });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -3234,6 +3236,10 @@ const getAllStudents = async (req, res) => {
       .select("*, major:major_id(major_name)")
       .order("name", { ascending: true });
 
+    // The select is "*" so it carries the password column. Strip it per row —
+    // `major` is deliberately kept, since the join above exists only to add it.
+    const safeStudents = (students ?? []).map(({ password, ...rest }) => rest);
+
     if (error) {
       return res.status(500).json({
         success: false,
@@ -3244,7 +3250,7 @@ const getAllStudents = async (req, res) => {
 
     res.json({
       success: true,
-      data: students,
+      data: safeStudents,
     });
   } catch (err) {
     res.status(500).json({
@@ -3282,10 +3288,12 @@ const requestStudentDeletion = async (req, res) => {
       });
     }
 
+    // Same bare .select() as above — never echo the password back.
+    const { password, ...safeStudent } = data ?? {};
     res.json({
       success: true,
       message: "Account deletion requested successfully. The administrator will review and delete your account shortly.",
-      data,
+      data: safeStudent,
     });
   } catch (err) {
     res.status(500).json({

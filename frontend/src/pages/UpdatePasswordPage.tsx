@@ -42,7 +42,9 @@ export function UpdatePasswordPage() {
     setIsSubmitting(true)
 
     try {
-      const res = await fetch("http://localhost:3000/api/students/reset-password", {
+      // VITE_API_BASE_URL already ends in /api, so the path must not repeat it.
+      const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
+      const res = await fetch(`${baseUrl}/students/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

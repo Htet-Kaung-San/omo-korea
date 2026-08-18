@@ -51,6 +51,12 @@ export function AcademicRecordsPage() {
           </div>
         ) : null}
 
+        {!loading && !error && !records ? (
+          <div className="rounded-[18px] bg-white p-4 text-sm text-pnu-muted shadow-sm ring-1 ring-black/5">
+            {t('academicRecords.loadError')}
+          </div>
+        ) : null}
+
         {records ? (
           <>
             <div className="rounded-[22px] bg-white p-5 shadow-sm ring-1 ring-black/5">

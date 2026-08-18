@@ -524,10 +524,11 @@ export const realApi: HeyPnuApi = {
     if (!studentId) {
       throw new Error('Student ID is required to fetch academic records')
     }
-    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0]>(
+    const records = await backendFetch<Parameters<typeof mapAcademicRecords>[0] | null>(
       `/students/academic-records/${encodeURIComponent(studentId)}`,
     )
-    return mapAcademicRecords(records)
+    // null means "no transcript yet" — the page shows its empty state.
+    return records ? mapAcademicRecords(records) : null
   },
 
   async getAiDashboard(): Promise<AiDashboard> {
