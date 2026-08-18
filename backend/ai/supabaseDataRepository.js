@@ -49,6 +49,10 @@ function emptyCourseOffering() {
     isEnglishTaught: null,
     theoryHours: null,
     practicalHours: null,
+    enrollmentLimit: null,
+    teamTeachingStatus: null,
+    generalEducationArea: null,
+    remarks: null,
     presentationRequirement: null,
     groupProjectRequirement: null,
     assignmentRequirement: null,
@@ -81,6 +85,10 @@ function mapCourseOfferingRow(row) {
     isEnglishTaught: explicitEnglishStatus(originalLanguageCode, teachingLanguage),
     theoryHours: normalizeNullableNumber(row?.theory_hours),
     practicalHours: normalizeNullableNumber(row?.practical_hours),
+    enrollmentLimit: normalizeNullableNumber(row?.enrollment_limit),
+    teamTeachingStatus: normalizeNullableText(row?.team_teaching_status),
+    generalEducationArea: normalizeNullableText(row?.general_education_area),
+    remarks: normalizeNullableText(row?.remarks),
     year: normalizeCourseYearLevel(row?.year_level),
   };
 }
@@ -190,7 +198,7 @@ async function fetchCourseOfferings(supabaseClient, options) {
     const result = await supabaseClient
       .from('course_offering')
       .select(
-        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,classroom,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours'
+        'course_offering_id,course_id,official_course_number,academic_year,semester,section,professor,year_level,schedule,classroom,remote_course_status,original_language_code,teaching_language,theory_hours,practical_hours,enrollment_limit,team_teaching_status,general_education_area,remarks'
       )
       .eq('academic_year', options.academicYear)
       .eq('semester', options.semester)
@@ -382,14 +390,18 @@ async function fetchAllCourses(supabaseClient, options = {}) {
       : 1000;
   const courses = [];
   let pageStart = 0;
+  const exactCourseId = Number(options.courseId);
 
   while (true) {
     const pageEnd = pageStart + pageSize - 1;
-    const result = await supabaseClient
+    let query = supabaseClient
       .from('course')
       .select('*')
-      .order('course_id', { ascending: true })
-      .range(pageStart, pageEnd);
+      .order('course_id', { ascending: true });
+    if (Number.isInteger(exactCourseId) && exactCourseId > 0) {
+      query = query.eq('course_id', exactCourseId);
+    }
+    const result = await query.range(pageStart, pageEnd);
 
     if (result.error) {
       const error = new Error(

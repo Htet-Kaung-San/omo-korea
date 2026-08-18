@@ -2610,6 +2610,8 @@ const getEnrollments = async (req, res) => {
         day_of_week: course?.day_of_week ?? null,
         start_time: course?.start_time ?? null,
         end_time: course?.end_time ?? null,
+        final_grade: item.final_grade ?? null,
+        credits_earned: item.credits_earned == null ? null : Number(item.credits_earned),
       };
     });
 
@@ -2633,6 +2635,14 @@ const createEnrollment = async (req, res) => {
     const now = new Date();
     const currentSemester = `${now.getFullYear()}-${now.getMonth() + 1 >= 7 ? "Fall" : "Spring"}`;
     const semester = String(req.body.semester || currentSemester);
+    const finalGradeValue = req.body.final_grade ?? req.body.finalGrade;
+    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
+    const finalGrade = finalGradeValue == null || String(finalGradeValue).trim() === ""
+      ? null
+      : String(finalGradeValue).trim().toUpperCase();
+    const creditsEarned = creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
+      ? null
+      : Number(creditsEarnedValue);
 
     if (!student_id || !course_id) {
       return res
@@ -2663,6 +2673,12 @@ const createEnrollment = async (req, res) => {
           message: "A past course must be from an earlier academic term.",
         });
       }
+      if (finalGrade && !/^(A\+|A0|B\+|B0|C\+|C0|D\+|D0|F|P|NP|S|U)$/.test(finalGrade)) {
+        return res.status(400).json({ success: false, message: "Unsupported final grade." });
+      }
+      if (creditsEarned !== null && (!Number.isFinite(creditsEarned) || creditsEarned < 0)) {
+        return res.status(400).json({ success: false, message: "Credits earned must be zero or greater." });
+      }
     }
 
     // Check if already enrolled
@@ -2670,7 +2686,8 @@ const createEnrollment = async (req, res) => {
       .from("enrollment")
       .select("*")
       .eq("student_id", student_id)
-      .eq("course_id", Number(course_id));
+      .eq("course_id", Number(course_id))
+      .eq("semester", semester);
 
     if (existing && existing.length > 0) {
       return res
@@ -2689,6 +2706,12 @@ const createEnrollment = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Course not found",
+      });
+    }
+    if (creditsEarned !== null && creditsEarned > Number(targetCourse.credit || 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Credits earned cannot exceed the course credits.",
       });
     }
 
@@ -2727,14 +2750,18 @@ const createEnrollment = async (req, res) => {
       }
     }
 
+    const enrollmentInsert = {
+      student_id: Number(student_id),
+      course_id: Number(course_id),
+      semester,
+      status,
+    };
+    if (status === "Completed" && finalGrade !== null) enrollmentInsert.final_grade = finalGrade;
+    if (status === "Completed" && creditsEarned !== null) enrollmentInsert.credits_earned = creditsEarned;
+
     const { data, error } = await supabase
       .from("enrollment")
-      .insert({
-        student_id: Number(student_id),
-        course_id: Number(course_id),
-        semester,
-        status,
-      })
+      .insert(enrollmentInsert)
       .select()
       .single();
 
@@ -2755,6 +2782,78 @@ const createEnrollment = async (req, res) => {
   }
 };
 
+const updateEnrollment = async (req, res) => {
+  try {
+    const enrollmentId = Number(req.params.enrollment_id);
+    const studentId = Number(req.user?.student_id);
+    if (!Number.isInteger(enrollmentId) || !Number.isInteger(studentId)) {
+      return res.status(400).json({ success: false, message: "Invalid enrollment." });
+    }
+    const { data: existing, error: lookupError } = await supabase
+      .from("enrollment")
+      .select("enrollment_id,student_id,course_id,status,semester")
+      .eq("enrollment_id", enrollmentId)
+      .maybeSingle();
+    if (lookupError) return res.status(500).json({ success: false, message: "Failed to find course record" });
+    if (!existing) return res.status(404).json({ success: false, message: "Course record not found" });
+    if (Number(existing.student_id) !== studentId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const semester = String(req.body.semester || existing.semester);
+    if (!/^\d{4}-(Spring|Summer|Fall|Winter)$/.test(semester)) {
+      return res.status(400).json({ success: false, message: "Invalid semester." });
+    }
+    const [, yearText, termText] = semester.match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/);
+    const termOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4 };
+    const requestedRank = Number(yearText) * 10 + termOrder[termText];
+    const now = new Date();
+    const currentRank = now.getFullYear() * 10 + (now.getMonth() + 1 >= 7 ? 3 : 1);
+    if (requestedRank >= currentRank) {
+      return res.status(400).json({ success: false, message: "A past course must be from an earlier academic term." });
+    }
+
+    const finalGradeValue = req.body.final_grade ?? req.body.finalGrade;
+    const finalGrade = finalGradeValue == null || String(finalGradeValue).trim() === ""
+      ? null
+      : String(finalGradeValue).trim().toUpperCase();
+    if (finalGrade && !/^(A\+|A0|B\+|B0|C\+|C0|D\+|D0|F|P|NP|S|U)$/.test(finalGrade)) {
+      return res.status(400).json({ success: false, message: "Unsupported final grade." });
+    }
+    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
+    const creditsEarned = creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
+      ? null
+      : Number(creditsEarnedValue);
+    const { data: course, error: courseError } = await supabase
+      .from("course")
+      .select("credit")
+      .eq("course_id", Number(existing.course_id))
+      .single();
+    if (courseError || !course) return res.status(404).json({ success: false, message: "Course not found" });
+    if (creditsEarned !== null && (!Number.isFinite(creditsEarned)
+      || creditsEarned < 0 || creditsEarned > Number(course.credit || 0))) {
+      return res.status(400).json({ success: false, message: "Invalid credits earned." });
+    }
+
+    const { data, error } = await supabase
+      .from("enrollment")
+      .update({
+        semester,
+        status: "Completed",
+        final_grade: finalGrade,
+        credits_earned: creditsEarned,
+      })
+      .eq("enrollment_id", enrollmentId)
+      .eq("student_id", studentId)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ success: false, message: "Failed to update course history", error: error.message });
+    return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Unexpected server error", error: err.message });
+  }
+};
+
 const deleteEnrollment = async (req, res) => {
   try {
     const { enrollment_id } = req.params;
@@ -2772,11 +2871,10 @@ const deleteEnrollment = async (req, res) => {
     if (String(enrollment.student_id) !== String(req.user?.student_id)) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
-    const { error } = await supabase
-      .from("enrollment")
-      .delete()
-      .eq("enrollment_id", Number(enrollment_id))
-      .eq("student_id", Number(req.user.student_id));
+    const { error } = await supabase.rpc("drop_student_course_plan", {
+      p_student_id: Number(req.user.student_id),
+      p_enrollment_id: Number(enrollment_id),
+    });
     if (error)
       return res.status(500).json({
         success: false,
@@ -3664,6 +3762,7 @@ module.exports = {
   getCourses,
   getEnrollments,
   createEnrollment,
+  updateEnrollment,
   deleteEnrollment,
   getPostComments,
   createComment,

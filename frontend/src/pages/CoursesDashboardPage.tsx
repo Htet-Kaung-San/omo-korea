@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, BookOpen, CalendarDays, ChevronRight, Plus, Search, Sparkles, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, CalendarDays, ChevronRight, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '@/api'
 import { AddPastCourseModal } from '@/components/courses/AddPastCourseModal'
+import { EditPastCourseModal } from '@/components/courses/EditPastCourseModal'
+import { CourseTermSelector } from '@/components/courses/CourseTermSelector'
+import { AddTimetableModal } from '@/components/schedule/AddTimetableModal'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
-import type { CourseCatalogItem, CourseType, Enrollment } from '@/types/api'
+import type { CourseCatalogItem, CourseType, CreateTimetableEntryInput, Enrollment } from '@/types/api'
+import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/courseTerm'
 
 type CoursesTab = 'current' | 'all' | 'offered' | 'past'
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
@@ -57,11 +61,14 @@ export function CoursesDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [catalogLoading, setCatalogLoading] = useState(false)
   const [showAddPast, setShowAddPast] = useState(false)
+  const [editingPast, setEditingPast] = useState<Enrollment | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<CourseCatalogItem | null>(null)
+  const [timetableCourseIds, setTimetableCourseIds] = useState<Set<number>>(new Set())
+  const [term, setTerm] = useState<CourseTerm>(() => currentCourseTerm())
   const [changingCourseId, setChangingCourseId] = useState<number | null>(null)
   const [error, setError] = useState('')
-  const now = new Date()
-  const academicYear = now.getFullYear()
-  const semester = (now.getMonth() + 1 >= 7 ? '2' : '1') as '1' | '2'
+  const academicYear = term.academicYear
+  const semester = term.semester
 
   const loadEnrollments = useCallback(async () => {
     if (!user) return
@@ -77,6 +84,12 @@ export function CoursesDashboardPage() {
   }, [t, user])
 
   useEffect(() => { loadEnrollments() }, [loadEnrollments])
+
+  useEffect(() => {
+    api.getTimetable({ academicYear, semester })
+      .then((entries) => setTimetableCourseIds(new Set(entries.map((entry) => Number(entry.course_id)))))
+      .catch((reason) => setError(reason instanceof Error ? reason.message : t('academic.loadError')))
+  }, [academicYear, semester, t])
 
   useEffect(() => {
     if (tab !== 'all' && tab !== 'offered') return
@@ -143,14 +156,26 @@ export function CoursesDashboardPage() {
     }
   }
 
-  async function addCurrentCourse(course: CourseCatalogItem) {
+  async function addCurrentCourse(data: CreateTimetableEntryInput) {
     if (!user) return
-    const courseId = Number(course.id)
+    const courseId = Number(data.courseId)
     setChangingCourseId(courseId)
     setError('')
+    let createdEnrollment: Enrollment | null = null
     try {
-      await api.createEnrollment(user.studentId, courseId)
+      const alreadyEnrolled = activeEnrollments.some((item) =>
+        Number(item.catalog_course_id || item.course_id) === courseId
+        && item.semester === enrollmentSemester(term))
+      if (!alreadyEnrolled) createdEnrollment = await api.createEnrollment(user.studentId, courseId, enrollmentSemester(term))
+      try {
+        await api.createTimetableEntry(data)
+      } catch (reason) {
+        if (createdEnrollment) await api.deleteEnrollment(createdEnrollment.enrollment_id).catch(() => undefined)
+        throw reason
+      }
       await loadEnrollments()
+      setTimetableCourseIds((current) => new Set(current).add(courseId))
+      setSelectedCourse(null)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('common.errorFallback'))
     } finally {
@@ -167,6 +192,11 @@ export function CoursesDashboardPage() {
       setEnrollments((current) => current.filter(
         (item) => Number(item.enrollment_id) !== Number(enrollment.enrollment_id),
       ))
+      setTimetableCourseIds((current) => {
+        const next = new Set(current)
+        next.delete(Number(enrollment.catalog_course_id || enrollment.course_id))
+        return next
+      })
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('common.errorFallback'))
     } finally {
@@ -182,8 +212,10 @@ export function CoursesDashboardPage() {
   ]
   const visibleEnrollments = tab === 'past' ? pastEnrollments : activeEnrollments
   const enrolledCourseIds = useMemo(
-    () => new Set(enrollments.map((item) => Number(item.catalog_course_id || item.course_id))),
-    [enrollments],
+    () => new Set(activeEnrollments
+      .filter((item) => item.semester === enrollmentSemester(term))
+      .map((item) => Number(item.catalog_course_id || item.course_id))),
+    [activeEnrollments, term],
   )
 
   return (
@@ -217,6 +249,8 @@ export function CoursesDashboardPage() {
             <button key={id} type="button" onClick={() => setTab(id)} className={`-mb-px border-b-2 pb-1.5 text-[11px] font-semibold ${tab === id ? 'border-pnu-blue text-pnu-blue' : 'border-transparent text-pnu-muted'}`}>{t(labelKey)}</button>
           ))}
         </div>
+
+        {(tab === 'all' || tab === 'offered') ? <CourseTermSelector value={term} onChange={setTerm} /> : null}
 
         {tab === 'all' || tab === 'offered' ? (
           <>
@@ -262,7 +296,7 @@ export function CoursesDashboardPage() {
                   const alreadyAdded = enrolledCourseIds.has(courseId)
                   return (
                   <li key={course.id} className="flex items-center gap-2 pr-3">
-                    <Link to={`/academic/recommended-courses/${course.id}`} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3">
+                    <Link to={`/academic/recommended-courses/${course.id}?academicYear=${academicYear}&semester=${semester}`} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3">
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F3FF] text-pnu-blue"><BookOpen className="h-4 w-4" /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-[10px] font-bold text-pnu-blue">{course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}</span>
@@ -273,11 +307,11 @@ export function CoursesDashboardPage() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() => addCurrentCourse(course)}
-                      disabled={alreadyAdded || changingCourseId === courseId}
+                      onClick={() => setSelectedCourse(course)}
+                      disabled={timetableCourseIds.has(courseId) || changingCourseId === courseId}
                       className="shrink-0 rounded-xl bg-pnu-blue px-2.5 py-2 text-[10px] font-bold text-white disabled:bg-emerald-50 disabled:text-emerald-700"
                     >
-                      {alreadyAdded ? t('courses.alreadyAdded') : changingCourseId === courseId ? t('common.loading') : t('courses.addCurrent')}
+                      {timetableCourseIds.has(courseId) ? t('timetable.added') : changingCourseId === courseId ? t('common.loading') : alreadyAdded ? t('academic.addToTimetable') : t('courses.addCurrent')}
                     </button>
                   </li>
                   )
@@ -304,10 +338,11 @@ export function CoursesDashboardPage() {
                       <span className="block text-[10px] font-bold text-pnu-blue">{enrollment.official_course_number || `${t('courses.courseId')} ${enrollment.course_id}`}</span>
                       <span className="block truncate text-[13px] font-bold text-pnu-text">{enrollment.course_name_en || enrollment.course_name || t('courses.untitled')}</span>
                       <span className="block truncate text-[10px] text-pnu-muted">{enrollment.professor || t('courses.professorUnknown')} · {enrollment.semester}</span>
-                      <span className="block truncate text-[10px] text-pnu-muted">{tab === 'past' ? enrollment.status : formatSchedule(enrollment)}</span>
+                      <span className="block truncate text-[10px] text-pnu-muted">{tab === 'past' ? [enrollment.status, enrollment.final_grade, enrollment.credits_earned == null ? null : `${enrollment.credits_earned} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ') : formatSchedule(enrollment)}</span>
                     </span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-pnu-muted/40" />
                     </Link>
+                    {tab === 'past' ? <button type="button" onClick={() => setEditingPast(enrollment)} className="shrink-0 rounded-lg p-2 text-pnu-blue" aria-label={t('courses.editPastCourse')}><Pencil className="h-4 w-4" /></button> : null}
                     <button
                       type="button"
                       onClick={() => removeCourse(enrollment)}
@@ -327,7 +362,9 @@ export function CoursesDashboardPage() {
         <Link to="/academic/recommended-courses" className="flex items-center gap-3 rounded-[14px] bg-white px-3 py-3" style={{ boxShadow: CARD_SHADOW }}><Sparkles className="h-5 w-5 text-[#7C3AED]" /><span className="flex-1 text-[13px] font-bold text-pnu-text">{t('courses.aiRecommendation')}</span><ChevronRight className="h-4 w-4 text-pnu-muted/40" /></Link>
       </div>
 
-      {showAddPast ? <AddPastCourseModal existingCourseIds={enrollments.map((item) => Number(item.course_id))} onClose={() => setShowAddPast(false)} onAdded={async () => { await loadEnrollments(); setShowAddPast(false) }} /> : null}
+      {showAddPast ? <AddPastCourseModal existingEnrollments={enrollments} onClose={() => setShowAddPast(false)} onAdded={async () => { await loadEnrollments(); setShowAddPast(false) }} /> : null}
+      {editingPast ? <EditPastCourseModal enrollment={editingPast} onClose={() => setEditingPast(null)} onSaved={async () => { await loadEnrollments(); setEditingPast(null) }} /> : null}
+      {selectedCourse ? <AddTimetableModal course={selectedCourse} academicYear={academicYear} semester={semester} submitting={changingCourseId === Number(selectedCourse.id)} onClose={() => setSelectedCourse(null)} onSubmit={addCurrentCourse} /> : null}
     </div>
   )
 }

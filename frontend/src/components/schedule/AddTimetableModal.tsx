@@ -13,6 +13,8 @@ const DAYS = [
   { value: 3, label: 'Wed' },
   { value: 4, label: 'Thu' },
   { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+  { value: 7, label: 'Sun' },
 ] as const
 
 interface Props {
@@ -170,7 +172,7 @@ export function AddTimetableModal({
               type="button"
               onClick={() => setSlots((current) => [
                 ...current,
-                { day: 3, start: '09:00', end: '10:30', classroom: '' },
+                { day: 3, start: '', end: '', classroom: '' },
               ])}
               className="text-xs font-bold text-pnu-blue"
             >

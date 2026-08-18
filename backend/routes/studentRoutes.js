@@ -33,6 +33,7 @@ const {
   getCourses,
   getEnrollments,
   createEnrollment,
+  updateEnrollment,
   deleteEnrollment,
   getPostComments,
   createComment,
@@ -134,6 +135,7 @@ router.put(
 );
 router.get("/enrollments/:student_id", authenticateToken, getEnrollments);
 router.post("/enrollments", authenticateToken, createEnrollment);
+router.patch("/enrollments/:enrollment_id", authenticateToken, updateEnrollment);
 router.delete("/enrollments/:enrollment_id", authenticateToken, deleteEnrollment);
 router.post("/scholarships/apply", authenticateToken, applyForScholarship);
 router.get("/dashboard-summary", authenticateToken, getDashboardSummary);

@@ -193,13 +193,17 @@ const explicitPresentationNone = getVerifiedCourseOfferingDisplay(mapRecommended
 assert.equal(explicitPresentationNone.presentationRequirementKey, null)
 
 const courseDetailSource = readSource('src/pages/CourseDetailPage.tsx')
-assert.match(courseDetailSource, /getCourseCatalog\(\{ courseId, pageSize: 1, academicYear, semester \}\)/)
+assert.match(courseDetailSource, /getCourseCatalog\(\{ courseId, pageSize: 1, academicYear: term\.academicYear, semester: term\.semester \}\)/)
+assert.match(courseDetailSource, /CourseTermSelector/)
+assert.match(courseDetailSource, /enrollmentLimit/)
+assert.match(courseDetailSource, /offering\.restrictions/)
 
 const recommendationSource = readSource('src/pages/RecommendedCoursesPage.tsx')
 assert.match(recommendationSource, /courseId: course\.id,[\s\S]*academicYear,[\s\S]*semester,/)
 
 const dashboardSource = readSource('src/pages/CoursesDashboardPage.tsx')
-assert.match(dashboardSource, /api\.createEnrollment\(user\.studentId, courseId\)/)
+assert.match(dashboardSource, /api\.createEnrollment\(user\.studentId, courseId, enrollmentSemester\(term\)\)/)
+assert.match(dashboardSource, /api\.createTimetableEntry\(data\)/)
 assert.match(dashboardSource, /api\.deleteEnrollment\(Number\(enrollment\.enrollment_id\)\)/)
 assert.match(dashboardSource, /catalogTotal\.toLocaleString\(\)/)
 assert.match(dashboardSource, /catalogHasMore/)

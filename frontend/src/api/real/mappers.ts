@@ -122,6 +122,12 @@ interface BackendCourse {
   curriculumYears?: number[]
   curriculum?: CourseCatalogItem['curriculum']
   offerings?: CourseCatalogItem['offerings']
+  descriptionKo?: string | null
+  descriptionEn?: string | null
+  descriptionSourceUrl?: string | null
+  syllabusUrl?: string | null
+  detailSourceKind?: CourseCatalogItem['detailSourceKind']
+  prerequisites?: CourseCatalogItem['prerequisites']
   isOfferedThisTerm?: boolean | null
 }
 
@@ -367,6 +373,12 @@ export function mapCourseCatalogItem(course: BackendCourse): CourseCatalogItem {
       : [],
     curriculum: course.curriculum ?? null,
     offerings: Array.isArray(course.offerings) ? course.offerings : [],
+    descriptionKo: course.descriptionKo ?? null,
+    descriptionEn: course.descriptionEn ?? null,
+    descriptionSourceUrl: course.descriptionSourceUrl ?? null,
+    syllabusUrl: course.syllabusUrl ?? null,
+    detailSourceKind: course.detailSourceKind ?? null,
+    prerequisites: Array.isArray(course.prerequisites) ? course.prerequisites : [],
   }
 }
 

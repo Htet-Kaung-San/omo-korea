@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
-import type { CourseCatalogItem } from '@/types/api'
+import type { CourseCatalogItem, Enrollment } from '@/types/api'
 
 interface AddPastCourseModalProps {
-  existingCourseIds: number[]
+  existingEnrollments: Enrollment[]
   onClose: () => void
   onAdded: () => void | Promise<void>
 }
 
 export function AddPastCourseModal({
-  existingCourseIds,
+  existingEnrollments,
   onClose,
   onAdded,
 }: AddPastCourseModalProps) {
@@ -23,6 +23,8 @@ export function AddPastCourseModal({
   const [courses, setCourses] = useState<CourseCatalogItem[]>([])
   const [year, setYear] = useState(defaultYear)
   const [term, setTerm] = useState(defaultTerm)
+  const [finalGrade, setFinalGrade] = useState('')
+  const [creditsEarned, setCreditsEarned] = useState('')
   const [loading, setLoading] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -58,7 +60,10 @@ export function AddPastCourseModal({
     setAddingId(course.id)
     setError('')
     try {
-      await api.addPastCourse(Number(course.id), `${year}-${term}`)
+      await api.addPastCourse(Number(course.id), `${year}-${term}`, {
+        finalGrade: finalGrade || null,
+        creditsEarned: creditsEarned === '' ? null : Number(creditsEarned),
+      })
       await onAdded()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('common.errorFallback'))
@@ -88,6 +93,13 @@ export function AddPastCourseModal({
             {['Spring', 'Summer', 'Fall', 'Winter'].map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
+        <div className="grid grid-cols-2 gap-2 px-4 pt-2">
+          <select value={finalGrade} onChange={(event) => setFinalGrade(event.target.value)} className="rounded-xl border border-pnu-border px-3 py-2 text-sm" aria-label={t('courses.finalGrade')}>
+            <option value="">{t('courses.gradeUnknown')}</option>
+            {['A+', 'A0', 'B+', 'B0', 'C+', 'C0', 'D+', 'D0', 'F', 'P', 'NP', 'S', 'U'].map((grade) => <option key={grade}>{grade}</option>)}
+          </select>
+          <input type="number" min="0" step="0.5" value={creditsEarned} onChange={(event) => setCreditsEarned(event.target.value)} placeholder={t('courses.creditsEarned')} className="rounded-xl border border-pnu-border px-3 py-2 text-sm" />
+        </div>
 
         <div className="relative px-4 py-3">
           <Search className="absolute left-7 top-6 h-4 w-4 text-pnu-muted" />
@@ -103,7 +115,9 @@ export function AddPastCourseModal({
         <div className="max-h-[55vh] overflow-y-auto border-t border-pnu-border">
           {loading ? <p className="p-6 text-center text-sm text-pnu-muted">{t('common.loading')}</p> : null}
           {!loading && courses.map((course) => {
-            const exists = existingCourseIds.includes(Number(course.id))
+            const exists = existingEnrollments.some((item) =>
+              Number(item.catalog_course_id || item.course_id) === Number(course.id)
+              && item.semester === `${year}-${term}`)
             return (
               <div key={course.id} className="flex items-center gap-3 border-b border-pnu-border px-4 py-3">
                 <div className="min-w-0 flex-1">

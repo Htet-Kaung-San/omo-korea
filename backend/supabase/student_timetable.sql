@@ -19,7 +19,7 @@ create table if not exists public.student_timetable_entry (
   constraint student_timetable_entry_student_id_fkey
     foreign key (student_id) references public.student(student_id) on delete cascade,
   constraint student_timetable_entry_course_id_fkey
-    foreign key (course_id) references public.course(course_id) on delete cascade,
+    foreign key (course_id) references public.course(course_id) on delete restrict,
   constraint student_timetable_entry_offering_id_fkey
     foreign key (course_offering_id)
     references public.course_offering(course_offering_id) on delete set null,

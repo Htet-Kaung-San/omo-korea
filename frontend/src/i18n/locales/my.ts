@@ -2,6 +2,7 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "ဖတ်နေသည်…",
+  'common.save': "Save",
   'common.sending': "ပို့နေသည်…",
   'support.sendFailed': "မက်ဆေ့ဂျ် ပို့၍ မရပါ။ အင်တာနက် ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။",
   'common.viewAll': "အားလုံးကြည့်ရန်",

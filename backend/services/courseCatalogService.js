@@ -16,7 +16,26 @@ function positiveInteger(value, fallback, maximum = Number.MAX_SAFE_INTEGER) {
   return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, maximum) : fallback;
 }
 
-function mapOffering(row, metadata = null) {
+function mapRestriction(row) {
+  return {
+    id: Number(row.course_offering_restriction_id),
+    kind: row.source_kind,
+    ruleType: row.source_rule_type || null,
+    permission: row.permission || null,
+    departmentCondition: row.department_condition || null,
+    yearLevelCondition: row.year_level_condition || null,
+    domesticForeignCondition: row.domestic_foreign_condition || null,
+    nationalityCondition: row.nationality_condition || null,
+    curriculumYearCondition: row.curriculum_year_condition || null,
+    completedSemestersCondition: row.completed_semesters_condition || null,
+    academicStatusCondition: row.academic_status_condition || null,
+    degreeProgramCondition: row.degree_program_condition || null,
+    reason: row.reason || null,
+    exceptionText: row.exception_text || null,
+  };
+}
+
+function mapOffering(row, metadata = null, restrictions = []) {
   return {
     courseOfferingId: Number(row.course_offering_id),
     officialCourseNumber: row.official_course_number || null,
@@ -28,11 +47,75 @@ function mapOffering(row, metadata = null) {
     classroom: row.classroom || null,
     teachingLanguage: row.teaching_language || null,
     remoteCourseStatus: row.remote_course_status || null,
+    enrollmentLimit: row.enrollment_limit == null ? null : Number(row.enrollment_limit),
+    teamTeachingStatus: row.team_teaching_status || null,
+    generalEducationArea: row.general_education_area || null,
+    remarks: row.remarks || null,
+    restrictions: restrictions.map(mapRestriction),
     slots: parseOfferingSchedule(row.schedule, row.classroom),
     presentationRequirement: metadata?.presentation_requirement || null,
     groupProjectRequirement: metadata?.group_project_requirement || null,
     assignmentRequirement: metadata?.assignment_requirement || null,
     examInformation: metadata?.exam_information || null,
+  };
+}
+
+function isMissingOptionalRelation(error) {
+  return ['PGRST205', '42P01', '42703'].includes(error?.code)
+    || /could not find|does not exist|schema cache/i.test(error?.message || '');
+}
+
+async function fetchOfferingRestrictions(supabase, offeringIds) {
+  if (!offeringIds.length) return [];
+  const { data, error } = await supabase
+    .from('course_offering_restriction')
+    .select(`
+      course_offering_restriction_id,course_offering_id,source_kind,
+      source_rule_type,permission,department_condition,year_level_condition,
+      domestic_foreign_condition,nationality_condition,curriculum_year_condition,
+      completed_semesters_condition,academic_status_condition,
+      degree_program_condition,reason,exception_text
+    `)
+    .in('course_offering_id', offeringIds)
+    .order('course_offering_restriction_id', { ascending: true });
+  if (error) {
+    if (isMissingOptionalRelation(error)) return [];
+    const failure = new Error(`Failed to fetch course restrictions: ${error.message}`);
+    failure.statusCode = 502;
+    failure.code = 'SUPABASE_COURSE_RESTRICTION_QUERY_FAILED';
+    throw failure;
+  }
+  return data || [];
+}
+
+async function fetchCourseSourceDetails(supabase, courseIds) {
+  if (!courseIds.length) return { details: [], prerequisites: [] };
+  const [detailResult, prerequisiteResult] = await Promise.all([
+    supabase
+      .from('course_source_detail')
+      .select('course_id,description_ko,description_en,source_url,syllabus_url,source_kind,retrieved_at')
+      .in('course_id', courseIds),
+    supabase
+      .from('course_prerequisite')
+      .select(`
+        course_prerequisite_id,course_id,prerequisite_course_id,
+        requirement_text,source_url,source_kind,
+        prerequisite:prerequisite_course_id(course_id,course_name,course_name_en,official_course_number)
+      `)
+      .in('course_id', courseIds)
+      .order('course_prerequisite_id', { ascending: true }),
+  ]);
+  const nonOptionalError = [detailResult.error, prerequisiteResult.error]
+    .find((error) => error && !isMissingOptionalRelation(error));
+  if (nonOptionalError) {
+    const failure = new Error(`Failed to fetch sourced course details: ${nonOptionalError.message}`);
+    failure.statusCode = 502;
+    failure.code = 'SUPABASE_COURSE_DETAIL_QUERY_FAILED';
+    throw failure;
+  }
+  return {
+    details: detailResult.error ? [] : (detailResult.data || []),
+    prerequisites: prerequisiteResult.error ? [] : (prerequisiteResult.data || []),
   };
 }
 
@@ -91,7 +174,10 @@ async function listCourseCatalog(supabase, options = {}) {
   const pageSize = positiveInteger(options.pageSize, 50, 100);
   const preferredCurriculumYear = Number(options.curriculumYear);
   const [baseCourses, curriculumRows, majors] = await Promise.all([
-    fetchAllCourses(supabase, { language: options.language || 'en' }),
+    fetchAllCourses(supabase, {
+      language: options.language || 'en',
+      courseId: options.courseId,
+    }),
     fetchCourseCurriculum(supabase, {
       majorId: options.majorId == null || options.majorId === '' ? undefined : Number(options.majorId),
     }),
@@ -172,6 +258,38 @@ async function listCourseCatalog(supabase, options = {}) {
   const offset = (page - 1) * pageSize;
   const items = courses.slice(offset, offset + pageSize);
 
+  if (items.length) {
+    const courseIds = items.map((course) => Number(course.id));
+    const sourced = await fetchCourseSourceDetails(supabase, courseIds);
+    const detailByCourseId = new Map(
+      sourced.details.map((row) => [String(row.course_id), row]),
+    );
+    const prerequisiteByCourseId = new Map();
+    for (const row of sourced.prerequisites) {
+      const key = String(row.course_id);
+      if (!prerequisiteByCourseId.has(key)) prerequisiteByCourseId.set(key, []);
+      prerequisiteByCourseId.get(key).push({
+        id: Number(row.course_prerequisite_id),
+        courseId: row.prerequisite_course_id == null ? null : Number(row.prerequisite_course_id),
+        officialCourseNumber: row.prerequisite?.official_course_number || null,
+        nameKo: row.prerequisite?.course_name || null,
+        nameEn: row.prerequisite?.course_name_en || null,
+        requirementText: row.requirement_text || null,
+        sourceUrl: row.source_url || null,
+        sourceKind: row.source_kind,
+      });
+    }
+    for (const course of items) {
+      const detail = detailByCourseId.get(String(course.id));
+      course.descriptionKo = detail?.description_ko || null;
+      course.descriptionEn = detail?.description_en || null;
+      course.descriptionSourceUrl = detail?.source_url || null;
+      course.syllabusUrl = detail?.syllabus_url || null;
+      course.detailSourceKind = detail?.source_kind || null;
+      course.prerequisites = prerequisiteByCourseId.get(String(course.id)) || [];
+    }
+  }
+
   if (items.length && hasRequestedTerm) {
     const requestedIds = new Set(items.map((course) => String(course.id)));
     const requestedOfferings = offeringRows.filter((row) => requestedIds.has(String(row.course_id)));
@@ -182,12 +300,26 @@ async function listCourseCatalog(supabase, options = {}) {
     const metadataByOfferingId = new Map(
       metadataRows.map((row) => [String(row.course_offering_id), row]),
     );
+    const restrictionRows = await fetchOfferingRestrictions(
+      supabase,
+      requestedOfferings.map((row) => row.course_offering_id),
+    );
+    const restrictionsByOfferingId = new Map();
+    for (const restriction of restrictionRows) {
+      const key = String(restriction.course_offering_id);
+      if (!restrictionsByOfferingId.has(key)) restrictionsByOfferingId.set(key, []);
+      restrictionsByOfferingId.get(key).push(restriction);
+    }
     const byCourseId = new Map();
     for (const row of requestedOfferings) {
       const key = String(row.course_id);
       if (!byCourseId.has(key)) byCourseId.set(key, []);
       byCourseId.get(key).push(
-        mapOffering(row, metadataByOfferingId.get(String(row.course_offering_id)) || null),
+        mapOffering(
+          row,
+          metadataByOfferingId.get(String(row.course_offering_id)) || null,
+          restrictionsByOfferingId.get(String(row.course_offering_id)) || [],
+        ),
       );
     }
     for (const course of items) {
@@ -215,7 +347,11 @@ async function listCourseCatalog(supabase, options = {}) {
 module.exports = {
   filterCourses,
   filterCoursesByOffering,
+  fetchCourseSourceDetails,
+  fetchOfferingRestrictions,
+  isMissingOptionalRelation,
   listCourseCatalog,
   mapOffering,
+  mapRestriction,
   normalizeText,
 };
