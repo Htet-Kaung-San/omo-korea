@@ -388,6 +388,7 @@ const messages: MessageDictionary = {
   'chat.emptyHint': "Ask about course registration, credits, housing, or campus services.",
   'chat.typing': "Sanjini is typing…",
   'chat.groundedIn': "Based on:",
+  'chat.truncatedNotice': "This answer was cut off before it finished. Ask again for the full reply.",
   'chat.ungroundedNotice': "General guidance — not from official PNU documents. For visa, work or graduation decisions, confirm with the International Affairs Office (국제처) or call 1345.",
   'chat.placeholder': "Type your question…",
   'chat.askAnything': "Ask anything...",

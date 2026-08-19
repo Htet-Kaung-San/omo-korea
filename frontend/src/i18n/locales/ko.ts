@@ -349,6 +349,7 @@ const messages: MessageDictionary = {
   'chat.emptyHint': "수강신청, 학점, 기숙사, 캠퍼스 서비스에 대해 물어보세요.",
   'chat.typing': "산지니가 입력 중…",
   'chat.groundedIn': "출처:",
+  'chat.truncatedNotice': "답변이 끝나기 전에 중단되었습니다. 전체 답변을 보려면 다시 질문해 주세요.",
   'chat.ungroundedNotice': "일반적인 안내이며 부산대 공식 문서에 근거한 답변이 아닙니다. 비자·근로·졸업 관련 결정은 국제처에 확인하거나 1345로 문의하세요.",
   'chat.placeholder': "질문을 입력하세요…",
   'chat.askAnything': "무엇이든 물어보세요...",

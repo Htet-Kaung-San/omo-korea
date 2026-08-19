@@ -696,6 +696,13 @@ export interface ChatGrounding {
   status: string
   /** Titles of the documents the answer drew on. Empty when ungrounded. */
   sources: string[]
+  /**
+   * False when the model stopped before finishing — almost always because it
+   * hit the token cap. A truncated answer reads as a complete one, which on
+   * "You do NOT need to report your part-time job if…" is the difference
+   * between guidance and misinformation.
+   */
+  complete: boolean
 }
 
 export interface ChatStreamHandlers {

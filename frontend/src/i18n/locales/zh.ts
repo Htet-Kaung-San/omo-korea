@@ -340,6 +340,7 @@ const messages: MessageDictionary = {
   'chat.emptyHint': "可咨询选课、学分、宿舍或校园服务。",
   'chat.typing': "Sanjini 正在输入…",
   'chat.groundedIn': "依据：",
+  'chat.truncatedNotice': "此回答尚未结束就被中断。请再问一次以获取完整回复。",
   'chat.ungroundedNotice': "此为一般性建议，并非来自釜山大学官方文件。涉及签证、打工或毕业的决定，请向国际处确认或拨打 1345。",
   'chat.placeholder': "请输入你的问题…",
   'chat.askAnything': "随便问...",

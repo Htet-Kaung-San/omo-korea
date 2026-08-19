@@ -378,7 +378,14 @@ export function AiAssistantPage() {
                     stay silent there. The topic gate is what keeps this off
                     greetings and ordinary course questions — those retrieve
                     curriculum too, but being wrong about them costs nothing. */}
-                {message.text && message.grounding ? (
+                {/* A cut-off answer is flagged before anything else. Citing
+                    sources under half a sentence would vouch for a claim the
+                    model never finished making. */}
+                {message.text && message.grounding?.complete === false ? (
+                  <p className="mt-1.5 rounded-[12px] bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 ring-1 ring-amber-100">
+                    {t('chat.truncatedNotice')}
+                  </p>
+                ) : message.text && message.grounding ? (
                   message.grounding.sources.length > 0 ? (
                     <p className="mt-1 px-1 text-[10px] leading-relaxed text-pnu-muted">
                       {t('chat.groundedIn')}{' '}

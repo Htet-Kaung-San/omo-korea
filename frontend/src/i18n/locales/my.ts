@@ -348,6 +348,7 @@ const messages: MessageDictionary = {
   'chat.emptyHint': "Course registration, credits, housing သို့မဟုတ် campus services အကြောင်း မေးပါ။",
   'chat.typing': "Sanjini ရိုက်နေသည်…",
   'chat.groundedIn': "အခြေခံသည့် စာရွက်စာတမ်း -",
+  'chat.truncatedNotice': "ဤအဖြေသည် မပြီးဆုံးမီ ရပ်တန့်သွားပါသည်။ အပြည့်အစုံ ရရှိရန် ထပ်မံမေးမြန်းပါ။",
   'chat.ungroundedNotice': "ဤအဖြေသည် ယေဘုယျ လမ်းညွှန်ချက်ဖြစ်ပြီး PNU ၏ တရားဝင် စာရွက်စာတမ်းများမှ မဟုတ်ပါ။ ဗီဇာ၊ အလုပ် သို့မဟုတ် ဘွဲ့နှင့်ပတ်သက်သည့် ဆုံးဖြတ်ချက်များအတွက် နိုင်ငံတကာရေးရာဌာန (국제처) သို့ ဆက်သွယ်ပါ သို့မဟုတ် 1345 ကို ဖုန်းဆက်ပါ။",
   'chat.placeholder': "မေးခွန်းရေးပါ…",
   'chat.askAnything': "ဘာမဆို မေးပါ...",

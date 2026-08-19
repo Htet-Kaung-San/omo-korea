@@ -16,6 +16,8 @@ export interface ChatMessage {
     sources: string[]
     /** Whether the question was one where a wrong answer has a real cost. */
     consequential?: boolean
+    /** False when the model stopped before finishing the answer. */
+    complete?: boolean
   }
 }
 

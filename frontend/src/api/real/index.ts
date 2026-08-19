@@ -401,6 +401,9 @@ export const realApi: HeyPnuApi = {
             sources: Array.isArray(sources)
               ? sources.filter((s): s is string => typeof s === 'string')
               : [],
+            // Absent on an older backend, which means "no reason to think it
+            // was cut off" — the same default as before this field existed.
+            complete: metadata.complete !== false,
           })
         },
         signal: handlers.signal,
