@@ -238,12 +238,6 @@ export function CoursesDashboardPage() {
     { id: 'past', labelKey: 'courses.tabPast' },
   ]
   const visibleEnrollments = tab === 'past' ? pastEnrollments : activeEnrollments
-  const enrolledCourseIds = useMemo(
-    () => new Set(activeEnrollments
-      .filter((item) => item.semester === enrollmentSemester(term))
-      .map((item) => Number(item.catalog_course_id || item.course_id))),
-    [activeEnrollments, term],
-  )
 
   return (
     <div className="min-h-full bg-[#F5F7FB]">

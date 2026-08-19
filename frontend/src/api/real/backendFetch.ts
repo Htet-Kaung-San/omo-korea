@@ -1,15 +1,5 @@
 import { apiFetch } from '../client'
 
-interface BackendSuccess<T> {
-  success: true
-  data: T
-}
-
-interface BackendListSuccess<T> {
-  success: true
-  data: T
-}
-
 export async function backendFetch<T>(
   path: string,
   options: RequestInit & { suppressToast?: boolean } = {},
