@@ -90,19 +90,14 @@ idle, and the next request waits roughly 50 seconds for a cold start. Fine for
 teammates trying the assistant; not what you want thirty seconds before a demo.
 Open the site a few minutes beforehand, or upgrade that one service for the day.
 
-**The community feed will be empty.** This is deliberate. The feed queries
-Postgres directly from the browser using `VITE_SUPABASE_ANON_KEY`, and Vite
-inlines every `VITE_` variable into the JavaScript it ships — so setting it
-would publish a working database credential, and only `student_timetable` and
-the course tables have row level security. A logged-in student could read and
-write every other table, including making themselves an admin.
+**No database credentials reach the browser.** The app talks to Postgres only
+through this API, so there is nothing to leak even by accident — the frontend
+does not depend on `@supabase/supabase-js` at all, and no code reads
+`VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY`. Setting them in Render would do
+nothing. This is worth keeping that way: only `student_timetable` and the course
+tables have row level security, so a database key in a public bundle would let
+any logged-in student read and write everything else, `is_admin` included.
 
-So the blueprint deliberately omits it, and `frontend/src/lib/supabase.ts`
-returns `null` without it, which makes the feed return `[]`.
-
-The fix is not to set the key. The Express endpoints already exist
-(`GET`/`POST /api/students/community/posts`, plus like and delete) and
-`api.getCommunityPosts` is already written and unused — the feed needs to be
-moved onto them. That loses realtime push and gains a browser bundle with no
-credentials in it. Roughly an hour of work; worth doing before anyone shares
-the URL widely.
+The trade already made for that: the community feed polls every 45 seconds while
+the tab is visible, instead of receiving realtime pushes. Your own posts, likes
+and deletes still appear immediately.

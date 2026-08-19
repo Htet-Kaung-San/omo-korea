@@ -4,13 +4,12 @@
 # needs a copy. Every secret below is `sync: false`, which means Render asks for
 # it once in the dashboard and it is never written to this file or to git.
 #
-# Deliberately absent: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Vite inlines
-# every VITE_ variable into the JavaScript it ships, so setting those would put a
-# working database credential in a public bundle — and no table in this project
-# has row level security except student_timetable and the course tables. Leaving
-# them unset keeps the browser bundle credential-free; the community feed falls
-# back to an empty list until it is moved onto the Express endpoints that already
-# exist (GET/POST /api/students/community/posts).
+# There are no VITE_SUPABASE_* variables here, and there is no longer any code
+# that would read them: the browser talks to Postgres only through this API.
+# Setting them in the dashboard would have no effect. That matters because Vite
+# inlines every VITE_ variable into the JavaScript it ships, and only
+# student_timetable and the course tables have row level security — a database
+# key in the bundle would let any logged-in student read and write the rest.
 #
 # See DEPLOY.md for what to paste where.
 
