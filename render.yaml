@@ -1,0 +1,78 @@
+# Render Blueprint — one API service and one static site.
+#
+# The point of hosting this is that the API keys live on the server and nobody
+# needs a copy. Every secret below is `sync: false`, which means Render asks for
+# it once in the dashboard and it is never written to this file or to git.
+#
+# Deliberately absent: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Vite inlines
+# every VITE_ variable into the JavaScript it ships, so setting those would put a
+# working database credential in a public bundle — and no table in this project
+# has row level security except student_timetable and the course tables. Leaving
+# them unset keeps the browser bundle credential-free; the community feed falls
+# back to an empty list until it is moved onto the Express endpoints that already
+# exist (GET/POST /api/students/community/posts).
+#
+# See DEPLOY.md for what to paste where.
+
+services:
+  - type: web
+    name: heypnu-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/students/courses
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Where the browser app is served from. Must be the exact origin —
+      # scheme and host, no trailing slash — because index.js compares
+      # req.headers.origin against this list literally.
+      - key: CORS_ORIGINS
+        sync: false
+      # Used to build password-reset links, so it must match the site origin.
+      - key: APP_BASE_URL
+        sync: false
+
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+
+  - type: web
+    name: heypnu-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Must end in /api and carry no trailing slash — the client appends
+      # paths like /students/feedback directly onto it.
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_NAVER_MAP_CLIENT_ID
+        sync: false
+    routes:
+      # Single-page app: every path has to serve index.html or a hard refresh
+      # on /ai or /support/work-permit returns 404 from the static host.
+      - type: rewrite
+        source: /*
+        destination: /index.html
