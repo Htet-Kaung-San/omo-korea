@@ -18,8 +18,23 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function main() {
   const embedAll = process.argv.includes("--all");
 
-  if (!ragService.isGeminiConfigured()) {
-    console.error("✗ GEMINI_API_KEY is not set — embeddings require it. Aborting.");
+  if (!ragService.isEmbeddingConfigured()) {
+    console.error("✗ OPENROUTER_API_KEY is not set — embeddings require it. Aborting.");
+    process.exit(1);
+  }
+
+  // Prove the provider actually answers before touching a single row.
+  // syncDocument replaces a document's chunks, so a provider that is reachable
+  // at the start and dead by document 20 leaves half the knowledge base in one
+  // vector space and half in another. Similarity between two different spaces
+  // is meaningless but still returns a number, so retrieval would confidently
+  // surface the wrong documents — worse than returning nothing at all.
+  try {
+    const probe = await ragService.generateEmbedding("preflight");
+    console.log(`✓ Embedding provider reachable (${probe.length} dimensions).\n`);
+  } catch (err) {
+    console.error(`✗ Embedding provider is not answering: ${err.message}`);
+    console.error("  Nothing was changed. Fix the provider and re-run.");
     process.exit(1);
   }
 
@@ -61,12 +76,20 @@ async function main() {
       failures.push({ id: doc.id, title: doc.title, error: err.message });
       console.error(`  ✗ id=${doc.id}  FAILED — ${doc.title}\n      ${err.message}`);
     }
-    await sleep(400); // stay gentle on the Gemini embedding rate limit
+    await sleep(400); // stay gentle on the embedding rate limit
   }
 
   console.log(`\nDone. Embedded ${ok}/${targets.length}.`);
   if (failures.length) {
     console.log(`Failed (${failures.length}): ${failures.map((f) => f.id).join(", ")}`);
+    if (embedAll) {
+      console.log(
+        "\n⚠ This was a --all run and some documents did not finish, so the\n" +
+          "  knowledge base now mixes vectors from two runs. Re-run until every\n" +
+          "  document succeeds — retrieval compares query and stored vectors\n" +
+          "  directly, and a mixed set returns plausible but wrong matches.",
+      );
+    }
     process.exitCode = 1;
   }
 }
