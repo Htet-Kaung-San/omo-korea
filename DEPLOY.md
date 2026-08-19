@@ -26,7 +26,7 @@ from your `backend/.env`.
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SECRET_KEY` | `backend/.env` |
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | `backend/.env` |
-| `GEMINI_API_KEY` | `backend/.env` |
+| `GEMINI_API_KEY` | `backend/.env` — chat fallback only; embeddings no longer use it |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | `backend/.env` |
 | `CORS_ORIGINS` | the site URL — fill in after step 2 |
 | `APP_BASE_URL` | same as `CORS_ORIGINS` |

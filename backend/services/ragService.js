@@ -2,43 +2,95 @@ const supabase = require("../supabaseClient");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+/**
+ * Embeddings run through OpenRouter, not Gemini.
+ *
+ * They used to be Gemini-only with no fallback, which meant one provider was a
+ * single point of failure for the entire knowledge base. On 2026-08-19 that
+ * Google project was blocked account-wide — every model, generation included,
+ * returned 403 "Your project has been denied access" — and retrieval silently
+ * returned nothing for every question. The assistant kept answering fluently
+ * from general knowledge, and told a student they could work "up to 20 hours
+ * per week" when the guide this app ships says the limit is tiered 10/25/30-35
+ * depending on TOPIK level and year.
+ *
+ * OpenRouter already holds the chat key, so this removes a dependency rather
+ * than adding one.
+ *
+ * The dimension is not a detail. kb_chunk.embedding is vector(768) and every
+ * stored vector must come from the same model as the query vector, or cosine
+ * similarity compares two unrelated spaces and returns confident nonsense —
+ * worse than returning nothing. text-embedding-3-small is natively 1536, so
+ * `dimensions` is required, and changing EMBEDDING_MODEL means re-embedding
+ * every document: node scripts/embed-kb-documents.js --all
+ */
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "openai/text-embedding-3-small";
+const EMBEDDING_DIMENSIONS = 768;
+const EMBEDDING_TIMEOUT_MS = 15_000;
+
 function isGeminiConfigured() {
   return Boolean(process.env.GEMINI_API_KEY);
+}
+
+function isEmbeddingConfigured() {
+  return Boolean(process.env.OPENROUTER_API_KEY);
 }
 
 async function generateEmbedding(text) {
   const isPlaceholder = !process.env.SUPABASE_URL || !process.env.SUPABASE_KEY || process.env.SUPABASE_URL.includes("placeholder");
 
-  if (!isGeminiConfigured()) {
+  if (!isEmbeddingConfigured()) {
     if (isPlaceholder) {
-      const dummy = new Array(768).fill(0).map(() => Math.random() * 0.1);
+      const dummy = new Array(EMBEDDING_DIMENSIONS).fill(0).map(() => Math.random() * 0.1);
       return dummy;
     }
-    throw new Error("GEMINI_API_KEY is required for embeddings");
+    throw new Error("OPENROUTER_API_KEY is required for embeddings");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_API_KEY}`;
-  const payload = {
-    content: {
-      parts: [{ text }],
-    },
-    outputDimensionality: 768,
-  };
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT_MS);
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  let response;
+  try {
+    response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://localhost:3000",
+        "X-Title": "Hey! PNU",
+      },
+      body: JSON.stringify({
+        model: EMBEDDING_MODEL,
+        input: text,
+        dimensions: EMBEDDING_DIMENSIONS,
+      }),
+    });
+  } catch (err) {
+    throw new Error(
+      err.name === "AbortError"
+        ? `Embedding request timed out after ${EMBEDDING_TIMEOUT_MS}ms`
+        : `Embedding request failed: ${err.message}`,
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
-    throw new Error(`Gemini Embedding API error: ${response.statusText}`);
+    const detail = await response.text().catch(() => "");
+    throw new Error(
+      `Embedding API error: HTTP ${response.status} ${response.statusText}${detail ? ` — ${detail.slice(0, 200)}` : ""}`,
+    );
   }
 
   const data = await response.json();
-  const vector = data.embedding?.values;
-  if (!vector || vector.length !== 768) {
-    throw new Error("Invalid embedding vector returned from Gemini");
+  const vector = data.data?.[0]?.embedding;
+  if (!Array.isArray(vector) || vector.length !== EMBEDDING_DIMENSIONS) {
+    throw new Error(
+      `Invalid embedding: expected ${EMBEDDING_DIMENSIONS} dimensions, got ${Array.isArray(vector) ? vector.length : typeof vector}. ` +
+        `Storing a differently-sized vector would break every future similarity search.`,
+    );
   }
 
   return vector;
@@ -102,16 +154,38 @@ async function syncDocument(docId) {
 /**
  * Cosine-similarity floor for a chunk to count as relevant.
  *
- * Measured against the current knowledge base (47 documents): genuinely
- * on-topic questions score 0.73-0.86, while off-topic ones ("what is the
- * capital of France?", "how do I cook kimchi jjigae?") top out at 0.61. The
- * previous value of 0.45 sat below both bands, so every question retrieved
- * something and unrelated context was injected into the prompt. 0.65 sits in
- * the empty band between them with margin on each side.
+ * Re-measured 2026-08-20 after embeddings moved from Gemini to
+ * openai/text-embedding-3-small. This value is model-specific and does NOT
+ * carry over: the previous 0.65 was correct for Gemini, whose on-topic scores
+ * sat at 0.73-0.86, and left at 0.65 it rejected every single query against
+ * the new vectors — "how many hours can I work part time?" retrieves the right
+ * document at 0.5457, so retrieval looked completely dead while working
+ * perfectly. Changing EMBEDDING_MODEL means re-measuring this.
  *
- * Re-measure this if the knowledge base changes shape substantially.
+ * Measured over 12 questions the knowledge base covers and 8 it does not:
+ *
+ *   on-topic   0.3762 - 0.6916
+ *   off-topic  0.1372 - 0.2616
+ *
+ * 0.32 sits in the empty band, roughly centred, with ~0.06 of margin on each
+ * side.
+ *
+ * It is deliberately NOT lower, even though that would catch more. Korean and
+ * Burmese questions land in the 0.10-0.29 range against these English-language
+ * documents, and they land on the WRONG ones — "아르바이트 몇 시간까지 할 수
+ * 있나요?" (how many hours can I work part-time) scores 0.2920 against the
+ * library seat-reservation guide, while the Korean greeting "안녕하세요" scores
+ * 0.2834. A greeting outscoring a real question is the signal that this model
+ * does not align those languages with English source text, so lowering the
+ * floor to reach them would attach confident citations to unrelated documents
+ * for exactly the students least able to notice. Chinese does align
+ * (0.4063, correct document).
+ *
+ * The consequence is honest but real: non-English questions mostly return no
+ * grounding and get the "general guidance" caution. Fixing that needs
+ * translated knowledge-base text, not a smaller number here.
  */
-const MATCH_THRESHOLD = 0.65;
+const MATCH_THRESHOLD = Number(process.env.RAG_MATCH_THRESHOLD || 0.32);
 
 /**
  * Same retrieval as retrieveContext, but also returns which documents matched.
@@ -182,4 +256,5 @@ module.exports = {
   retrieveContext,
   retrieveContextWithSources,
   isGeminiConfigured,
+  isEmbeddingConfigured,
 };
