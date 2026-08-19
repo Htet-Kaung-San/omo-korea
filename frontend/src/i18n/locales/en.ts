@@ -20,6 +20,8 @@ const messages: MessageDictionary = {
   'common.search': "Search",
   'common.clear': "Clear",
   'common.add': "Add",
+  'common.remove': "Remove",
+  'common.delete': "Delete",
   'common.viewSource': "View official source",
   'common.high': "High",
   'schedule.title': "My Schedule",

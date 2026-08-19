@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarPlus, Check, Sparkles } from 'lucide-react'
+import { CalendarPlus, Check, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '@/api'
 import type { CourseCatalogItem, CourseType, CreateTimetableEntryInput, RecommendedCourse } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -14,6 +14,7 @@ import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/
 import {
   getVerifiedCourseOfferingDisplay,
 } from '@/utils/courseOfferingDisplay'
+import { formatMajorName } from '@/utils/formatMajor'
 
 export function RecommendedCoursesPage() {
   const { language, t } = useLanguage()
@@ -88,6 +89,30 @@ export function RecommendedCoursesPage() {
       setEnrolledCourseIds((current) => new Set(current).add(data.courseId))
       setSelectedCourse(null)
       showToast(t('timetable.added'), 'success')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : t('academic.loadError'))
+    } finally {
+      setActionCourseId(null)
+    }
+  }
+
+  async function dropFromTimetable(courseId: number) {
+    if (!window.confirm(t('academic.confirmDrop') || 'Remove this course from your timetable?')) return
+    setActionCourseId(courseId)
+    setError('')
+    try {
+      await api.deleteTimetableCourse(courseId)
+      setAddedCourseIds((current) => {
+        const next = new Set(current)
+        next.delete(courseId)
+        return next
+      })
+      setEnrolledCourseIds((current) => {
+        const next = new Set(current)
+        next.delete(courseId)
+        return next
+      })
+      showToast(t('timetable.removed') || 'Course removed from timetable', 'info')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('academic.loadError'))
     } finally {
@@ -208,25 +233,40 @@ export function RecommendedCoursesPage() {
             ) : null}
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-pnu-muted">
               <span>{t('course.credits', { count: course.credits })}</span>
-              {course.department ? (
+              {course.majorName || course.department ? (
                 <>
                   <span aria-hidden="true">&middot;</span>
-                  <span>{course.department}</span>
+                  <span>{formatMajorName(course.majorName || course.department)}</span>
                 </>
               ) : null}
             </div>
             {course.matchHint ? (
               <p className="mt-3 text-sm text-pnu-muted">{course.matchHint}</p>
             ) : null}
-            <button
-              type="button"
-              onClick={() => openTimetableModal(course)}
-              disabled={addedCourseIds.has(Number(course.id)) || actionCourseId === Number(course.id)}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pnu-blue px-3 py-2.5 text-sm font-bold text-white transition active:scale-[0.99] disabled:bg-emerald-50 disabled:text-emerald-700"
-            >
-              {addedCourseIds.has(Number(course.id)) ? <Check className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
-              {addedCourseIds.has(Number(course.id)) ? t('timetable.added') : actionCourseId === Number(course.id) ? t('common.loading') : t('academic.addToTimetable')}
-            </button>
+            {addedCourseIds.has(Number(course.id)) ? (
+              <button
+                type="button"
+                onClick={() => dropFromTimetable(Number(course.id))}
+                disabled={actionCourseId === Number(course.id)}
+                className="group mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-bold text-emerald-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                title={t('academic.confirmDrop') || 'Remove from timetable'}
+              >
+                <Check className="h-4 w-4 stroke-[3] group-hover:hidden" />
+                <Trash2 className="hidden h-4 w-4 group-hover:inline" />
+                <span className="group-hover:hidden">{t('timetable.added')}</span>
+                <span className="hidden group-hover:inline">{t('common.remove') || 'Remove from Timetable'}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openTimetableModal(course)}
+                disabled={actionCourseId === Number(course.id)}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-pnu-blue px-3 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-[0.99] hover:bg-pnu-blue-light disabled:opacity-50"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                {actionCourseId === Number(course.id) ? t('common.loading') : t('academic.addToTimetable')}
+              </button>
+            )}
           </article>
           )
         })}

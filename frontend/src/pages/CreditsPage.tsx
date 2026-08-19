@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Check,
   ChevronDown,
+  GraduationCap,
 } from 'lucide-react'
 import { api } from '@/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
+import { emitToast } from '@/context/ToastContext'
 import type {
   Enrollment,
   GraduationProgress,
@@ -16,99 +18,111 @@ import type {
 
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 const ACCENT = '#7C3AED'
-const ACCENT_SOFT = '#F3E8FF'
 
-function sumBucket(
-  progress: GraduationProgress,
-  keys: Array<keyof GraduationProgress['breakdown']>,
-) {
-  return keys.reduce(
-    (acc, key) => ({
-      completed: acc.completed + progress.breakdown[key].completed,
-      required: acc.required + progress.breakdown[key].required,
-    }),
-    { completed: 0, required: 0 },
-  )
+const CATEGORY_COLORS = [
+  { bg: '#EDE9FE', bar: '#7C3AED', icon: '#DDD6FE' },
+  { bg: '#DBEAFE', bar: '#3B82F6', icon: '#BFDBFE' },
+  { bg: '#D1FAE5', bar: '#10B981', icon: '#A7F3D0' },
+  { bg: '#FEF3C7', bar: '#F59E0B', icon: '#FDE68A' },
+  { bg: '#FCE7F3', bar: '#EC4899', icon: '#FBCFE8' },
+  { bg: '#E0F2FE', bar: '#0EA5E9', icon: '#BAE6FD' },
+  { bg: '#FEE2E2', bar: '#EF4444', icon: '#FECACA' },
+  { bg: '#F0FDF4', bar: '#22C55E', icon: '#BBF7D0' },
+]
+
+
+function mapReqCodeToBucket(code: string): keyof GraduationProgress['breakdown'] | null {
+  if (code === 'MAJOR_BASIC') return 'majorBasic'
+  if (code === 'MAJOR_REQUIRED') return 'majorRequired'
+  if (code === 'MAJOR_ELECTIVE') return 'majorElective'
+  if (code === 'GENERAL_REQUIRED') return 'generalRequired'
+  if (['GENERAL_ELECTIVE', 'LIBERAL_ELECTIVE', 'HYOWON_CORE', 'HYOWON_BALANCE', 'HYOWON_CREATIVE'].includes(code)) return 'generalElective'
+  if (['GENERAL_FREE', 'FREE_ELECTIVE'].includes(code)) return 'generalFree'
+  return null
 }
 
-function ProgressRing({
-  percent,
-  completedLabel,
-}: {
-  percent: number
-  completedLabel: string
-}) {
-  const size = 64
-  const stroke = 5.5
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference * (1 - Math.min(100, Math.max(0, percent)) / 100)
+function SemiArc({ percent }: { percent: number }) {
+  const W = 180
+  const H = 100
+  const cx = W / 2
+  const cy = H - 4
+  const r = 80
+  const strokeW = 14
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+
+  const describeArc = (startDeg: number, endDeg: number) => {
+    const sx = cx + r * Math.cos(toRad(startDeg))
+    const sy = cy + r * Math.sin(toRad(startDeg))
+    const ex = cx + r * Math.cos(toRad(endDeg))
+    const ey = cy + r * Math.sin(toRad(endDeg))
+    return `M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`
+  }
+
+  const clampedPct = Math.min(100, Math.max(0, percent))
+  const activeEnd = 180 - (clampedPct / 100) * 180
 
   return (
-    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={ACCENT_SOFT}
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible">
+      <path
+        d={describeArc(180, 0)}
+        fill="none"
+        stroke="#EDE9FE"
+        strokeWidth={strokeW}
+        strokeLinecap="round"
+      />
+      {clampedPct > 0 && (
+        <path
+          d={describeArc(180, activeEnd)}
           fill="none"
           stroke={ACCENT}
-          strokeWidth={stroke}
+          strokeWidth={strokeW}
           strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
         />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-[12px] font-bold leading-none text-[#7C3AED]">{percent}%</span>
-        <span className="mt-0.5 text-[8px] font-semibold text-pnu-muted">
-          {completedLabel}
-        </span>
-      </div>
-    </div>
+      )}
+    </svg>
   )
 }
 
-function BreakdownBar({
-  label,
+function CategoryCard({
+  item,
   completed,
-  required,
+  colorIdx,
 }: {
-  label: string
+  item: GraduationRequirementItem
   completed: number
-  required: number
+  colorIdx: number
 }) {
-  const pct = required > 0 ? Math.min(100, Math.round((completed / required) * 100)) : 0
+  const color = CATEGORY_COLORS[colorIdx % CATEGORY_COLORS.length]
+  const target = item.targetValue || 0
+  const pct = target > 0 ? Math.min(100, Math.round((completed / target) * 100)) : 0
 
   return (
-    <div>
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <p className="text-[12px] font-semibold text-pnu-text">{label}</p>
-        <p className="text-[12px] font-bold text-[#7C3AED]">
-          {completed}
-          <span className="font-medium text-pnu-muted"> / {required}</span>
-        </p>
-      </div>
+    <div
+      className="flex-none w-[108px] rounded-[14px] p-2.5"
+      style={{ background: color.bg }}
+    >
       <div
-        className="h-2 overflow-hidden rounded-full bg-[#F3E8FF]"
-        role="progressbar"
-        aria-valuenow={completed}
-        aria-valuemin={0}
-        aria-valuemax={required}
+        className="mb-2 flex h-8 w-8 items-center justify-center rounded-[10px]"
+        style={{ background: color.icon }}
       >
+        <GraduationCap className="h-4 w-4" style={{ color: color.bar }} strokeWidth={2} />
+      </div>
+      <p className="mb-1.5 line-clamp-2 text-[10px] font-bold leading-tight text-gray-700">
+        {item.title}
+      </p>
+      <p className="mb-1.5 text-[11px] font-semibold leading-none" style={{ color: color.bar }}>
+        {completed}
+        <span className="font-medium text-gray-400"> / {target}</span>
+      </p>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/60">
         <div
-          className="h-full rounded-full bg-[#7C3AED] transition-all duration-500"
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, background: color.bar }}
         />
       </div>
+      <p className="mt-1 text-[9px] font-semibold" style={{ color: color.bar }}>
+        {pct}%
+      </p>
     </div>
   )
 }
@@ -119,12 +133,12 @@ export function CreditsPage() {
   const { t } = useLanguage()
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [requirements, setRequirements] = useState<GraduationRequirementItem[]>(
-    [],
-  )
+  const [requirements, setRequirements] = useState<GraduationRequirementItem[]>([])
   const [loading, setLoading] = useState(true)
   const [checklistOpen, setChecklistOpen] = useState(false)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [activeDot, setActiveDot] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -153,15 +167,6 @@ export function CreditsPage() {
     }
   }, [user])
 
-  const buckets = useMemo(() => {
-    if (!progress) return null
-    return {
-      genEd: sumBucket(progress, ['generalRequired', 'generalElective']),
-      major: sumBucket(progress, ['majorBasic', 'majorRequired']),
-      elective: sumBucket(progress, ['majorElective', 'generalFree']),
-    }
-  }, [progress])
-
   const gradeSummary = useMemo(() => {
     const summary = progress?.gradeSummary
     const formatGpa = (value: number | null | undefined) =>
@@ -185,7 +190,18 @@ export function CreditsPage() {
     }
   }, [progress, enrollments])
 
-  const checklistDoneCount = requirements.filter((item) => item.completed).length
+  const creditItems = useMemo(
+    () => requirements.filter((item) => item.requirementType === 'CREDIT'),
+    [requirements],
+  )
+
+  const checklistDoneCount = requirements.filter((item) => {
+    if (item.requirementType === 'CREDIT' && progress && item.requirementCode && typeof item.targetValue === 'number') {
+      const b = mapReqCodeToBucket(item.requirementCode)
+      if (b) return (progress.breakdown[b]?.completed ?? 0) >= item.targetValue
+    }
+    return item.completed
+  }).length
 
   async function toggleRequirement(id: string, completed: boolean) {
     setUpdatingId(id)
@@ -203,6 +219,21 @@ export function CreditsPage() {
     progress && progress.totalRequired > 0
       ? Math.round((progress.totalCompleted / progress.totalRequired) * 100)
       : 0
+
+  const remaining = progress ? Math.max(0, progress.totalRequired - progress.totalCompleted) : 0
+
+  const CARDS_PER_PAGE = 3
+  const totalDots = Math.max(1, Math.ceil(creditItems.length / CARDS_PER_PAGE))
+
+  function handleScroll() {
+    const el = scrollRef.current
+    if (!el) return
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const dot = maxScroll > 0 ? Math.round((el.scrollLeft / maxScroll) * (totalDots - 1)) : 0
+    setActiveDot(dot)
+  }
+
+
 
   return (
     <div className="min-h-full bg-[#F5F7FB]">
@@ -222,66 +253,96 @@ export function CreditsPage() {
       </header>
 
       <div className="space-y-3 px-3 pb-5 pt-0.5">
-        {loading || !progress || !buckets ? (
-          <p className="rounded-[14px] bg-white px-3 py-8 text-center text-[12px] text-pnu-muted"
+        {loading || !progress ? (
+          <p
+            className="rounded-[14px] bg-white px-3 py-8 text-center text-[12px] text-pnu-muted"
             style={{ boxShadow: CARD_SHADOW }}
           >
             {t('common.loading')}
           </p>
         ) : (
           <>
+            {/* ── Unified Graduation Progress Card ── */}
             <section
-              className="rounded-[14px] bg-white px-3 py-2.5"
+              className="rounded-[20px] bg-white px-4 pt-4 pb-3"
               style={{ boxShadow: CARD_SHADOW }}
             >
-              <p className="text-[11px] font-semibold text-pnu-text">
-                {t('credits.totalEarned')}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-[22px] font-bold leading-none tracking-tight text-[#7C3AED]">
-                    {progress.totalCompleted}
-                    <span className="text-[14px] font-semibold text-pnu-muted">
-                      {' '}
-                      / {progress.totalRequired}
-                    </span>
-                  </p>
-                  <p className="mt-1 text-[10px] font-medium text-pnu-muted">
-                    {t('credits.creditsUnit')}
-                  </p>
+              {/* Header */}
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[13px] font-bold text-pnu-text">{t('credits.breakdown')}</p>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EDE9FE]">
+                  <GraduationCap className="h-4 w-4 text-[#7C3AED]" strokeWidth={2} />
                 </div>
-                <ProgressRing percent={percent} completedLabel={t('credits.completed')} />
               </div>
               <p className="mt-3 text-[10px] leading-relaxed text-pnu-muted">{t('credits.officialGradeNotice')}</p>
               <a href="https://onestop.pusan.ac.kr/page?menuCD=000000000000093" target="_blank" rel="noreferrer" className="mt-2 inline-flex text-[10px] font-bold text-pnu-blue underline">{t('credits.openOfficialGrades')}</a>
-            </section>
 
-            <section
-              className="rounded-[14px] bg-white px-3.5 py-3"
-              style={{ boxShadow: CARD_SHADOW }}
-            >
-              <p className="mb-3 text-[12px] font-bold text-pnu-text">
-                {t('credits.breakdown')}
-              </p>
-              <div className="space-y-3">
-                <BreakdownBar
-                  label={t('credits.genEd')}
-                  completed={buckets.genEd.completed}
-                  required={buckets.genEd.required}
-                />
-                <BreakdownBar
-                  label={t('credits.major')}
-                  completed={buckets.major.completed}
-                  required={buckets.major.required}
-                />
-                <BreakdownBar
-                  label={t('credits.electives')}
-                  completed={buckets.elective.completed}
-                  required={buckets.elective.required}
-                />
+              {/* Arc + labels */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <SemiArc percent={percent} />
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-center">
+                    <p className="text-[26px] font-extrabold leading-none text-[#7C3AED]">{percent}%</p>
+                    <p className="text-[10px] font-semibold text-gray-400">{t('credits.completed')}</p>
+                  </div>
+                </div>
+
+                <p className="mt-1 text-[18px] font-bold leading-none text-pnu-text">
+                  <span className="text-[#7C3AED]">{progress.totalCompleted}</span>
+                  <span className="text-[14px] font-medium text-gray-400"> / {progress.totalRequired} Credits</span>
+                </p>
+                <p className="mt-1 text-[11px] font-medium text-gray-400">
+                  {remaining} credits remaining to graduate
+                </p>
               </div>
+
+              {/* Horizontally scrollable category cards */}
+              {creditItems.length > 0 && (
+                <div className="mt-4">
+                  <div
+                    ref={scrollRef}
+                    onScroll={handleScroll}
+                    className="flex gap-2.5 overflow-x-auto pb-1"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {creditItems.map((item, idx) => {
+                      let completed = 0
+                      if (item.requirementCode) {
+                        const bn = mapReqCodeToBucket(item.requirementCode)
+                        if (bn) completed = progress.breakdown[bn]?.completed ?? 0
+                      }
+                      return (
+                        <CategoryCard
+                          key={item.id}
+                          item={item}
+                          completed={completed}
+                          colorIdx={idx}
+                        />
+                      )
+                    })}
+                  </div>
+
+                  {/* Pagination dots */}
+                  {totalDots > 1 && (
+                    <div className="mt-2.5 flex justify-center gap-1.5">
+                      {Array.from({ length: totalDots }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="rounded-full transition-all duration-300"
+                          style={{
+                            width: i === activeDot ? 16 : 6,
+                            height: 6,
+                            background: i === activeDot ? ACCENT : '#DDD6FE',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
 
+            {/* ── Graduation Checklist ── */}
             <section
               className="overflow-hidden rounded-[14px] bg-white"
               style={{ boxShadow: CARD_SHADOW }}
@@ -313,14 +374,37 @@ export function CreditsPage() {
                     <li className="py-3 text-[12px] text-pnu-muted">{t('home.noChecklist')}</li>
                   ) : (
                     requirements.map((item) => {
-                      const done = item.completed
+                      const isCredit = item.requirementType === 'CREDIT'
+                      let done = item.completed
+
+                      if (isCredit && progress && item.requirementCode && typeof item.targetValue === 'number') {
+                        const bucketName = mapReqCodeToBucket(item.requirementCode)
+                        if (bucketName) {
+                          const bucket = progress.breakdown[bucketName]
+                          if (bucket) {
+                            done = bucket.completed >= item.targetValue
+                          }
+                        }
+                      }
+
                       return (
                         <li key={item.id}>
                           <button
                             type="button"
                             disabled={updatingId === item.id}
-                            onClick={() => void toggleRequirement(item.id, !done)}
-                            className="flex w-full items-center gap-2.5 py-2.5 text-left transition active:bg-black/[0.02] disabled:opacity-60"
+                            onClick={() => {
+                              if (isCredit) {
+                                if (!done) {
+                                  emitToast("You haven't completed the required credits", 'error')
+                                }
+                                return
+                              }
+                              void toggleRequirement(item.id, !done)
+                            }}
+                            className={[
+                              'flex w-full items-center gap-2.5 py-2.5 text-left transition',
+                              isCredit && done ? 'cursor-default' : 'active:bg-black/[0.02] disabled:opacity-60',
+                            ].join(' ')}
                           >
                             <span
                               className={[
@@ -328,12 +412,11 @@ export function CreditsPage() {
                                 done
                                   ? 'border-[#7C3AED] bg-[#7C3AED] text-white'
                                   : 'border-black/20 bg-white',
+                                isCredit && !done ? 'bg-black/5' : '',
                               ].join(' ')}
                               aria-hidden="true"
                             >
-                              {done ? (
-                                <Check className="h-3 w-3" strokeWidth={3} />
-                              ) : null}
+                              {done ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
                             </span>
                             <div className="min-w-0 flex-1">
                               <p className="text-[12px] font-semibold text-pnu-text">
@@ -357,6 +440,7 @@ export function CreditsPage() {
               ) : null}
             </section>
 
+            {/* ── Grade Summary ── */}
             <section
               className="rounded-[14px] bg-white px-3 py-2.5"
               style={{ boxShadow: CARD_SHADOW }}
@@ -366,26 +450,10 @@ export function CreditsPage() {
               </p>
               <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  {
-                    labelKey: 'credits.cumulativeGpa',
-                    value: gradeSummary.cumulativeGpa,
-                    accent: true,
-                  },
-                  {
-                    labelKey: 'credits.majorGpa',
-                    value: gradeSummary.majorGpa,
-                    accent: false,
-                  },
-                  {
-                    labelKey: 'credits.averageGrade',
-                    value: gradeSummary.averageGrade,
-                    accent: true,
-                  },
-                  {
-                    labelKey: 'credits.semesterCredits',
-                    value: String(gradeSummary.semesterCredits),
-                    accent: false,
-                  },
+                  { labelKey: 'credits.cumulativeGpa', value: gradeSummary.cumulativeGpa, accent: true },
+                  { labelKey: 'credits.majorGpa', value: gradeSummary.majorGpa, accent: false },
+                  { labelKey: 'credits.averageGrade', value: gradeSummary.averageGrade, accent: true },
+                  { labelKey: 'credits.semesterCredits', value: String(gradeSummary.semesterCredits), accent: false },
                 ].map(({ labelKey, value, accent }) => (
                   <div
                     key={labelKey}

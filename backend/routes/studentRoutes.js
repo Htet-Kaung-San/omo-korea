@@ -78,6 +78,7 @@ const {
   createTimetableEntry,
   getCourseCatalog,
   getTimetable,
+  removeTimetableByCourse,
   removeTimetableEntry,
 } = require("../controllers/courseController");
 
@@ -144,6 +145,11 @@ router.get("/course-recommendations", authenticateToken, getCourseRecommendation
 router.get("/course-catalog", authenticateToken, getCourseCatalog);
 router.get("/timetable", authenticateToken, getTimetable);
 router.post("/timetable", authenticateToken, createTimetableEntry);
+router.delete(
+  "/timetable/course/:course_id",
+  authenticateToken,
+  removeTimetableByCourse,
+);
 router.delete(
   "/timetable/:timetable_entry_id",
   authenticateToken,

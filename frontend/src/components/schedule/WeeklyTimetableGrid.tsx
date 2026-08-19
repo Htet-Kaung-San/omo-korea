@@ -1,4 +1,4 @@
-import { AlertTriangle, MapPin } from 'lucide-react'
+import { AlertTriangle, MapPin, Trash2 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import type { ScheduleItem, ScheduledSlot } from '@/utils/timetable'
 import { getScheduleSlots } from '@/utils/timetable'
@@ -18,6 +18,7 @@ const COURSE_COLORS = [
 interface Props {
   entries: ScheduleItem[]
   locale: string
+  onDrop?: (enrollmentId: number) => void
 }
 
 interface GridEntry {
@@ -70,7 +71,7 @@ function layoutDay(entries: Omit<GridEntry, 'lane' | 'laneCount' | 'hasConflict'
   }))
 }
 
-export function WeeklyTimetableGrid({ entries, locale }: Props) {
+export function WeeklyTimetableGrid({ entries, locale, onDrop }: Props) {
   const { t } = useLanguage()
   const days = Array.from({ length: 7 }, (_, index) => ({
     number: index + 1,
@@ -131,7 +132,7 @@ export function WeeklyTimetableGrid({ entries, locale }: Props) {
                   return (
                     <article
                       key={`${entry.item.enrollment_id}-${entry.slot.start}-${index}`}
-                      className={`absolute overflow-hidden rounded-md border px-1.5 py-1 text-[9px] leading-tight shadow-sm ${entry.hasConflict ? 'border-rose-400' : 'border-white/80'}`}
+                      className={`group absolute overflow-hidden rounded-md border px-1.5 py-1 text-[9px] leading-tight shadow-sm ${entry.hasConflict ? 'border-rose-400' : 'border-white/80'}`}
                       style={{
                         top: top + 1,
                         height: height - 2,
@@ -141,9 +142,25 @@ export function WeeklyTimetableGrid({ entries, locale }: Props) {
                       }}
                       title={`${entryTitle(entry.item)} · ${entry.slot.start}–${entry.slot.end}`}
                     >
-                      <div className="flex items-start gap-1">
+                      <div className="flex items-start justify-between gap-1">
                         <p className="min-w-0 flex-1 font-bold text-slate-800">{entryTitle(entry.item)}</p>
-                        {entry.hasConflict ? <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-rose-600" aria-label={t('schedule.conflict')} /> : null}
+                        <div className="flex items-center gap-0.5">
+                          {entry.hasConflict ? <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-rose-600" aria-label={t('schedule.conflict')} /> : null}
+                          {onDrop ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onDrop(Number(entry.item.enrollment_id))
+                              }}
+                              className="rounded p-0.5 text-slate-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                              title={t('academic.confirmDrop') || 'Drop class'}
+                              aria-label={t('academic.confirmDrop') || 'Drop class'}
+                            >
+                              <Trash2 className="h-2.5 w-2.5" />
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                       <p className="mt-0.5 text-slate-600">{entry.slot.start}–{entry.slot.end}</p>
                       {entryProfessor(entry.item) ? <p className="mt-0.5 truncate text-slate-600">{entryProfessor(entry.item)}</p> : null}

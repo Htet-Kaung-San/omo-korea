@@ -2,6 +2,7 @@ const supabase = require('../supabaseClient');
 const { listCourseCatalog } = require('../services/courseCatalogService');
 const {
   addTimetableEntry,
+  deleteTimetableByCourseId,
   deleteTimetableEntry,
   listTimetableEntries,
 } = require('../services/timetableService');
@@ -91,10 +92,24 @@ async function removeTimetableEntry(req, res, next) {
   }
 }
 
+async function removeTimetableByCourse(req, res, next) {
+  try {
+    const data = await deleteTimetableByCourseId(
+      supabase,
+      req.user.student_id,
+      req.params.course_id,
+    );
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   createTimetableEntry,
   currentAcademicTerm,
   getCourseCatalog,
   getTimetable,
+  removeTimetableByCourse,
   removeTimetableEntry,
 };

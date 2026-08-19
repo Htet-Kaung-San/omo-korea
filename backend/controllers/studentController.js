@@ -44,6 +44,7 @@ const { sendPasswordResetEmail } = require("../services/otpEmailService");
 const { translateCareers } = require("../services/geminiService");
 const {
   buildGraduationProgress,
+  computeGpaFromEnrollments,
   toApiPayload: toGraduationApiPayload,
 } = require("../services/graduationProgressService");
 const {
@@ -2047,44 +2048,110 @@ const getAcademicRecords = async (req, res) => {
       });
     }
 
-    const { data: rows, error: recordError } = await supabase
-      .from("academic_record")
-      .select("*")
-      .eq("student_id", student_id)
-      .order("sort_order", { ascending: true });
+    const [
+      { data: enrollmentRows, error: enrollmentError },
+      { data: studentRow },
+      { data: recordRows },
+    ] = await Promise.all([
+      supabase
+        .from("enrollment")
+        .select(
+          `
+            *,
+            course:course_id (
+              credit,
+              category
+            )
+          `,
+        )
+        .eq("student_id", student_id),
+      supabase
+        .from("student")
+        .select("major_id")
+        .eq("student_id", student_id)
+        .maybeSingle(),
+      supabase
+        .from("academic_record")
+        .select("*")
+        .eq("student_id", student_id)
+        .order("sort_order", { ascending: true })
+        .catch?.(() => ({ data: [] })) || { data: [] },
+    ]);
 
-    if (recordError) {
+    if (enrollmentError) {
       return res.status(500).json({
         success: false,
-        message: "Failed to fetch academic records",
-        error: recordError.message,
+        message: "Failed to fetch enrollments",
+        error: enrollmentError.message,
       });
     }
 
-    const summary = (rows || []).find((row) => row.record_type === "summary");
-    if (!summary) {
-      // A student with no transcript yet is an ordinary empty state, not an
-      // error. The 404 this replaced made the client raise a red error toast
-      // and print raw English on a screen that has a translated message ready.
-      return res.json({ success: true, data: null });
+    const enrollments = (enrollmentRows || []).map((item) => {
+      const { course, ...rest } = item;
+      return {
+        ...rest,
+        credit: course?.credit ?? rest.credit ?? 0,
+        category: course?.category ?? rest.category ?? "GEN_ED",
+      };
+    });
+
+    const computed = computeGpaFromEnrollments(enrollments);
+
+    // Sum required credits from catalog for student's major
+    let requiredCredits = 130;
+    if (studentRow?.major_id) {
+      const { data: catalogRows } = await supabase
+        .from("graduation_requirement")
+        .select("target_value")
+        .eq("major_id", studentRow.major_id)
+        .eq("requirement_type", "CREDIT");
+      if (catalogRows && catalogRows.length > 0) {
+        requiredCredits = catalogRows.reduce(
+          (sum, row) => sum + (Number(row.target_value) || 0),
+          0,
+        );
+      }
     }
 
-    const semesters = (rows || []).filter((row) => row.record_type === "semester");
+    // Check legacy academic_record fallback only if no graded enrollments
+    const summary = (recordRows || []).find((row) => row.record_type === "summary");
+    const legacySemesters = (recordRows || []).filter((row) => row.record_type === "semester");
+
+    let overallGpa = computed.overallGpa;
+    let gpaScale = computed.gpaScale;
+    let standing = computed.standing;
+    let completedCredits = computed.totalCompletedCredits;
+    let semesters = computed.semesters;
+
+    if (!computed.hasGradedCourses && summary) {
+      overallGpa = Number(summary.overall_gpa) || 0;
+      gpaScale = Number(summary.gpa_scale) || 4.5;
+      standing = summary.standing || standing;
+      completedCredits = Number(summary.completed_credits) || completedCredits;
+      if (semesters.length === 0 && legacySemesters.length > 0) {
+        semesters = legacySemesters.map((row) => ({
+          semester_label: row.semester_label,
+          gpa: Number(row.gpa) || 0,
+          sort_order: row.sort_order,
+        }));
+      }
+    }
+
+    if (!computed.hasGradedCourses && !summary && completedCredits === 0) {
+      // Empty state for brand new student
+      return res.json({ success: true, data: null });
+    }
 
     res.json({
       success: true,
       data: {
-        student_id: summary.student_id,
-        overall_gpa: Number(summary.overall_gpa),
-        gpa_scale: Number(summary.gpa_scale),
-        standing: summary.standing,
-        completed_credits: Number(summary.completed_credits),
-        required_credits: Number(summary.required_credits),
-        semesters: semesters.map((row) => ({
-          semester_label: row.semester_label,
-          gpa: Number(row.gpa),
-          sort_order: row.sort_order,
-        })),
+        student_id,
+        overall_gpa: overallGpa ?? 0,
+        gpa_scale: gpaScale,
+        standing,
+        completed_credits: completedCredits,
+        required_credits: requiredCredits,
+        semesters,
       },
     });
   } catch (err) {
@@ -2118,7 +2185,7 @@ const getGraduationProgress = async (req, res) => {
     }
 
     const [
-      { data: recordRows, error: recordError },
+      { data: recordRows },
       { data: enrollmentRows, error: enrollmentError },
       { data: studentRow, error: studentError },
     ] = await Promise.all([
@@ -2126,7 +2193,8 @@ const getGraduationProgress = async (req, res) => {
         .from("academic_record")
         .select("*")
         .eq("student_id", student_id)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .catch?.(() => ({ data: [] })) || { data: [] },
       supabase
         .from("enrollment")
         .select(
@@ -2145,14 +2213,6 @@ const getGraduationProgress = async (req, res) => {
         .eq("student_id", student_id)
         .single(),
     ]);
-
-    if (recordError) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to fetch academic records",
-        error: recordError.message,
-      });
-    }
 
     if (enrollmentError) {
       return res.status(500).json({
@@ -2177,13 +2237,29 @@ const getGraduationProgress = async (req, res) => {
       };
     });
 
+    // Sum target_value of CREDIT requirements for this major to get the
+    // authoritative total required credits.
+    const majorId = studentError ? null : studentRow?.major_id;
+    let catalogRequired = 0;
+    if (majorId) {
+      const { data: catalogRows } = await supabase
+        .from("graduation_requirement")
+        .select("target_value, requirement_type")
+        .eq("major_id", majorId)
+        .eq("requirement_type", "CREDIT");
+      catalogRequired = (catalogRows || []).reduce(
+        (sum, row) => sum + (Number(row.target_value) || 0),
+        0,
+      );
+    }
+
     const progress = buildGraduationProgress({
       enrollments,
       academicSummary: summary,
       semesters,
+      catalogRequired,
     });
 
-    const majorId = studentError ? null : studentRow?.major_id;
     let requirements = [];
     try {
       requirements = await ensureGraduationRequirements(
@@ -2804,14 +2880,6 @@ const updateEnrollment = async (req, res) => {
     if (!/^\d{4}-(Spring|Summer|Fall|Winter)$/.test(semester)) {
       return res.status(400).json({ success: false, message: "Invalid semester." });
     }
-    const [, yearText, termText] = semester.match(/^(\d{4})-(Spring|Summer|Fall|Winter)$/);
-    const termOrder = { Spring: 1, Summer: 2, Fall: 3, Winter: 4 };
-    const requestedRank = Number(yearText) * 10 + termOrder[termText];
-    const now = new Date();
-    const currentRank = now.getFullYear() * 10 + (now.getMonth() + 1 >= 7 ? 3 : 1);
-    if (requestedRank >= currentRank) {
-      return res.status(400).json({ success: false, message: "A past course must be from an earlier academic term." });
-    }
 
     const finalGradeValue = req.body.final_grade ?? req.body.finalGrade;
     const finalGrade = finalGradeValue == null || String(finalGradeValue).trim() === ""
@@ -2820,26 +2888,35 @@ const updateEnrollment = async (req, res) => {
     if (finalGrade && !/^(A\+|A0|B\+|B0|C\+|C0|D\+|D0|F|P|NP|S|U)$/.test(finalGrade)) {
       return res.status(400).json({ success: false, message: "Unsupported final grade." });
     }
-    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
-    const creditsEarned = creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
-      ? null
-      : Number(creditsEarnedValue);
+
     const { data: course, error: courseError } = await supabase
       .from("course")
       .select("credit")
       .eq("course_id", Number(existing.course_id))
       .single();
     if (courseError || !course) return res.status(404).json({ success: false, message: "Course not found" });
+
+    const courseCredits = Number(course.credit) || 0;
+    const isFailing = finalGrade === "F" || finalGrade === "NP" || finalGrade === "U";
+
+    const creditsEarnedValue = req.body.credits_earned ?? req.body.creditsEarned;
+    let creditsEarned =
+      creditsEarnedValue == null || String(creditsEarnedValue).trim() === ""
+        ? (finalGrade ? (isFailing ? 0 : courseCredits) : null)
+        : Number(creditsEarnedValue);
+
     if (creditsEarned !== null && (!Number.isFinite(creditsEarned)
-      || creditsEarned < 0 || creditsEarned > Number(course.credit || 0))) {
+      || creditsEarned < 0 || creditsEarned > courseCredits)) {
       return res.status(400).json({ success: false, message: "Invalid credits earned." });
     }
+
+    const status = req.body.status || (finalGrade ? "Completed" : existing.status || "Completed");
 
     const { data, error } = await supabase
       .from("enrollment")
       .update({
         semester,
-        status: "Completed",
+        status,
         final_grade: finalGrade,
         credits_earned: creditsEarned,
       })
@@ -2857,33 +2934,72 @@ const updateEnrollment = async (req, res) => {
 const deleteEnrollment = async (req, res) => {
   try {
     const { enrollment_id } = req.params;
+    const studentId = Number(req.user?.student_id);
+    if (!studentId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+
     const { data: enrollment, error: lookupError } = await supabase
       .from("enrollment")
-      .select("enrollment_id,student_id")
+      .select("enrollment_id,student_id,course_id")
       .eq("enrollment_id", Number(enrollment_id))
       .maybeSingle();
+
     if (lookupError) {
       return res.status(500).json({ success: false, message: "Failed to find course record" });
     }
     if (!enrollment) {
       return res.status(404).json({ success: false, message: "Course record not found" });
     }
-    if (String(enrollment.student_id) !== String(req.user?.student_id)) {
+    if (Number(enrollment.student_id) !== studentId) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
-    const { error } = await supabase.rpc("drop_student_course_plan", {
-      p_student_id: Number(req.user.student_id),
+
+    // 1. Unconditionally guarantee associated timetable entry is deleted
+    if (enrollment.course_id) {
+      await supabase
+        .from("student_timetable_entry")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("course_id", Number(enrollment.course_id));
+    }
+
+    // 2. Attempt the atomic drop_student_course_plan RPC
+    const { error: rpcError } = await supabase.rpc("drop_student_course_plan", {
+      p_student_id: studentId,
       p_enrollment_id: Number(enrollment_id),
     });
-    if (error)
+
+    if (!rpcError) {
+      return res.json({
+        success: true,
+        data: { enrollment_id: Number(enrollment_id) },
+        message: "Successfully dropped course",
+      });
+    }
+
+    // 3. Fallback: If RPC is not available in Supabase, execute direct enrollment deletion
+    const { error: deleteError } = await supabase
+      .from("enrollment")
+      .delete()
+      .eq("enrollment_id", Number(enrollment_id))
+      .eq("student_id", enrollment.student_id);
+
+    if (deleteError) {
       return res.status(500).json({
         success: false,
         message: "Failed to drop course",
-        error: error.message,
+        error: deleteError.message,
       });
-    res.json({ success: true, message: "Successfully dropped course" });
+    }
+
+    return res.json({
+      success: true,
+      data: { enrollment_id: Number(enrollment_id) },
+      message: "Successfully dropped course",
+    });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Unexpected server error",
       error: err.message,

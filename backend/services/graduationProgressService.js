@@ -123,6 +123,123 @@ function gpaToLetter(gpa, scale = 4.5) {
   return "F";
 }
 
+function letterToGradePoint(letter) {
+  if (!letter || typeof letter !== "string") return null;
+  const normalized = letter.trim().toUpperCase();
+  const map = {
+    "A+": 4.5,
+    "A0": 4.0,
+    "A": 4.0,
+    "A-": 3.7,
+    "B+": 3.5,
+    "B0": 3.0,
+    "B": 3.0,
+    "B-": 2.7,
+    "C+": 2.5,
+    "C0": 2.0,
+    "C": 2.0,
+    "C-": 1.7,
+    "D+": 1.5,
+    "D0": 1.0,
+    "D": 1.0,
+    "D-": 0.7,
+    "F": 0.0,
+  };
+  return map[normalized] !== undefined ? map[normalized] : null;
+}
+
+function isMajorCategory(category) {
+  const bucket = mapEnrollmentToCreditBucket(category);
+  return (
+    bucket === "majorBasic" ||
+    bucket === "majorRequired" ||
+    bucket === "majorElective"
+  );
+}
+
+function computeGpaFromEnrollments(enrollments = []) {
+  let totalGradePoints = 0;
+  let totalGradedCredits = 0;
+
+  let majorGradePoints = 0;
+  let majorGradedCredits = 0;
+
+  let totalCompletedCredits = 0;
+
+  const semesterMap = new Map();
+
+  for (const row of enrollments) {
+    const isCompleted = isCompletedEnrollmentStatus(row.status);
+    const credits =
+      Number(row.credit) ||
+      Number(row.credits) ||
+      Number(row.credits_earned) ||
+      0;
+
+    if (isCompleted) {
+      totalCompletedCredits += credits;
+    }
+
+    const gradePoint = letterToGradePoint(row.final_grade || row.grade);
+    if (gradePoint !== null && credits > 0) {
+      totalGradePoints += gradePoint * credits;
+      totalGradedCredits += credits;
+
+      if (isMajorCategory(row.category)) {
+        majorGradePoints += gradePoint * credits;
+        majorGradedCredits += credits;
+      }
+
+      const semKey = row.semester || "Other";
+      if (!semesterMap.has(semKey)) {
+        semesterMap.set(semKey, {
+          gradePoints: 0,
+          credits: 0,
+          semester: semKey,
+        });
+      }
+      const semEntry = semesterMap.get(semKey);
+      semEntry.gradePoints += gradePoint * credits;
+      semEntry.credits += credits;
+    }
+  }
+
+  const overallGpa =
+    totalGradedCredits > 0
+      ? Number((totalGradePoints / totalGradedCredits).toFixed(2))
+      : null;
+  const majorGpa =
+    majorGradedCredits > 0
+      ? Number((majorGradePoints / majorGradedCredits).toFixed(2))
+      : null;
+
+  let standing = "Good";
+  if (overallGpa !== null) {
+    if (overallGpa >= 4.0) standing = "Dean's List";
+    else if (overallGpa >= 2.0) standing = "Good";
+    else standing = "Probation";
+  }
+
+  const semesters = Array.from(semesterMap.values()).map((sem, idx) => ({
+    semester_label: sem.semester,
+    gpa:
+      sem.credits > 0
+        ? Number((sem.gradePoints / sem.credits).toFixed(2))
+        : 0,
+    sort_order: idx + 1,
+  }));
+
+  return {
+    overallGpa,
+    majorGpa,
+    gpaScale: 4.5,
+    standing,
+    totalCompletedCredits,
+    semesters,
+    hasGradedCourses: totalGradedCredits > 0,
+  };
+}
+
 function sumSemesterCredits(enrollments) {
   const active = enrollments.filter((row) =>
     isActiveEnrollmentStatus(row.status),
@@ -137,14 +254,15 @@ function sumSemesterCredits(enrollments) {
 
 /**
  * @param {object} params
- * @param {Array<object>} params.enrollments - flat enrollment rows with status/credit/category
- * @param {object|null} params.academicSummary - academic_record summary row (+ optional major_gpa)
- * @param {Array<object>} [params.semesters] - academic_record semester rows
+ * @param {Array<object>} params.enrollments - flat enrollment rows with status/credit/category/final_grade
+ * @param {object|null} params.academicSummary - legacy academic_record summary row (+ optional major_gpa)
+ * @param {Array<object>} [params.semesters] - legacy academic_record semester rows
  */
 function buildGraduationProgress({
   enrollments = [],
   academicSummary = null,
   semesters = [],
+  catalogRequired = 0,
 } = {}) {
   const breakdown = emptyBreakdown();
 
@@ -165,11 +283,10 @@ function buildGraduationProgress({
   );
 
   const summaryCompleted = Number(academicSummary?.completed_credits);
-  const summaryRequired = Number(academicSummary?.required_credits);
-  const totalRequired =
-    Number.isFinite(summaryRequired) && summaryRequired > 0
-      ? summaryRequired
-      : requirementsTotal;
+
+  // totalRequired is always derived from the graduation_requirement catalog.
+  // Falls back to the breakdown bucket sum only if no catalog exists yet.
+  const totalRequired = catalogRequired > 0 ? catalogRequired : requirementsTotal;
 
   if (
     totalCompleted === 0 &&
@@ -180,18 +297,34 @@ function buildGraduationProgress({
     distributeCompletedCredits(breakdown, totalCompleted);
   }
 
+  const computed = computeGpaFromEnrollments(enrollments);
+
   const hasCompletedCoursework =
     totalCompleted > 0 ||
+    computed.hasGradedCourses ||
     (Number.isFinite(summaryCompleted) && summaryCompleted > 0) ||
     enrollments.some((row) => isCompletedEnrollmentStatus(row.status));
 
-  const overallGpa = Number(academicSummary?.overall_gpa);
-  const semesterGpa = semesters[0] ? Number(semesters[0].gpa) : overallGpa;
-  const majorFromSummary = Number(academicSummary?.major_gpa);
-  const majorGpa = Number.isFinite(majorFromSummary)
-    ? majorFromSummary
-    : semesterGpa;
-  const gpaScale = Number(academicSummary?.gpa_scale) || 4.5;
+  // Compute GPA dynamically from enrollments first; fallback to legacy summary only if no graded enrollments
+  let overallGpa = computed.overallGpa;
+  let majorGpa = computed.majorGpa;
+  let standing = computed.standing;
+  let gpaScale = computed.gpaScale;
+
+  if (overallGpa === null && academicSummary?.overall_gpa != null) {
+    const rawOverall = Number(academicSummary.overall_gpa);
+    if (Number.isFinite(rawOverall)) {
+      overallGpa = rawOverall;
+      const rawMajor = Number(academicSummary.major_gpa);
+      majorGpa = Number.isFinite(rawMajor)
+        ? rawMajor
+        : semesters[0]
+          ? Number(semesters[0].gpa)
+          : overallGpa;
+      standing = academicSummary.standing ?? standing;
+      gpaScale = Number(academicSummary.gpa_scale) || 4.5;
+    }
+  }
 
   return {
     totalRequired,
@@ -211,7 +344,7 @@ function buildGraduationProgress({
           ? gpaToLetter(overallGpa, gpaScale)
           : null,
       semesterCredits: sumSemesterCredits(enrollments),
-      standing: academicSummary?.standing ?? null,
+      standing: hasCompletedCoursework ? standing : null,
     },
   };
 }
@@ -248,4 +381,6 @@ module.exports = {
   isCompletedEnrollmentStatus,
   mapEnrollmentToCreditBucket,
   gpaToLetter,
+  letterToGradePoint,
+  computeGpaFromEnrollments,
 };

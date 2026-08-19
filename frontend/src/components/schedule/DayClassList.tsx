@@ -4,6 +4,7 @@ import {
   MapPin,
   Monitor,
   Sigma,
+  Trash2,
 } from 'lucide-react'
 import { useLanguage } from '@/context/LanguageContext'
 import type { DayClassItem } from '@/utils/timetable'
@@ -12,6 +13,7 @@ interface DayClassListProps {
   classes: DayClassItem[]
   /** When true, render rows only (parent supplies the card). */
   embedded?: boolean
+  onDrop?: (enrollmentId: number) => void
 }
 
 const COURSE_TONES = [
@@ -73,7 +75,7 @@ function categoryLabelKey(kind: CategoryKind): string {
   return 'schedule.categoryElective'
 }
 
-export function DayClassList({ classes, embedded = false }: DayClassListProps) {
+export function DayClassList({ classes, embedded = false, onDrop }: DayClassListProps) {
   const { t } = useLanguage()
 
   if (classes.length === 0) {
@@ -131,11 +133,24 @@ export function DayClassList({ classes, embedded = false }: DayClassListProps) {
                     </p>
                   ) : null}
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${pillClass}`}
-                >
-                  {t(categoryLabelKey(kind))}
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${pillClass}`}
+                  >
+                    {t(categoryLabelKey(kind))}
+                  </span>
+                  {onDrop ? (
+                    <button
+                      type="button"
+                      onClick={() => onDrop(Number(enrollment.enrollment_id))}
+                      className="rounded-lg p-1 text-pnu-muted/60 transition hover:bg-red-50 hover:text-red-600"
+                      title={t('academic.confirmDrop') || 'Drop class'}
+                      aria-label={t('academic.confirmDrop') || 'Drop class'}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           </li>

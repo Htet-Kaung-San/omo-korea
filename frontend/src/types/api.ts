@@ -582,6 +582,9 @@ export interface GraduationRequirementItem {
   title: string
   description: string
   completed: boolean
+  requirementType?: string
+  requirementCode?: string
+  targetValue?: number
 }
 
 export interface GraduationProgress {
@@ -785,6 +788,7 @@ export interface HeyPnuApi {
   }): Promise<TimetableEntry[]>
   createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry>
   deleteTimetableEntry(timetableEntryId: number): Promise<void>
+  deleteTimetableCourse(courseId: number): Promise<void>
   getGraduationProgress(): Promise<GraduationProgress>
   updateGraduationRequirement(
     requirementId: string,

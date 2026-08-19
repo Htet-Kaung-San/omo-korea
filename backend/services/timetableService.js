@@ -173,6 +173,17 @@ async function getTimetableEntry(supabase, studentId, entryId) {
 }
 
 async function listTimetableEntries(supabase, studentId, options = {}) {
+  // 1. Fetch active enrollments for this student
+  const { data: activeEnrollments } = await supabase
+    .from('enrollment')
+    .select('course_id,status')
+    .eq('student_id', studentId)
+    .neq('status', 'Completed');
+
+  const activeCourseIds = new Set(
+    (activeEnrollments || []).map((e) => Number(e.course_id)).filter(Boolean)
+  );
+
   let query = supabase
     .from('student_timetable_entry')
     .select(`
@@ -184,11 +195,37 @@ async function listTimetableEntries(supabase, studentId, options = {}) {
     `)
     .eq('student_id', Number(studentId))
     .order('timetable_entry_id', { ascending: true });
+
   if (options.academicYear) query = query.eq('academic_year', Number(options.academicYear));
   if (options.semester) query = query.eq('semester', String(options.semester));
   const { data, error } = await query;
   if (error) throw apiError(`Failed to fetch timetable: ${error.message}`, 502, 'TIMETABLE_QUERY_FAILED');
-  return (data || []).map(mapTimetableEntry);
+
+  const allEntries = data || [];
+
+  // 2. Only return timetable entries for actively enrolled courses, auto-cleaning any orphan entries
+  const orphanEntryIds = [];
+  const validEntries = [];
+
+  for (const entry of allEntries) {
+    const courseId = Number(entry.course_id);
+    if (activeCourseIds.has(courseId)) {
+      validEntries.push(entry);
+    } else {
+      orphanEntryIds.push(Number(entry.timetable_entry_id));
+    }
+  }
+
+  if (orphanEntryIds.length > 0) {
+    supabase
+      .from('student_timetable_entry')
+      .delete()
+      .in('timetable_entry_id', orphanEntryIds)
+      .then(() => {})
+      .catch(() => {});
+  }
+
+  return validEntries.map(mapTimetableEntry);
 }
 
 async function addTimetableEntry(supabase, studentId, input) {
@@ -259,6 +296,14 @@ async function addTimetableEntry(supabase, studentId, input) {
 }
 
 async function deleteTimetableEntry(supabase, studentId, entryId) {
+  // 1. Fetch entry details before deleting
+  const { data: existing } = await supabase
+    .from('student_timetable_entry')
+    .select('timetable_entry_id,student_id,course_id,academic_year,semester')
+    .eq('student_id', Number(studentId))
+    .eq('timetable_entry_id', Number(entryId))
+    .maybeSingle();
+
   const { data, error } = await supabase
     .from('student_timetable_entry')
     .delete()
@@ -266,12 +311,43 @@ async function deleteTimetableEntry(supabase, studentId, entryId) {
     .eq('timetable_entry_id', Number(entryId))
     .select('timetable_entry_id');
   if (error) throw apiError(`Failed to remove timetable entry: ${error.message}`, 502, 'TIMETABLE_WRITE_FAILED');
-  if (!data || data.length !== 1) throw apiError('Timetable entry not found.', 404, 'TIMETABLE_ENTRY_NOT_FOUND');
+  if (existing?.course_id) {
+    await supabase
+      .from('enrollment')
+      .delete()
+      .eq('student_id', studentId)
+      .eq('course_id', Number(existing.course_id))
+      .neq('status', 'Completed');
+  }
+
   return { timetableEntryId: Number(entryId) };
+}
+
+async function deleteTimetableByCourseId(supabase, studentId, courseId) {
+  const numericCourseId = Number(courseId);
+  const numericStudentId = Number(studentId);
+
+  // 1. Delete from student_timetable_entry (and cascading slots)
+  await supabase
+    .from('student_timetable_entry')
+    .delete()
+    .eq('student_id', numericStudentId)
+    .eq('course_id', numericCourseId);
+
+  // 2. Delete from enrollment (active / incomplete)
+  await supabase
+    .from('enrollment')
+    .delete()
+    .eq('student_id', studentId)
+    .eq('course_id', numericCourseId)
+    .neq('status', 'Completed');
+
+  return { courseId: numericCourseId };
 }
 
 module.exports = {
   addTimetableEntry,
+  deleteTimetableByCourseId,
   deleteTimetableEntry,
   listTimetableEntries,
   mapTimetableEntry,

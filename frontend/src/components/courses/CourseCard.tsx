@@ -3,6 +3,7 @@ import { CourseTypeBadge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { useLanguage } from "@/context/LanguageContext";
 import { Sparkles, BookOpen } from "lucide-react";
+import { formatMajorName } from "@/utils/formatMajor";
 
 export function CourseCard({
   course,
@@ -61,7 +62,7 @@ export function CourseCard({
           <span>{t("course.credits", { count: course.credits })}</span>
         </div>
         <span className="truncate max-w-[60%] font-medium">
-          {course.majorName || course.department}
+          {formatMajorName(course.majorName || course.department)}
         </span>
       </div>
 

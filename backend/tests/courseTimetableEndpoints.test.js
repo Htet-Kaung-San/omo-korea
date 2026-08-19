@@ -6,6 +6,7 @@ const mockListCourseCatalog = jest.fn();
 const mockListTimetableEntries = jest.fn();
 const mockAddTimetableEntry = jest.fn();
 const mockDeleteTimetableEntry = jest.fn();
+const mockDeleteTimetableByCourseId = jest.fn();
 
 jest.mock('../supabaseClient', () => ({ from: jest.fn(), rpc: jest.fn() }));
 jest.mock('../services/courseCatalogService', () => ({
@@ -15,6 +16,7 @@ jest.mock('../services/timetableService', () => ({
   listTimetableEntries: mockListTimetableEntries,
   addTimetableEntry: mockAddTimetableEntry,
   deleteTimetableEntry: mockDeleteTimetableEntry,
+  deleteTimetableByCourseId: mockDeleteTimetableByCourseId,
 }));
 
 const studentRoutes = require('../routes/studentRoutes');
@@ -59,6 +61,7 @@ describe('course catalog and personal timetable endpoints', () => {
   test('uses authenticated student ownership for timetable writes and deletes', async () => {
     mockAddTimetableEntry.mockResolvedValue({ timetableEntryId: 9, status: 'Planned' });
     mockDeleteTimetableEntry.mockResolvedValue({ timetableEntryId: 9 });
+    mockDeleteTimetableByCourseId.mockResolvedValue({ success: true });
     const body = {
       studentId: 99999999,
       courseId: 6146,
@@ -85,6 +88,16 @@ describe('course catalog and personal timetable endpoints', () => {
       expect.any(Object),
       20260001,
       '9',
+    );
+
+    await request(app())
+      .delete('/api/students/timetable/course/6146')
+      .set('Authorization', `Bearer ${tokenFor(20260001)}`)
+      .expect(200);
+    expect(mockDeleteTimetableByCourseId).toHaveBeenCalledWith(
+      expect.any(Object),
+      20260001,
+      '6146',
     );
   });
 });

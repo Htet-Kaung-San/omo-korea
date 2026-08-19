@@ -34,6 +34,7 @@ const fixtures = [
     name: "Test Admin Student",
     email: "202455393@pusan.ac.kr",
     is_admin: true,
+    major_id: 1,
     note: "admin fixture — exercises admin-only routes",
   },
   {
@@ -41,7 +42,24 @@ const fixtures = [
     name: "Test Standard Student",
     email: "202612345@pusan.ac.kr",
     is_admin: false,
+    major_id: 105,
     note: "non-admin fixture — asserts 403 on admin-only routes",
+  },
+  {
+    student_id: 202400001,
+    name: "Test Mechanical Student",
+    email: "202400001@pusan.ac.kr",
+    is_admin: false,
+    major_id: 30, // Mechanical Engineering
+    note: "standard student from Mechanical Engineering",
+  },
+  {
+    student_id: 202400002,
+    name: "Test Geological Student",
+    email: "202400002@pusan.ac.kr",
+    is_admin: false,
+    major_id: 27, // Geological and Environmental Sciences
+    note: "standard student from Geological and Environmental Sciences",
   },
 ];
 
@@ -84,7 +102,7 @@ async function upsertAuthUser(email) {
 
 async function seed() {
   for (const fixture of fixtures) {
-    const { student_id, name, email, is_admin, note } = fixture;
+    const { student_id, name, email, is_admin, major_id, note } = fixture;
 
     const authAction = await upsertAuthUser(email);
 
@@ -98,7 +116,7 @@ async function seed() {
         nationality: "Myanmar",
         phone: "010-0000-0000",
         language_pref: "en",
-        major_id: 1,
+        major_id: major_id || 1,
         grade: 3,
         student_type: "Current",
         visa_status: "D-2",

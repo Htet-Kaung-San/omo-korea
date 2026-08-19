@@ -64,6 +64,18 @@ export function LoginPage() {
     }
   }, [step])
 
+  // Hooks must run on every render, so this sits above the isLoading return.
+  // Placed after it, the first render (isLoading true) returned before reaching
+  // this hook and the next one (isLoading false) reached it — React counts a
+  // different number of hooks between renders and throws "Rendered more hooks
+  // than during the previous render", which crashed the login screen on every
+  // cold load, since isLoading always starts true while the session resolves.
+  useEffect(() => {
+    if (isAuthenticated && !user?.major && step !== 'major' && step !== 'year') {
+      setStep('major')
+    }
+  }, [isAuthenticated, user?.major, step])
+
   if (isLoading) {
     return (
       <div className="flex min-h-full items-center justify-center bg-[#EEF2F7]">
@@ -73,8 +85,16 @@ export function LoginPage() {
   }
 
   // Stay on this page for major / year selection after OTP.
-  if (isAuthenticated && step !== 'major' && step !== 'year') {
+  if (isAuthenticated && user?.major && step !== 'major' && step !== 'year') {
     return <Navigate to="/" replace />
+  }
+
+  if (isAuthenticated && !user?.major && step !== 'major' && step !== 'year') {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-[#EEF2F7]">
+        <p className="text-sm text-pnu-muted">{t('common.loading')}</p>
+      </div>
+    )
   }
   async function handleCredentialsSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -526,7 +526,7 @@ export function AcademicPage() {
                   </h2>
                 </div>
 
-                <DayClassList classes={dayClasses} embedded />
+                <DayClassList classes={dayClasses} embedded onDrop={handleDropFromTimetable} />
                 <AssignmentsExamsRow embedded />
               </section>
             )}
@@ -537,6 +537,7 @@ export function AcademicPage() {
           <WeeklyTimetableGrid
             entries={enrollments}
             locale={locale}
+            onDrop={handleDropFromTimetable}
           />
         ) : null}
       </div>
