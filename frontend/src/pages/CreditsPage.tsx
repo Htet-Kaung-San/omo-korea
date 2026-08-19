@@ -233,8 +233,7 @@ export function CreditsPage() {
     setActiveDot(dot)
   }
 
-  // keep sumBucket referenced so no unused-import warning
-  void sumBucket
+
 
   return (
     <div className="min-h-full bg-[#F5F7FB]">

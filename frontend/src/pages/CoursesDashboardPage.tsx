@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, BookOpen, CalendarDays, ChevronRight, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react'
+import { ArrowLeft, BookOpen, CalendarDays, Check, ChevronRight, Pencil, Plus, Search, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '@/api'
 import { AddPastCourseModal } from '@/components/courses/AddPastCourseModal'
 import { EditPastCourseModal } from '@/components/courses/EditPastCourseModal'
@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import type { CourseCatalogItem, CourseType, CreateTimetableEntryInput, Enrollment } from '@/types/api'
 import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/courseTerm'
+import { formatMajorName } from '@/utils/formatMajor'
 
 type CoursesTab = 'current' | 'all' | 'offered' | 'past'
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
@@ -131,6 +132,15 @@ export function CoursesDashboardPage() {
   const activeEnrollments = useMemo(() => enrollments.filter((item) => !isPastEnrollment(item)), [enrollments])
   const semesterCredits = activeEnrollments.reduce((sum, item) => sum + (item.credit ?? 0), 0)
 
+  const currentCourseIds = useMemo(() => {
+    const ids = new Set<number>(timetableCourseIds)
+    for (const item of activeEnrollments) {
+      if (item.course_id) ids.add(Number(item.course_id))
+      if (item.catalog_course_id) ids.add(Number(item.catalog_course_id))
+    }
+    return ids
+  }, [timetableCourseIds, activeEnrollments])
+
   async function loadMore() {
     const nextPage = catalogPage + 1
     setCatalogLoading(true)
@@ -183,15 +193,32 @@ export function CoursesDashboardPage() {
     }
   }
 
+  async function dropTimetableCourse(courseId: number) {
+    if (!window.confirm(t('academic.confirmDrop') || 'Remove this course from your timetable?')) return
+    setChangingCourseId(courseId)
+    setError('')
+    try {
+      await api.deleteTimetableCourse(courseId)
+      setTimetableCourseIds((current) => {
+        const next = new Set(current)
+        next.delete(courseId)
+        return next
+      })
+      await loadEnrollments()
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : t('common.errorFallback'))
+    } finally {
+      setChangingCourseId(null)
+    }
+  }
+
   async function removeCourse(enrollment: Enrollment) {
     if (!window.confirm(t('courses.removeConfirm'))) return
     setChangingCourseId(Number(enrollment.course_id))
     setError('')
     try {
       await api.deleteEnrollment(Number(enrollment.enrollment_id))
-      setEnrollments((current) => current.filter(
-        (item) => Number(item.enrollment_id) !== Number(enrollment.enrollment_id),
-      ))
+      await loadEnrollments()
       setTimetableCourseIds((current) => {
         const next = new Set(current)
         next.delete(Number(enrollment.catalog_course_id || enrollment.course_id))
@@ -293,7 +320,7 @@ export function CoursesDashboardPage() {
               <ul className="divide-y divide-black/6">
                 {catalog.map((course) => {
                   const courseId = Number(course.id)
-                  const alreadyAdded = enrolledCourseIds.has(courseId)
+                  const isAdded = currentCourseIds.has(courseId)
                   return (
                   <li key={course.id} className="flex items-center gap-2 pr-3">
                     <Link to={`/academic/recommended-courses/${course.id}?academicYear=${academicYear}&semester=${semester}`} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3">
@@ -301,18 +328,33 @@ export function CoursesDashboardPage() {
                       <span className="min-w-0 flex-1">
                         <span className="block text-[10px] font-bold text-pnu-blue">{course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}</span>
                         <span className="block truncate text-[13px] font-bold text-pnu-text">{course.nameEn || course.nameKo}</span>
-                        <span className="block truncate text-[10px] text-pnu-muted">{[course.majorName, course.department, `${course.credits} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ')}</span>
+                        <span className="block truncate text-[10px] text-pnu-muted">{[formatMajorName(course.majorName || course.department), `${course.credits} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ')}</span>
                       </span>
                       <ChevronRight className="h-4 w-4 text-pnu-muted/40" />
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCourse(course)}
-                      disabled={timetableCourseIds.has(courseId) || changingCourseId === courseId}
-                      className="shrink-0 rounded-xl bg-pnu-blue px-2.5 py-2 text-[10px] font-bold text-white disabled:bg-emerald-50 disabled:text-emerald-700"
-                    >
-                      {timetableCourseIds.has(courseId) ? t('timetable.added') : changingCourseId === courseId ? t('common.loading') : alreadyAdded ? t('academic.addToTimetable') : t('courses.addCurrent')}
-                    </button>
+                    {isAdded ? (
+                      <button
+                        type="button"
+                        onClick={() => dropTimetableCourse(courseId)}
+                        disabled={changingCourseId === courseId}
+                        className="group inline-flex shrink-0 items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                        title={t('academic.confirmDrop') || 'Remove from timetable'}
+                      >
+                        <Check className="h-3.5 w-3.5 stroke-[3] group-hover:hidden" />
+                        <Trash2 className="hidden h-3.5 w-3.5 group-hover:inline" />
+                        <span className="group-hover:hidden">{t('timetable.added')}</span>
+                        <span className="hidden group-hover:inline">{t('common.remove') || 'Remove'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCourse(course)}
+                        disabled={changingCourseId === courseId}
+                        className="shrink-0 rounded-xl bg-pnu-blue px-2.5 py-2 text-[10px] font-bold text-white shadow-sm transition hover:bg-pnu-blue-light disabled:opacity-50"
+                      >
+                        {changingCourseId === courseId ? t('common.loading') : t('courses.addCurrent')}
+                      </button>
+                    )}
                   </li>
                   )
                 })}
@@ -327,33 +369,82 @@ export function CoursesDashboardPage() {
               {loading ? <p className="p-8 text-center text-xs text-pnu-muted">{t('common.loading')}</p> : null}
               {!loading && visibleEnrollments.length === 0 ? <p className="p-8 text-center text-xs text-pnu-muted">{t('courses.emptyList')}</p> : null}
               <ul className="divide-y divide-black/6">
-                {visibleEnrollments.map((enrollment) => (
-                  <li key={enrollment.enrollment_id} className="flex items-center gap-1 pr-2">
-                    <Link
-                      to={`/academic/recommended-courses/${enrollment.catalog_course_id || enrollment.course_id}`}
-                      className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 transition active:bg-pnu-surface"
-                    >
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F3FF] text-pnu-blue"><CalendarDays className="h-4 w-4" /></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[10px] font-bold text-pnu-blue">{enrollment.official_course_number || `${t('courses.courseId')} ${enrollment.course_id}`}</span>
-                      <span className="block truncate text-[13px] font-bold text-pnu-text">{enrollment.course_name_en || enrollment.course_name || t('courses.untitled')}</span>
-                      <span className="block truncate text-[10px] text-pnu-muted">{enrollment.professor || t('courses.professorUnknown')} · {enrollment.semester}</span>
-                      <span className="block truncate text-[10px] text-pnu-muted">{tab === 'past' ? [enrollment.status, enrollment.final_grade, enrollment.credits_earned == null ? null : `${enrollment.credits_earned} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ') : formatSchedule(enrollment)}</span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-pnu-muted/40" />
-                    </Link>
-                    {tab === 'past' ? <button type="button" onClick={() => setEditingPast(enrollment)} className="shrink-0 rounded-lg p-2 text-pnu-blue" aria-label={t('courses.editPastCourse')}><Pencil className="h-4 w-4" /></button> : null}
-                    <button
-                      type="button"
-                      onClick={() => removeCourse(enrollment)}
-                      disabled={changingCourseId === Number(enrollment.course_id)}
-                      className="shrink-0 rounded-lg p-2 text-red-500 transition hover:bg-red-50 disabled:opacity-40"
-                      aria-label={t('courses.removeCourse')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </li>
-                ))}
+                {visibleEnrollments.map((enrollment) => {
+                  const hasGrade = Boolean(enrollment.final_grade)
+                  const credits = enrollment.credits_earned ?? enrollment.credit ?? 3
+                  return (
+                    <li key={enrollment.enrollment_id} className="flex items-center gap-1 pr-2">
+                      <Link
+                        to={`/academic/recommended-courses/${enrollment.catalog_course_id || enrollment.course_id}`}
+                        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 transition active:bg-pnu-surface"
+                      >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F3FF] text-pnu-blue">
+                          <CalendarDays className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[10px] font-bold text-pnu-blue">
+                            {enrollment.official_course_number || `${t('courses.courseId')} ${enrollment.course_id}`}
+                          </span>
+                          <span className="block truncate text-[13px] font-bold text-pnu-text">
+                            {enrollment.course_name_en || enrollment.course_name || t('courses.untitled')}
+                          </span>
+                          <span className="block truncate text-[10px] text-pnu-muted">
+                            {enrollment.professor || t('courses.professorUnknown')} · {enrollment.semester}
+                          </span>
+                          <span className="mt-0.5 block truncate text-[10px] text-pnu-muted">
+                            {tab === 'past' ? (
+                              hasGrade ? (
+                                <span className="inline-flex items-center gap-1.5 font-medium">
+                                  <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 font-bold text-emerald-700">
+                                    {enrollment.final_grade}
+                                  </span>
+                                  <span>· {credits} {t('courses.creditsUnit')}</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
+                                  <span>{t('courses.gradePending') || 'Grade Pending'}</span>
+                                  <span>· {credits} {t('courses.creditsUnit')}</span>
+                                </span>
+                              )
+                            ) : (
+                              formatSchedule(enrollment)
+                            )}
+                          </span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-pnu-muted/40" />
+                      </Link>
+
+                      {tab === 'past' && !hasGrade ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditingPast(enrollment)}
+                          className="shrink-0 rounded-xl bg-amber-500 px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-amber-600"
+                        >
+                          {t('courses.inputGrade') || 'Enter Grade'}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setEditingPast(enrollment)}
+                          className="shrink-0 rounded-lg p-2 text-pnu-muted transition hover:text-pnu-blue"
+                          aria-label={t('courses.editPastCourse')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => removeCourse(enrollment)}
+                        disabled={changingCourseId === Number(enrollment.course_id)}
+                        className="shrink-0 rounded-lg p-2 text-red-500 transition hover:bg-red-50 disabled:opacity-40"
+                        aria-label={t('courses.removeCourse')}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           </>

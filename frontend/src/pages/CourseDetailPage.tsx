@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { CalendarDays, CalendarPlus, ExternalLink } from 'lucide-react'
+import { CalendarDays, CalendarPlus, Check, ExternalLink, Trash2 } from 'lucide-react'
 import { api } from '@/api'
 import type { CourseCatalogItem, CreateTimetableEntryInput, Enrollment } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -11,9 +11,10 @@ import { useAuth } from '@/context/AuthContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { useToast } from '@/context/ToastContext'
 import { enrollmentSemester, parseCourseTerm, type CourseTerm } from '@/utils/courseTerm'
+import { formatMajorName } from '@/utils/formatMajor'
 
 const PNU_CATALOG_URL = 'https://onestop.pusan.ac.kr/page?menuCD=000000000000335'
-const shown = (value: unknown) => value === null || value === undefined || value === '' ? '—' : String(value)
+const shown = (value: unknown) => value === null || value === undefined || value === '' ? '—' : formatMajorName(String(value))
 
 export function CourseDetailPage() {
   const { courseId } = useParams()
@@ -68,6 +69,20 @@ export function CourseDetailPage() {
     } finally { setSubmitting(false) }
   }
 
+  async function dropCourse() {
+    if (!window.confirm(t('academic.confirmDrop') || 'Remove this course from your timetable?')) return
+    setSubmitting(true)
+    try {
+      await api.deleteTimetableCourse(Number(courseId))
+      setInTimetable(false)
+      showToast(t('timetable.removed') || 'Course removed from timetable', 'info')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : t('common.errorFallback'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return <div>
     <PageHeader title={course?.nameEn || course?.nameKo || t('courses.title')} back />
     <div className="space-y-4 px-5 py-5">
@@ -79,7 +94,29 @@ export function CourseDetailPage() {
         <article className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
           <div className="mb-4 flex items-start justify-between gap-3"><div><p className="text-xs font-bold text-pnu-blue">{course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}</p><h1 className="mt-1 text-lg font-bold">{course.nameEn || course.nameKo}</h1>{course.nameKo !== course.nameEn ? <p className="mt-1 text-sm text-pnu-muted">{course.nameKo}</p> : null}</div><CourseTypeBadge type={course.type} /></div>
           <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-xs text-pnu-muted">{t('courseTable.credits')}</dt><dd className="font-bold">{course.credits}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseTable.department')}</dt><dd className="font-bold">{shown(course.curriculum?.sourceDepartment || course.department || course.majorName)}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseCatalog.recommendedYear')}</dt><dd className="font-bold">{shown(course.recommendedYear)}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseCatalog.gradeSemester')}</dt><dd className="font-bold">{shown(course.curriculum?.gradeSemester)}</dd></div></dl>
-          <button type="button" onClick={() => setShowAdd(true)} disabled={inTimetable} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-pnu-blue py-3 text-sm font-bold text-white disabled:bg-emerald-50 disabled:text-emerald-700"><CalendarPlus className="h-4 w-4" />{inTimetable ? t('timetable.added') : t('courses.addCurrent')}</button>
+          {inTimetable ? (
+            <button
+              type="button"
+              onClick={dropCourse}
+              disabled={submitting}
+              className="group mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-bold text-emerald-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4 group-hover:hidden" />
+              <Trash2 className="hidden h-4 w-4 group-hover:inline" />
+              <span className="group-hover:hidden">{t('timetable.added')}</span>
+              <span className="hidden group-hover:inline">{t('common.remove') || 'Remove from Timetable'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              disabled={submitting}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-pnu-blue py-3 text-sm font-bold text-white shadow-sm transition hover:bg-pnu-blue-light disabled:opacity-50"
+            >
+              <CalendarPlus className="h-4 w-4" />
+              {submitting ? t('common.loading') : t('courses.addCurrent')}
+            </button>
+          )}
         </article>
 
         {(course.descriptionEn || course.descriptionKo || course.prerequisites.length) ? <section className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">{course.descriptionEn || course.descriptionKo ? <><h2 className="font-bold">{t('courseCatalog.description')}</h2><p className="mt-2 text-sm text-pnu-muted">{language === 'ko' ? course.descriptionKo || course.descriptionEn : course.descriptionEn || course.descriptionKo}</p></> : null}{course.prerequisites.length ? <><h2 className="mt-4 font-bold">{t('courseCatalog.prerequisites')}</h2><ul className="mt-2 list-disc pl-5 text-sm text-pnu-muted">{course.prerequisites.map((item) => <li key={item.id}>{[item.officialCourseNumber, language === 'ko' ? item.nameKo : item.nameEn, item.requirementText].filter(Boolean).join(' · ')}</li>)}</ul></> : null}</section> : null}

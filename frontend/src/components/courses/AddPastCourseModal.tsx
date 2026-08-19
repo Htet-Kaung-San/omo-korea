@@ -3,6 +3,7 @@ import { Search, X } from 'lucide-react'
 import { api } from '@/api'
 import { useLanguage } from '@/context/LanguageContext'
 import type { CourseCatalogItem, Enrollment } from '@/types/api'
+import { formatMajorName } from '@/utils/formatMajor'
 
 interface AddPastCourseModalProps {
   existingEnrollments: Enrollment[]
@@ -126,7 +127,7 @@ export function AddPastCourseModal({
                   </p>
                   <p className="truncate text-sm font-bold text-pnu-text">{course.nameEn || course.nameKo}</p>
                   <p className="truncate text-xs text-pnu-muted">
-                    {[course.majorName, `${course.credits} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ')}
+                    {[formatMajorName(course.majorName || course.department), `${course.credits} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ')}
                   </p>
                 </div>
                 <button

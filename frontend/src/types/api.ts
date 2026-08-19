@@ -788,6 +788,7 @@ export interface HeyPnuApi {
   }): Promise<TimetableEntry[]>
   createTimetableEntry(data: CreateTimetableEntryInput): Promise<TimetableEntry>
   deleteTimetableEntry(timetableEntryId: number): Promise<void>
+  deleteTimetableCourse(courseId: number): Promise<void>
   getGraduationProgress(): Promise<GraduationProgress>
   updateGraduationRequirement(
     requirementId: string,

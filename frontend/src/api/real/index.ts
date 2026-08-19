@@ -297,6 +297,13 @@ export const realApi: HeyPnuApi = {
     )
   },
 
+  async deleteTimetableCourse(courseId: number): Promise<void> {
+    await backendFetch<{ courseId: number }>(
+      `/students/timetable/course/${courseId}`,
+      { method: 'DELETE' },
+    )
+  },
+
   async getGraduationProgress(): Promise<GraduationProgress> {
     const studentId = requireStudentId()
     const payload = await backendFetch<Parameters<typeof mapGraduationProgress>[0]>(

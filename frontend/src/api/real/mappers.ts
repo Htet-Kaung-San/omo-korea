@@ -24,6 +24,7 @@ import type {
   TeachingLanguage,
   User,
 } from '@/types/api'
+import { formatMajorName } from '@/utils/formatMajor'
 
 interface BackendCreditBucket {
   completed?: number
@@ -335,7 +336,7 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     credits: course.credits,
     department: course.department ?? '',
     majorId: course.majorId == null ? null : String(course.majorId),
-    majorName: course.majorName ?? null,
+    majorName: course.majorName ? formatMajorName(course.majorName) : null,
     collegeId: course.collegeId ?? null,
     recommendedYear: course.year ?? null,
     tags: course.tags ?? [],
