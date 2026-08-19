@@ -1,3 +1,4 @@
+const { assessNoticeSources } = require("./noticeSourceHealth");
 const { syncNoticesToKnowledgeBase } = require("./noticeKnowledgeService");
 let activeSynchronization = null;
 
@@ -220,7 +221,14 @@ async function synchronizeNotices({
   }
 
   activeSynchronization = (async () => {
-    const scraped = await scrapeNotices();
+    // Collect one outcome per board. scrapeNotices ignores unknown options,
+    // so injected test doubles are unaffected.
+    const sourceResults = [];
+    const scraped = await scrapeNotices({
+      onSourceResult: (source, outcome) => {
+        sourceResults.push({ source: source.source, ...outcome });
+      },
+    });
     const persisted = await persistScrapedNotices(
       supabaseClient,
       scraped,
@@ -239,10 +247,21 @@ async function synchronizeNotices({
       knowledgeBase = { error: err.message };
     }
 
+    // Whether the run actually worked, as opposed to merely finishing.
+    let sourceHealth = null;
+    if (sourceResults.length > 0) {
+      try {
+        sourceHealth = await assessNoticeSources(supabaseClient, sourceResults);
+      } catch (err) {
+        sourceHealth = { healthy: [], problems: [], checkFailed: err.message };
+      }
+    }
+
     return {
       scraped,
       ...persisted,
       knowledgeBase,
+      sourceHealth,
     };
   })();
 
