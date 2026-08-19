@@ -1,3 +1,4 @@
+const { syncNoticesToKnowledgeBase } = require("./noticeKnowledgeService");
 let activeSynchronization = null;
 
 const NOTICE_SELECT_FIELDS = [
@@ -225,9 +226,23 @@ async function synchronizeNotices({
       scraped,
     );
 
+    // Publish the recent ones into the knowledge base so the assistant can
+    // answer about them. Deliberately non-fatal: storing notices is the
+    // primary job here and the Notices screen depends on it, so a knowledge
+    // base that is unreachable — or a cron without an embedding key — must not
+    // fail the sync that feeds the screen.
+    let knowledgeBase = null;
+    try {
+      knowledgeBase = await syncNoticesToKnowledgeBase(supabaseClient);
+    } catch (err) {
+      console.error("Notice knowledge-base sync failed:", err.message);
+      knowledgeBase = { error: err.message };
+    }
+
     return {
       scraped,
       ...persisted,
+      knowledgeBase,
     };
   })();
 

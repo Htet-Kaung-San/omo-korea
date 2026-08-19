@@ -32,3 +32,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          # Notices are published into the knowledge base as they arrive, which
+          # needs an embedding key. Without this secret the sync still stores
+          # every notice and the Notices screen is unaffected — the documents
+          # are simply written unembedded, and the next run that does have a key
+          # picks them up. Retrieval cannot see them until then.
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

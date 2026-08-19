@@ -20,8 +20,12 @@ const NOTICE_SOURCES = [
     source: 'onestop',
     label: 'PNU Student Support',
     kind: 'onestop-home',
-    origin: 'https://e-onestop.pusan.ac.kr',
-    listUrl: 'https://e-onestop.pusan.ac.kr/login',
+    // e-onestop.pusan.ac.kr was retired and now 404s on every path, which had
+    // been failing this board silently on every sync. The board itself moved to
+    // onestop.pusan.ac.kr and still renders the same markup, so the parser is
+    // unchanged — only the hostname was wrong.
+    origin: 'https://onestop.pusan.ac.kr',
+    listUrl: 'https://onestop.pusan.ac.kr/login',
     maxPages: 1,
     language: 'Korean',
   },
