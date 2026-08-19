@@ -5,9 +5,93 @@
 >
 > 제7회 PNU 창의융합AI해커톤 · 융합트랙 · 팀 **5 Guys**
 
-<p align="center">
-  <img src="project-docs/ER_Diagram.png" alt="Hey! PNU" width="640" />
-</p>
+```mermaid
+erDiagram
+    major ||--o{ student : "소속"
+    major ||--o{ course : "개설"
+    major ||--o{ graduation_requirement : "졸업요건"
+    student ||--o{ enrollment : "수강"
+    course  ||--o{ enrollment : ""
+    course  ||--o{ course_offering : "학기별 개설"
+    course  ||--o{ course_curriculum : "교육과정 배치"
+    student ||--o{ student_timetable_entry : "시간표"
+    student_timetable_entry ||--o{ student_timetable_slot : "요일·시간"
+    student ||--o{ academic_record : "성적"
+    student ||--o{ student_checklist_status : ""
+    checklist_item ||--o{ student_checklist_status : "정착 체크리스트"
+    student ||--o{ community_post : "작성"
+    community_group ||--o{ community_post : "게시판"
+    student ||--o{ chatbot_log : "질문 기록"
+    student ||--o{ app_feedback : "피드백"
+    kb_document ||--o{ kb_chunk : "임베딩 청크"
+
+    student {
+        int    student_id  PK "정수 학번"
+        string email          "학교 메일 · 로그인 ID"
+        int    major_id    FK
+        int    grade
+        string language_pref
+    }
+    major {
+        int    major_id    PK
+        string major_name
+        string department
+    }
+    course {
+        int    course_id   PK
+        string course_name
+        int    credit
+        int    major_id    FK
+        string category
+    }
+    enrollment {
+        int    enrollment_id PK
+        int    student_id  FK
+        int    course_id   FK
+        string semester
+        string status
+    }
+    graduation_requirement {
+        int     req_id     PK
+        int     major_id   FK
+        string  requirement_code
+        string  requirement_type
+        numeric target_value
+    }
+    kb_document {
+        int    id          PK
+        string category
+        string title
+        text   content
+    }
+    kb_chunk {
+        int    id          PK
+        int    document_id FK
+        text   chunk_text
+        vector embedding      "vector(768)"
+    }
+    notice {
+        int    notice_id   PK
+        string title
+        string source
+        string source_url
+        date   posted_date
+    }
+    community_post {
+        int    post_id     PK
+        int    group_id    FK
+        int    student_id  FK
+        text   content
+    }
+    student_timetable_entry {
+        int    timetable_entry_id PK
+        int    student_id  FK
+        int    course_id   FK
+        string semester
+    }
+```
+
+> `notice`는 15분 주기 스크래핑으로 채워지며, 최근 공지는 `kb_document`로도 발행되어 어시스턴트가 검색할 수 있다.
 
 ---
 
@@ -26,36 +110,36 @@
 - 다국어 UI와 문화적 맥락을 반영한 현지화
 - 전공·졸업요건·관심 분야를 분석한 **AI 수강 과목 추천** 및 **비교과 프로그램 추천**
 - 졸업 요건 자동 계산 및 체크리스트, 신입생 정착 체크리스트
-- 통합 검색, 스마트 알림, 커뮤니티, 캠퍼스 맵, 응급 지원
+- 우선순위·마감일을 반영한 개인화 공지 피드, 커뮤니티, 캠퍼스 맵, 응급 지원
 
-**EN** — Consolidate the scattered information and layer on *personalized* support driven by each student's major, completed credits, and interests. Centered on the AI assistant **Sanjini**, the app offers multilingual localization, AI-driven course and extracurricular-program recommendations, automatic graduation-requirement tracking, unified search, smart notifications, a community, a campus map, and emergency support.
+**EN** — Consolidate the scattered information and layer on *personalized* support driven by each student's major, completed credits, and interests. Centered on the AI assistant **Sanjini**, the app offers multilingual localization, personalized course and extracurricular-program recommendations, automatic graduation-requirement tracking, a prioritized notice feed, a community, a campus map, and emergency support.
 
 ### 1.3. 세부 내용 · Key Features
 
 | 기능 · Feature | 설명 · Description |
 |---|---|
 | 🤖 AI 어시스턴트 (산지니) | 입학·학업·생활·비자·진로 질문에 학생 프로필 기반으로 응답 (RAG 근거 검색 포함) |
-| 📚 AI 수강 추천 | 전공·이수 학점·졸업 요건·관심 분야를 반영한 다음 학기 과목 추천 |
-| 🎓 졸업요건 & 학점 관리 | 이수 학점 자동 계산, 남은 요건과 예상 졸업 시기 표시 |
+| 📚 맞춤 수강 추천 | 전공·이수 학점·졸업 요건·관심 분야를 반영한 다음 학기 과목 추천 (규칙 기반 엔진) |
+| 🎓 졸업요건 & 학점 관리 | 이수 학점 자동 계산, 영역별 잔여 학점과 졸업 체크리스트 표시 |
 | 🗓️ 시간표 & 충돌 감지 | 수강 등록 시 요일·시간 겹침을 검사하고 경고 |
-| 🧩 비교과 프로그램 추천 | 관심 분야·커리어 목표 기반 동아리·공모전·교내활동 추천 |
+| 🧩 비교과 프로그램 추천 | 관심 분야·커리어 목표 기반 교내 비교과 프로그램 추천 (규칙 기반 엔진) |
 | 💰 장학금 정보 | GKS·TOPIK·학과별 장학 정보 통합 제공 및 마감일 안내 |
 | 📢 공지 통합 | 국제처·학과 게시판을 스크래핑해 원문 링크와 함께 제공 |
 | 🗺️ 캠퍼스 맵 | Naver Maps 기반 시설 안내 |
-| 💬 커뮤니티 | 국가별·학과별 게시판, 댓글·좋아요·신고 |
-| 🚨 응급 지원 | 119·112 원터치, 국가별 영사관, 다국어 응급 가이드 |
-| 🌐 다국어 | 19개 UI 언어 지원 프레임워크 (현재 EN·KO 완비, ZH·MY 준비 마무리 단계, 그 외 진행 중) |
+| 💬 커뮤니티 | 국가별·학과별 게시판 자동 배정, 글 작성·좋아요·삭제 |
+| 🚨 응급 지원 | 119·112·1345 원터치, 국적별 대사관·출입국 연락처, 전세 사기 예방 안내 |
+| 🌐 다국어 | 19개 UI 언어 프레임워크 · 번역률 EN 100% · KO 95% · ZH 86% · MY 85% · 그 외 진행 중 (미번역 키는 영어로 폴백) |
 
 ### 1.4. 기존 서비스 대비 차별성 · Differentiation
 
 | 기능 · Feature | 현재 방식 · Today | Hey! PNU |
 |---|---|:---:|
 | 통합 서비스 · One-stop platform | 없음 (여러 사이트 분산) | ✅ |
-| 과목 추천 · Course recommendation | 없음 | ✅ AI |
+| 과목 추천 · Course recommendation | 없음 | ✅ 개인화 자동 추천 |
 | 졸업 요건 관리 · Graduation tracking | 학과 안내문 수동 확인 | ✅ 자동 |
-| 장학금 정보 · Scholarships | 국제처 홈페이지 개별 확인 | ✅ 통합 + 알림 |
+| 장학금 정보 · Scholarships | 국제처 홈페이지 개별 확인 | ✅ 통합 + 마감일 강조 |
 | 캠퍼스 맵 · Campus map | 분산 정보 | ✅ 지도 기반 |
-| 응급 지원 · Emergency | 개별 검색 | ✅ 원터치 + 가이드 |
+| 응급 지원 · Emergency | 개별 검색 | ✅ 원터치 + 연락처 |
 | 다국어 · Multilingual | 제한적 (한국어 중심) | ✅ 현지화 |
 
 **KO** — 단순 번역을 넘어 **문화적 맥락을 반영한 현지화**를 적용하고, 입학 준비 단계부터 재학 생활 전반까지 필요한 정보를 하나의 플랫폼에서 원스톱으로 제공한다는 점이 핵심 차별점이다.
@@ -66,7 +150,7 @@
 
 1. **정보 접근성 향상 및 성공적 정착 지원** — 분산된 정보를 통합하고 다국어 AI 지원을 제공해 초기 정착의 혼란과 부담을 줄인다.
 2. **학업 및 진로 역량 강화** — AI 과목 추천·졸업요건 체크리스트·비교과 추천으로 자기주도적 학습과 진로 설계를 돕는다.
-3. **안전하고 포용적인 캠퍼스 조성** — 응급 지원, 병원·약국 정보, 주거·전세 사기 예방 가이드, 비자 관리로 위험을 예방하고 유학생의 권익을 보호한다.
+3. **안전하고 포용적인 캠퍼스 조성** — 응급 연락처 원터치, 국적별 대사관·출입국 안내, 전세 사기 예방 가이드, 시간제 취업(아르바이트) 허가 안내로 위험을 예방하고 유학생의 권익을 보호한다.
 
 ---
 
@@ -78,7 +162,7 @@
 flowchart TD
     subgraph Client["Frontend · React 19 + Vite (mobile web)"]
         UI["Pages & Contexts<br/>(Auth · Language · Toast)"]
-        APIClient["API client<br/>(real / mock switch)"]
+        APIClient["API client<br/>(single fetch seam)"]
         i18n["i18n · 19-language framework"]
     end
 
@@ -87,13 +171,13 @@ flowchart TD
         Auth["JWT + Supabase Auth<br/>(bcrypt legacy fallback)"]
         Rec["Rule-based<br/>recommendation engines"]
         RAG["RAG service<br/>(embeddings + retrieval)"]
-        Scrapers["Scrapers · cheerio<br/>(notices · jobs · cafeteria)"]
+        Scrapers["Scrapers<br/>(notices · cafeteria · jobs)"]
     end
 
     subgraph Data["Data & AI"]
         Supa[("Supabase<br/>PostgreSQL + pgvector")]
         OpenRouter["OpenRouter<br/>(primary chat)"]
-        Gemini["Google Gemini<br/>(chat fallback · embeddings · translation)"]
+        Gemini["Google Gemini<br/>(chat fallback · translation)"]
         Naver["Naver Maps"]
     end
 
@@ -102,33 +186,35 @@ flowchart TD
     Routes --> Rec --> Supa
     Routes --> RAG
     RAG -->|match_kb_chunks| Supa
-    RAG --> Gemini
+    RAG -->|embeddings| OpenRouter
     Routes -->|chat cascade| OpenRouter
     OpenRouter -.fallback.-> Gemini
     Scrapers --> Supa
     UI --> Naver
 ```
 
-**AI 챗봇 폴백 구조 · Chat fallback cascade:** `OpenRouter → Gemini → (Anthropic) → 로컬 FAQ`. RAG 근거는 Gemini 임베딩(768차원)으로 생성해 Supabase `pgvector`에 저장하고, `match_kb_chunks` RPC로 검색한 뒤 프롬프트에 주입한다.
+**AI 챗봇 구조 · Chat pipeline** — 어시스턴트 화면은 SSE 스트리밍 경로(`POST /api/ai/chat-stream`) 하나만 사용한다. OpenRouter가 1차 제공자이며 모델 단위 폴백과 12초 연결 타임아웃을 두고, 모든 모델이 실패하면 Gemini 스트리밍으로 넘어간다.
+
+**RAG** — 임베딩은 OpenRouter(`openai/text-embedding-3-small`, 768차원)로 생성해 Supabase `pgvector`에 저장하고 `match_kb_chunks` RPC로 검색한다. 유사도 임계값 `0.32`는 실측값이다(주제 내 0.376–0.692, 주제 외 0.137–0.262). 답변에는 **근거 문서명을 함께 표시**하고, 근거를 찾지 못한 경우에는 비자·근로·졸업처럼 결과가 중요한 질문에 한해 *"공식 문서에 근거하지 않은 일반 안내"*라고 명시한 뒤 국제처·1345로 안내한다. 토큰 한도로 답변이 잘린 경우(`finish_reason`)에도 완결된 답변처럼 보이지 않도록 표시한다.
 
 ### 2.2. 사용 기술 · Tech Stack
 
 **Frontend**
 - React `19.2` · React Router `7.18` · TypeScript `6.0`
-- Vite `8.0` · Tailwind CSS `4.3` · lucide-react
+- Vite `8.0` · Tailwind CSS `4.3` · lucide-react · react-markdown `10.1`
 - Naver Maps (NCP) for the campus map
 
 **Backend**
-- Node.js (tested on `v25.9`) · Express `5.2`
+- Node.js `20` (`engines: >=20 <25`) · Express `5.2`
 - Supabase JS `2.108` (PostgreSQL + `pgvector`)
 - JSON Web Token `9.0` · bcryptjs `3.0` · Joi `18.2`
-- cheerio `1.2` (board / job / menu scraping)
+- cheerio `1.2` (notice / cafeteria board parsing)
 
 **AI / Data**
-- OpenRouter (primary chat completion)
-- Google Gemini (chat fallback, embeddings for RAG, cafeteria/notice translation)
-- Anthropic SDK (`@anthropic-ai/sdk`) integrated for major-recommendation analysis
-- Supabase `pgvector` retrieval-augmented generation
+- OpenRouter — 챗 응답(1차 제공자) 및 임베딩(`openai/text-embedding-3-small`, 768차원)
+- Google Gemini — 챗 폴백, 학식 메뉴 번역
+- Supabase `pgvector` — 지식베이스 검색(RAG), 문서 351건 · 청크 376건
+- 추천 엔진은 LLM을 호출하지 않는 결정론적 규칙 기반 엔진이다 (`backend/ai/`)
 
 **활용한 생성형 AI · AI coding tools** — 자세한 내용은 [3.5](#35-ai-도구-활용--use-of-ai-tools) 참고.
 
@@ -146,37 +232,52 @@ sequenceDiagram
     participant DB as Supabase
     participant AI as OpenRouter / Gemini
 
-    S->>F: 로그인 (학번 + 비밀번호)
+    S->>F: 로그인 (학교 이메일 + 비밀번호)
     F->>B: POST /api/students/login
     B->>DB: verify (Supabase Auth)
+    B-->>F: requiresVerification + challengeId
+    B->>S: 6자리 인증코드 메일 발송 (Resend)
+    S->>F: 인증코드 입력
+    F->>B: POST /api/students/login/verify
     B-->>F: JWT (7d) + profile
     S->>F: "비자 연장은 어떻게 하나요?"
-    F->>B: POST /api/ai/chat
+    F->>B: POST /api/ai/chat-stream (SSE)
     B->>DB: match_kb_chunks (pgvector)
     DB-->>B: grounding context
     B->>AI: prompt + profile + context
-    AI-->>B: localized answer
-    B-->>F: reply (+ RAG metadata)
-    F-->>S: 산지니의 답변
+    AI-->>B: streamed answer
+    B-->>F: 토큰 스트림 + 근거 메타데이터
+    F-->>S: 산지니의 답변 (+ 근거 문서명 / 미근거 경고)
 ```
 
 ### 3.2. 기능 설명 · Feature Walkthrough
 
-- **로그인 / 회원가입** — 학번과 비밀번호로 로그인. 입력값은 클라이언트에서 유효성 검사 후 서버가 Supabase Auth로 검증하며, 성공 시 7일 유효 JWT를 발급한다. 비밀번호 재설정은 이메일 링크 기반으로 동작한다.
-- **홈 대시보드** — 최신 공지 캐러셀, 학사 일정, 오늘의 학식(금정회관 학생 식당) 미리보기, 빠른 이동 그리드.
+- **로그인 / 회원가입** — 학교 이메일(`@pusan.ac.kr` 등)과 비밀번호로 1차 인증한 뒤, 메일로 받은 6자리 코드를 확인하면 7일 유효 JWT를 발급한다. 회원가입도 같은 방식으로 메일 소유를 먼저 확인한다. 비밀번호 재설정은 이메일 링크 기반이다.
+- **홈 대시보드** — 정착 체크리스트 진행률, 최신 공지 캐러셀, 빠른 이동 그리드.
 - **학식 · Cafeteria** — PNU 주간 메뉴 스크래핑, 셀별 복수 옵션(정식/일품), 기본 탭은 금정회관 학생 식당. 메뉴 번역은 UI가 `ko`일 때 한국어, 그 외 언어는 영어(Gemini + OpenRouter fallback).
-- **AI 어시스턴트 (산지니)** — 학생 프로필과 RAG 근거를 활용해 다국어로 응답하며, 답변이 공식 문서에 근거했는지 메타데이터를 함께 반환한다.
-- **학업 / 시간표** — 수강 등록·삭제, 요일·시간 충돌 감지, `.ics` 캘린더 내보내기.
+- **AI 어시스턴트 (산지니)** — 학생 프로필(전공·학년·이수 과목·졸업요건)과 RAG 근거를 활용해 응답하며, 근거 문서명을 화면에 표시한다. 근거가 없으면 결과가 중요한 질문에 한해 일반 안내임을 명시하고 국제처·1345로 안내한다.
+- **학업 / 시간표** — 수강 등록·삭제, 요일·시간 충돌 감지, 학기별 시간표 보기.
 - **수강·비교과·장학 추천** — 규칙 기반 추천 엔진이 전공·이수 상황·관심 분야를 반영해 순위를 매긴다.
-- **커뮤니티** — 국가별·학과별 게시판, 댓글·좋아요·신고.
+- **커뮤니티** — 국적·학과에 따라 게시판이 자동 배정되며 글 작성·좋아요·삭제를 지원한다. 목록은 45초 간격으로 갱신된다.
 - **캠퍼스 맵 / 응급 지원 / 취업·인턴십** — Naver Maps 시설 안내, 원터치 긴급 연락, JobKorea 공고 스크래핑.
 
 ### 3.3. 기능명세서 · Feature Specification
 
-REST 엔드포인트는 크게 두 그룹으로 나뉜다.
-
-- `/api/students/*` — 인증, 프로필, 공지, 시설, 커뮤니티, 수강, 장학, 체크리스트, 알림, 검색 등
-- `/api/ai/*` — 챗봇(`/chat`, `/chat-stream`), 전공 추천, 공지 번역, 지식베이스 문서 관리(RAG)
+| 기능 | 주요 엔드포인트 | 인증 | 데이터 |
+|---|---|:---:|---|
+| 로그인 / 인증코드 | `POST /students/login` · `/login/verify` | – | `student`, Supabase Auth |
+| 회원가입 | `POST /students/signup` · `/signup/complete` | – | `student` (메일 확인 후 생성) |
+| 비밀번호 재설정 | `POST /students/forgot-password` · `/reset-password` | – | Supabase Auth + Resend |
+| AI 어시스턴트 | `POST /ai/chat-stream` (SSE) | ✔ | `kb_chunk` (pgvector), `chatbot_log` |
+| 수강 추천 | `GET /ai/course-recommendations` | ✔ | `course`, `enrollment` |
+| 졸업요건 / 학점 | `GET /students/graduation-progress` | ✔ | `graduation_requirement`, `enrollment` |
+| 시간표 | `POST /students/timetable` · `DELETE` | ✔ | `student_timetable_entry` (트랜잭션 RPC) |
+| 공지 | `GET /students/notices` · `/notifications` | ✔ | `notice` (15분 크론 스크래핑) |
+| 장학 / 비교과 | `GET /students/scholarships` · `/programs` | ✔ | `scholarship`, `extracurricular_program` |
+| 커뮤니티 | `GET`·`POST /students/community/posts` | ✔ | `community_post`, `community_group` |
+| 캠퍼스 시설 | `GET /students/campus-facilities` | ✔ | `map_facility` |
+| 응급 / 지원 | `GET /students/emergency-guide` · `/pnu-contacts` | ✔ | `emergency_contact`, 번들 데이터 |
+| 피드백 | `POST /students/feedback` | ✔ | `app_feedback` |
 
 전체 라우트 목록은 [`backend/routes/`](backend/routes/)에서 확인할 수 있다.
 
@@ -189,7 +290,7 @@ omo-korea/
 │       ├── pages/            # 화면 (Home, Academic, AI, Map, Community, …)
 │       ├── components/       # 재사용 UI 컴포넌트
 │       ├── context/          # Auth · Language · Toast
-│       ├── api/              # real / mock API 어댑터
+│       ├── api/              # 단일 fetch 계층 + 응답 매퍼
 │       ├── i18n/             # 다국어 사전 (19 locales)
 │       └── utils/            # 시간표·캘린더 등 헬퍼
 ├── backend/                  # Express + Supabase
@@ -198,11 +299,16 @@ omo-korea/
 │   ├── services/             # 스크래퍼·AI·인증 서비스
 │   ├── ai/                   # 추천 엔진 (course, career, scholarship, …)
 │   ├── middlewares/          # auth (JWT + admin)
+│   ├── middleware/           # 에러 핸들러 · 언어 미들웨어
 │   ├── supabase/             # SQL 마이그레이션
 │   ├── scripts/              # 시드 스크립트
-│   └── tests/                # Jest 통합 테스트
-└── project-docs/             # 계획서 · ER 다이어그램 · 발표자료
+│   ├── data/source/          # 원본 공식 문서 (교육과정표 · 학칙)
+│   └── tests/                # Jest 테스트 (46 suites)
+├── .github/workflows/        # pr-ci.yml · sync-notices.yml (15분 크론)
+└── render.yaml · DEPLOY.md   # 배포 설정
 ```
+
+> `project-docs/`는 `.gitignore` 대상이며 ER 다이어그램만 추적된다.
 
 ### 3.5. AI 도구 활용 · Use of AI Tools
 
@@ -210,16 +316,17 @@ omo-korea/
 
 - **기획 · 설계** — ChatGPT와 Google AI Studio로 방대한 유학 행정 데이터를 정리하고 기능 명세를 빠르게 도출했으며, Claude Design으로 다양한 국적의 사용자가 직관적으로 이해할 수 있는 UI/UX를 설계했다.
 - **코드 작성 · 리팩토링** — Cursor, GitHub Copilot, OpenAI Codex, **Claude Code**를 코딩 도구로 사용해 반복 작업을 자동화하고, 복잡한 API 연동·DB 쿼리 설계의 병목을 신속히 해결했다. 특히 인증 구조(Supabase Auth 이전, JWT), 통합 테스트, 보안 점검에 Claude Code를 활용했다.
-- **핵심 기능** — Google AI Studio(Gemini API)를 공지·행정 텍스트의 다국어 분석·요약에 통합하고, 생성형 AI로 데이터셋을 정제·검증해 비자·입학 등 민감 정보의 정확도를 높였다.
+- **핵심 기능** — 제품에 실제로 탑재된 생성형 AI는 두 가지다. ① 어시스턴트 응답: OpenRouter(1차)와 Gemini(폴백). ② 지식베이스 검색: OpenRouter 임베딩 + Supabase `pgvector`. 학식 메뉴 번역에도 Gemini를 사용한다. 공지 번역 엔드포인트(`/api/ai/translate-announcement`)는 구현되어 있으나 아직 화면에 연결하지 않았다.
+- **정확성 검증** — 비자·근로·졸업처럼 틀리면 학생에게 실질적 피해가 가는 정보는 원문(시행세칙·교육과정표)을 근거로 작성한 뒤, 다중 에이전트 교차 검증으로 오역·과장·조건 누락을 잡아내고 수정한 뒤에만 지식베이스에 반영했다.
 
-**EN** — AI tools were used across the whole cycle: ChatGPT / Google AI Studio for planning and spec extraction, Claude Design for UI/UX, and Cursor / GitHub Copilot / OpenAI Codex / **Claude Code** for implementation, refactoring, integration testing, and a security review of the authentication layer. Gemini powers the multilingual analysis and summarization of notices.
+**EN** — AI tools were used across the whole cycle: ChatGPT / Google AI Studio for planning and spec extraction, Claude Design for UI/UX, and Cursor / GitHub Copilot / OpenAI Codex / **Claude Code** for implementation, refactoring, integration testing, and a security review of the authentication layer. In the shipped product, generative AI does two things: it answers questions (OpenRouter, with Gemini as fallback) and it powers knowledge-base retrieval (OpenRouter embeddings over Supabase pgvector). Recommendation engines are deterministic and call no model.
 
 ---
 
 ## 4. 설치 및 사용 방법 · Setup & Run
 
 ### Prerequisites
-- Node.js 20+ (tested on v25.9)
+- Node.js 20 이상 24 이하 (`engines: >=20 <25`) · npm
 - A Supabase project (PostgreSQL + `pgvector`)
 - API keys: OpenRouter and/or Gemini (chat), optional Naver Maps client ID
 
@@ -236,11 +343,11 @@ npm install
 |---|---|
 | `PORT` | `3000` (Vite proxy expects this) |
 | `SUPABASE_URL` / `SUPABASE_KEY` | Project URL + **service-role** key (server only) |
-| `SUPABASE_PUBLISHABLE_KEY` | Public anon key |
 | `JWT_SECRET` | **Required** — server refuses to start without it. Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
 | `APP_BASE_URL` | Frontend URL for password-reset links (`http://localhost:5173`) |
-| `GEMINI_API_KEY` | Gemini (chat fallback, embeddings, cafeteria/notice translation) |
-| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Primary chat provider (+ cafeteria translation fallback) |
+| `GEMINI_API_KEY` | Gemini — chat fallback and cafeteria menu translation |
+| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Primary chat provider **and RAG embeddings** — required for the assistant to find sources |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Sign-up and login verification codes, password-reset mail |
 
 ### 2) Frontend
 ```bash
@@ -249,19 +356,22 @@ cp .env.example .env
 npm install
 ```
 
-`frontend/.env`: set `VITE_API_MODE=real`, `VITE_API_BASE_URL=http://localhost:3000/api`, and `VITE_NAVER_MAP_CLIENT_ID`. Never put secrets in `VITE_*` variables.
+`frontend/.env`: set `VITE_API_BASE_URL` and `VITE_NAVER_MAP_CLIENT_ID`. Never put secrets in `VITE_*` variables — Vite inlines them into the shipped JavaScript.
 
 | Variable | Notes |
 |----------|--------|
-| `VITE_API_MODE` | `real` for live API, `mock` for UI-only |
-| `VITE_API_BASE_URL` | `/api` (proxied to backend `:3000`) |
-| `VITE_NAVER_MAP_CLIENT_ID` | NCP Maps Client ID (public) |
-| `VITE_SUPABASE_URL` | Supabase project URL (community Realtime feed) |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (public; RLS applies) |
+| `VITE_API_BASE_URL` | `/api` in development (Vite proxies it to `:3000`); the full `https://…/api` origin when deployed |
+| `VITE_NAVER_MAP_CLIENT_ID` | NCP Maps Client ID (public, domain-locked) |
+
+> 브라우저 번들에는 데이터베이스 자격증명이 전혀 포함되지 않는다. 커뮤니티 피드를 포함한 모든 데이터 접근은 Express API를 거친다.
 
 ### 3) Supabase SQL (run once in the SQL Editor)
 
-Apply these once (safe to re-run where noted):
+**먼저 기본 스키마를 적용한다** — 아래 9개는 대부분 기존 테이블을 변경하는 증분 마이그레이션이므로, 빈 프로젝트에서는 이 파일을 먼저 실행해야 한다.
+
+0. `backend/db/schema.sql` — 기본 테이블 (`student`, `course`, `enrollment`, `notice`, …)
+
+그 다음 순서대로 적용한다 (재실행 가능):
 
 1. `backend/supabase/map_profile_migration.sql` — facility enrichment + academic tables
 2. `backend/supabase/support_contacts.sql` — PNU contacts + FAQ
@@ -272,6 +382,11 @@ Apply these once (safe to re-run where noted):
 7. `backend/supabase/extracurricular_program_descriptions.sql` — single `description` column for program body
 8. `backend/supabase/post_engagement_and_schedule.sql` — post likes/reports + course schedule columns
 9. `backend/supabase/community_major_migration.sql` — group posts by parent major (one-time)
+10. `backend/supabase/student_timetable.sql` — timetable tables + transactional RPCs
+11. `backend/supabase/feedback.sql` — in-app feedback (`app_feedback`)
+12. `backend/supabase/academic_records.sql` · `scholarship.sql` — transcripts, scholarships
+
+> RAG를 사용하려면 `backend/db/migration.sql`도 실행해야 한다 — `pgvector` 확장, `kb_document` / `kb_chunk`(`vector(768)`), `match_kb_chunks` RPC가 여기에 정의되어 있다.
 
 Optional seed scripts (after migrations):
 
@@ -293,12 +408,18 @@ cd backend && npm run dev
 cd frontend && npm run dev
 ```
 
-Sign in with your PNU student ID and password.
+학교 이메일(`@pusan.ac.kr`)과 비밀번호로 로그인하면 메일로 6자리 인증코드가 발송된다. 메일 발송에는 `RESEND_API_KEY`가 필요하다.
+
+**심사·시연용 계정** — 메일 없이 바로 로그인할 수 있도록 데모 계정을 두었다. `npm run seed:test-fixtures` 실행 후 `202612345@pusan.ac.kr`로 로그인하고 인증코드는 `123456`을 입력하면 된다.
 
 ### Tests
 ```bash
-cd backend && npm test        # Jest integration suite (requires seed:test-fixtures)
+cd backend  && npm test                    # Jest — 46 suites / 375 tests, Supabase 불필요
+cd frontend && npm run test:course-offerings   # 61 assertions
+cd frontend && npx tsc -b && npx eslint . && npm run build
 ```
+
+> `npm test`는 실 DB에 쓰는 `tests/api.test.js`를 제외하고 실행되므로 시드나 네트워크 없이 통과한다.
 
 ---
 
@@ -333,7 +454,7 @@ cd backend && npm test        # Jest integration suite (requires seed:test-fixtu
 틀리면 안 되는 정보에서 이건 위험하다고 판단했고, 그 지점에서 방향이 바뀌었습니다.
 필요한 건 번역이 아니라 **근거**였습니다.
 
-그래서 실제 부산대 문서를 지식베이스로 만들고(47개 문서), 근거가 없으면 "모른다"고 답하도록
+그래서 실제 부산대 문서와 스크래핑한 공지를 지식베이스로 만들고(문서 351건 · 청크 376건), 근거가 없으면 "모른다"고 답하도록
 했습니다. 체감으로 "좋아졌다"고 말하지 않기 위해 40개 질문으로 벤치마크를 만들어, 같은 모델에
 지식베이스 유무만 바꿔 비교했습니다.
 
