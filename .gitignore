@@ -60,8 +60,12 @@ Thumbs.db
 .cursor/
 agent-transcripts/
 
-# Source spreadsheets for course seeding (keep local; derived JSON is committed)
+# Source spreadsheets are ignored by default; reviewed, checksum-pinned workbooks may be explicitly whitelisted.
 *.xlsx
+!backend/data/source/department-websites/PNU_Department_Official_Websites.xlsx
+!backend/data/source/economics-and-international-trade/trade_courses.xlsx
+!backend/data/source/economics-and-international-trade/global_studies_courses.xlsx
+!backend/data/source/economics-and-international-trade/tourism_convention_courses_2021_2026.xlsx
 
 # Local project docs (planning materials — may contain personal data)
 project-docs/

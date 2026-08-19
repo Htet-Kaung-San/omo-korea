@@ -33,6 +33,8 @@
     "apply:business-curriculum": "node scripts/apply-business-curriculum.mjs",
     "dry-run:business-course-offerings": "node scripts/dry-run-business-course-offerings.mjs",
     "apply:business-course-offerings": "node scripts/apply-business-course-offerings.mjs",
+    "dry-run:economics-curricula": "node scripts/dry-run-economics-international-trade-curriculum.mjs",
+    "apply:economics-curricula": "node scripts/apply-economics-international-trade-curriculum.mjs",
     "prescrape:cafeteria": "node scripts/prescrape-cafeteria.js",
     "sync:1365-volunteers": "node scripts/sync-1365-volunteers.js",
     "sync:facilities": "node scripts/sync-facility-coordinates.mjs",
