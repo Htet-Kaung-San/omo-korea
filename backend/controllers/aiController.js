@@ -778,6 +778,10 @@ async function handleChatStream(req, res) {
       .filter((prompt) => !askedAlready.has(prompt.toLowerCase().trim()))
       .slice(0, 3);
 
+    // Whichever provider answers reports why it stopped; "stop" is a complete
+    // answer and anything else (usually "length") is a truncated one.
+    let finishReason = null;
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -818,6 +822,10 @@ async function handleChatStream(req, res) {
             ragUsed,
             ragStatus,
             followUps,
+            // False when the model stopped early, so the client can say the
+            // answer was cut off instead of presenting it as finished.
+            complete: finishReason === null || finishReason === "stop",
+            finishReason,
             // Named so the client can show WHICH documents an answer rests on.
             // Without this the UI cannot tell a grounded answer from one the
             // model produced from general knowledge, and neither can the
@@ -842,6 +850,37 @@ async function handleChatStream(req, res) {
       );
       res.write("data: [DONE]\n\n");
       res.end();
+    };
+
+    /**
+     * Streams from Gemini. Used as the primary provider when OpenRouter is
+     * unconfigured, and as the fallback when it is configured but fails.
+     */
+    const streamFromGemini = async () => {
+        let geminiMsg = message;
+        if (academicPromptContext) {
+          geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
+        }
+        const stream = await generateGeminiChatStream(geminiMsg, userLangPref, context);
+        let buffer = "";
+        const decoder = new TextDecoder();
+
+        for await (const chunk of stream) {
+          buffer += decoder.decode(chunk, { stream: true });
+          const textRegex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
+          let match;
+          while ((match = textRegex.exec(buffer)) !== null) {
+            const rawText = match[1];
+            try {
+              const cleanText = JSON.parse(`"${rawText}"`);
+              emitText(cleanText);
+            } catch {
+              // ignore parsing error
+            }
+          }
+          buffer = buffer.slice(-100);
+        }
+
     };
 
     if (isOpenRouterConfigured()) {
@@ -876,7 +915,30 @@ async function handleChatStream(req, res) {
         }
       }
 
-      const stream = await generateOpenRouterChatStream(augmentedMsg, history);
+      // Falling back to Gemini has to be decided BEFORE any token is written,
+      // because once the first chunk reaches the client we cannot un-send it
+      // and start a second answer in the same bubble. generateOpenRouterChatStream
+      // throws only while connecting — every model rejected, or none responded
+      // within the connect timeout — so a throw here means nothing was emitted
+      // and switching provider is safe.
+      //
+      // Without this, an OpenRouter key that is configured but out of credits
+      // killed the chat outright even with a working GEMINI_API_KEY, because
+      // the Gemini leg sat in the `else` of "is OpenRouter configured".
+      let stream;
+      try {
+        stream = await generateOpenRouterChatStream(augmentedMsg, history);
+      } catch (openRouterErr) {
+        if (!isGeminiConfigured()) throw openRouterErr;
+        console.error(
+          "OpenRouter stream unavailable, falling back to Gemini:",
+          openRouterErr.message,
+        );
+        await streamFromGemini();
+        await finish("gemini-fallback");
+        return;
+      }
+
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -894,6 +956,15 @@ async function handleChatStream(req, res) {
             try {
               const parsed = JSON.parse(rawJson);
               emitText(parsed.choices?.[0]?.delta?.content || "");
+              // OpenRouter reports why generation stopped. "length" means the
+              // model hit max_tokens (1000 here) and the answer is cut off
+              // mid-sentence. Nothing read this, so a half-finished sentence
+              // was logged as the complete answer, replayed as history, and
+              // given the full "Based on: …" badge — a truncated visa answer
+              // reads as a confident one. Any reason other than "stop" leaves
+              // the answer incomplete.
+              const reason = parsed.choices?.[0]?.finish_reason;
+              if (reason) finishReason = reason;
             } catch {
               // ignore partial line parsing issues
             }
@@ -906,35 +977,14 @@ async function handleChatStream(req, res) {
         try {
           const parsed = JSON.parse(rawJson);
           emitText(parsed.choices?.[0]?.delta?.content || "");
+          const reason = parsed.choices?.[0]?.finish_reason;
+          if (reason) finishReason = reason;
         } catch {}
       }
 
       await finish("openrouter");
-    } else {
-      let geminiMsg = message;
-      if (academicPromptContext) {
-        geminiMsg = `${academicPromptContext}\n${geminiMsg}`;
-      }
-      const stream = await generateGeminiChatStream(geminiMsg, userLangPref, context);
-      let buffer = "";
-      const decoder = new TextDecoder();
-
-      for await (const chunk of stream) {
-        buffer += decoder.decode(chunk, { stream: true });
-        const textRegex = /"text":\s*"((?:[^"\\]|\\.)*)"/g;
-        let match;
-        while ((match = textRegex.exec(buffer)) !== null) {
-          const rawText = match[1];
-          try {
-            const cleanText = JSON.parse(`"${rawText}"`);
-            emitText(cleanText);
-          } catch {
-            // ignore parsing error
-          }
-        }
-        buffer = buffer.slice(-100);
-      }
-
+    } else if (isGeminiConfigured()) {
+      await streamFromGemini();
       await finish("gemini");
     }
   } catch (err) {

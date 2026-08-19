@@ -59,6 +59,7 @@ jest.mock('../services/geminiService', () => ({
 
 const ragService = require('../services/ragService');
 const openrouterService = require('../services/openrouterService');
+const geminiService = require('../services/geminiService');
 const aiController = require('../controllers/aiController');
 
 /** Collects the SSE frames the handler writes, so a test can read the metadata. */
@@ -89,12 +90,23 @@ function createStreamRes() {
 }
 
 /** An upstream SSE body carrying one token, in OpenRouter's wire format. */
-function singleTokenStream(text) {
+function singleTokenStream(text, finishReason = 'stop') {
   const encoder = new TextEncoder();
   return (async function* () {
     yield encoder.encode(
       `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
     );
+    yield encoder.encode(
+      `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: finishReason }] })}\n\n`,
+    );
+  })();
+}
+
+/** A Gemini-shaped stream, which uses a different wire format. */
+function geminiStream(text) {
+  const encoder = new TextEncoder();
+  return (async function* () {
+    yield encoder.encode(JSON.stringify({ text }));
   })();
 }
 
@@ -353,5 +365,79 @@ describe('academic context does not invent an enrolment history', () => {
     const prompt = promptSent();
     expect(prompt).not.toMatch(/18\d{2}/);
     expect(prompt).toContain(`Enrolled in March ${new Date().getFullYear()}`);
+  });
+});
+
+describe('an answer that was cut off is not reported as a whole one', () => {
+  beforeEach(() => {
+    ragService.retrieveContextWithSources.mockResolvedValue({ context: '', sources: [] });
+  });
+
+  test('finish_reason "stop" means complete', async () => {
+    openrouterService.generateOpenRouterChatStream.mockResolvedValue(
+      singleTokenStream('A finished answer.', 'stop'),
+    );
+
+    const res = createStreamRes();
+    await aiController.handleChatStream({ body: { message: 'hi' }, user: {} }, res);
+
+    expect(metadataOf(res).complete).toBe(true);
+  });
+
+  test('finish_reason "length" means the model hit the token cap mid-answer', async () => {
+    // max_tokens is 1000, so a long visa answer really can end here. It used
+    // to be logged as the full answer and given the grounded badge.
+    openrouterService.generateOpenRouterChatStream.mockResolvedValue(
+      singleTokenStream('You do NOT need to report your part-time job if', 'length'),
+    );
+
+    const res = createStreamRes();
+    await aiController.handleChatStream(
+      { body: { message: 'Do I need to report my job?' }, user: {} },
+      res,
+    );
+
+    const meta = metadataOf(res);
+    expect(meta.complete).toBe(false);
+    expect(meta.finishReason).toBe('length');
+  });
+});
+
+describe('the chat survives OpenRouter being down', () => {
+  beforeEach(() => {
+    ragService.retrieveContextWithSources.mockResolvedValue({ context: '', sources: [] });
+  });
+
+  test('falls back to Gemini when every OpenRouter model fails', async () => {
+    // The exact demo-day scenario: the key is configured, so the old code took
+    // the OpenRouter branch, threw, and never reached Gemini — even though
+    // GEMINI_API_KEY was working.
+    openrouterService.isOpenRouterConfigured.mockReturnValue(true);
+    geminiService.isGeminiConfigured.mockReturnValue(true);
+    openrouterService.generateOpenRouterChatStream.mockRejectedValue(
+      new Error('All OpenRouter stream models failed. Last error: HTTP 402'),
+    );
+    geminiService.generateGeminiChatStream.mockResolvedValue(geminiStream('Gemini answered.'));
+
+    const res = createStreamRes();
+    await aiController.handleChatStream({ body: { message: 'hello' }, user: {} }, res);
+
+    expect(geminiService.generateGeminiChatStream).toHaveBeenCalled();
+    expect(metadataOf(res).provider).toBe('gemini-fallback');
+    const text = res.frames.filter((f) => f.text).map((f) => f.text).join('');
+    expect(text).toContain('Gemini answered.');
+  });
+
+  test('without a Gemini key the OpenRouter error still surfaces', async () => {
+    openrouterService.isOpenRouterConfigured.mockReturnValue(true);
+    geminiService.isGeminiConfigured.mockReturnValue(false);
+    openrouterService.generateOpenRouterChatStream.mockRejectedValue(new Error('HTTP 402'));
+
+    const res = createStreamRes();
+    await aiController.handleChatStream({ body: { message: 'hello' }, user: {} }, res);
+
+    // The catch writes an error frame rather than pretending to answer.
+    expect(res.frames.some((f) => f.error)).toBe(true);
+    expect(geminiService.generateGeminiChatStream).not.toHaveBeenCalled();
   });
 });
