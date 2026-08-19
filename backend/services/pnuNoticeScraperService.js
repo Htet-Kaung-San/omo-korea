@@ -442,8 +442,19 @@ async function scrapeRecentNotices(options = {}) {
       })
       successfulSources += 1
       all.push(...items)
+      // Reported even on success, and even when the count is zero. A board
+      // whose markup changed still returns HTTP 200 — the selectors simply
+      // match nothing — so "no error" and "no notices" look identical from
+      // here. Only the caller knows whether this board has produced notices
+      // before, which is what separates a quiet board from a broken parser.
+      if (typeof options.onSourceResult === 'function') {
+        options.onSourceResult(source, { count: items.length, error: null })
+      }
     } catch (error) {
       failures.push({ source: source.source, error })
+      if (typeof options.onSourceResult === 'function') {
+        options.onSourceResult(source, { count: 0, error })
+      }
       if (typeof options.onSourceError === 'function') {
         options.onSourceError(source, error)
       } else {
