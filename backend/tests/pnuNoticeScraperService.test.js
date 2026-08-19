@@ -73,7 +73,7 @@ describe('real PNU notice source registry', () => {
     expect(rows[0]).toMatchObject({
       source: 'onestop',
       external_id: '000000000000386:2141',
-      source_url: 'https://e-onestop.pusan.ac.kr/page?menuCD=000000000000386&mode=DETAIL&seq=2141',
+      source_url: 'https://onestop.pusan.ac.kr/page?menuCD=000000000000386&mode=DETAIL&seq=2141',
     });
   });
 
