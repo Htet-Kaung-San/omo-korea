@@ -21,12 +21,22 @@
  * numeric ids, so it never showed in a demo.
  */
 const mockStudentRow = { current: null };
+const mockGraduationRequirements = { current: [] };
 
-function createQueryChain() {
+function createQueryChain(table) {
+  const rowsFor = () =>
+    table === 'graduation_requirement' ? mockGraduationRequirements.current : [];
   const base = {
     select: jest.fn(() => base),
     eq: jest.fn(() => base),
-    order: jest.fn(() => base),
+    in: jest.fn(() => base),
+    not: jest.fn(() => base),
+    // graduation_requirement is read as a list terminated by .order(), while
+    // the student row is read with .single(); both have to resolve.
+    order: jest.fn(() => {
+      const promise = Promise.resolve({ data: rowsFor(), error: null });
+      return Object.assign(promise, base);
+    }),
     limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
     single: jest.fn(() => Promise.resolve({ data: mockStudentRow.current, error: null })),
     insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
@@ -35,7 +45,7 @@ function createQueryChain() {
   return base;
 }
 
-const mockSupabase = { from: jest.fn(() => createQueryChain()) };
+const mockSupabase = { from: jest.fn((table) => createQueryChain(table)) };
 jest.mock('../supabaseClient', () => mockSupabase);
 
 jest.mock('../services/ragService', () => ({
@@ -115,6 +125,7 @@ const metadataOf = (res) => res.frames.find((f) => f.metadata)?.metadata;
 beforeEach(() => {
   jest.clearAllMocks();
   mockStudentRow.current = null;
+  mockGraduationRequirements.current = [];
   openrouterService.isOpenRouterConfigured.mockReturnValue(true);
   openrouterService.generateOpenRouterChatStream.mockResolvedValue(
     singleTokenStream('An answer.'),
@@ -439,5 +450,65 @@ describe('the chat survives OpenRouter being down', () => {
     // The catch writes an error frame rather than pretending to answer.
     expect(res.frames.some((f) => f.error)).toBe(true);
     expect(geminiService.generateGeminiChatStream).not.toHaveBeenCalled();
+  });
+});
+
+describe('graduation requirements reach the model as exact figures', () => {
+  const promptSent = () =>
+    String(openrouterService.generateOpenRouterChatStream.mock.calls[0][0]);
+
+  beforeEach(() => {
+    ragService.retrieveContextWithSources.mockResolvedValue({ context: '', sources: [] });
+    mockStudentRow.current = {
+      student_id: 202455474,
+      student_type: 'Current',
+      completed_courses: [],
+      intake_term: 'March',
+      grade: 3,
+      major_id: 44,
+      major: { major_id: 44, major_name: 'Computer Science and Engineering - Computer Engineering major' },
+    };
+  });
+
+  test('the credit breakdown and total are stated, not left to an advisor', async () => {
+    // "Graduation credits" used to answer "a certain number of credits —
+    // check the official regulations or your advisor", while these rows sat
+    // in Postgres and the Credits screen rendered them.
+    mockGraduationRequirements.current = [
+      { requirement_name: '전공기초', requirement_type: 'CREDIT', target_value: 25, unit: 'credits', display_order: 1 },
+      { requirement_name: '전공필수', requirement_type: 'CREDIT', target_value: 37, unit: 'credits', display_order: 2 },
+      { requirement_name: '전공선택', requirement_type: 'CREDIT', target_value: 40, unit: 'credits', display_order: 3 },
+      { requirement_name: 'TOPIK Level 4 or higher', requirement_type: 'CERTIFICATION', target_value: 1, unit: 'credits', display_order: 4 },
+      { requirement_name: 'TOPCIT 220', requirement_type: 'SCORE', target_value: 220, unit: 'points', display_order: 5 },
+    ];
+
+    const res = createStreamRes();
+    await aiController.handleChatStream(
+      { body: { message: 'How many credits do I need to graduate?' }, user: { student_id: 202455474 } },
+      res,
+    );
+
+    const prompt = promptSent();
+    expect(prompt).toContain('GRADUATION REQUIREMENTS');
+    expect(prompt).toContain('전공필수: 37 credits');
+    // Only CREDIT rows count toward the total — a TOPCIT score of 220 is not
+    // 220 credits, and summing it would tell the student they need 353.
+    expect(prompt).toContain('Total credits required to graduate: 102');
+    expect(prompt).not.toContain('graduate: 353');
+  });
+
+  test('a major with no requirements recorded adds nothing rather than inventing a total', async () => {
+    // 104 of 116 majors have no rows, including Artificial Intelligence.
+    mockGraduationRequirements.current = [];
+
+    const res = createStreamRes();
+    await aiController.handleChatStream(
+      { body: { message: 'How many credits do I need to graduate?' }, user: { student_id: 202455474 } },
+      res,
+    );
+
+    const prompt = promptSent();
+    expect(prompt).not.toContain('GRADUATION REQUIREMENTS');
+    expect(prompt).not.toContain('Total credits required');
   });
 });
