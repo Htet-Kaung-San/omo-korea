@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Backend API for Hey! PNU",
   "main": "index.js",
+  "engines": {
+    "node": ">=20 <25"
+  },
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js",
     "seed:map-profile": "node scripts/seed-map-profile.mjs",
     "seed:support": "node scripts/seed-support.mjs",
