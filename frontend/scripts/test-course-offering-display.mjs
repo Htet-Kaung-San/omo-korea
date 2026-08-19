@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,13 +12,53 @@ function readSource(relativePath) {
   return readFileSync(join(frontendRoot, relativePath), 'utf8')
 }
 
-function loadTypeScriptModule(relativePath) {
-  const source = readFileSync(join(frontendRoot, relativePath), 'utf8')
+const tsModuleCache = new Map()
+
+/** Resolves a `@/...` alias the way vite.config / tsconfig paths do. */
+function resolveAlias(specifier) {
+  const withoutAlias = join(frontendRoot, 'src', specifier.slice(2))
+  for (const candidate of [
+    `${withoutAlias}.ts`,
+    `${withoutAlias}.tsx`,
+    join(withoutAlias, 'index.ts'),
+    join(withoutAlias, 'index.tsx'),
+  ]) {
+    if (existsSync(candidate)) return candidate
+  }
+  throw new Error(`Cannot resolve ${specifier} from the frontend source tree`)
+}
+
+/**
+ * Transpiles a TS module and runs it as CommonJS.
+ *
+ * The transpiled output calls require() for any VALUE import, so a module is
+ * given a require that resolves `@/...` back into this same loader. Without it
+ * the harness only worked on files that happened to import nothing but types —
+ * which erase — and adding one ordinary import to a module under test broke the
+ * suite with "require is not defined in ES module scope", pointing at the
+ * loader rather than at the import that caused it.
+ */
+function loadTypeScriptModule(pathOrAbsolute) {
+  const absolute = pathOrAbsolute.startsWith('/')
+    ? pathOrAbsolute
+    : join(frontendRoot, pathOrAbsolute)
+  const cached = tsModuleCache.get(absolute)
+  if (cached) return cached.exports
+
+  const source = readFileSync(absolute, 'utf8')
   const output = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText
+
   const module = { exports: {} }
-  Function('module', 'exports', output)(module, module.exports)
+  // Cached before evaluating, so an import cycle sees a partially populated
+  // exports object rather than recursing forever — the same way CommonJS does.
+  tsModuleCache.set(absolute, module)
+
+  const moduleRequire = (specifier) =>
+    specifier.startsWith('@/') ? loadTypeScriptModule(resolveAlias(specifier)) : require(specifier)
+
+  Function('module', 'exports', 'require', output)(module, module.exports, moduleRequire)
   return module.exports
 }
 
