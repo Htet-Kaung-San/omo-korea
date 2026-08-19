@@ -157,6 +157,44 @@ async function getAcademicPromptContext(studentId, supabaseClient, message = '')
       } else {
         context += `- Completed Courses (Taken already): ${completedList.length > 0 ? completedList.join(", ") : "None recorded"}. IMPORTANT: DO NOT recommend any courses listed as completed! Only recommend courses they have not taken yet.\n`;
       }
+      // Graduation requirements come from the database, not from retrieval.
+      //
+      // "Graduation credits" previously answered "you need to complete a
+      // certain number of credits — check with your advisor", because no
+      // knowledge-base document covers graduation and RAG had nothing to
+      // return. The numbers were in Postgres the whole time: 103 rows in
+      // graduation_requirement, which the Credits screen already renders.
+      //
+      // These are injected rather than embedded on purpose. They are
+      // per-major, exact, and already scoped to this student, so a similarity
+      // search could only make them worse — and 116 majors' worth of
+      // near-identical documents would crowd retrieval the way the curriculum
+      // payloads already do.
+      if (student.major_id) {
+        const { data: requirements, error: reqError } = await supabaseClient
+          .from('graduation_requirement')
+          .select('requirement_name, requirement_type, target_value, unit, description, display_order')
+          .eq('major_id', Number(student.major_id))
+          .order('display_order', { ascending: true });
+
+        if (!reqError && Array.isArray(requirements) && requirements.length > 0) {
+          const total = requirements
+            .filter((row) => row.requirement_type === 'CREDIT')
+            .reduce((sum, row) => sum + (Number(row.target_value) || 0), 0);
+
+          context += `\nGRADUATION REQUIREMENTS for ${majorName} (authoritative — from PNU records):\n`;
+          context += requirements
+            .map((row) =>
+              `- ${row.requirement_name}: ${row.target_value} ${row.unit || 'credits'}${row.description ? ` (${row.description})` : ''}`,
+            )
+            .join('\n');
+          if (total > 0) {
+            context += `\n- Total credits required to graduate: ${total}\n`;
+          }
+          context += `- Quote these figures exactly when asked about graduation, credits or requirements. They are this student's own major's rules. Do not round them, generalise them, or tell the student to ask an advisor for numbers that are listed here.\n`;
+        }
+      }
+
       if (student.major_id) {
         const { data: liveCourses, error: courseError } = await supabaseClient
           .from('course')

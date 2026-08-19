@@ -58,7 +58,12 @@ export function CoursesDashboardPage() {
   const [query, setQuery] = useState('')
   const [catalogCategory, setCatalogCategory] = useState<CourseType | 'ALL'>('ALL')
   const [recommendedYear, setRecommendedYear] = useState<number | undefined>()
-  const [myMajorOnly, setMyMajorOnly] = useState(false)
+  // Defaults to the student's own major. Opening the catalogue on "All majors"
+  // meant the first thing a student saw was 1,924 courses from 116 majors, and
+  // the toggle that fixes it looks like a filter you would apply, not one you
+  // need to undo. If the student has no major recorded the backend resolves it
+  // to null and shows everything, which is the same as before.
+  const [myMajorOnly, setMyMajorOnly] = useState(true)
   const [loading, setLoading] = useState(true)
   const [catalogLoading, setCatalogLoading] = useState(false)
   const [showAddPast, setShowAddPast] = useState(false)
