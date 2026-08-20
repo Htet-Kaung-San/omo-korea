@@ -1,3 +1,9 @@
+// Verified against OpenRouter's live model list on 2026-08-20. Slugs are
+// retired without warning — meta-llama/llama-3.3-70b-instruct:free,
+// meta-llama/llama-3.2-3b-instruct:free, google/gemini-1.5-flash,
+// google/gemma-2-9b-it:free and qwen/qwen3-next-80b-a3b-instruct:free were all
+// live when first written and all 404 or 400 now, which took the cafeteria
+// translation down entirely. Run `npm run check:models` to re-verify.
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 function isOpenRouterConfigured() {
@@ -89,9 +95,8 @@ async function generateOpenRouterChat(message, history = []) {
   const modelConfig = [
     ...(preferredModel ? [{ id: preferredModel, timeout: 30000 }] : []),
     { id: "google/gemini-2.5-flash", timeout: 12000 },
-    { id: "meta-llama/llama-3.3-70b-instruct:free", timeout: 10000 },
+    { id: "google/gemma-4-26b-a4b-it:free", timeout: 10000 },
     { id: "google/gemma-4-31b-it:free", timeout: 9000 },
-    { id: "meta-llama/llama-3.2-3b-instruct:free", timeout: 8000 },
     { id: "openrouter/free", timeout: 12000 },
   ];
 
@@ -194,9 +199,8 @@ Return valid JSON ONLY matching this format (no markdown blocks, no prefix/suffi
   // Configured with exact active free model IDs and their respective custom timeouts
   const modelConfig = [
     { id: "google/gemma-4-31b-it:free", timeout: 9000 },
-    { id: "qwen/qwen3-next-80b-a3b-instruct:free", timeout: 10000 },
-    { id: "meta-llama/llama-3.3-70b-instruct:free", timeout: 10000 },
-    { id: "meta-llama/llama-3.2-3b-instruct:free", timeout: 8000 },
+    { id: "google/gemma-4-26b-a4b-it:free", timeout: 10000 },
+    { id: "google/gemini-2.5-flash", timeout: 12000 },
     { id: "openrouter/free", timeout: 14000 },
   ];
 
@@ -324,8 +328,8 @@ async function generateOpenRouterChatStream(message, history = [], modelOverride
   const fallbackModels = [
     preferredModel,
     "google/gemini-2.5-flash",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "google/gemma-2-9b-it:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "google/gemma-4-31b-it:free",
     "openrouter/free"
   ];
 
