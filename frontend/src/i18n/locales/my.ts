@@ -2,6 +2,13 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "ဖတ်နေသည်…",
+  'push.title': "ဖုန်း အ‌ကြောင်းကြားချက်",
+  'push.on': "ဖွင့်ထားသည် — ကြေညာချက်အသစ် တင်သည်နှင့် အကြောင်းကြားပါမည်။",
+  'push.off': "ကြေညာချက်အသစ် တင်သည်နှင့် ဖုန်းသို့ အကြောင်းကြားပါမည်။",
+  'push.blocked': "ဤဆိုက်အတွက် အကြောင်းကြားချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ခွင့်ပြုပါ။",
+  'push.turnOn': "ဖွင့်ရန်",
+  'push.turnOff': "ပိတ်ရန်",
+  'push.sendTest': "စမ်းသပ် ပို့ရန်",
   'common.save': "Save",
   'common.sending': "ပို့နေသည်…",
   'support.sendFailed': "မက်ဆေ့ဂျ် ပို့၍ မရပါ။ အင်တာနက် ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်စမ်းကြည့်ပါ။",

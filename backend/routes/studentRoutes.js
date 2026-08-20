@@ -44,6 +44,10 @@ const {
   hardDeleteStudent,
   getAllStudents,
   submitFeedback,
+  subscribeToPush,
+  unsubscribeFromPush,
+  getPushConfig,
+  sendTestPush,
   getCareerOpportunities,
   getCareerRecommendations,
   getMyCommunityGroupHandler,
@@ -115,6 +119,10 @@ router.get("/courses", getCourses);
 // Protected / named routes (before /:student_id)
 router.get("/", authenticateToken, requireAdmin, getAllStudents);
 router.post("/feedback", authenticateToken, submitFeedback);
+router.get("/push/config", getPushConfig);
+router.post("/push/subscribe", authenticateToken, subscribeToPush);
+router.post("/push/unsubscribe", authenticateToken, unsubscribeFromPush);
+router.post("/push/test", authenticateToken, sendTestPush);
 router.post(
   "/notices/sync",
   authenticateToken,

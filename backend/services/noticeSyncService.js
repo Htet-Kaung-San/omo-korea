@@ -1,3 +1,4 @@
+const { pushNoticeDigest } = require("./noticeDigestPush");
 const { assessNoticeSources } = require("./noticeSourceHealth");
 const { syncNoticesToKnowledgeBase } = require("./noticeKnowledgeService");
 let activeSynchronization = null;
@@ -141,7 +142,15 @@ async function findFullNotice(supabaseClient, row) {
   return findFullNoticeBySourceUrl(supabaseClient, row.source_url);
 }
 
-async function persistScrapedNotices(supabaseClient, rows) {
+/**
+ * @param {object} supabaseClient
+ * @param {Array<object>} rows
+ * @param {{ onInserted?: (row: object) => void }} [options]
+ *   onInserted receives each newly stored notice. It is a callback rather than
+ *   an extra return field so the documented `{inserted, updated, unchanged}`
+ *   shape — which several tests pin exactly — stays stable.
+ */
+async function persistScrapedNotices(supabaseClient, rows, options = {}) {
   let inserted = 0;
   let updated = 0;
   let unchanged = 0;
@@ -173,6 +182,7 @@ async function persistScrapedNotices(supabaseClient, rows) {
 
     if (!insertError) {
       inserted += 1;
+      if (typeof options.onInserted === "function") options.onInserted(row);
       continue;
     }
 
@@ -229,10 +239,22 @@ async function synchronizeNotices({
         sourceResults.push({ source: source.source, ...outcome });
       },
     });
-    const persisted = await persistScrapedNotices(
-      supabaseClient,
-      scraped,
-    );
+    const newNotices = [];
+    const persisted = await persistScrapedNotices(supabaseClient, scraped, {
+      onInserted: (row) => newNotices.push(row),
+    });
+
+    // Alert the students who asked to be alerted. Non-fatal for the same
+    // reason as the knowledge-base step: storing notices is the job this sync
+    // exists for, and a push service being unreachable must not cost the
+    // Notices screen its data.
+    let pushed = null;
+    try {
+      pushed = await pushNoticeDigest(supabaseClient, newNotices);
+    } catch (err) {
+      console.error("Notice digest push failed:", err.message);
+      pushed = { error: err.message };
+    }
 
     // Publish the recent ones into the knowledge base so the assistant can
     // answer about them. Deliberately non-fatal: storing notices is the
@@ -262,6 +284,7 @@ async function synchronizeNotices({
       ...persisted,
       knowledgeBase,
       sourceHealth,
+      pushed,
     };
   })();
 

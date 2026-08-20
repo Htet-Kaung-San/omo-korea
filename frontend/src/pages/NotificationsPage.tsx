@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { PushToggle } from '@/components/notifications/PushToggle'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -265,6 +266,10 @@ export function NotificationsPage() {
           </div>
         </div>
       </header>
+
+      <div className="px-3 pt-2">
+        <PushToggle />
+      </div>
 
       <div className="space-y-4 px-3 pb-6 pt-1">
         {error ? (

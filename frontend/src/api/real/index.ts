@@ -421,6 +421,30 @@ export const realApi: HeyPnuApi = {
     })
   },
 
+  async getPushConfig() {
+    return backendFetch<{ enabled: boolean; publicKey: string | null }>('/students/push/config')
+  },
+
+  async subscribeToPush(data) {
+    await apiFetch('/students/push/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      suppressToast: true,
+    })
+  },
+
+  async unsubscribeFromPush(endpoint) {
+    await apiFetch('/students/push/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ endpoint }),
+      suppressToast: true,
+    })
+  },
+
+  async sendTestPush() {
+    await apiFetch('/students/push/test', { method: 'POST', suppressToast: true })
+  },
+
   async getChatSuggestions(): Promise<string[]> {
     return [
       'Course registration',

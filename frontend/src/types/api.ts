@@ -811,6 +811,13 @@ export interface HeyPnuApi {
     handlers: ChatStreamHandlers,
   ): Promise<void>
   getChatSuggestions(): Promise<string[]>
+  getPushConfig(): Promise<{ enabled: boolean; publicKey: string | null }>
+  subscribeToPush(data: {
+    endpoint: string
+    keys: { p256dh: string; auth: string }
+  }): Promise<void>
+  unsubscribeFromPush(endpoint: string): Promise<void>
+  sendTestPush(): Promise<void>
   /**
    * Records in-app feedback. Rejects rather than resolving when the message
    * was not stored — the forms used to claim success unconditionally.
