@@ -17,6 +17,7 @@
     "seed:courses": "node scripts/seed-courses-from-catalog.mjs",
     "kb:ingest-guides": "node scripts/ingest-guide-docs.mjs",
     "kb:ingest-programs": "node scripts/ingest-extracurricular-programs.mjs",
+    "check:models": "node scripts/check-openrouter-models.mjs",
     "benchmark": "node benchmark/run-benchmark.mjs",
     "fetch:pnu-course-offerings": "node scripts/fetch-pnu-course-offerings.mjs",
     "parse:pnu-course-restrictions": "node scripts/parse-pnu-course-restrictions.mjs",

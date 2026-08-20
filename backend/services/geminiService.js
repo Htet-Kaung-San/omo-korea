@@ -1,3 +1,7 @@
+// Model slugs verified against OpenRouter's live list on 2026-08-20.
+// google/gemini-1.5-flash and meta-llama/llama-3.3-70b-instruct:free were
+// retired and returned 400/404 on every attempt, so cafeteria translation
+// had no working model at all. Run `npm run check:models` to re-verify.
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 function isGeminiConfigured() {
@@ -364,8 +368,9 @@ async function requestCafeteriaTranslationsViaOpenRouter(strings, langName) {
   const preferredModel = process.env.OPENROUTER_MODEL;
   const models = [
     ...(preferredModel ? [preferredModel] : []),
-    "google/gemini-1.5-flash",
-    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemini-2.5-flash",
+    "google/gemma-4-26b-a4b-it:free",
+    "google/gemma-4-31b-it:free",
     "openrouter/free",
   ];
 
@@ -833,8 +838,9 @@ ${JSON.stringify(itemsToTranslate, null, 2)}
     const preferredModel = process.env.OPENROUTER_MODEL;
     const models = [
       ...(preferredModel ? [preferredModel] : []),
-      "google/gemini-1.5-flash",
-      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemini-2.5-flash",
+      "google/gemma-4-26b-a4b-it:free",
+      "google/gemma-4-31b-it:free",
       "openrouter/free",
     ];
 
