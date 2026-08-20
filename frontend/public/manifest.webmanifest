@@ -1,0 +1,15 @@
+{
+  "name": "Hey! PNU",
+  "short_name": "Hey! PNU",
+  "description": "부산대학교 외국인 유학생을 위한 원스톱 통합 플랫폼",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E8EEF5",
+  "theme_color": "#003D82",
+  "icons": [
+    { "src": "/app-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#003D82" />
+    <!-- iOS only delivers web push to a site added to the home screen, and it
+         reads its home-screen icon from apple-touch-icon rather than the
+         manifest. -->
+    <link rel="apple-touch-icon" href="/app-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Hey! PNU" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hey! PNU</title>
   </head>

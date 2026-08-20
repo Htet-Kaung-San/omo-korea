@@ -3443,6 +3443,116 @@ const reportPost = async (req, res) => {
   }
 };
 
+const { isPushConfigured, sendToStudent, PUBLIC_KEY: VAPID_PUBLIC_KEY } = require("../services/pushNotificationService");
+
+/**
+ * Registers a browser to receive push notifications.
+ *
+ * Upserts on `endpoint` rather than inserting: a browser that re-subscribes —
+ * after a permission reset, a reinstall, or simply a second visit — returns the
+ * SAME endpoint, and inserting again would send every notice to it twice.
+ */
+const subscribeToPush = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const { endpoint, keys, language_pref: languagePref } = req.body || {};
+
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({
+        success: false,
+        message: "A push subscription needs an endpoint and both keys",
+      });
+    }
+
+    const { error } = await supabase
+      .from("push_subscription")
+      .upsert(
+        {
+          student_id: studentId,
+          endpoint,
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+          language_pref: String(languagePref || "").slice(0, 5) || null,
+        },
+        { onConflict: "endpoint" },
+      );
+
+    if (error) {
+      console.error("Failed to store push subscription:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Could not enable notifications. Please try again.",
+      });
+    }
+
+    res.json({ success: true, data: { subscribed: true } });
+  } catch (err) {
+    console.error("Failed to store push subscription:", err.message);
+    res.status(500).json({ success: false, message: "Unexpected server error" });
+  }
+};
+
+/** Removes one browser's subscription. Idempotent — unsubscribing twice is fine. */
+const unsubscribeFromPush = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const { endpoint } = req.body || {};
+    if (!endpoint) {
+      return res.status(400).json({ success: false, message: "endpoint is required" });
+    }
+
+    // Scoped to the caller so one student cannot unsubscribe another's device.
+    const { error } = await supabase
+      .from("push_subscription")
+      .delete()
+      .eq("endpoint", endpoint)
+      .eq("student_id", studentId);
+
+    if (error) {
+      return res.status(500).json({ success: false, message: "Could not disable notifications" });
+    }
+    res.json({ success: true, data: { subscribed: false } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Unexpected server error" });
+  }
+};
+
+/**
+ * Tells the client whether push is available and, if so, the key it needs to
+ * subscribe. The public key is safe to serve — it is compiled into the bundle
+ * anyway — but serving it from here means the browser and the server can never
+ * disagree about which key pair is in use, which would silently produce
+ * subscriptions the server cannot send to.
+ */
+const getPushConfig = async (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      enabled: isPushConfigured(),
+      publicKey: isPushConfigured() ? VAPID_PUBLIC_KEY : null,
+    },
+  });
+};
+
+/** Sends a notification to the caller's own devices, so a student can confirm it works. */
+const sendTestPush = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    if (!isPushConfigured()) {
+      return res.status(503).json({ success: false, message: "Push is not configured on this server" });
+    }
+    const result = await sendToStudent(supabase, studentId, {
+      title: "Hey! PNU",
+      body: "Notifications are on. You will hear about new PNU notices here.",
+      url: "/notifications",
+      tag: "heypnu-test",
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 const FEEDBACK_KINDS = new Set(["feedback", "app-support"]);
 const MAX_FEEDBACK_LENGTH = 4000;
 
@@ -3844,6 +3954,10 @@ module.exports = {
   getAllMajors,
   getAllStudents,
   submitFeedback,
+  subscribeToPush,
+  unsubscribeFromPush,
+  getPushConfig,
+  sendTestPush,
   requestStudentDeletion,
   hardDeleteStudent,
   testConnection,

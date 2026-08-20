@@ -2,6 +2,13 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "불러오는 중…",
+  'push.title': "휴대폰 알림",
+  'push.on': "켜짐 — 새 공지가 올라오면 알려드립니다.",
+  'push.off': "새 공지가 올라오면 휴대폰으로 알려드립니다.",
+  'push.blocked': "이 사이트의 알림이 차단되어 있습니다. 브라우저 설정에서 허용해 주세요.",
+  'push.turnOn': "켜기",
+  'push.turnOff': "끄기",
+  'push.sendTest': "테스트 보내기",
   'common.save': "저장",
   'common.sending': "전송 중…",
   'support.sendFailed': "메시지를 보내지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.",

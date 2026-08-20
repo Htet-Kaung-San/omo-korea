@@ -2,6 +2,13 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "Loading…",
+  'push.title': "Phone notifications",
+  'push.on': "On — you'll get an alert when a new PNU notice arrives.",
+  'push.off': "Get an alert on your phone when a new PNU notice arrives.",
+  'push.blocked': "Notifications are blocked for this site. Allow them in your browser settings to turn this on.",
+  'push.turnOn': "Turn on",
+  'push.turnOff': "Turn off",
+  'push.sendTest': "Send a test",
   'common.save': "Save",
   'common.sending': "Sending…",
   'support.sendFailed': "Could not send your message. Please check your connection and try again.",

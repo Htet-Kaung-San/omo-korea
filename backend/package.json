@@ -59,6 +59,7 @@
     "playwright": "^1.62.0",
     "turndown": "^7.2.4",
     "turndown-plugin-gfm": "^1.0.2",
+    "web-push": "^3.6.7",
     "ws": "^8.21.1",
     "xlsx": "^0.18.5"
   },

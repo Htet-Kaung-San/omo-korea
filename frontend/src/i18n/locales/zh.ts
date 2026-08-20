@@ -2,6 +2,13 @@ import type { MessageDictionary } from '../types'
 
 const messages: MessageDictionary = {
   'common.loading': "加载中…",
+  'push.title': "手机通知",
+  'push.on': "已开启 — 有新公告时会通知你。",
+  'push.off': "有新公告时通过手机通知你。",
+  'push.blocked': "此网站的通知已被阻止。请在浏览器设置中允许。",
+  'push.turnOn': "开启",
+  'push.turnOff': "关闭",
+  'push.sendTest': "发送测试",
   'common.save': "保存",
   'common.sending': "发送中…",
   'support.sendFailed': "消息发送失败。请检查网络连接后重试。",
