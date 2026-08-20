@@ -69,9 +69,27 @@ services:
         sync: false
       - key: VITE_NAVER_MAP_CLIENT_ID
         sync: false
+    headers:
+      # Render's static host has no MIME mapping for .webmanifest and served it
+      # as binary/octet-stream, which iOS rejects — and on iPhone the manifest
+      # is what allows Add to Home Screen, which is the only way Safari
+      # delivers web push at all. The file is manifest.json for that reason;
+      # this states the type explicitly regardless.
+      - path: /manifest.json
+        name: Content-Type
+        value: application/manifest+json
+      # The worker must be allowed to control the whole origin, not just /.
+      - path: /sw.js
+        name: Service-Worker-Allowed
+        value: /
     routes:
       # Single-page app: every path has to serve index.html or a hard refresh
       # on /ai or /support/work-permit returns 404 from the static host.
+      #
+      # Listed after the service worker and manifest so the catch-all cannot
+      # swallow them — a rewrite that returned index.html for /sw.js would
+      # register HTML as a service worker and push would fail with a MIME
+      # error that points nowhere near the cause.
       - type: rewrite
         source: /*
         destination: /index.html
