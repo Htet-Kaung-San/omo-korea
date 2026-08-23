@@ -236,14 +236,12 @@ export const realApi: HeyPnuApi = {
     term?: {
       academicYear: number
       semester: '1' | '2' | 'SUMMER' | 'WINTER'
-      offeredOnly?: boolean
     },
   ): Promise<RecommendedCourse[]> {
     const query = new URLSearchParams()
     if (term) {
       query.set('academicYear', String(term.academicYear))
       query.set('semester', term.semester)
-      if (term.offeredOnly) query.set('offeredOnly', 'true')
     }
     const suffix = query.size ? `?${query.toString()}` : ''
     const courses = await backendFetch<Parameters<typeof mapRecommendedCourse>[0][]>(

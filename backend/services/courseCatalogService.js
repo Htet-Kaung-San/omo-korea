@@ -136,7 +136,9 @@ async function fetchMajors(supabase) {
 function filterCourses(courses, filters) {
   const search = normalizeText(filters.search);
   const category = String(filters.category || '').toUpperCase();
-  const majorId = filters.majorId == null || filters.majorId === '' ? null : String(filters.majorId);
+  const majorIds = Array.isArray(filters.majorId)
+    ? filters.majorId.map(id => String(id))
+    : (filters.majorId == null || filters.majorId === '' ? null : [String(filters.majorId)]);
   const recommendedYear = Number(filters.recommendedYear);
   const curriculumYear = Number(filters.curriculumYear);
   const courseId = filters.courseId == null || filters.courseId === ''
@@ -144,8 +146,18 @@ function filterCourses(courses, filters) {
     : String(filters.courseId);
   return courses.filter((course) => {
     if (courseId && String(course.id) !== courseId) return false;
-    if (majorId && String(course.majorId) !== majorId) return false;
-    if (category && category !== 'ALL' && String(course.type).toUpperCase() !== category) return false;
+    if (majorIds) {
+      const courseMajors = course.majorIds || (course.majorId ? [String(course.majorId)] : []);
+      if (!courseMajors.some(id => majorIds.includes(String(id)))) return false;
+    }
+    if (category && category !== 'ALL') {
+      const type = String(course.type).toUpperCase();
+      if (category === '전공') {
+        if (!['전공기초', '전공필수', '전공선택'].includes(type)) return false;
+      } else if (type !== category) {
+        return false;
+      }
+    }
     if (Number.isInteger(recommendedYear) && Number(course.year) !== recommendedYear) return false;
     if (Number.isInteger(curriculumYear)
       && !course.curriculumYears.includes(curriculumYear)) return false;
@@ -179,7 +191,7 @@ async function listCourseCatalog(supabase, options = {}) {
       courseId: options.courseId,
     }),
     fetchCourseCurriculum(supabase, {
-      majorId: options.majorId == null || options.majorId === '' ? undefined : Number(options.majorId),
+      majorId: options.majorId == null || options.majorId === '' ? undefined : options.majorId,
     }),
     fetchMajors(supabase),
   ]);
@@ -191,6 +203,15 @@ async function listCourseCatalog(supabase, options = {}) {
     if (!majorIdsByName.has(key)) majorIdsByName.set(key, new Set());
     majorIdsByName.get(key).add(String(course.majorId));
   }
+
+  const majorIdsByCourseId = new Map();
+  for (const row of curriculumRows || []) {
+    if (row.major_id == null) continue;
+    const courseId = String(row.course_id);
+    if (!majorIdsByCourseId.has(courseId)) majorIdsByCourseId.set(courseId, new Set());
+    majorIdsByCourseId.get(courseId).add(String(row.major_id));
+  }
+
   let courses = attachCourseCurriculum(baseCourses, curriculumRows, {
     curriculumYear: Number.isInteger(preferredCurriculumYear)
       ? preferredCurriculumYear
@@ -198,11 +219,19 @@ async function listCourseCatalog(supabase, options = {}) {
   }).map((course) => {
     const nameKey = normalizeText(course.raw?.course_name || course.nameEn || course.nameKo);
     const matchingMajorIds = [...(majorIdsByName.get(nameKey) || [])];
-    const resolvedMajorId = course.majorId ?? (matchingMajorIds.length === 1 ? matchingMajorIds[0] : null);
+    const curriculumMajors = majorIdsByCourseId.get(String(course.id));
+    
+    const allMajorIds = new Set();
+    if (course.majorId) allMajorIds.add(String(course.majorId));
+    if (curriculumMajors) curriculumMajors.forEach(id => allMajorIds.add(id));
+    matchingMajorIds.forEach(id => allMajorIds.add(id));
+
+    const resolvedMajorId = course.majorId ?? (curriculumMajors && curriculumMajors.size > 0 ? Array.from(curriculumMajors)[0] : (matchingMajorIds.length === 1 ? matchingMajorIds[0] : null));
     const major = majorById.get(String(resolvedMajorId));
     return {
       ...course,
       majorId: resolvedMajorId,
+      majorIds: Array.from(allMajorIds),
       majorName: major?.major_name || course.department || '',
       department: major?.department || course.department || major?.major_name || '',
       collegeId: major?.college_id == null ? null : Number(major.college_id),
@@ -213,43 +242,23 @@ async function listCourseCatalog(supabase, options = {}) {
   });
 
   courses = filterCourses(courses, options);
-  const academicYear = Number(options.academicYear);
-  const semester = String(options.semester || '').trim();
-  const hasRequestedTerm = Number.isInteger(academicYear) && Boolean(semester);
-  const offeringRows = hasRequestedTerm
-    ? await fetchCourseOfferings(supabase, {
-      academicYear,
-      semester,
-      pageSize: 1000,
-    })
-    : [];
-  courses = filterCoursesByOffering(courses, offeringRows, options.offeredOnly === true);
+  // We no longer filter by course_offering rows because the sections are in the course table directly.
 
-  // The catalog table holds the same course under more than one id — major 105
-  // has 32 rows covering only 16 distinct names. The name-based major fallback
-  // above then resolves both copies onto the same major, so the default
-  // "my major only" tab listed every course twice, adjacent, which reads as a
-  // broken query. Collapse by name, keeping the row whose major_id is real
-  // rather than inferred, and the lower id as a stable tie-break.
-  const byName = new Map();
-  for (const course of courses) {
-    const key = normalizeText(course.raw?.course_name || course.nameEn || course.nameKo);
-    if (!key) continue;
-    const existing = byName.get(key);
-    if (!existing) {
-      byName.set(key, course);
-      continue;
-    }
-    const existingIsExplicit = existing.raw?.major_id != null;
-    const candidateIsExplicit = course.raw?.major_id != null;
-    if (candidateIsExplicit && !existingIsExplicit) {
-      byName.set(key, course);
-    } else if (candidateIsExplicit === existingIsExplicit
-      && Number(course.id) < Number(existing.id)) {
-      byName.set(key, course);
-    }
-  }
-  courses = [...byName.values()];
+  // Map course fields directly onto the object instead of grouping into offerings
+  courses = courses.map(course => {
+    return {
+      ...course,
+      courseOfferingId: course.id,
+      officialCourseNumber: course.courseCode,
+      academicYear: options.academicYear || 2026,
+      semester: options.semester || '2',
+      schedule: course.dayOfWeek && course.startTime ? `${course.dayOfWeek} ${course.startTime}-${course.endTime}` : null,
+      classroom: course.location,
+      enrollmentLimit: null,
+      restrictions: [],
+      slots: parseOfferingSchedule(course.dayOfWeek && course.startTime ? `${course.dayOfWeek} ${course.startTime}-${course.endTime}` : null, course.location),
+    };
+  });
 
   courses.sort((a, b) =>
     String(a.nameEn || a.nameKo).localeCompare(String(b.nameEn || b.nameKo))
@@ -290,49 +299,7 @@ async function listCourseCatalog(supabase, options = {}) {
     }
   }
 
-  if (items.length && hasRequestedTerm) {
-    const requestedIds = new Set(items.map((course) => String(course.id)));
-    const requestedOfferings = offeringRows.filter((row) => requestedIds.has(String(row.course_id)));
-    const metadataRows = await fetchCourseMetadata(
-      supabase,
-      requestedOfferings.map((row) => row.course_offering_id),
-    );
-    const metadataByOfferingId = new Map(
-      metadataRows.map((row) => [String(row.course_offering_id), row]),
-    );
-    const restrictionRows = await fetchOfferingRestrictions(
-      supabase,
-      requestedOfferings.map((row) => row.course_offering_id),
-    );
-    const restrictionsByOfferingId = new Map();
-    for (const restriction of restrictionRows) {
-      const key = String(restriction.course_offering_id);
-      if (!restrictionsByOfferingId.has(key)) restrictionsByOfferingId.set(key, []);
-      restrictionsByOfferingId.get(key).push(restriction);
-    }
-    const byCourseId = new Map();
-    for (const row of requestedOfferings) {
-      const key = String(row.course_id);
-      if (!byCourseId.has(key)) byCourseId.set(key, []);
-      byCourseId.get(key).push(
-        mapOffering(
-          row,
-          metadataByOfferingId.get(String(row.course_offering_id)) || null,
-          restrictionsByOfferingId.get(String(row.course_offering_id)) || [],
-        ),
-      );
-    }
-    for (const course of items) {
-      course.offerings = byCourseId.get(String(course.id)) || [];
-      if (course.offerings.length === 1) {
-        const [offering] = course.offerings;
-        course.presentationRequirement = offering.presentationRequirement;
-        course.groupProjectRequirement = offering.groupProjectRequirement;
-        course.assignmentRequirement = offering.assignmentRequirement;
-        course.examInformation = offering.examInformation;
-      }
-    }
-  }
+  // Skip old metadata fetching since offerings are natively built from courses now
 
   return {
     items,

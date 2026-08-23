@@ -123,7 +123,7 @@ export function AddPastCourseModal({
               <div key={course.id} className="flex items-center gap-3 border-b border-pnu-border px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-pnu-blue">
-                    {course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}
+                    {course.officialCourseNumber || course.nameKo || ''}
                   </p>
                   <p className="truncate text-sm font-bold text-pnu-text">{course.nameEn || course.nameKo}</p>
                   <p className="truncate text-xs text-pnu-muted">

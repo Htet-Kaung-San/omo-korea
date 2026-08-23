@@ -137,11 +137,11 @@ function mapTimetableEntry(row) {
     course_name: course.course_name || '',
     courseNameEn: course.course_name_en || null,
     officialCourseNumber:
-      offering?.official_course_number || course.official_course_number || null,
+      course.course_code || course.official_course_number || null,
     credit: course.credit ?? 0,
     category: course.category || 'ELECTIVE',
-    professor: offering?.professor || null,
-    section: offering?.section || null,
+    professor: course.professor || null,
+    section: course.section || null,
     slots: (row.slots || []).map((slot) => ({
       slotId: Number(slot.timetable_slot_id),
       day: Number(slot.day_of_week),
@@ -158,8 +158,7 @@ async function getTimetableEntry(supabase, studentId, entryId) {
     .select(`
       timetable_entry_id,student_id,course_id,course_offering_id,academic_year,
       semester,source,color,created_at,updated_at,
-      course:course_id(course_id,course_name,course_name_en,credit,category,official_course_number),
-      offering:course_offering_id(course_offering_id,official_course_number,section,professor,schedule,classroom),
+      course:course_id(course_id,course_name,course_name_en,credit,category,course_code,section,professor,day_of_week,start_time,end_time,location),
       slots:student_timetable_slot(timetable_slot_id,day_of_week,start_time,end_time,classroom)
     `)
     .eq('student_id', Number(studentId))
@@ -189,8 +188,7 @@ async function listTimetableEntries(supabase, studentId, options = {}) {
     .select(`
       timetable_entry_id,student_id,course_id,course_offering_id,academic_year,
       semester,source,color,created_at,updated_at,
-      course:course_id(course_id,course_name,course_name_en,credit,category,official_course_number),
-      offering:course_offering_id(course_offering_id,official_course_number,section,professor,schedule,classroom),
+      course:course_id(course_id,course_name,course_name_en,credit,category,course_code,section,professor,day_of_week,start_time,end_time,location),
       slots:student_timetable_slot(timetable_slot_id,day_of_week,start_time,end_time,classroom)
     `)
     .eq('student_id', Number(studentId))

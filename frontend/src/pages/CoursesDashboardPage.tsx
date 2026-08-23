@@ -11,8 +11,9 @@ import { useLanguage } from '@/context/LanguageContext'
 import type { CourseCatalogItem, CourseType, CreateTimetableEntryInput, Enrollment } from '@/types/api'
 import { currentCourseTerm, enrollmentSemester, type CourseTerm } from '@/utils/courseTerm'
 import { formatMajorName } from '@/utils/formatMajor'
+import { CourseTypeBadge } from '@/components/ui/Badge'
 
-type CoursesTab = 'current' | 'all' | 'offered' | 'past'
+type CoursesTab = 'current' | 'all' | 'past'
 const CARD_SHADOW = '0 8px 24px rgba(15,23,42,0.06)'
 
 function isCompletedStatus(status: string) {
@@ -63,7 +64,6 @@ export function CoursesDashboardPage() {
   // the toggle that fixes it looks like a filter you would apply, not one you
   // need to undo. If the student has no major recorded the backend resolves it
   // to null and shows everything, which is the same as before.
-  const [myMajorOnly, setMyMajorOnly] = useState(true)
   const [loading, setLoading] = useState(true)
   const [catalogLoading, setCatalogLoading] = useState(false)
   const [showAddPast, setShowAddPast] = useState(false)
@@ -98,7 +98,7 @@ export function CoursesDashboardPage() {
   }, [academicYear, semester, t])
 
   useEffect(() => {
-    if (tab !== 'all' && tab !== 'offered') return
+    if (tab !== 'all') return
     let cancelled = false
     const timer = window.setTimeout(async () => {
       setCatalogLoading(true)
@@ -110,10 +110,10 @@ export function CoursesDashboardPage() {
           search: query,
           category: catalogCategory,
           recommendedYear,
-          myMajor: myMajorOnly,
+          myMajor: catalogCategory === '전공',
           academicYear,
           semester,
-          offeredOnly: tab === 'offered',
+
         })
         if (cancelled) return
         setCatalog(page.items)
@@ -131,7 +131,7 @@ export function CoursesDashboardPage() {
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [academicYear, catalogCategory, myMajorOnly, query, recommendedYear, semester, t, tab])
+  }, [academicYear, catalogCategory, query, recommendedYear, semester, t, tab])
 
   const pastEnrollments = useMemo(() => enrollments.filter(isPastEnrollment), [enrollments])
   const activeEnrollments = useMemo(() => enrollments.filter((item) => !isPastEnrollment(item)), [enrollments])
@@ -156,10 +156,10 @@ export function CoursesDashboardPage() {
         search: query,
         category: catalogCategory,
         recommendedYear,
-        myMajor: myMajorOnly,
+        myMajor: catalogCategory === '전공',
         academicYear,
         semester,
-        offeredOnly: tab === 'offered',
+
       })
       setCatalog((current) => [...current, ...page.items])
       setCatalogPage(page.page)
@@ -239,7 +239,6 @@ export function CoursesDashboardPage() {
   const tabs: { id: CoursesTab; labelKey: string }[] = [
     { id: 'current', labelKey: 'courses.tabCurrent' },
     { id: 'all', labelKey: 'courses.tabAll' },
-    { id: 'offered', labelKey: 'courseCatalog.offeredThisTerm' },
     { id: 'past', labelKey: 'courses.tabPast' },
   ]
   const visibleEnrollments = tab === 'past' ? pastEnrollments : activeEnrollments
@@ -276,7 +275,7 @@ export function CoursesDashboardPage() {
           ))}
         </div>
 
-        {(tab === 'all' || tab === 'offered') ? <CourseTermSelector value={term} onChange={setTerm} /> : null}
+        {tab === 'all' ? <CourseTermSelector value={term} onChange={setTerm} /> : null}
 
         {tab === 'all' || tab === 'offered' ? (
           <>
@@ -284,18 +283,20 @@ export function CoursesDashboardPage() {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-pnu-muted" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t('courseCatalog.searchPlaceholder')} className="w-full rounded-xl border border-pnu-border bg-white py-2 pl-9 pr-3 text-sm" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <select
-                value={catalogCategory}
-                onChange={(event) => setCatalogCategory(event.target.value as CourseType | 'ALL')}
-                className="rounded-xl border border-pnu-border bg-white px-3 py-2 text-xs text-pnu-text"
-                aria-label={t('courseCatalog.categoryFilter')}
-              >
-                <option value="ALL">{t('courseFilter.all')}</option>
-                <option value="REQUIRED">{t('courseFilter.required')}</option>
-                <option value="ELECTIVE">{t('courseFilter.elective')}</option>
-                <option value="GEN_ED">{t('courseFilter.genEd')}</option>
-              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={catalogCategory}
+                  onChange={(event) => setCatalogCategory(event.target.value as CourseType | 'ALL')}
+                  className="rounded-xl border border-pnu-border bg-white px-3 py-2 text-xs text-pnu-text"
+                  aria-label={t('courseCatalog.categoryFilter')}
+                >
+                  <option value="ALL">{t('courseFilter.all')}</option>
+                  <option value="전공">{t('courseFilter.major')}</option>
+                  <option value="효원핵심교양">{t('courseFilter.hyowonCore')}</option>
+                  <option value="효원균형교양">{t('courseFilter.hyowonBalanced')}</option>
+                  <option value="효원창의교양">{t('courseFilter.hyowonCreative')}</option>
+                  <option value="일반선택">{t('courseFilter.generalElective')}</option>
+                </select>
               <select
                 value={recommendedYear ?? ''}
                 onChange={(event) => setRecommendedYear(event.target.value ? Number(event.target.value) : undefined)}
@@ -305,15 +306,8 @@ export function CoursesDashboardPage() {
                 <option value="">{t('courseCatalog.allYears')}</option>
                 {[1, 2, 3, 4].map((year) => <option key={year} value={year}>{t('courseCatalog.yearOption', { year })}</option>)}
               </select>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMyMajorOnly((current) => !current)}
-              className={`w-full rounded-xl px-3 py-2 text-xs font-bold ${myMajorOnly ? 'bg-pnu-blue text-white' : 'border border-pnu-border bg-white text-pnu-muted'}`}
-            >
-              {t(myMajorOnly ? 'courseCatalog.myMajorOnly' : 'courseCatalog.allMajors')}
-            </button>
-            <p className="text-[11px] font-semibold text-pnu-muted">{catalogTotal.toLocaleString()} {t('courses.coursesUnit')}</p>
+              </div>
+              <p className="text-[11px] font-semibold text-pnu-muted">{catalogTotal.toLocaleString()} {t('courses.coursesUnit')}</p>
             <section className="overflow-hidden rounded-[14px] bg-white" style={{ boxShadow: CARD_SHADOW }}>
               {catalogLoading && catalog.length === 0 ? <p className="p-8 text-center text-xs text-pnu-muted">{t('common.loading')}</p> : null}
               <ul className="divide-y divide-black/6">
@@ -325,7 +319,10 @@ export function CoursesDashboardPage() {
                     <Link to={`/academic/recommended-courses/${course.id}?academicYear=${academicYear}&semester=${semester}`} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3">
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F3FF] text-pnu-blue"><BookOpen className="h-4 w-4" /></span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[10px] font-bold text-pnu-blue">{course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}</span>
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <CourseTypeBadge type={course.type} />
+                          {course.officialCourseNumber ? <span className="text-[10px] font-bold text-pnu-blue">{course.officialCourseNumber}</span> : null}
+                        </div>
                         <span className="block truncate text-[13px] font-bold text-pnu-text">{course.nameEn || course.nameKo}</span>
                         <span className="block truncate text-[10px] text-pnu-muted">{[formatMajorName(course.majorName || course.department), `${course.credits} ${t('courses.creditsUnit')}`].filter(Boolean).join(' · ')}</span>
                       </span>
@@ -347,7 +344,19 @@ export function CoursesDashboardPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => setSelectedCourse(course)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          if (course.slots && course.slots.length > 0) {
+                            addCurrentCourse({
+                              courseId: Number(course.id),
+                              courseOfferingId: Number(course.courseOfferingId),
+                              academicYear,
+                              semester,
+                            })
+                          } else {
+                            setSelectedCourse(course)
+                          }
+                        }}
                         disabled={changingCourseId === courseId}
                         className="shrink-0 rounded-xl bg-pnu-blue px-2.5 py-2 text-[10px] font-bold text-white shadow-sm transition hover:bg-pnu-blue-light disabled:opacity-50"
                       >
@@ -381,9 +390,7 @@ export function CoursesDashboardPage() {
                           <CalendarDays className="h-4 w-4" />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-bold text-pnu-blue">
-                            {enrollment.official_course_number || `${t('courses.courseId')} ${enrollment.course_id}`}
-                          </span>
+                          {enrollment.official_course_number ? <span className="block text-[10px] font-bold text-pnu-blue">{enrollment.official_course_number}</span> : null}
                           <span className="block truncate text-[13px] font-bold text-pnu-text">
                             {enrollment.course_name_en || enrollment.course_name || t('courses.untitled')}
                           </span>

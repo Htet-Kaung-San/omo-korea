@@ -27,7 +27,6 @@ export function RecommendedCoursesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [typeFilter, setTypeFilter] = useState<CourseType | 'ALL'>('ALL')
-  const [offeredOnly, setOfferedOnly] = useState(false)
   const [term, setTerm] = useState<CourseTerm>(() => currentCourseTerm())
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set())
 
@@ -36,7 +35,7 @@ export function RecommendedCoursesPage() {
 
   useEffect(() => {
     Promise.all([
-      api.getRecommendedCourses('ALL', { academicYear, semester, offeredOnly }),
+      api.getRecommendedCourses('ALL', { academicYear, semester }),
       api.getTimetable({ academicYear, semester }),
       user ? api.getEnrollments(user.studentId) : Promise.resolve([]),
     ])
@@ -49,7 +48,7 @@ export function RecommendedCoursesPage() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : t('academic.loadError')))
       .finally(() => setLoading(false))
-  }, [academicYear, language, offeredOnly, semester, t, user])
+  }, [academicYear, language, semester, t, user])
 
   async function openTimetableModal(course: RecommendedCourse) {
     setActionCourseId(Number(course.id))
@@ -123,7 +122,6 @@ export function RecommendedCoursesPage() {
   const recommendedCourses = courses.filter((course) => (
     course.score > 0
     && (typeFilter === 'ALL' || course.type === typeFilter)
-    && (!offeredOnly || course.isOfferedThisTerm === true)
   ))
 
   return (
@@ -144,13 +142,6 @@ export function RecommendedCoursesPage() {
             <option value="ELECTIVE">{t('courseFilter.elective')}</option>
             <option value="GEN_ED">{t('courseFilter.genEd')}</option>
           </select>
-          <button
-            type="button"
-            onClick={() => setOfferedOnly((current) => !current)}
-            className={`rounded-xl px-3 py-2 text-xs font-bold ${offeredOnly ? 'bg-pnu-blue text-white' : 'border border-pnu-border bg-white text-pnu-muted'}`}
-          >
-            {t('courseCatalog.offeredThisTerm')}
-          </button>
         </div>
         {error ? (
           <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>

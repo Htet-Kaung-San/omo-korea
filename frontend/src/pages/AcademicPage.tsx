@@ -62,7 +62,6 @@ export function AcademicPage() {
   const [monthView, setMonthView] = useState(false)
   const [scheduleLayout, setScheduleLayout] = useState<'DAILY' | 'GRID'>('DAILY')
   const [search, setSearch] = useState('')
-  const [myMajorOnly, setMyMajorOnly] = useState(true)
   const [catalogPage, setCatalogPage] = useState(1)
   const [catalogTotal, setCatalogTotal] = useState(0)
   const [catalogHasMore, setCatalogHasMore] = useState(false)
@@ -136,7 +135,7 @@ export function AcademicPage() {
           page: 1,
           pageSize: 50,
           search,
-          myMajor: myMajorOnly,
+          myMajor: allFilter === '전공',
           category: allFilter,
           academicYear,
           semester,
@@ -152,7 +151,7 @@ export function AcademicPage() {
       }
     }, 250)
     return () => window.clearTimeout(timer)
-  }, [user, search, myMajorOnly, allFilter, academicYear, semester, t])
+  }, [user, search, allFilter, academicYear, semester, t])
 
   const selectedDate = useMemo(() => {
     const d = new Date(anchorDate)
@@ -179,9 +178,7 @@ export function AcademicPage() {
     setCollisionError(null)
     setSubmittingId(data.courseId)
 
-    const selectedOfferingSlots = selectedCourse?.offerings.find(
-      (offering) => offering.courseOfferingId === data.courseOfferingId,
-    )?.slots || []
+    const selectedOfferingSlots = selectedCourse?.slots || []
     const proposedSlots = data.slots?.length ? data.slots : selectedOfferingSlots
     const conflict = enrollments.find((entry) =>
       getScheduleSlots(entry).some((existingSlot) =>
@@ -240,7 +237,7 @@ export function AcademicPage() {
         page: nextPage,
         pageSize: 50,
         search,
-        myMajor: myMajorOnly,
+        myMajor: allFilter === '전공',
         category: allFilter,
         academicYear,
         semester,
@@ -413,13 +410,6 @@ export function AcademicPage() {
                   </h3>
                   <p className="text-xs text-pnu-muted">{t('courseCatalog.total', { count: catalogTotal })}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setMyMajorOnly((value) => !value)}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-bold ${myMajorOnly ? 'bg-pnu-blue text-white' : 'bg-pnu-surface text-pnu-muted'}`}
-                >
-                  {t(myMajorOnly ? 'courseCatalog.myMajorOnly' : 'courseCatalog.allMajors')}
-                </button>
               </div>
               <label className="flex items-center gap-2 rounded-xl border border-pnu-border bg-white px-3 py-2.5">
                 <Search className="h-4 w-4 text-pnu-muted" />
@@ -458,7 +448,18 @@ export function AcademicPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => setSelectedCourse(course)}
+                            onClick={() => {
+                              if (course.slots && course.slots.length > 0) {
+                                handleAddToTimetable({
+                                  courseId: Number(course.id),
+                                  courseOfferingId: Number(course.courseOfferingId),
+                                  academicYear,
+                                  semester,
+                                })
+                              } else {
+                                setSelectedCourse(course)
+                              }
+                            }}
                             disabled={submittingId === Number(course.id)}
                             className="flex items-center justify-center gap-1 rounded-xl bg-pnu-blue p-2 text-xs font-bold text-white shadow-md transition-all hover:bg-pnu-blue-light active:scale-95 disabled:opacity-50"
                           >

@@ -32,7 +32,7 @@ function selectGroundingCourses(courses, message, targetYear, limit = 24) {
     .match(/[\p{L}\p{N}]{2,}/gu) || [];
   return [...(courses || [])]
     .map((course) => {
-      const text = [course.course_name, course.course_name_en, course.official_course_number]
+      const text = [course.course_name, course.course_name_en, course.course_code]
         .filter(Boolean).join(' ').normalize('NFKC').toLowerCase();
       const queryScore = queryTokens.reduce(
         (score, token) => score + (text.includes(token) ? 20 : 0),
@@ -198,21 +198,21 @@ async function getAcademicPromptContext(studentId, supabaseClient, message = '')
       if (student.major_id) {
         const { data: liveCourses, error: courseError } = await supabaseClient
           .from('course')
-          .select('course_id,course_name,course_name_en,official_course_number,category,recommended_year,credit')
+          .select('course_id,course_name,course_name_en,course_code,category,recommended_year,credit')
           .eq('major_id', Number(student.major_id))
           .order('course_id', { ascending: true });
         if (!courseError && Array.isArray(liveCourses) && liveCourses.length > 0) {
           let verifiedCodeByName = new Map();
           try {
-            const names = [...new Set(liveCourses.map((course) => course.course_name).filter(Boolean))];
+            const names = [...new Set(liveCourses.filter((c) => !c.course_code).map((c) => c.course_name).filter(Boolean))];
             const { data: identityMatches, error: identityError } = await supabaseClient
               .from('course')
-              .select('course_name,official_course_number')
+              .select('course_name,course_code')
               .in('course_name', names)
-              .not('official_course_number', 'is', null);
+              .not('course_code', 'is', null);
             if (!identityError) {
               verifiedCodeByName = new Map(
-                (identityMatches || []).map((course) => [course.course_name, course.official_course_number]),
+                (identityMatches || []).map((course) => [course.course_name, course.course_code]),
               );
             }
           } catch (_error) {
@@ -220,8 +220,8 @@ async function getAcademicPromptContext(studentId, supabaseClient, message = '')
           }
           const enrichedLiveCourses = liveCourses.map((course) => ({
             ...course,
-            official_course_number:
-              course.official_course_number || verifiedCodeByName.get(course.course_name) || null,
+            course_code:
+              course.course_code || verifiedCodeByName.get(course.course_name) || null,
           }));
           const grounded = selectGroundingCourses(
             enrichedLiveCourses,
@@ -230,7 +230,7 @@ async function getAcademicPromptContext(studentId, supabaseClient, message = '')
           );
           context += `\nLIVE SUPABASE COURSE CATALOG (authoritative for course identity):\n`;
           context += grounded.map((course) =>
-            `- ${course.official_course_number || 'code unavailable'} | ${course.course_name_en || course.course_name} | ${course.course_name} | ${course.category || 'category unavailable'} | recommended year ${course.recommended_year ?? 'unavailable'} | ${course.credit ?? 'unknown'} credits`
+            `- ${course.course_code || 'code unavailable'} | ${course.course_name_en || course.course_name} | ${course.course_name} | ${course.category || 'category unavailable'} | recommended year ${course.recommended_year ?? 'unavailable'} | ${course.credit ?? 'unknown'} credits`
           ).join('\n');
           context += `\n- Only name a course when it appears in this live catalog. Do not invent course codes, professors, sections, or schedules. If schedule/offering data is absent, say it is unavailable.\n`;
         }

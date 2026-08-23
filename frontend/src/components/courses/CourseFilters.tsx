@@ -3,9 +3,11 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const filters: { value: CourseType | "ALL"; key: string }[] = [
   { value: "ALL", key: "courseFilter.all" },
-  { value: "REQUIRED", key: "courseFilter.required" },
-  { value: "ELECTIVE", key: "courseFilter.elective" },
-  { value: "GEN_ED", key: "courseFilter.genEd" },
+  { value: "전공", key: "courseFilter.major" },
+  { value: "효원핵심교양", key: "courseFilter.hyowonCore" },
+  { value: "효원균형교양", key: "courseFilter.hyowonBalanced" },
+  { value: "효원창의교양", key: "courseFilter.hyowonCreative" },
+  { value: "일반선택", key: "courseFilter.generalElective" },
 ];
 
 interface CourseFiltersProps {

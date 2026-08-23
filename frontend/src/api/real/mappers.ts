@@ -122,14 +122,16 @@ interface BackendCourse {
   year?: number | null
   curriculumYears?: number[]
   curriculum?: CourseCatalogItem['curriculum']
-  offerings?: CourseCatalogItem['offerings']
+  courseOfferingId?: number | string
+  enrollmentLimit?: number | null
+  restrictions?: CourseCatalogItem['restrictions']
+  slots?: CourseCatalogItem['slots']
   descriptionKo?: string | null
   descriptionEn?: string | null
   descriptionSourceUrl?: string | null
   syllabusUrl?: string | null
   detailSourceKind?: CourseCatalogItem['detailSourceKind']
   prerequisites?: CourseCatalogItem['prerequisites']
-  isOfferedThisTerm?: boolean | null
 }
 
 function getAdmissionYear(studentId: string): number | null {
@@ -342,17 +344,14 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     tags: course.tags ?? [],
     score: course.score,
     matchHint: course.matchHint,
-    isOfferedThisTerm:
-      course.isOfferedThisTerm === true
-        ? true
-        : course.isOfferedThisTerm === false
-          ? false
-          : null,
-    officialCourseNumber: course.officialCourseNumber ?? null,
+    matchHint: course.matchHint,
+    courseCode: course.courseCode ?? course.officialCourseNumber ?? null,
+    officialCourseNumber: course.courseCode ?? course.officialCourseNumber ?? null,
     academicYear: course.academicYear ?? null,
     semester: course.semester ?? null,
     section: course.section ?? null,
     professor: course.professor ?? null,
+    location: course.location ?? null,
     schedule: course.schedule ?? null,
     remoteCourseStatus: course.remoteCourseStatus ?? null,
     originalLanguageCode: course.originalLanguageCode ?? null,
@@ -379,7 +378,13 @@ export function mapCourseCatalogItem(course: BackendCourse): CourseCatalogItem {
       ? course.curriculumYears.filter(Number.isInteger)
       : [],
     curriculum: course.curriculum ?? null,
-    offerings: Array.isArray(course.offerings) ? course.offerings : [],
+    courseOfferingId: String(course.courseOfferingId),
+    officialCourseNumber: course.officialCourseNumber ?? null,
+    academicYear: Number(course.academicYear),
+    semester: String(course.semester),
+    enrollmentLimit: course.enrollmentLimit ?? null,
+    restrictions: Array.isArray(course.restrictions) ? course.restrictions : [],
+    slots: Array.isArray(course.slots) ? course.slots : [],
     descriptionKo: course.descriptionKo ?? null,
     descriptionEn: course.descriptionEn ?? null,
     descriptionSourceUrl: course.descriptionSourceUrl ?? null,

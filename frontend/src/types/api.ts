@@ -1,6 +1,6 @@
 /** Shared API types — keep in sync with backend OpenAPI / PROJECT_SPEC.md */
 
-export type CourseType = 'REQUIRED' | 'ELECTIVE' | 'GEN_ED'
+export type CourseType = '전공' | '효원핵심교양' | '효원균형교양' | '효원창의교양' | '일반선택' | '교직과목' | '전공기초' | '전공필수' | '전공선택'
 
 export type NotificationCategory = string
 export type NotificationPriority = string
@@ -344,6 +344,10 @@ export interface Course {
   majorName?: string | null
   collegeId?: number | null
   recommendedYear?: number | null
+  courseCode?: string | null
+  section?: string | null
+  professor?: string | null
+  location?: string | null
 }
 
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
@@ -373,7 +377,6 @@ export interface CourseOfferingInformation {
 export interface RecommendedCourse extends Course, CourseOfferingInformation {
   score: number
   matchHint?: string
-  isOfferedThisTerm: boolean | null
 }
 
 export interface CourseCurriculumInformation {
@@ -439,13 +442,19 @@ export interface CoursePrerequisite {
 export interface CourseCatalogItem extends RecommendedCourse {
   curriculumYears: number[]
   curriculum: CourseCurriculumInformation | null
-  offerings: CourseOfferingOption[]
   descriptionKo: string | null
   descriptionEn: string | null
   descriptionSourceUrl: string | null
   syllabusUrl: string | null
   detailSourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS' | null
   prerequisites: CoursePrerequisite[]
+  courseOfferingId: string
+  officialCourseNumber: string | null
+  academicYear: number
+  semester: string
+  enrollmentLimit: number | null
+  restrictions: CourseOfferingRestriction[]
+  slots: TimetableSlotInput[]
 }
 
 export interface CourseCatalogPage {
@@ -468,7 +477,6 @@ export interface CourseCatalogParams {
   curriculumYear?: number
   academicYear?: number
   semester?: '1' | '2' | 'SUMMER' | 'WINTER'
-  offeredOnly?: boolean
   courseId?: string | number
 }
 
@@ -785,7 +793,6 @@ export interface HeyPnuApi {
     term?: {
       academicYear: number
       semester: '1' | '2' | 'SUMMER' | 'WINTER'
-      offeredOnly?: boolean
     },
   ): Promise<RecommendedCourse[]>
   getCourseCatalog(params?: CourseCatalogParams): Promise<CourseCatalogPage>
