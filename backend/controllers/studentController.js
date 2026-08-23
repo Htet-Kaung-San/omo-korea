@@ -2060,7 +2060,8 @@ const getAcademicRecords = async (req, res) => {
             *,
             course:course_id (
               credit,
-              category
+              category,
+              course_code
             )
           `,
         )
@@ -2092,6 +2093,7 @@ const getAcademicRecords = async (req, res) => {
         ...rest,
         credit: course?.credit ?? rest.credit ?? 0,
         category: course?.category ?? rest.category ?? "GEN_ED",
+        official_course_number: course?.course_code ?? null,
       };
     });
 
@@ -2202,7 +2204,8 @@ const getGraduationProgress = async (req, res) => {
             *,
             course:course_id (
               credit,
-              category
+              category,
+              course_code
             )
           `,
         )
@@ -2234,6 +2237,7 @@ const getGraduationProgress = async (req, res) => {
         ...rest,
         credit: course?.credit ?? rest.credit ?? 0,
         category: course?.category ?? rest.category ?? "GEN_ED",
+        official_course_number: course?.course_code ?? null,
       };
     });
 

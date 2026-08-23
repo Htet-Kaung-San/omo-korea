@@ -54,7 +54,7 @@ export function EditPastCourseModal({
         <div className="flex items-start justify-between gap-3 border-b border-black/6 pb-3">
           <div>
             <span className="text-[10px] font-bold text-pnu-blue">
-              {enrollment.official_course_number || `${t('courses.courseId')} ${enrollment.course_id}`}
+              {enrollment.official_course_number || enrollment.course_name || ''}
             </span>
             <h2 className="text-[16px] font-bold text-pnu-text">
               {enrollment.course_name_en || enrollment.course_name || t('courses.untitled')}

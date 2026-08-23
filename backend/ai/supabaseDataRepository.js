@@ -132,12 +132,17 @@ return {
   nameKo,
   nameEn,
 
-  officialCourseNumber: normalizeNullableText(row.official_course_number),
+  officialCourseNumber: normalizeNullableText(row.course_code || row.official_course_number),
   ...emptyCourseOffering(),
 
   majorId: normalizeId(row.major_id ?? row.majorId),
   type,
   category: type,
+  
+  courseCode: normalizeNullableText(row.course_code || row.official_course_number),
+  section: normalizeNullableText(row.section),
+  professor: normalizeNullableText(row.professor),
+  location: normalizeNullableText(row.location),
 
   credits: row.credits ?? row.credit ?? 3,
   department: row.department || row.major_name || '',
@@ -151,6 +156,9 @@ return {
   dayOfWeek: row.day_of_week ?? row.dayOfWeek ?? null,
   startTime: row.start_time ?? row.startTime ?? null,
   endTime: row.end_time ?? row.endTime ?? null,
+  section: normalizeNullableText(row.section),
+  professor: normalizeNullableText(row.professor),
+  location: normalizeNullableText(row.location),
 
   description:
     row.description ||
@@ -493,7 +501,11 @@ async function fetchCourseCurriculum(supabaseClient, options = {}) {
       .order('course_curriculum_id', { ascending: true })
       .range(pageStart, pageEnd);
     if (options.majorId !== null && options.majorId !== undefined) {
-      query = query.eq('major_id', Number(options.majorId));
+      if (Array.isArray(options.majorId)) {
+        query = query.in('major_id', options.majorId.map(Number));
+      } else {
+        query = query.eq('major_id', Number(options.majorId));
+      }
     }
     const result = await query;
     if (result.error) {

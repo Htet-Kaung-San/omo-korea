@@ -15,10 +15,10 @@ function currentAcademicTerm(now = new Date()) {
   };
 }
 
-async function resolveStudentMajorId(studentId) {
+async function resolveStudentMajorIds(studentId) {
   const { data, error } = await supabase
     .from('student')
-    .select('major_id')
+    .select('major_id, major:major_id(major_name)')
     .eq('student_id', Number(studentId))
     .single();
   if (error || !data) {
@@ -27,7 +27,18 @@ async function resolveStudentMajorId(studentId) {
     failure.code = 'STUDENT_PROFILE_QUERY_FAILED';
     throw failure;
   }
-  return data.major_id == null ? null : Number(data.major_id);
+  
+  if (data.major_id == null || !data.major) return null;
+  const majorName = data.major.major_name;
+  const prefix = majorName.split('-')[0].trim();
+  
+  const { data: majors, error: majorsError } = await supabase
+    .from('major')
+    .select('major_id')
+    .ilike('major_name', `${prefix}%`);
+    
+  if (majorsError || !majors) return [Number(data.major_id)];
+  return majors.map(m => Number(m.major_id));
 }
 
 async function getCourseCatalog(req, res, next) {
@@ -35,7 +46,7 @@ async function getCourseCatalog(req, res, next) {
     const term = currentAcademicTerm();
     const onlyMyMajor = String(req.query.myMajor || '').toLowerCase() === 'true';
     const majorId = onlyMyMajor
-      ? await resolveStudentMajorId(req.user.student_id)
+      ? await resolveStudentMajorIds(req.user.student_id)
       : req.query.majorId;
     const data = await listCourseCatalog(supabase, {
       page: req.query.page,

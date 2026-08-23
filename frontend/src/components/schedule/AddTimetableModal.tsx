@@ -35,27 +35,12 @@ export function AddTimetableModal({
   onSubmit,
 }: Props) {
   const { t } = useLanguage()
-  const [offeringId, setOfferingId] = useState<number | null>(
-    course.offerings.length === 1 ? course.offerings[0].courseOfferingId : null,
-  )
-  const [manual, setManual] = useState(course.offerings.length === 0)
-  // Deliberately blank rather than a plausible-looking default. This editor is
-  // shown whenever a course has no offering to read a time from — which is every
-  // course for a major with no offerings this term — and accepting a prefilled
-  // "Mon 09:00-10:30" silently writes an invented meeting time that then renders
-  // indistinguishably from a real one. An empty field is rejected by
-  // normalizeSlot with "needs a valid start time before its end time", so the
-  // student is asked rather than guessed at.
+  const [manual, setManual] = useState(course.slots.length === 0)
   const [slots, setSlots] = useState<TimetableSlotInput[]>([
     { day: 1, start: '', end: '', classroom: '' },
   ])
 
-  const selectedOffering = useMemo(
-    () => course.offerings.find((offering) => offering.courseOfferingId === offeringId) || null,
-    [course.offerings, offeringId],
-  )
-  const offeringNeedsManualSlots = Boolean(selectedOffering && selectedOffering.slots.length === 0)
-  const showManualSlots = manual || offeringNeedsManualSlots
+  const showManualSlots = manual || course.slots.length === 0
 
   function updateSlot(index: number, patch: Partial<TimetableSlotInput>) {
     setSlots((current) => current.map((slot, slotIndex) =>
@@ -65,7 +50,7 @@ export function AddTimetableModal({
   async function submit() {
     await onSubmit({
       courseId: Number(course.id),
-      courseOfferingId: manual ? null : offeringId,
+      courseOfferingId: manual ? null : Number(course.courseOfferingId),
       academicYear,
       semester,
       slots: showManualSlots ? slots : undefined,
@@ -78,7 +63,7 @@ export function AddTimetableModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold text-pnu-blue">
-              {course.officialCourseNumber || `${t('courses.courseId')} ${course.id}`}
+              {course.officialCourseNumber ? course.officialCourseNumber : (course.nameKo || '')}
             </p>
             <h2 className="mt-1 text-lg font-bold text-pnu-text">{course.nameEn}</h2>
             <p className="text-sm text-pnu-muted">{course.nameKo}</p>
@@ -88,44 +73,17 @@ export function AddTimetableModal({
           </button>
         </div>
 
-        {course.offerings.length > 0 ? (
-          <div className="mt-5 space-y-2">
-            <p className="text-xs font-bold text-pnu-text">{t('timetable.chooseOffering')}</p>
-            {course.offerings.map((offering) => (
-              <label key={offering.courseOfferingId} className="flex cursor-pointer gap-2 rounded-xl border border-pnu-border p-3">
-                <input
-                  type="radio"
-                  name="offering"
-                  checked={!manual && offeringId === offering.courseOfferingId}
-                  onChange={() => {
-                    setManual(false)
-                    setOfferingId(offering.courseOfferingId)
-                  }}
-                />
-                <span className="text-xs text-pnu-text">
-                  <strong>{offering.section || t('timetable.sectionUnavailable')}</strong>
-                  {offering.professor ? ` · ${offering.professor}` : ''}
-                  <span className="mt-1 block text-pnu-muted">
-                    {offering.schedule || t('timetable.scheduleUnavailable')}
-                  </span>
-                </span>
-              </label>
-            ))}
-            <label className="flex cursor-pointer gap-2 rounded-xl border border-pnu-border p-3 text-xs">
-              <input
-                type="radio"
-                name="offering"
-                checked={manual}
-                onChange={() => setManual(true)}
-              />
-              {t('timetable.manualSchedule')}
-            </label>
+        {!showManualSlots ? (
+          <div className="mt-5 rounded-xl border border-pnu-border p-3 text-xs">
+            <span className="text-pnu-text">
+              <strong>{course.section || t('timetable.sectionUnavailable')}</strong>
+              {course.professor ? ` · ${course.professor}` : ''}
+              <span className="mt-1 block text-pnu-muted">
+                {course.schedule || t('timetable.scheduleUnavailable')}
+              </span>
+            </span>
           </div>
-        ) : (
-          <p className="mt-5 rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
-            {t('timetable.noOfferingHelp')}
-          </p>
-        )}
+        ) : null}
 
         {showManualSlots ? (
           <div className="mt-5 space-y-3">
@@ -188,7 +146,7 @@ export function AddTimetableModal({
           <button
             type="button"
             onClick={submit}
-            disabled={submitting || (!manual && !offeringId)}
+            disabled={submitting}
             className="flex-1 rounded-xl bg-pnu-blue py-3 text-sm font-bold text-white disabled:opacity-50"
           >
             {submitting ? t('common.loading') : t('academic.addToTimetable')}
