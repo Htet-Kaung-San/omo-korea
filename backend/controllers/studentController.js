@@ -1635,6 +1635,28 @@ const updateStudentProfile = async (req, res) => {
 // listed under Authentication → URL Configuration in the Supabase dashboard.
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:5173";
 
+// The password-reset link lands the student here. If this is a localhost value
+// on a deployed server the emailed link is dead for everyone, so say so loudly
+// at boot rather than discovering it from a user's spam folder.
+//
+// IMPORTANT: setting APP_BASE_URL correctly is necessary but NOT sufficient.
+// Supabase only honours generateLink's redirectTo if the exact URL is on the
+// project's Redirect URLs allow list (Auth > URL Configuration). If it is not,
+// Supabase silently substitutes the project Site URL and DROPS the path — which
+// is why a reset mail can arrive pointing at "http://localhost:3000" with no
+// /update-password, even when this value is correct. Both must be set:
+//   - Site URL:        https://<web-host>
+//   - Redirect URLs:   https://<web-host>/update-password
+if (
+  process.env.NODE_ENV === "production" &&
+  /localhost|127\.0\.0\.1/.test(APP_BASE_URL)
+) {
+  console.warn(
+    `[password-reset] APP_BASE_URL is "${APP_BASE_URL}" in production — reset ` +
+      "links will point at localhost and fail. Set it to the deployed site URL.",
+  );
+}
+
 const forgotPassword = async (req, res) => {
   try {
     // Accepts the same three shapes as loginStudent. Students sign in with

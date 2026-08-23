@@ -71,6 +71,28 @@ Three things that will silently break if they are wrong:
 
 ---
 
+## Password reset — two settings, both required
+
+The reset email lands the student on `/update-password`. Getting it there needs
+BOTH a correct env var and a Supabase dashboard setting, and the failure mode
+of missing the second is silent: the mail arrives pointing at `localhost` even
+when the server is configured correctly.
+
+1. On `heypnu-api` (or your API service), set:
+   ```
+   APP_BASE_URL = https://<your-web-host>
+   ```
+2. In the Supabase dashboard, **Authentication → URL Configuration**:
+   - **Site URL:** `https://<your-web-host>`
+   - **Redirect URLs:** add `https://<your-web-host>/update-password`
+
+Supabase only honours the app's requested redirect if that exact URL is on the
+Redirect URLs list. If it is not, it substitutes the Site URL and drops the
+path — which is why a reset link can arrive pointing at
+`http://localhost:3000` with no `/update-password`, regardless of `APP_BASE_URL`.
+
+---
+
 ## 3. Sanity check
 
 ```bash
