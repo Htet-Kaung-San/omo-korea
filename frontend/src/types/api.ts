@@ -344,6 +344,7 @@ export interface Course {
   majorName?: string | null
   collegeId?: number | null
   recommendedYear?: number | null
+  isInStudentMajor?: boolean | null
 }
 
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
@@ -371,7 +372,8 @@ export interface CourseOfferingInformation {
   examInformation: string | null
 }
 
-export interface RecommendedCourse extends Course, CourseOfferingInformation {
+export interface RecommendedCourse
+  extends Omit<Course, 'section' | 'professor'>, CourseOfferingInformation {
   score: number
   matchHint?: string
 }
@@ -445,13 +447,14 @@ export interface CourseCatalogItem extends RecommendedCourse {
   syllabusUrl: string | null
   detailSourceKind: 'PNU_CATALOG' | 'PNU_CURRICULUM' | 'PNU_SYLLABUS' | null
   prerequisites: CoursePrerequisite[]
-  courseOfferingId: string
+  courseOfferingId: number | null
   officialCourseNumber: string | null
   academicYear: number
   semester: string
   enrollmentLimit: number | null
   restrictions: CourseOfferingRestriction[]
   slots: TimetableSlotInput[]
+  offerings: CourseOfferingOption[]
 }
 
 export interface CourseCatalogPage {

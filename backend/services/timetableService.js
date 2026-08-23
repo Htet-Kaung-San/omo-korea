@@ -82,7 +82,7 @@ function parseOfferingSchedule(schedule, defaultClassroom = null) {
   // the fifteen offerings this branch imports.
   const DAY = '(Mon|Tue|Wed|Thu|Fri|Sat|Sun|[월화수목금토일])';
   const pattern = new RegExp(
-    `${DAY}\\s*(\\d{1,2}:\\d{2})\\s*(?:\\((\\d{1,3})\\)|-\\s*(\\d{1,2}:\\d{2}))(?:\\s*([^,;]+))?`,
+    `${DAY}\\s*(\\d{1,2}:\\d{2}(?::\\d{2})?)\\s*(?:\\((\\d{1,3})\\)|-\\s*(\\d{1,2}:\\d{2}(?::\\d{2})?))(?:\\s*([^,;]+))?`,
     'gu',
   );
   for (const match of text.matchAll(pattern)) {
@@ -172,17 +172,6 @@ async function getTimetableEntry(supabase, studentId, entryId) {
 }
 
 async function listTimetableEntries(supabase, studentId, options = {}) {
-  // 1. Fetch active enrollments for this student
-  const { data: activeEnrollments } = await supabase
-    .from('enrollment')
-    .select('course_id,status')
-    .eq('student_id', studentId)
-    .neq('status', 'Completed');
-
-  const activeCourseIds = new Set(
-    (activeEnrollments || []).map((e) => Number(e.course_id)).filter(Boolean)
-  );
-
   let query = supabase
     .from('student_timetable_entry')
     .select(`
@@ -199,31 +188,10 @@ async function listTimetableEntries(supabase, studentId, options = {}) {
   const { data, error } = await query;
   if (error) throw apiError(`Failed to fetch timetable: ${error.message}`, 502, 'TIMETABLE_QUERY_FAILED');
 
-  const allEntries = data || [];
-
-  // 2. Only return timetable entries for actively enrolled courses, auto-cleaning any orphan entries
-  const orphanEntryIds = [];
-  const validEntries = [];
-
-  for (const entry of allEntries) {
-    const courseId = Number(entry.course_id);
-    if (activeCourseIds.has(courseId)) {
-      validEntries.push(entry);
-    } else {
-      orphanEntryIds.push(Number(entry.timetable_entry_id));
-    }
-  }
-
-  if (orphanEntryIds.length > 0) {
-    supabase
-      .from('student_timetable_entry')
-      .delete()
-      .in('timetable_entry_id', orphanEntryIds)
-      .then(() => {})
-      .catch(() => {});
-  }
-
-  return validEntries.map(mapTimetableEntry);
+  // Reads must not delete valid plans. A timetable entry may exist before an
+  // enrollment, and removing it here made the daily and grid views diverge
+  // after a refresh.
+  return (data || []).map(mapTimetableEntry);
 }
 
 async function addTimetableEntry(supabase, studentId, input) {

@@ -119,6 +119,7 @@ interface BackendCourse {
   examInformation?: string | null
   majorId?: string | number | null
   majorName?: string | null
+  isInStudentMajor?: boolean | null
   collegeId?: number | null
   year?: number | null
   curriculumYears?: number[]
@@ -133,6 +134,7 @@ interface BackendCourse {
   syllabusUrl?: string | null
   detailSourceKind?: CourseCatalogItem['detailSourceKind']
   prerequisites?: CourseCatalogItem['prerequisites']
+  offerings?: CourseCatalogItem['offerings']
 }
 
 function getAdmissionYear(studentId: string): number | null {
@@ -340,6 +342,12 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     department: course.department ?? '',
     majorId: course.majorId == null ? null : String(course.majorId),
     majorName: course.majorName ? formatMajorName(course.majorName) : null,
+    isInStudentMajor:
+      course.isInStudentMajor === true
+        ? true
+        : course.isInStudentMajor === false
+          ? false
+          : null,
     collegeId: course.collegeId ?? null,
     recommendedYear: course.year ?? null,
     tags: course.tags ?? [],
@@ -382,13 +390,15 @@ export function mapCourseCatalogItem(course: BackendCourse): CourseCatalogItem {
       ? course.curriculumYears.filter(Number.isInteger)
       : [],
     curriculum: course.curriculum ?? null,
-    courseOfferingId: String(course.courseOfferingId),
+    courseOfferingId:
+      course.courseOfferingId == null ? null : Number(course.courseOfferingId),
     officialCourseNumber: course.officialCourseNumber ?? null,
     academicYear: Number(course.academicYear),
     semester: String(course.semester),
     enrollmentLimit: course.enrollmentLimit ?? null,
     restrictions: Array.isArray(course.restrictions) ? course.restrictions : [],
     slots: Array.isArray(course.slots) ? course.slots : [],
+    offerings: Array.isArray(course.offerings) ? course.offerings : [],
     descriptionKo: course.descriptionKo ?? null,
     descriptionEn: course.descriptionEn ?? null,
     descriptionSourceUrl: course.descriptionSourceUrl ?? null,

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { getSource } = require('./lib/pnuCourseOfferings.cjs');
+const { getSource, readLocalPnuCourseOfferings } = require('./lib/pnuCourseOfferings.cjs');
 const { SOURCE_FILE } = require('./lib/pnuCourseRestrictions.cjs');
 const { datasetChecksum, validatePackage } = require('./lib/pnuCourseApplication.cjs');
 
@@ -136,7 +136,41 @@ const reviewedMetadataPackage = {
   }),
 };
 
-const normalizedPayloadSha256 = stableHash({ reviewedBasePackage, reviewedMetadataPackage });
+const officialOfferingReport = await readLocalPnuCourseOfferings({
+  academicYear: applicationManifest.academicYear,
+  semester: applicationManifest.semester,
+  backendRoot,
+  now: () => new Date('2026-07-27T00:00:00.000Z'),
+});
+const officialScheduleOfferings = officialOfferingReport.offerings
+  .filter((row) => row.officialCourseNumber && row.section && row.schedule)
+  .map((row) => ({
+    officialCourseNumber: row.officialCourseNumber,
+    section: row.section,
+    professor: row.professor,
+    schedule: row.schedule,
+    classroom: row.classroom,
+  }))
+  .sort((left, right) =>
+    left.officialCourseNumber.localeCompare(right.officialCourseNumber)
+    || left.section.localeCompare(right.section));
+const officialScheduleIdentities = new Set(
+  officialScheduleOfferings.map((row) => `${row.officialCourseNumber}|${row.section}`),
+);
+if (officialScheduleIdentities.size !== officialScheduleOfferings.length) {
+  throw new Error('Official schedule index contains duplicate course code and section identities');
+}
+const officialScheduleIndex = {
+  sourceOfferingCount: officialOfferingReport.offeringCount,
+  scheduledOfferingCount: officialScheduleOfferings.length,
+  offerings: officialScheduleOfferings,
+};
+
+const normalizedPayloadSha256 = stableHash({
+  reviewedBasePackage,
+  reviewedMetadataPackage,
+  officialScheduleIndex,
+});
 const provenance = {
   schemaVersion: 2,
   academicYear: applicationManifest.academicYear,
@@ -158,6 +192,7 @@ const provenance = {
   },
   reviewedBasePackage,
   reviewedMetadataPackage,
+  officialScheduleIndex,
 };
 
 writeFileSync(

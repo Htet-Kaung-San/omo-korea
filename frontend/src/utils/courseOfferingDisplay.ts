@@ -43,7 +43,7 @@ export function getRemoteCourseStatusKey(
   return status ? remoteStatusKeys[status] : null
 }
 
-function nullableDisplayText(value: string | null): string | null {
+function nullableDisplayText(value: string | null | undefined): string | null {
   const normalized = value?.trim()
   return normalized || null
 }

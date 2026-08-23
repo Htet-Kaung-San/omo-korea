@@ -26,7 +26,7 @@ export function CourseCard({
                 {course.score}% Match
               </span>
             ) : null}
-            <CourseTypeBadge type={course.type} />
+            <CourseTypeBadge type={course.type} isInStudentMajor={course.isInStudentMajor} />
             {course.officialCourseNumber ? (
               <span className="rounded-md bg-pnu-surface px-1.5 py-0.5 text-[10px] font-bold text-pnu-muted">
                 {course.officialCourseNumber}

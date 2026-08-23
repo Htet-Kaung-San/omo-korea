@@ -45,9 +45,13 @@ async function getCourseCatalog(req, res, next) {
   try {
     const term = currentAcademicTerm();
     const onlyMyMajor = String(req.query.myMajor || '').toLowerCase() === 'true';
-    const majorId = onlyMyMajor
-      ? await resolveStudentMajorIds(req.user.student_id)
-      : req.query.majorId;
+    let studentMajorIds = null;
+    try {
+      studentMajorIds = await resolveStudentMajorIds(req.user.student_id);
+    } catch (error) {
+      if (onlyMyMajor) throw error;
+    }
+    const majorId = onlyMyMajor ? studentMajorIds : req.query.majorId;
     const data = await listCourseCatalog(supabase, {
       page: req.query.page,
       pageSize: req.query.pageSize,
@@ -59,6 +63,7 @@ async function getCourseCatalog(req, res, next) {
       curriculumYear: req.query.curriculumYear,
       academicYear: req.query.academicYear || term.academicYear,
       semester: req.query.semester || term.semester,
+      studentMajorIds,
       offeredOnly: String(req.query.offeredOnly || '').toLowerCase() === 'true',
       language: req.language || 'en',
     });

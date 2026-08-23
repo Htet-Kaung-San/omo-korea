@@ -1,4 +1,5 @@
 const {
+  listTimetableEntries,
   mapTimetableEntry,
   normalizeSlots,
   parseOfferingSchedule,
@@ -14,6 +15,12 @@ describe('timetableService', () => {
     )).toEqual([
       { day: 1, start: '10:30', end: '11:45', classroom: '102-309' },
       { day: 3, start: '10:30', end: '11:45', classroom: '102-309' },
+    ]);
+  });
+
+  test('parses embedded course times that include database seconds', () => {
+    expect(parseOfferingSchedule('Mon 09:00:00-10:30:00', '102-306')).toEqual([
+      { day: 1, start: '09:00', end: '10:30', classroom: '102-306' },
     ]);
   });
 
@@ -63,6 +70,60 @@ describe('timetableService', () => {
       officialCourseNumber: 'DB1600358',
     });
     expect(entry.slots[0]).toMatchObject({ day: 1, start: '09:00', end: '10:30' });
+  });
+
+  test('listing a timetable is read-only and keeps plans without enrollment rows', async () => {
+    const timetableRows = [{
+      timetable_entry_id: 21,
+      student_id: 202612345,
+      course_id: 289,
+      course_offering_id: null,
+      academic_year: 2026,
+      semester: '2',
+      source: 'MANUAL',
+      color: null,
+      course: {
+        course_name: '19세기프랑스문학',
+        course_name_en: '19th Century French Literature',
+        credit: 3,
+        category: '전공필수',
+        course_code: 'FL2003327',
+      },
+      slots: [{
+        timetable_slot_id: 31,
+        day_of_week: 2,
+        start_time: '09:00:00',
+        end_time: '10:15:00',
+        classroom: '306-309',
+      }],
+    }];
+    const query = {
+      select: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      order: jest.fn(() => query),
+      then: (resolve) => Promise.resolve({ data: timetableRows, error: null }).then(resolve),
+    };
+    const supabase = {
+      from: jest.fn((table) => {
+        if (table !== 'student_timetable_entry') {
+          throw new Error(`Unexpected timetable read from ${table}`);
+        }
+        return query;
+      }),
+    };
+
+    const entries = await listTimetableEntries(supabase, 202612345, {
+      academicYear: 2026,
+      semester: '2',
+    });
+
+    expect(supabase.from).toHaveBeenCalledTimes(1);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      course_id: 289,
+      officialCourseNumber: 'FL2003327',
+      slots: [{ day: 2, start: '09:00', end: '10:15', classroom: '306-309' }],
+    });
   });
 
   test('migration keeps timetable data backend-only and validates conflicts atomically', () => {

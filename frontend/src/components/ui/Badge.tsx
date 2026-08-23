@@ -24,15 +24,34 @@ const labels: Partial<Record<CourseType, string>> & Record<string, string> = {
   '교직과목': '교직과목',
 }
 
-export function CourseTypeBadge({ type }: { type: CourseType }) {
+const majorSpecificTypes = new Set<string>([
+  '전공기초',
+  '전공필수',
+  '전공선택',
+  'REQUIRED',
+  'ELECTIVE',
+  'MAJOR_REQUIRED',
+  'MAJOR_ELECTIVE',
+])
+
+export function CourseTypeBadge({
+  type,
+  isInStudentMajor,
+}: {
+  type: CourseType
+  isInStudentMajor?: boolean | null
+}) {
+  const visibleType = isInStudentMajor === false && majorSpecificTypes.has(String(type))
+    ? '타전공'
+    : type
   return (
     <span
       className={[
         'inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-        styles[type as string] || 'bg-gray-50 text-gray-700 border-gray-200',
+        styles[visibleType as string] || 'bg-gray-50 text-gray-700 border-gray-200',
       ].join(' ')}
     >
-      {labels[type as string] || type}
+      {labels[visibleType as string] || visibleType}
     </span>
   )
 }

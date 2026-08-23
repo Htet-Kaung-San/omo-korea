@@ -35,7 +35,7 @@ export function AddTimetableModal({
   onSubmit,
 }: Props) {
   const { t } = useLanguage()
-  const [manual] = useState(course.slots.length === 0)
+  const manual = course.slots.length === 0
   const [slots, setSlots] = useState<TimetableSlotInput[]>([
     { day: 1, start: '', end: '', classroom: '' },
   ])
@@ -50,10 +50,12 @@ export function AddTimetableModal({
   async function submit() {
     await onSubmit({
       courseId: Number(course.id),
-      courseOfferingId: manual ? null : Number(course.courseOfferingId),
+      courseOfferingId: course.courseOfferingId,
       academicYear,
       semester,
-      slots: showManualSlots ? slots : undefined,
+      slots: showManualSlots
+        ? slots
+        : (course.courseOfferingId ? [] : course.slots),
     })
   }
 

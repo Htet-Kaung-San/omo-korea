@@ -320,7 +320,7 @@ export function CoursesDashboardPage() {
                       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8F3FF] text-pnu-blue"><BookOpen className="h-4 w-4" /></span>
                       <span className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                          <CourseTypeBadge type={course.type} />
+                          <CourseTypeBadge type={course.type} isInStudentMajor={course.isInStudentMajor} />
                           {course.officialCourseNumber ? <span className="text-[10px] font-bold text-pnu-blue">{course.officialCourseNumber}</span> : null}
                         </div>
                         <span className="block truncate text-[13px] font-bold text-pnu-text">{course.nameEn || course.nameKo}</span>
@@ -349,9 +349,10 @@ export function CoursesDashboardPage() {
                           if (course.slots && course.slots.length > 0) {
                             addCurrentCourse({
                               courseId: Number(course.id),
-                              courseOfferingId: Number(course.courseOfferingId),
+                              courseOfferingId: course.courseOfferingId,
                               academicYear,
                               semester,
+                              slots: course.courseOfferingId ? [] : course.slots,
                             })
                           } else {
                             setSelectedCourse(course)

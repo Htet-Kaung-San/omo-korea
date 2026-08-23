@@ -170,7 +170,7 @@ export function RecommendedCoursesPage() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <div className="flex flex-wrap justify-end gap-1">
-                  <CourseTypeBadge type={course.type} />
+                  <CourseTypeBadge type={course.type} isInStudentMajor={course.isInStudentMajor} />
                   {offering.languageBadgeKey ? (
                     <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
                       {t(offering.languageBadgeKey)}

@@ -30,7 +30,7 @@ export interface DayClassItem {
 }
 
 export interface WeekDayOption {
-  /** Timetable day 1 Mon … 5 Fri */
+  /** Timetable day 1 Mon … 7 Sun */
   day: number
   date: Date
   isToday: boolean
@@ -81,10 +81,9 @@ export function getScheduleSlots(item: ScheduleItem): ScheduledSlot[] {
   }]
 }
 
-/** JS getDay(): 0 Sun … 6 Sat → timetable day 1 Mon … 5 Fri (0 if weekend) */
+/** JS getDay(): 0 Sun … 6 Sat → timetable day 1 Mon … 7 Sun. */
 export function toTimetableDay(jsDay: number): number {
-  if (jsDay === 0 || jsDay === 6) return 0
-  return jsDay
+  return jsDay === 0 ? 7 : jsDay
 }
 
 /** Monday of the week containing `ref` (local time). */
@@ -194,7 +193,7 @@ export function getClassStatus(
   return 'upcoming'
 }
 
-/** Classes scheduled on a timetable day (1–5), sorted by start time. */
+/** Classes scheduled on a timetable day (1–7), sorted by start time. */
 export function getClassesForDay(
   enrollments: ScheduleItem[],
   day: number,
