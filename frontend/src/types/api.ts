@@ -344,10 +344,6 @@ export interface Course {
   majorName?: string | null
   collegeId?: number | null
   recommendedYear?: number | null
-  courseCode?: string | null
-  section?: string | null
-  professor?: string | null
-  location?: string | null
 }
 
 export type OriginalLanguageCode = 'E' | 'C' | 'J' | 'F' | 'G' | 'R'
@@ -363,6 +359,7 @@ export interface CourseOfferingInformation {
   professor: string | null
   schedule: string | null
   remoteCourseStatus: RemoteCourseStatus | null
+  isOfferedThisTerm: boolean | null
   originalLanguageCode: OriginalLanguageCode | null
   teachingLanguage: TeachingLanguage | null
   isEnglishTaught: boolean | null

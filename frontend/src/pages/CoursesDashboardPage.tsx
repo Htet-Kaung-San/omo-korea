@@ -277,7 +277,7 @@ export function CoursesDashboardPage() {
 
         {tab === 'all' ? <CourseTermSelector value={term} onChange={setTerm} /> : null}
 
-        {tab === 'all' || tab === 'offered' ? (
+        {tab === 'all' ? (
           <>
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-pnu-muted" />

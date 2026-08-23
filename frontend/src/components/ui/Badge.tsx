@@ -1,5 +1,4 @@
 import type { CourseType } from '@/types/api'
-import { useLanguage } from '@/context/LanguageContext'
 
 const styles: Partial<Record<CourseType, string>> & Record<string, string> = {
   '전공기초': 'bg-blue-50 text-blue-700 border-blue-200',
@@ -26,8 +25,6 @@ const labels: Partial<Record<CourseType, string>> & Record<string, string> = {
 }
 
 export function CourseTypeBadge({ type }: { type: CourseType }) {
-  const { t } = useLanguage()
-
   return (
     <span
       className={[
