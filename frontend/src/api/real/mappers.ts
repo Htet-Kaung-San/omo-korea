@@ -110,6 +110,7 @@ interface BackendCourse {
   originalLanguageCode?: OriginalLanguageCode | null
   teachingLanguage?: TeachingLanguage | null
   isEnglishTaught?: boolean | null
+  isOfferedThisTerm?: boolean | null
   theoryHours?: number | null
   practicalHours?: number | null
   presentationRequirement?: CourseMetadataRequirement | null
@@ -344,14 +345,11 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
     tags: course.tags ?? [],
     score: course.score,
     matchHint: course.matchHint,
-    matchHint: course.matchHint,
-    courseCode: course.courseCode ?? course.officialCourseNumber ?? null,
-    officialCourseNumber: course.courseCode ?? course.officialCourseNumber ?? null,
+    officialCourseNumber: course.officialCourseNumber ?? null,
     academicYear: course.academicYear ?? null,
     semester: course.semester ?? null,
     section: course.section ?? null,
     professor: course.professor ?? null,
-    location: course.location ?? null,
     schedule: course.schedule ?? null,
     remoteCourseStatus: course.remoteCourseStatus ?? null,
     originalLanguageCode: course.originalLanguageCode ?? null,
@@ -360,6 +358,12 @@ export function mapRecommendedCourse(course: BackendCourse): RecommendedCourse {
       course.isEnglishTaught === true
         ? true
         : course.isEnglishTaught === false
+          ? false
+          : null,
+    isOfferedThisTerm:
+      course.isOfferedThisTerm === true
+        ? true
+        : course.isOfferedThisTerm === false
           ? false
           : null,
     theoryHours: course.theoryHours ?? null,

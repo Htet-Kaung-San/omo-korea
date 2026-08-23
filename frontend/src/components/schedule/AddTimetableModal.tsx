@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import type {
   CourseCatalogItem,
@@ -35,7 +35,7 @@ export function AddTimetableModal({
   onSubmit,
 }: Props) {
   const { t } = useLanguage()
-  const [manual, setManual] = useState(course.slots.length === 0)
+  const [manual] = useState(course.slots.length === 0)
   const [slots, setSlots] = useState<TimetableSlotInput[]>([
     { day: 1, start: '', end: '', classroom: '' },
   ])
