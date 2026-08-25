@@ -185,6 +185,7 @@ const messages: MessageDictionary = {
   'notices.filter': "필터",
   'notices.empty': "조건에 맞는 공지가 없습니다.",
   'notices.bookmark': "공지 저장",
+  'notices.viewOriginal': "원문 보기",
   'notices.aiBannerBody': "AI가 중요한 업데이트를 정리해 드려요. AI 요약과 알림을 켜 보세요.",
   'notices.enableAiAlerts': "AI 알림 켜기",
   'campusLife.title': "캠퍼스 라이프",
