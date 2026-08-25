@@ -147,7 +147,12 @@ async function translateNotices(notices, targetLanguage) {
   if (!isOpenRouterConfigured()) return notices;
 
   const langName = LANGUAGE_NAMES[lang] || "English";
-  const results = notices.map((notice) => ({ ...notice }));
+  const results = notices.map((notice) => ({
+    ...notice,
+    originalTitle: notice.title || "",
+    originalBody: notice.body || "",
+    translationLanguage: null,
+  }));
   const toTranslate = [];
 
   results.forEach((notice, index) => {
@@ -159,6 +164,7 @@ async function translateNotices(notices, targetLanguage) {
     if (cached && Date.now() - cached.fetchedAt < NOTICE_TRANSLATION_TTL_MS) {
       results[index].title = cached.title;
       results[index].body = cached.body;
+      results[index].translationLanguage = lang;
       return;
     }
 
@@ -194,6 +200,7 @@ async function translateNotices(notices, targetLanguage) {
         const body = translated.body || results[index].body;
         results[index].title = title;
         results[index].body = body;
+        results[index].translationLanguage = lang;
         noticeTranslationCache.set(`${lang}:${id}`, {
           title,
           body,

@@ -246,6 +246,9 @@ const messages: MessageDictionary = {
   'notices.viewOriginal': "View original post",
   'notices.aiBannerBody': "Let AI help you stay on top of important updates. Enable AI Summaries and notifications.",
   'notices.enableAiAlerts': "Enable AI Alerts",
+  'notices.translatedContent': "Translated notice",
+  'notices.originalContent': "Original notice text",
+  'notices.translationNote': "AI translation for convenience. Confirm critical details with the official source.",
   'campusLife.title': "Campus Life",
   // Was "Campus life features are coming soon", printed directly above four
   // built and working entries — One-Stop Guide, Library Guide, Cafeteria Info

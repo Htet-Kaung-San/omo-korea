@@ -642,6 +642,9 @@ export interface Notification {
   channel?: NoticeChannel | null
   /** External original post URL when scraped from a PNU board */
   sourceUrl?: string | null
+  originalTitle?: string | null
+  originalBody?: string | null
+  translationLanguage?: string | null
   score?: number | null
   matchHint?: string | null
   status?: string | null
