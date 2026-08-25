@@ -213,6 +213,7 @@ const messages: MessageDictionary = {
   'campusMap.showLess': "접기",
   'campusMap.noResults': "검색 결과가 없습니다.",
   'campusMap.recenter': "지도 중심 이동",
+  'campusMap.viewDetails': "상세 보기",
   'campusMap.detailError': "건물 정보를 불러오지 못했습니다.",
   'campusMap.favorite': "즐겨찾기",
   'campusMap.open': "운영",
