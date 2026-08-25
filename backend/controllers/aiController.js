@@ -1178,6 +1178,7 @@ const { buildStudentDashboard } = require('../ai/studentDashboardEngine');
 const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { recommendNotices } = require('../ai/noticeRecommendationEngine');
+const { translateNotices } = require('../services/noticeTranslationService');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const {
   attachCourseCurriculum,
@@ -1630,8 +1631,8 @@ async function getStudentNotifications(req, res, next) {
       { limit: 10 }
     );
 
-    const noticeNotifications = recommendedNotices.map(
-      (notice) => ({
+    const noticeNotifications = await translateNotices(
+      recommendedNotices.map((notice) => ({
         id: notice.id,
         kind: "NOTICE",
         title: notice.title,
@@ -1646,7 +1647,8 @@ async function getStudentNotifications(req, res, next) {
         sourceUrl: notice.sourceUrl,
         score: notice.score,
         matchHint: notice.matchHint,
-      }),
+      })),
+      language,
     );
 
     const orderedChecklistNotifications = checklistNotifications.sort(

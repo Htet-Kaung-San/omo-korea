@@ -243,6 +243,7 @@ const messages: MessageDictionary = {
   'notices.filter': "Filter",
   'notices.empty': "No notices match your filters.",
   'notices.bookmark': "Save notice",
+  'notices.viewOriginal': "View original post",
   'notices.aiBannerBody': "Let AI help you stay on top of important updates. Enable AI Summaries and notifications.",
   'notices.enableAiAlerts': "Enable AI Alerts",
   'campusLife.title': "Campus Life",

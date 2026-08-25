@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, ExternalLink } from 'lucide-react'
 import type { Notification } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
@@ -65,6 +65,17 @@ export function NotificationPostPage() {
               <p className="mt-3 rounded-xl bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700">
                 {notification.matchHint}
               </p>
+            ) : null}
+            {notification.sourceUrl ? (
+              <a
+                href={notification.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-pnu-blue"
+              >
+                {t('notices.viewOriginal')}
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             ) : null}
           </article>
         ) : null}
