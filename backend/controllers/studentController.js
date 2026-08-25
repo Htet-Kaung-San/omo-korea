@@ -25,6 +25,9 @@ const {
   fetchAllNotices,
 } = require("../ai/supabaseDataRepository");
 const { translateNotices } = require("../services/noticeTranslationService");
+const { recommendJobs } = require("../ai/jobRecommendationEngine");
+const { adaptStudentProfile } = require("../ai/studentProfileAdapter");
+const { fetchStudentContext } = require("./aiController");
 const supabaseAuth = require("../supabaseAuthClient");
 const crypto = require("crypto");
 const {
@@ -3839,19 +3842,27 @@ const getCareerOpportunities = async (req, res, next) => {
 };
 
 /**
- * AI hook-point for personalized internship/job recommendations.
- * AI engineers: replace the body with profile-aware ranking (RAG/LLM).
- * Keep the response shape as CareerOpportunity[] with optional matchReason.
+ * Personalized internship/job recommendations, ranked against the
+ * requesting student's profile (interests/career areas/academic areas
+ * matched against posting title/role/company) via jobRecommendationEngine.
+ * Falls back to soonest-deadline postings when the profile has no tags to
+ * match yet, so the recommended section is never empty.
  */
 const getCareerRecommendations = async (req, res, next) => {
   try {
     const jobType = typeof req.query.jobType === "string" ? req.query.jobType : null;
-    const [data, volunteerOpportunities] = await Promise.all([
+    const [data, volunteerOpportunities, context] = await Promise.all([
       getCareerOpportunitiesPage({ page: 1, limit: 20, jobType }),
       fetchStoredCareerOpportunities({ limit: 10, jobType: jobType || "volunteer" }).catch(() => []),
+      fetchStudentContext(req.user.student_id).catch(() => null),
     ]);
     const recommendedSource = [...volunteerOpportunities, ...(data.opportunities || [])];
-    const recommended = recommendedSource.slice(0, 3).map((item, index) => ({
+    const studentProfile = context
+      ? adaptStudentProfile(context.rawStudentInput).recommendationProfile
+      : {};
+
+    const ranked = recommendJobs(studentProfile, recommendedSource, { limit: 3 });
+    const recommended = ranked.map((item, index) => ({
       ...item,
       location: item.location || "Korea",
       jobType: item.jobType || "internship",
