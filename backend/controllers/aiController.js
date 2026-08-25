@@ -1696,7 +1696,7 @@ async function getPrograms(req, res, next) {
     const programs = await fetchRecommendedPrograms({
       studentProfile: context.rawStudentInput.profile || {},
       userTags: context.rawStudentInput.profile.interests || [],
-      limit: 50,
+      limit: 200,
       language,
     });
 
