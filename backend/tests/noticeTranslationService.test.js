@@ -46,6 +46,9 @@ test('translates title and body for the requested language', async () => {
   expect(result[0].title).toBe('EN::[교수학습지원센터] 연구조교 모집');
   expect(result[0].body).toBe('EN::2026-2학기 연구조교를 모집합니다.');
   expect(result[1].title).toBe('EN::장학금 안내');
+  expect(result[0].originalTitle).toBe(notices[0].title);
+  expect(result[0].originalBody).toBe(notices[0].body);
+  expect(result[0].translationLanguage).toBe('en');
   // Untranslated fields pass through
   expect(result[0].date).toBe('2026-08-24');
 });
@@ -57,6 +60,7 @@ test('same language is cached after the first call', async () => {
   const result = await translateNotices(notices, 'en');
   expect(calls.length).toBe(0);
   expect(result[0].title).toBe('EN::[교수학습지원센터] 연구조교 모집');
+  expect(result[0].translationLanguage).toBe('en');
 });
 
 test('a failed AI call falls back to the original text instead of throwing', async () => {

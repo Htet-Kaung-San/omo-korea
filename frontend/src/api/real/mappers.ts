@@ -84,6 +84,9 @@ interface BackendNotice {
   channel?: NoticeChannel | null
   sourceUrl?: string | null
   source_url?: string | null
+  originalTitle?: string | null
+  originalBody?: string | null
+  translationLanguage?: string | null
   score?: number | null
   matchHint?: string | null
   status?: string | null
@@ -325,6 +328,9 @@ export function mapNotice(notice: BackendNotice): Notification {
     source,
     channel: notice.channel ?? null,
     sourceUrl: notice.sourceUrl ?? notice.source_url ?? null,
+    originalTitle: notice.originalTitle ?? null,
+    originalBody: notice.originalBody ?? null,
+    translationLanguage: notice.translationLanguage ?? null,
     score: typeof notice.score === 'number' ? notice.score : null,
     matchHint: notice.matchHint ?? null,
     status: notice.status ?? null,

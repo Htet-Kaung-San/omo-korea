@@ -60,21 +60,48 @@ export function NotificationPostPage() {
               </div>
             ) : null}
             <h1 className="text-lg font-bold text-pnu-text">{notification.title}</h1>
-            <p className="mt-3 text-sm leading-relaxed text-pnu-muted">{notification.body}</p>
+            {notification.translationLanguage ? (
+              <div className="mt-3">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-pnu-blue">
+                  {t('notices.translatedContent')}
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-pnu-muted">
+                  {t('notices.translationNote')}
+                </p>
+              </div>
+            ) : null}
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-pnu-muted">
+              {notification.body}
+            </p>
             {notification.matchHint ? (
               <p className="mt-3 rounded-xl bg-purple-50 px-3 py-2 text-xs font-medium text-purple-700">
                 {notification.matchHint}
               </p>
+            ) : null}
+            {notification.originalBody && notification.originalBody !== notification.body ? (
+              <section className="mt-4 rounded-xl bg-pnu-surface px-3 py-3">
+                <h2 className="text-xs font-bold uppercase tracking-wide text-pnu-muted">
+                  {t('notices.originalContent')}
+                </h2>
+                {notification.originalTitle && notification.originalTitle !== notification.title ? (
+                  <p className="mt-2 text-sm font-bold text-pnu-text">
+                    {notification.originalTitle}
+                  </p>
+                ) : null}
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-pnu-muted">
+                  {notification.originalBody}
+                </p>
+              </section>
             ) : null}
             {notification.sourceUrl ? (
               <a
                 href={notification.sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-pnu-blue"
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-pnu-border px-3 py-2 text-sm font-bold text-pnu-blue transition hover:bg-blue-50"
               >
+                <ExternalLink className="h-4 w-4" />
                 {t('notices.viewOriginal')}
-                <ExternalLink className="h-3.5 w-3.5" />
               </a>
             ) : null}
           </article>
