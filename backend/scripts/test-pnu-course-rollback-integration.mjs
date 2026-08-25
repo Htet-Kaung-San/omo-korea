@@ -172,7 +172,17 @@ try {
   let ready = false;
   for (let attempt = 0; attempt < 30; attempt += 1) {
     try {
-      docker(['exec', container, 'pg_isready', '-U', 'postgres']);
+      docker([
+        'exec',
+        container,
+        'psql',
+        '-U',
+        'postgres',
+        '-d',
+        'postgres',
+        '-c',
+        'SELECT 1;',
+      ]);
       ready = true;
       break;
     } catch {
