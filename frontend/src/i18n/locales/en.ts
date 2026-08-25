@@ -271,6 +271,7 @@ const messages: MessageDictionary = {
   'campusMap.showLess': "Show less",
   'campusMap.noResults': "No places match your search.",
   'campusMap.recenter': "Recenter map",
+  'campusMap.viewDetails': "View details",
   'campusMap.detailError': "Could not load building details.",
   'campusMap.favorite': "Favorite",
   'campusMap.open': "Open",
