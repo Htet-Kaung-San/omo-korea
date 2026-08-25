@@ -2083,7 +2083,8 @@ const getAcademicRecords = async (req, res) => {
             course:course_id (
               credit,
               category,
-              course_code
+              course_code,
+              major_id
             )
           `,
         )
@@ -2115,11 +2116,12 @@ const getAcademicRecords = async (req, res) => {
         ...rest,
         credit: course?.credit ?? rest.credit ?? 0,
         category: course?.category ?? rest.category ?? "GEN_ED",
+        course_major_id: course?.major_id ?? null,
         official_course_number: course?.course_code ?? null,
       };
     });
 
-    const computed = computeGpaFromEnrollments(enrollments);
+    const computed = computeGpaFromEnrollments(enrollments, studentRow?.major_id ?? null);
 
     // Sum required credits from catalog for student's major
     let requiredCredits = 130;
@@ -2227,7 +2229,8 @@ const getGraduationProgress = async (req, res) => {
             course:course_id (
               credit,
               category,
-              course_code
+              course_code,
+              major_id
             )
           `,
         )
@@ -2259,6 +2262,7 @@ const getGraduationProgress = async (req, res) => {
         ...rest,
         credit: course?.credit ?? rest.credit ?? 0,
         category: course?.category ?? rest.category ?? "GEN_ED",
+        course_major_id: course?.major_id ?? null,
         official_course_number: course?.course_code ?? null,
       };
     });
@@ -2284,6 +2288,7 @@ const getGraduationProgress = async (req, res) => {
       academicSummary: summary,
       semesters,
       catalogRequired,
+      studentMajorId: majorId,
     });
 
     let requirements = [];
