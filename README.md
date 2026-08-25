@@ -312,6 +312,8 @@ omo-korea/
 
 ### 3.5. AI 도구 활용 · Use of AI Tools
 
+> AI 도구별 활용 범위와 AI 생성 코드의 검증·수정 방식에 대한 상세 내용은 [`docs/ai-usage.md`](docs/ai-usage.md)를 참고.
+
 **KO** — 개발 생산성과 결과물 품질을 높이기 위해 전 과정에서 AI 도구를 적극 활용했다.
 
 - **기획 · 설계** — ChatGPT와 Google AI Studio로 방대한 유학 행정 데이터를 정리하고 기능 명세를 빠르게 도출했으며, Claude Design으로 다양한 국적의 사용자가 직관적으로 이해할 수 있는 UI/UX를 설계했다.
