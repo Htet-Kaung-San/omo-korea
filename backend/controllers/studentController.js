@@ -24,6 +24,7 @@ const {
 const {
   fetchAllNotices,
 } = require("../ai/supabaseDataRepository");
+const { translateNotices } = require("../services/noticeTranslationService");
 const supabaseAuth = require("../supabaseAuthClient");
 const crypto = require("crypto");
 const {
@@ -2488,11 +2489,12 @@ const getNotices = async (req, res) => {
         ? Math.min(requestedLimit, 100)
         : 20;
     const sliced = filtered.slice(0, limitValue);
+    const localized = await translateNotices(sliced, req.language || "en");
 
     res.json({
       success: true,
-      data: sliced,
-      meta: { query, total: sliced.length },
+      data: localized,
+      meta: { query, total: localized.length },
     });
   } catch (err) {
     res.status(err.statusCode || 500).json({
