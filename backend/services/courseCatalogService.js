@@ -6,6 +6,29 @@ const {
   fetchCourseOfferings,
 } = require('../ai/supabaseDataRepository');
 const { parseOfferingSchedule } = require('./timetableService');
+const officialCourseProvenance = require('../config/pnu-course-provenance-2026-2.json');
+
+function normalizeSection(value) {
+  const normalized = String(value || '').trim().replace(/^0+/, '');
+  return normalized || '0';
+}
+
+const officialOfferingByIdentity = new Map(
+  (officialCourseProvenance.officialScheduleIndex?.offerings || []).map((row) => [
+    `${row.officialCourseNumber}|${officialCourseProvenance.academicYear}|${officialCourseProvenance.semester}|${normalizeSection(row.section)}`,
+    row,
+  ]),
+);
+
+function findOfficialOffering(course, academicYear, semester) {
+  const key = [
+    course.courseCode,
+    academicYear,
+    semester,
+    normalizeSection(course.section),
+  ].join('|');
+  return officialOfferingByIdentity.get(key) || null;
+}
 
 function normalizeText(value) {
   return String(value || '').normalize('NFKC').trim().toLowerCase();
@@ -185,7 +208,7 @@ async function listCourseCatalog(supabase, options = {}) {
   const page = positiveInteger(options.page, 1);
   const pageSize = positiveInteger(options.pageSize, 50, 100);
   const preferredCurriculumYear = Number(options.curriculumYear);
-  const [baseCourses, curriculumRows, majors] = await Promise.all([
+  const [baseCourses, curriculumRows, majors, offeringRows] = await Promise.all([
     fetchAllCourses(supabase, {
       language: options.language || 'en',
       courseId: options.courseId,
@@ -194,17 +217,26 @@ async function listCourseCatalog(supabase, options = {}) {
       majorId: options.majorId == null || options.majorId === '' ? undefined : options.majorId,
     }),
     fetchMajors(supabase),
+    fetchCourseOfferings(supabase, {
+      academicYear: Number(options.academicYear),
+      semester: String(options.semester),
+    }).catch((error) => {
+      if (error?.code === 'OPTIONAL_COURSE_OFFERING_QUERY_FAILED') return [];
+      throw error;
+    }),
   ]);
   const majorById = new Map(majors.map((major) => [String(major.major_id), major]));
-  const majorIdsByName = new Map();
-  for (const course of baseCourses) {
-    if (course.majorId == null) continue;
-    const key = normalizeText(course.raw?.course_name || course.nameEn || course.nameKo);
-    if (!majorIdsByName.has(key)) majorIdsByName.set(key, new Set());
-    majorIdsByName.get(key).add(String(course.majorId));
-  }
-
   const majorIdsByCourseId = new Map();
+  const studentMajorIds = new Set(
+    (Array.isArray(options.studentMajorIds) ? options.studentMajorIds : [])
+      .map((id) => String(id)),
+  );
+  const offeringsByCourseId = new Map();
+  for (const row of offeringRows || []) {
+    const courseId = String(row.course_id);
+    if (!offeringsByCourseId.has(courseId)) offeringsByCourseId.set(courseId, []);
+    offeringsByCourseId.get(courseId).push(row);
+  }
   for (const row of curriculumRows || []) {
     if (row.major_id == null) continue;
     const courseId = String(row.course_id);
@@ -217,16 +249,15 @@ async function listCourseCatalog(supabase, options = {}) {
       ? preferredCurriculumYear
       : undefined,
   }).map((course) => {
-    const nameKey = normalizeText(course.raw?.course_name || course.nameEn || course.nameKo);
-    const matchingMajorIds = [...(majorIdsByName.get(nameKey) || [])];
     const curriculumMajors = majorIdsByCourseId.get(String(course.id));
     
     const allMajorIds = new Set();
     if (course.majorId) allMajorIds.add(String(course.majorId));
     if (curriculumMajors) curriculumMajors.forEach(id => allMajorIds.add(id));
-    matchingMajorIds.forEach(id => allMajorIds.add(id));
-
-    const resolvedMajorId = course.majorId ?? (curriculumMajors && curriculumMajors.size > 0 ? Array.from(curriculumMajors)[0] : (matchingMajorIds.length === 1 ? matchingMajorIds[0] : null));
+    const resolvedMajorId = course.majorId
+      ?? (curriculumMajors && curriculumMajors.size > 0
+        ? Array.from(curriculumMajors)[0]
+        : null);
     const major = majorById.get(String(resolvedMajorId));
     return {
       ...course,
@@ -235,6 +266,9 @@ async function listCourseCatalog(supabase, options = {}) {
       majorName: major?.major_name || course.department || '',
       department: major?.department || course.department || major?.major_name || '',
       collegeId: major?.college_id == null ? null : Number(major.college_id),
+      isInStudentMajor: studentMajorIds.size > 0
+        ? Array.from(allMajorIds).some((id) => studentMajorIds.has(String(id)))
+        : null,
       offerings: [],
       score: 0,
       matchHint: null,
@@ -242,21 +276,44 @@ async function listCourseCatalog(supabase, options = {}) {
   });
 
   courses = filterCourses(courses, options);
-  // We no longer filter by course_offering rows because the sections are in the course table directly.
-
-  // Map course fields directly onto the object instead of grouping into offerings
   courses = courses.map(course => {
+    const rows = offeringsByCourseId.get(String(course.id)) || [];
+    const requestedSection = String(course.section || '').replace(/^0+/, '');
+    const selectedRow = rows.find((row) =>
+      String(row.section || '').replace(/^0+/, '') === requestedSection)
+      || rows[0]
+      || null;
+    const officialOffering = selectedRow ? mapOffering(selectedRow) : null;
+    const indexedOfficialOffering = findOfficialOffering(
+      course,
+      Number(options.academicYear),
+      String(options.semester),
+    );
+    const legacySchedule = course.dayOfWeek && course.startTime && course.endTime
+      ? `${course.dayOfWeek} ${course.startTime}-${course.endTime}`
+      : null;
+    const schedule = officialOffering?.schedule
+      || indexedOfficialOffering?.schedule
+      || legacySchedule;
+    const classroom = officialOffering?.classroom
+      || indexedOfficialOffering?.classroom
+      || course.location
+      || null;
     return {
       ...course,
-      courseOfferingId: course.id,
-      officialCourseNumber: course.courseCode,
-      academicYear: options.academicYear || 2026,
-      semester: options.semester || '2',
-      schedule: course.dayOfWeek && course.startTime ? `${course.dayOfWeek} ${course.startTime}-${course.endTime}` : null,
-      classroom: course.location,
-      enrollmentLimit: null,
-      restrictions: [],
-      slots: parseOfferingSchedule(course.dayOfWeek && course.startTime ? `${course.dayOfWeek} ${course.startTime}-${course.endTime}` : null, course.location),
+      courseOfferingId: officialOffering?.courseOfferingId ?? null,
+      officialCourseNumber: officialOffering?.officialCourseNumber || course.courseCode,
+      academicYear: officialOffering?.academicYear ?? options.academicYear ?? 2026,
+      semester: officialOffering?.semester ?? options.semester ?? '2',
+      section: officialOffering?.section || course.section || null,
+      professor: officialOffering?.professor || indexedOfficialOffering?.professor || course.professor || null,
+      schedule,
+      classroom,
+      enrollmentLimit: officialOffering?.enrollmentLimit ?? null,
+      restrictions: officialOffering?.restrictions || [],
+      slots: officialOffering?.slots
+        || parseOfferingSchedule(schedule, classroom),
+      offerings: rows.map((row) => mapOffering(row)),
     };
   });
 
@@ -320,5 +377,7 @@ module.exports = {
   listCourseCatalog,
   mapOffering,
   mapRestriction,
+  findOfficialOffering,
+  normalizeSection,
   normalizeText,
 };

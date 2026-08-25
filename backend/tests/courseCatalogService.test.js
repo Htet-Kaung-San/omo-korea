@@ -1,12 +1,15 @@
 const {
   filterCourses,
   filterCoursesByOffering,
+  findOfficialOffering,
   mapOffering,
 } = require('../services/courseCatalogService');
 const {
   attachCourseCurriculum,
   chooseCurriculumRow,
 } = require('../ai/supabaseDataRepository');
+const officialCourseProvenance = require('../config/pnu-course-provenance-2026-2.json');
+const { parseOfferingSchedule } = require('../services/timetableService');
 
 function course(overrides = {}) {
   return {
@@ -111,5 +114,21 @@ describe('course catalog curriculum mapping', () => {
       remarks: 'International students may request permission.',
       restrictions: [{ id: 7, permission: 'PROHIBITED', departmentCondition: 'Other departments' }],
     });
+  });
+
+  test('uses the indexed official schedule when production has only a partial legacy time', () => {
+    expect(findOfficialOffering({
+      courseCode: 'CB1501019',
+      section: '59',
+    }, 2026, '2')).toMatchObject({
+      professor: '이기준',
+      schedule: '월 16:30(75) 102-306, 수 16:30(75) 102-306',
+    });
+  });
+
+  test('every indexed official schedule can be converted into timetable slots', () => {
+    expect(officialCourseProvenance.officialScheduleIndex.scheduledOfferingCount).toBe(3721);
+    expect(officialCourseProvenance.officialScheduleIndex.offerings.every((offering) =>
+      parseOfferingSchedule(offering.schedule, offering.classroom).length > 0)).toBe(true);
   });
 });

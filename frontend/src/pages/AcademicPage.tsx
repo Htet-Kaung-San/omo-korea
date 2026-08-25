@@ -41,6 +41,7 @@ import {
   slotsOverlap,
   toTimetableDay,
 } from '@/utils/timetable'
+import { enrollmentSemester } from '@/utils/courseTerm'
 
 const CARD_SHADOW = '0 10px 28px rgba(15,23,42,0.06)'
 
@@ -52,6 +53,7 @@ export function AcademicPage() {
   const [allCourses, setAllCourses] = useState<CourseCatalogItem[]>([])
   const [progress, setProgress] = useState<GraduationProgress | null>(null)
   const [enrollments, setEnrollments] = useState<TimetableEntry[]>([])
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [submittingId, setSubmittingId] = useState<number | null>(null)
@@ -107,12 +109,19 @@ export function AcademicPage() {
     setLoading(true)
     setError('')
     try {
-      const [graduation, timetable] = await Promise.all([
+      const [graduation, timetable, courseEnrollments] = await Promise.all([
         api.getGraduationProgress(),
         api.getTimetable({ academicYear, semester }),
+        api.getEnrollments(user.studentId),
       ])
       setProgress(graduation)
       setEnrollments(timetable)
+      const termLabel = enrollmentSemester({ academicYear, semester })
+      setEnrolledCourseIds(new Set(
+        courseEnrollments
+          .filter((entry) => entry.status !== 'Completed' && entry.semester === termLabel)
+          .map((entry) => Number(entry.catalog_course_id || entry.course_id)),
+      ))
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('academic.loadError')
       setError(message)
@@ -191,9 +200,27 @@ export function AcademicPage() {
       return
     }
 
+    let createdEnrollmentId: number | null = null
     try {
-      const newEnrollment = await api.createTimetableEntry(data)
-      setEnrollments((prev) => [...prev, newEnrollment])
+      if (!enrolledCourseIds.has(data.courseId)) {
+        const enrollment = await api.createEnrollment(
+          user.studentId,
+          data.courseId,
+          enrollmentSemester({ academicYear, semester }),
+        )
+        createdEnrollmentId = enrollment.enrollment_id
+      }
+      let newTimetableEntry: TimetableEntry
+      try {
+        newTimetableEntry = await api.createTimetableEntry(data)
+      } catch (reason) {
+        if (createdEnrollmentId != null) {
+          await api.deleteEnrollment(createdEnrollmentId).catch(() => undefined)
+        }
+        throw reason
+      }
+      setEnrollments((prev) => [...prev, newTimetableEntry])
+      setEnrolledCourseIds((current) => new Set(current).add(data.courseId))
       setSelectedCourse(null)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to add course.'
@@ -205,12 +232,18 @@ export function AcademicPage() {
 
   const handleDropFromTimetable = async (enrollmentId: number) => {
     if (!window.confirm(t('academic.confirmDrop'))) return
+    const removed = enrollments.find((entry) => entry.enrollment_id === enrollmentId)
     setLoading(true)
     try {
       await api.deleteTimetableEntry(enrollmentId)
-      setEnrollments((prev) =>
-        prev.filter((e) => e.enrollment_id !== enrollmentId),
-      )
+      setEnrollments((prev) => prev.filter((entry) => entry.enrollment_id !== enrollmentId))
+      if (removed) {
+        setEnrolledCourseIds((current) => {
+          const next = new Set(current)
+          next.delete(Number(removed.course_id))
+          return next
+        })
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to drop course.'
       setError(message)
@@ -452,9 +485,10 @@ export function AcademicPage() {
                               if (course.slots && course.slots.length > 0) {
                                 handleAddToTimetable({
                                   courseId: Number(course.id),
-                                  courseOfferingId: Number(course.courseOfferingId),
+                                  courseOfferingId: course.courseOfferingId,
                                   academicYear,
                                   semester,
+                                  slots: course.courseOfferingId ? [] : course.slots,
                                 })
                               } else {
                                 setSelectedCourse(course)

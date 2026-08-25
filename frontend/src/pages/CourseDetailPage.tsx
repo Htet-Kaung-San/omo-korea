@@ -92,7 +92,7 @@ export function CourseDetailPage() {
       {!loading && !course && !error ? <p className="text-sm text-pnu-muted">{t('academic.noCourses')}</p> : null}
       {course ? <>
         <article className="rounded-2xl border border-pnu-border bg-white p-4 shadow-sm">
-          <div className="mb-4 flex items-start justify-between gap-3"><div>{course.officialCourseNumber ? <p className="text-xs font-bold text-pnu-blue">{course.officialCourseNumber}</p> : null}<h1 className="mt-1 text-lg font-bold">{course.nameEn || course.nameKo}</h1>{course.nameKo !== course.nameEn ? <p className="mt-1 text-sm text-pnu-muted">{course.nameKo}</p> : null}</div><CourseTypeBadge type={course.type} /></div>
+          <div className="mb-4 flex items-start justify-between gap-3"><div>{course.officialCourseNumber ? <p className="text-xs font-bold text-pnu-blue">{course.officialCourseNumber}</p> : null}<h1 className="mt-1 text-lg font-bold">{course.nameEn || course.nameKo}</h1>{course.nameKo !== course.nameEn ? <p className="mt-1 text-sm text-pnu-muted">{course.nameKo}</p> : null}</div><CourseTypeBadge type={course.type} isInStudentMajor={course.isInStudentMajor} /></div>
           <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-xs text-pnu-muted">{t('courseTable.credits')}</dt><dd className="font-bold">{course.credits}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseTable.department')}</dt><dd className="font-bold">{shown(course.curriculum?.sourceDepartment || course.department || course.majorName)}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseCatalog.recommendedYear')}</dt><dd className="font-bold">{shown(course.recommendedYear)}</dd></div><div><dt className="text-xs text-pnu-muted">{t('courseCatalog.gradeSemester')}</dt><dd className="font-bold">{shown(course.curriculum?.gradeSemester)}</dd></div></dl>
           {inTimetable ? (
             <button
@@ -113,9 +113,10 @@ export function CourseDetailPage() {
                 if (course.slots && course.slots.length > 0) {
                   addCourse({
                     courseId: Number(course.id),
-                    courseOfferingId: Number(course.courseOfferingId),
+                    courseOfferingId: course.courseOfferingId,
                     academicYear: term.academicYear,
                     semester: term.semester,
+                    slots: course.courseOfferingId ? [] : course.slots,
                   })
                 } else {
                   setShowAdd(true)

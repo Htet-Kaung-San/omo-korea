@@ -36,8 +36,9 @@ describe('reviewed official PNU 2026-2 sources', () => {
     const payloadHash = sha256(Buffer.from(JSON.stringify({
       reviewedBasePackage: provenance.reviewedBasePackage,
       reviewedMetadataPackage: provenance.reviewedMetadataPackage,
+      officialScheduleIndex: provenance.officialScheduleIndex,
     }), 'utf8'));
-    expect(payloadHash).toBe('52fdce4ae0447a3e4a5146ba5d2610f5f66d73df42d30ab8f619b75b55561d55');
+    expect(payloadHash).toBe('ade77b61e11522a3278c6c0de0149aeb689b93db2cae98105a4717dc26e98580');
     expect(provenance.normalizedPayloadSha256).toBe(payloadHash);
   });
 
