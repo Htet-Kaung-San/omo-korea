@@ -1765,5 +1765,6 @@ module.exports = {
   getPrograms,
   getProgramDetail,
   getStudentNotifications,
+  fetchStudentContext,
 };
 
