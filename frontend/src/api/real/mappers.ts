@@ -91,6 +91,8 @@ interface BackendNotice {
   matchHint?: string | null
   status?: string | null
   read?: boolean
+  eligibility?: string | null
+  requiredDocuments?: string[] | null
 }
 
 interface BackendCourse {
@@ -335,6 +337,8 @@ export function mapNotice(notice: BackendNotice): Notification {
     matchHint: notice.matchHint ?? null,
     status: notice.status ?? null,
     read: notice.read ?? false,
+    eligibility: notice.eligibility ?? null,
+    requiredDocuments: Array.isArray(notice.requiredDocuments) ? notice.requiredDocuments : [],
   }
 }
 

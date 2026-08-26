@@ -649,6 +649,9 @@ export interface Notification {
   matchHint?: string | null
   status?: string | null
   read?: boolean
+  /** AI-extracted from the notice text; null/[] when the notice doesn't state it. */
+  eligibility?: string | null
+  requiredDocuments?: string[]
 }
 
 export interface CreditRequirement {
