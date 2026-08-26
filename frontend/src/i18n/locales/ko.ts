@@ -186,6 +186,8 @@ const messages: MessageDictionary = {
   'notices.empty': "조건에 맞는 공지가 없습니다.",
   'notices.bookmark': "공지 저장",
   'notices.viewOriginal': "원문 보기",
+  'notices.eligibility': "신청 자격",
+  'notices.requiredDocuments': "필요 서류",
   'notices.aiBannerBody': "AI가 중요한 업데이트를 정리해 드려요. AI 요약과 알림을 켜 보세요.",
   'notices.enableAiAlerts': "AI 알림 켜기",
   'notices.translatedContent': "번역된 공지",

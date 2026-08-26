@@ -1179,6 +1179,7 @@ const { analyzeMajorGap } = require('../ai/gapAnalysisEngine');
 const { recommendCourses } = require('../ai/courseRecommendationEngine');
 const { recommendNotices } = require('../ai/noticeRecommendationEngine');
 const { translateNotices } = require('../services/noticeTranslationService');
+const { extractNoticeInfo } = require('../services/noticeExtractionService');
 const { adaptStudentProfile } = require('../ai/studentProfileAdapter');
 const {
   attachCourseCurriculum,
@@ -1631,25 +1632,39 @@ async function getStudentNotifications(req, res, next) {
       { limit: 10 }
     );
 
-    const noticeNotifications = await translateNotices(
-      recommendedNotices.map((notice) => ({
-        id: notice.id,
-        kind: "NOTICE",
-        title: notice.title,
-        body: notice.body,
-        date: notice.deadline ?? notice.postedDate ?? null,
-        postedDate: notice.postedDate,
-        deadline: notice.deadline,
-        languages: notice.languages,
-        category: notice.category,
-        priority: notice.priority,
-        source: notice.source,
-        sourceUrl: notice.sourceUrl,
-        score: notice.score,
-        matchHint: notice.matchHint,
-      })),
-      language,
-    );
+    const noticeBase = recommendedNotices.map((notice) => ({
+      id: notice.id,
+      kind: "NOTICE",
+      title: notice.title,
+      body: notice.body,
+      date: notice.deadline ?? notice.postedDate ?? null,
+      postedDate: notice.postedDate,
+      deadline: notice.deadline,
+      languages: notice.languages,
+      category: notice.category,
+      priority: notice.priority,
+      source: notice.source,
+      sourceUrl: notice.sourceUrl,
+      score: notice.score,
+      matchHint: notice.matchHint,
+    }));
+    // Independent AI calls — extraction reads original Korean text
+    // regardless of the requested display language, so it doesn't need to
+    // wait on translation to finish.
+    const [translatedNoticeNotifications, extractedNoticeInfo] = await Promise.all([
+      translateNotices(noticeBase, language),
+      extractNoticeInfo(noticeBase),
+    ]);
+    const noticeNotifications = translatedNoticeNotifications.map((notice, index) => {
+      const deadline = notice.deadline || extractedNoticeInfo[index]?.deadline || null;
+      return {
+        ...notice,
+        deadline,
+        eligibility: extractedNoticeInfo[index]?.eligibility ?? null,
+        requiredDocuments: extractedNoticeInfo[index]?.requiredDocuments ?? [],
+        date: deadline || notice.postedDate || null,
+      };
+    });
 
     const orderedChecklistNotifications = checklistNotifications.sort(
       (a, b) => {

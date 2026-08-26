@@ -35,7 +35,15 @@ const NOTICE_TRANSLATION_TTL_MS = 1000 * 60 * 60 * 12; // 12h — notice text ne
 // `limit` query param. Notices past this are left in their original
 // language rather than blocking the response.
 const MAX_NOTICES_PER_REQUEST = 40;
-const BATCH_SIZE = 10;
+// Small enough that a batch of full notice bodies + their translations
+// reliably fits under max_tokens — a batch of 10 was overflowing it,
+// truncating the JSON mid-response and failing every model in the
+// fallback chain on every batch (each retry costs a full round trip).
+const BATCH_SIZE = 4;
+// Bounds how long a single model attempt can hang before the fallback
+// chain moves to the next model — without it a stalled provider blocks
+// the whole request with no upper bound.
+const MODEL_TIMEOUT_MS = 12_000;
 
 function chunkArray(items, size) {
   const chunks = [];
@@ -82,9 +90,12 @@ ${JSON.stringify(items, null, 2)}
 
   let lastError = null;
   for (const model of models) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -95,9 +106,10 @@ ${JSON.stringify(items, null, 2)}
           model,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.2,
-          max_tokens: 4000,
+          max_tokens: 6000,
         }),
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const detail = await response.text().catch(() => "");
@@ -125,8 +137,12 @@ ${JSON.stringify(items, null, 2)}
       }
       throw new Error(`${model}: unexpected JSON shape`);
     } catch (error) {
-      lastError = error;
-      console.warn("[noticeTranslationService] model failed:", error.message);
+      clearTimeout(timeoutId);
+      lastError =
+        error.name === "AbortError"
+          ? new Error(`${model}: no response within ${MODEL_TIMEOUT_MS}ms`)
+          : error;
+      console.warn("[noticeTranslationService] model failed:", lastError.message);
     }
   }
 

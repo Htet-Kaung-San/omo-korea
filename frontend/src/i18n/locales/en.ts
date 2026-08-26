@@ -244,6 +244,8 @@ const messages: MessageDictionary = {
   'notices.empty': "No notices match your filters.",
   'notices.bookmark': "Save notice",
   'notices.viewOriginal': "View original post",
+  'notices.eligibility': "Eligibility",
+  'notices.requiredDocuments': "Required documents",
   'notices.aiBannerBody': "Let AI help you stay on top of important updates. Enable AI Summaries and notifications.",
   'notices.enableAiAlerts': "Enable AI Alerts",
   'notices.translatedContent': "Translated notice",

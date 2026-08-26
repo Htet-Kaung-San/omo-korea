@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { CalendarDays, ExternalLink } from 'lucide-react'
+import { CalendarDays, ExternalLink, FileCheck, Users } from 'lucide-react'
 import type { Notification } from '@/types/api'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useLanguage } from '@/context/LanguageContext'
@@ -91,6 +91,28 @@ export function NotificationPostPage() {
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-pnu-muted">
                   {notification.originalBody}
                 </p>
+              </section>
+            ) : null}
+            {notification.eligibility || (notification.requiredDocuments && notification.requiredDocuments.length > 0) ? (
+              <section className="mt-4 space-y-2 rounded-xl bg-blue-50 px-3 py-3">
+                {notification.eligibility ? (
+                  <div className="flex items-start gap-2 text-sm text-pnu-text">
+                    <Users className="mt-0.5 h-4 w-4 shrink-0 text-pnu-blue" />
+                    <span>
+                      <span className="font-bold">{t('notices.eligibility')}: </span>
+                      {notification.eligibility}
+                    </span>
+                  </div>
+                ) : null}
+                {notification.requiredDocuments && notification.requiredDocuments.length > 0 ? (
+                  <div className="flex items-start gap-2 text-sm text-pnu-text">
+                    <FileCheck className="mt-0.5 h-4 w-4 shrink-0 text-pnu-blue" />
+                    <span>
+                      <span className="font-bold">{t('notices.requiredDocuments')}: </span>
+                      {notification.requiredDocuments.join(', ')}
+                    </span>
+                  </div>
+                ) : null}
               </section>
             ) : null}
             {notification.sourceUrl ? (
