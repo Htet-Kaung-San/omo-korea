@@ -3821,7 +3821,7 @@ const getCareerOpportunities = async (req, res, next) => {
     const seen = new Set();
     const opportunities = [];
 
-    [...storedOpportunities, ...(scrapedData.opportunities || [])].forEach((item) => {
+    [...(scrapedData.opportunities || []), ...storedOpportunities].forEach((item) => {
       const key = item.sourceUrl || `${item.source}:${item.id}`;
       if (seen.has(key)) return;
       seen.add(key);
@@ -3869,7 +3869,7 @@ const getCareerRecommendations = async (req, res, next) => {
       fetchStoredCareerOpportunities({ limit: 10, jobType: jobType || "volunteer" }).catch(() => []),
       fetchStudentContext(req.user.student_id).catch(() => null),
     ]);
-    const recommendedSource = [...volunteerOpportunities, ...(data.opportunities || [])];
+    const recommendedSource = [...(data.opportunities || []), ...volunteerOpportunities];
     const studentProfile = context
       ? adaptStudentProfile(context.rawStudentInput).recommendationProfile
       : {};
