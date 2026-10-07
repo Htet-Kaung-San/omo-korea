@@ -4,6 +4,8 @@
 > An all-in-one onboarding & academic hub for international students at Pusan National University.
 >
 > 제7회 PNU 창의융합AI해커톤 · 융합트랙 · 팀 **5 Guys**
+>
+> 🏆 **우수상 수상 (상금 100만 원)** · Excellence Award (₩1,000,000)
 
 ```mermaid
 erDiagram
